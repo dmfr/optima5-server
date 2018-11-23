@@ -418,9 +418,18 @@ function specDbsTracy_order_setWarning( $post_data ) {
 		$arr_ins['field_EVENT_IS_WARNING'] = 0 ;
 		$arr_ins['field_EVENT_TXT'] = 'Warning suppressed' ;
 	}
-	$filerecord_id = paracrm_lib_data_insertRecord_file( $file_code, $post_data['order_filerecord_id'], $arr_ins );
-	
-	return array('success'=>true, 'id'=>$filerecord_id) ;
+	if( $post_data['order_filerecord_ids'] ) {
+		$ids = array() ;
+		foreach( json_decode($post_data['order_filerecord_ids'],true) as $order_filerecord_id ) {
+			$ids[] = paracrm_lib_data_insertRecord_file( $file_code, $order_filerecord_id, $arr_ins );
+		}
+		return array('success'=>true, 'ids'=>$ids) ;
+	}
+	if( $post_data['order_filerecord_id'] ) {
+		$filerecord_id = paracrm_lib_data_insertRecord_file( $file_code, $post_data['order_filerecord_id'], $arr_ins );
+		return array('success'=>true, 'id'=>$filerecord_id) ;
+	}
+	return array('success'=>false) ;
 }
 function specDbsTracy_order_setKpi( $post_data ) {
 	usleep(100*1000);

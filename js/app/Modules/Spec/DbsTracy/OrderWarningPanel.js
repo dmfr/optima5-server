@@ -54,25 +54,25 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderWarningPanel',{
 		
 		this.callParent() ;
 		
-		if( this._orderFilerecordId ) {
-			this.loadOrder(this._orderFilerecordId) ;
+		if( this._arr_orderFilerecordIds ) {
+			this.loadOrders(this._arr_orderFilerecordIds) ;
 		}
 	},
-	loadOrder: function( orderFilerecordId ) {
+	loadOrders: function( arr_orderFilerecordIds ) {
 		this.showLoadmask() ;
 		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: {
 				_moduleId: 'spec_dbs_tracy',
 				_action: 'order_getRecords',
-				filter_orderFilerecordId_arr: Ext.JSON.encode([orderFilerecordId])
+				filter_orderFilerecordId_arr: Ext.JSON.encode(arr_orderFilerecordIds)
 			},
 			success: function(response) {
 				var ajaxResponse = Ext.decode(response.responseText) ;
-				if( ajaxResponse.success == false || ajaxResponse.data.length != 1 ) {
+				if( ajaxResponse.success == false || ajaxResponse.data.length < 1 ) {
 					Ext.MessageBox.alert('Error','Error') ;
 					return ;
 				}
-				this.onLoadOrder(Ext.ux.dams.ModelManager.create('DbsTracyFileOrderModel',ajaxResponse.data[0])) ;
+				this.onLoadOrders(ajaxResponse.data) ;
 			},
 			callback: function() {
 				this.hideLoadmask() ;
@@ -80,19 +80,46 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderWarningPanel',{
 			scope: this
 		}) ;
 	},
-	onLoadOrder: function(orderRecord) {
-		this.orderRecord = orderRecord ;
-			var headerData = {
-				id_dn: this.orderRecord.get('id_dn'),
-				atr_consignee: this.orderRecord.get('atr_consignee'),
-				date_rls: Ext.util.Format.date(this.orderRecord.steps().findRecord('step_code','10_RLS').get('date_actual'),'d/m/Y H:i:s'),
-				kpi_calc_step: this.orderRecord.get('kpi_calc_step'),
-				kpi_calc_date_target: Ext.util.Format.date(this.orderRecord.get('kpi_calc_date_target'),'d/m/Y H:i:s'),
-				kpi_calc_date_actual: Ext.util.Format.date(this.orderRecord.get('kpi_calc_date_actual'),'d/m/Y H:i:s')
-			};
-			this.down('#pHeader').update(headerData) ;
+	onLoadOrders: function(ordersData) {
+		this._loaded_orderFilerecordIds = null ;
+		
+		var tmpOrderRecord = Ext.ux.dams.ModelManager.create('DbsTracyFileOrderModel',Ext.clone(ordersData[0])) ;
+		
+		var arrIdDns = [],
+			arr_orderFilerecordIds = [],
+			map_hasWarning_objWarning = {} ;
+		
+		Ext.Array.each( ordersData, function(orderData) {
+			arrIdDns.push( orderData.id_dn ) ;
+			arr_orderFilerecordIds.push( orderData.order_filerecord_id ) ;
 			
-			this.down('#pForm').getForm().loadRecord(this.orderRecord) ;
+			var objWarning = {
+				warning_is_on: orderData.warning_is_on,
+				warning_code: orderData.warning_code,
+				warning_txt: orderData.warning_txt
+			};
+			var hashWarning = Ext.JSON.encode(objWarning) ;
+			map_hasWarning_objWarning[hashWarning] = objWarning ;
+		}) ;
+		
+		this._loaded_orderFilerecordIds = arr_orderFilerecordIds ;
+		
+		var headerData = {
+			id_dn: arrIdDns.join(' <b>+</b> '),
+			atr_consignee: tmpOrderRecord.get('atr_consignee'),
+			date_rls: Ext.util.Format.date(tmpOrderRecord.steps().findRecord('step_code','10_RLS').get('date_actual'),'d/m/Y H:i:s'),
+			kpi_calc_step: tmpOrderRecord.get('kpi_calc_step'),
+			kpi_calc_date_target: Ext.util.Format.date(tmpOrderRecord.get('kpi_calc_date_target'),'d/m/Y H:i:s'),
+			kpi_calc_date_actual: Ext.util.Format.date(tmpOrderRecord.get('kpi_calc_date_actual'),'d/m/Y H:i:s')
+		};
+		this.down('#pHeader').update(headerData) ;
+		
+		if( Object.keys(map_hasWarning_objWarning).length == 1 ) {
+			var singleObjKey = Object.keys(map_hasWarning_objWarning)[0] ;
+			this.down('#pForm').getForm().setValues( map_hasWarning_objWarning[singleObjKey] ) ;
+		} else {
+			this.down('#pForm').getForm().setValues( {warning_is_on:false} ) ;
+		}
 	},
 	initHeaderCfg: function() {
 		var headerCfg = {
@@ -144,7 +171,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderWarningPanel',{
 			params: {
 				_moduleId: 'spec_dbs_tracy',
 				_action: 'order_setWarning',
-				order_filerecord_id: this.orderRecord.get('order_filerecord_id'),
+				order_filerecord_ids: Ext.JSON.encode( this._loaded_orderFilerecordIds ),
 				data: Ext.JSON.encode(formData)
 			},
 			success: function(response) {

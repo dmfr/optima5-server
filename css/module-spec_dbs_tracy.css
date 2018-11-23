@@ -168,6 +168,9 @@
 .op5-spec-dbstracy-files-nowarning .x-grid-cell-inner {
 	background: url('../images/op5img/ico_info_small.gif') no-repeat center center ;
 }
+.op5-spec-dbstracy-files-hatwarning .x-grid-cell-inner {
+	background: url('../images/op5img/ico_blocs_blue.gif') no-repeat center center ;
+}
 .op5-spec-dbstracy-files-ediwarning {
 	background-color: #FFCD75 ;
 }

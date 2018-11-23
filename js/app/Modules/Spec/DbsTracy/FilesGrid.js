@@ -931,6 +931,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 			},
 			renderer: function(v,metaData,record) {
 				if( record.get('warning_is_on')===null ) {
+					metaData.tdCls += ' op5-spec-dbstracy-files-hatwarning' ;
 					return ;
 				}
 				if( !record.get('warning_is_on') ) {
@@ -1389,17 +1390,32 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 		
 	},
 	onOrderClick: function( view, record, itemNode, index, e ) {
+		var cellNode = e.getTarget( view.getCellSelector() ),
+			cellColumn = view.getHeaderByCell( cellNode ) ;
+		if( cellColumn.dataIndex=='warning_code' ) {
+			var arr_orderFilerecordIds = [] ;
+			if( record.get('order_filerecord_id') ) {
+				arr_orderFilerecordIds.push( record.get('order_filerecord_id') ) ;
+			}
+			if( record.get('hat_filerecord_id') && record.childNodes ) {
+				Ext.Array.each( record.childNodes, function(childRecord) {
+					if( childRecord.get('order_filerecord_id') ) {
+						arr_orderFilerecordIds.push( childRecord.get('order_filerecord_id') ) ;
+					}
+				}) ;
+			}
+			if( Ext.isEmpty(arr_orderFilerecordIds) ) {
+				return ;
+			}
+			this.openWarningPanel( arr_orderFilerecordIds ) ;
+			return ;
+		}
+		
 		if( !(record.get('order_filerecord_id') > 0) ) {
 			// exclude HAT
 			return ;
 		}
 		
-		var cellNode = e.getTarget( view.getCellSelector() ),
-			cellColumn = view.getHeaderByCell( cellNode ) ;
-		if( cellColumn.dataIndex=='warning_code' ) {
-			this.openWarningPanel( record.get('order_filerecord_id') ) ;
-			return ;
-		}
 		if( cellColumn.dataIndex=='kpi_code' ) {
 			if( record.get('kpi_is_on') && (!record.get('kpi_is_ok_raw') || !record.get('kpi_is_ok')) ) {
 				this.openKpiPanel( record.get('order_filerecord_id') ) ;
@@ -2015,14 +2031,14 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 		}) ;
 	},
 	
-	openWarningPanel: function( orderFilerecordId ) {
+	openWarningPanel: function( arr_orderFilerecordIds ) {
 		if( this._readonlyMode ) {
 			return ;
 		}
 		var postParams = {} ;
 		var orderWarningPanel = Ext.create('Optima5.Modules.Spec.DbsTracy.OrderWarningPanel',{
 			optimaModule: this.optimaModule,
-			_orderFilerecordId: orderFilerecordId,
+			_arr_orderFilerecordIds: arr_orderFilerecordIds,
 			width:500, // dummy initial size, for border layout to work
 			height:null, // ...
 			floating: true,
