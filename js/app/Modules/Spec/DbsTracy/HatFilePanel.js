@@ -315,11 +315,16 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.HatFilePanel',{
 							scope : this
 						});
 						if( Optima5.Modules.Spec.DbsTracy.HelperCache.authHelperQueryPage('ADMIN') ) {
-							gridContextMenuItems.push({
+							gridContextMenuItems.push('-',{
 								iconCls: 'icon-bible-delete',
 								text: 'Unassign',
 								handler : function() {
-									this.doOrdersRemove( [selRecord] ) ;
+									var txt = '<b>'+selRecord.get('id_soc')+'/'+selRecord.get('id_dn')+'</b>' ;
+									Ext.Msg.confirm('Confirm?','Unassign order '+txt+' ?',function(btn){
+										if( btn=='yes' ) {
+											this.doOrdersRemove( [selRecord] ) ;
+										}
+									},this) ;
 								},
 								scope : this
 							});
