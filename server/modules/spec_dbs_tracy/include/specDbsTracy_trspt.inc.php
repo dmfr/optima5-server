@@ -494,12 +494,35 @@ function specDbsTracy_trspt_printDoc( $post_data ) {
 	
 	$trspt_record = $ttmp['data'][0] ;
 	
+	// 12/11/18 : interro Carrier
+	$carrier_entryKey = $trspt_record['mvt_carrier'] ;
+	$query = "SELECT field_TYPE FROM view_bible_LIST_CARRIER_entry WHERE entry_key='{$carrier_entryKey}'" ;
+	$carrier_type = $_opDB->query_uniqueValue($query) ;
+	if( !$post_data['print_type'] ) {
+		switch( strtoupper($carrier_type) ) {
+			case 'INTEGRATEUR' :
+				$post_data['print_type'] = 'integrateur' ;
+				break ;
+			case 'NAVETTE' :
+				$post_data['print_type'] = 'delivery' ;
+				break ;
+			case 'TRANSITAIRE' :
+				$post_data['print_type'] = 'pickup' ;
+				break ;
+		}
+	}
+	
 	$arr_update = array() ;
 	$arr_update['field_PRINT_IS_OK'] = 1 ;
 	paracrm_lib_data_updateRecord_file( 'TRSPT', $arr_update, $p_trsptFilerecordId );
 	
 	//print_r($trspt_record) ;
 	switch( $post_data['print_type'] ) {
+		case 'integrateur' :
+			$title = 'INTEGRATEUR' ;
+			$header_adr = 'Integrateur' ;
+			break ;
+			
 		case 'pickup' :
 			$title = 'MISE A DISPOSITION' ;
 			$header_adr = 'Enlevé par' ;

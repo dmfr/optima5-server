@@ -71,18 +71,36 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 				text:'<b>Print</b>',
 				menu: [{
 					icon: 'images/op5img/ico_print_16.png',
-					text:'Print <b><i>Livraison navette</i></b>',
+					text:'Print / <b>Sélection Auto</b>',
 					handler: function() {
-						this.openPrintPopup('delivery') ;
+						this.openPrintPopup(null) ;
 					},
 					scope:this
-				},{
+				},'-',{
 					icon: 'images/op5img/ico_print_16.png',
-					text:'Print <b><i>Mise à disposition</b>',
-					handler: function() {
-						this.openPrintPopup('pickup') ;
-					},
-					scope:this
+					text:'Print / <i>Autres Modèles</i>',
+					menu: [{
+						icon: 'images/op5img/ico_print_16.png',
+						text:'Print <i>Livraison navette</i></b>',
+						handler: function() {
+							this.openPrintPopup('delivery') ;
+						},
+						scope:this
+					},{
+						icon: 'images/op5img/ico_print_16.png',
+						text:'Print <i>Mise à disposition</i>',
+						handler: function() {
+							this.openPrintPopup('pickup') ;
+						},
+						scope:this
+					},{
+						icon: 'images/op5img/ico_print_16.png',
+						text:'Print <i>Intégrateur</i>',
+						handler: function() {
+							this.openPrintPopup('integrateur') ;
+						},
+						scope:this
+					}]
 				}]
 			}],
 			items:[{
