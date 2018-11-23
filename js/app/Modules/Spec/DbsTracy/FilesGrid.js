@@ -981,7 +981,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 				dateFormat: 'Y-m-d'
 			}
 		},{
-			hidden: true,
+			//hidden: true,
 			hideable: true,
 			text: 'Date CRD',
 			dataIndex: 'date_crd',
