@@ -100,10 +100,6 @@
 			background: #dddddd ;
 		}
 		
-		.letterwidth  {
-			width: 900px ;
-		}
-		
 		.footer-title {
 			color: #333399 ;
 			font-size: 12px ;
@@ -121,10 +117,33 @@
 		}
 
 	</style>
+	<qbook-condition media='POSTAL'>
+	<style>
+	
+		.letterwidth  {
+			width: 900px ;
+		}
+	
+	</style>
+	</qbook-condition>
+	<qbook-condition media='EMAIL'>
+	<style>
+	
+		.letterwidth  {
+			width: 100% ;
+		}
+	
+	</style>
+	</qbook-condition>
+	
+	
+	
 	<body style='background-color:#FFFFFF'>
 		<table class='letterwidth' id='div_header_from' ><tr>
 			<td width="25%" valign="top">
+				<qbook-condition media='POSTAL'>
 				<qbook-value src_value="header_barcode_img"></qbook-value>
+				</qbook-condition>
 				<div style='margin: 6px; padding: 4px; padding-bottom: 12px; '>
 					<b><qbook-value src_value="static_entity_name"></qbook-value></b><br>
 					<qbook-value src_value="static_entity_adr"></qbook-value><br>
@@ -140,6 +159,37 @@
 			</td>
 		</tr></table>
 		
+		<qbook-condition media='EMAIL'>
+		<table class='letterwidth' id='div_header_to' style="padding:10px ; height: 75px"><tr>
+			<td width="58%" valign="top">
+			<br><br>
+			<table>
+				<tr>
+				<td class="celltitle">Votre créancier&nbsp;:&nbsp;<</td>
+				<td class="celldata"><qbook-value src_value="soc_header"></qbook-value></td>
+				</tr>
+				
+				<tr>
+				<td class="celltitle">Référence client&nbsp;:&nbsp;<</td>
+				<td class="celldata"><qbook-value src_value="header_ref_client"></qbook-value></td>
+				</tr>
+				
+				<tr>
+				<td class="celltitle">Date&nbsp;:&nbsp;<</td>
+				<td class="celldata"><qbook-value src_value="body_date"></qbook-value></td>
+				</tr>
+				
+			</table>
+			
+			</td>
+			<td width="42%" valign="top">
+				&nbsp;
+			</td>
+		</tr></table>
+		<br>
+		</qbook-condition>
+		
+		<qbook-condition media='POSTAL'>
 		<table class='letterwidth' id='div_header_to' style="margin:10px ; height: 200px"><tr>
 			<td width="58%" valign="top">
 			
@@ -176,6 +226,7 @@
 			Marseille, le <qbook-value src_value="body_date"></qbook-value>,
 			</td>
 		</tr></table>
+		</qbook-condition>
 		
 		<br><br>
 		
@@ -192,6 +243,7 @@
 		<qbook-value src_value="body_signature"></qbook-value>
 		</div>
 		
+		<qbook-condition media='POSTAL'>
 		<div class="letterwidth" id='div_footer' style="margin:10px">
 		<qbook-value src_value="body_footer"></qbook-value>
 		</div>
@@ -199,6 +251,7 @@
 		<div class="letterwidth" id='div_static_footer' style="margin:10px">
 		<qbook-value src_value="static_mail_footer"></qbook-value>
 		</div>
+		</qbook-condition>
 		
 <qbook-tablerecords>
 		
