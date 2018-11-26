@@ -202,9 +202,9 @@ function specRsiRecouveo_lib_autorun_actions() {
 		}
 		
 		if( $scenstep['exec_is_auto'] 
-		&& $action['link_action']=='MAIL_OUT'
-		&& $action['link_action'] == $scenstep['link_action']
-		&& $action['link_tpl'] == $scenstep['link_tpl'] ) {
+		&& $next_action['link_action']=='MAIL_OUT'
+		&& $next_action['link_action'] == $scenstep['link_action']
+		&& $next_action['link_tpl'] == $scenstep['link_tpl'] ) {
 		
 			specRsiRecouveo_action_execMailAutoAction( array(
 				'file_filerecord_id' => $file_filerecord_id,
