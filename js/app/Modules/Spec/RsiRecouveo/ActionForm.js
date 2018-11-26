@@ -955,6 +955,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 				file_filerecord_id: this._fileRecord.get('file_filerecord_id'),
 				adr_name: adrName,
 				adr_postal: adrPostal,
+				adr_type: 'POSTAL',
 				input_fields: Ext.JSON.encode(inputFields)
 			},
 			success: function(response) {

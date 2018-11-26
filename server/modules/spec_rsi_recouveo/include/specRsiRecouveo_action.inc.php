@@ -1188,6 +1188,7 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 			$json = specRsiRecouveo_doc_getMailOut( array(
 				'tpl_id' => $post_form['tpl_id'],
 				'file_filerecord_id' => $post_data['file_filerecord_id'],
+				'adr_type' => 'POSTAL',
 				'adr_name' => $post_form['adrpost_entity_name'],
 				'adr_postal' => $post_form['adrpost_txt'],
 				'input_fields' => json_encode($input_fields)
