@@ -1235,7 +1235,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 					record_id: fileRecordRecord.get('record_id'),
 					record_ref: fileRecordRecord.get('record_ref'),
 					record_txt: fileRecordRecord.get('record_txt'),
-					record_date: fileRecordRecord.get('date_value'),
+					record_date: fileRecordRecord.get('date_record'),
 					record_dateload: fileRecordRecord.get('date_load'),
 					record_amount: fileRecordRecord.get('amount'),
 					record_xe_currency_amount: fileRecordRecord.get('xe_currency_amount'),

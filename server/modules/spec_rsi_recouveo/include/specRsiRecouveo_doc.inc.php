@@ -367,7 +367,7 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE, $stopAsHtm
 	$map_columns = array(
 		'record_ref' => 'Réf. pièce',
 		'record_txt' => 'Libellé',
-		'date_value' => 'Date',
+		'date_record' => 'Date',
 		'type_temprec' => 'Journal',
 		'amount_tot' => 'Montant'
 	);
