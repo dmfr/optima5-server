@@ -1171,9 +1171,33 @@ function specDbsLam_transfer_removeCdeLink($post_data) {
 		return array('success'=>false) ;
 	}
 	
+	
+	
 	$query = "SELECT count(*) FROM view_file_TRANSFER_LIG WHERE filerecord_parent_id='{$p_transferFilerecordId}'" ;
-	if( ($_opDB->query_uniqueValue($query) != 0) ) {
-		return array('success'=>false) ;
+	if( ($_opDB->query_uniqueValue($query) == 0) ) {
+		// OK
+	} else {
+		// vérif de chaque ligne
+		foreach( $p_cdesFilerecordIds as $cde_filerecord_id ) {
+			$arr_cdeligFilerecordIds = array() ;
+			$query = "SELECT filerecord_id FROM view_file_CDE_LIG WHERE filerecord_parent_id='{$cde_filerecord_id}'" ;
+			$result = $_opDB->query($query) ;
+			while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+				$arr_cdeligFilerecordIds[] = $arr[0] ;
+			}
+			
+			foreach( $arr_cdeligFilerecordIds as $cdelig_filerecord_id ) {
+				$query = "SELECT count(*)
+					FROM view_file_CDE_LIG cl
+					INNER JOIN view_file_TRANSFER_CDE_LINK tcl ON tcl.field_FILE_CDELIG_ID=cl.filerecord_id
+					INNER JOIN view_file_TRANSFER_CDE_NEED tcn ON tcn.filerecord_id=tcl.field_FILE_TRSFRCDENEED_ID
+					INNER JOIN view_file_TRANSFER_LIG tl ON tl.field_PICK_TRSFRCDENEED_ID=tcn.filerecord_id
+					WHERE cl.filerecord_id='{$cdelig_filerecord_id}'" ;
+				if( $_opDB->query_uniqueValue($query) > 0 ) {
+					return array('success'=>false) ;
+				}
+			}
+		}
 	}
 	
 	foreach( $p_cdesFilerecordIds as $cde_filerecord_id ) {
