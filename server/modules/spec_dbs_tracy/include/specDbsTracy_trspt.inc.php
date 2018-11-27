@@ -696,6 +696,24 @@ function specDbsTracy_trspt_printDoc( $post_data ) {
 			$buffer.= "</td>" ;
 			$buffer.= "</tr></table>" ;
 			break ;
+			
+			case 'integrateur' :
+			$buffer.= "<table border='0' cellspacing='5' cellpadding='5' width='800'>" ;
+			$buffer.= "<tr>" ;
+			$buffer.= "<td width='50%'  valign='top' style='border: 1px solid gray'>" ;
+				$buffer.= '<span class="mybig">' ;
+				$buffer.= '<b>'.'INTEGRATEUR :'.'</b><br>' ;
+				$buffer.= ''.'DATE :'.'<br>' ;
+				$buffer.= ''.'HEURE :'.'<br>' ;
+				$buffer.= ''.'NOM :'.'<br>' ;
+				$buffer.= "</span>" ;
+			$buffer.= "</td>" ;
+			$buffer.= "<td>&nbsp;</td>" ;
+			$buffer.= "<td width='50%'  valign='top' style='border: 1px solid gray'>" ;
+				$buffer.= "&nbsp;" ;
+			$buffer.= "</td>" ;
+			$buffer.= "</tr></table>" ;
+			break ;
 		}
 		
 		$buffer.= "<br>" ;
