@@ -3,6 +3,10 @@
 function specDbsLam_transfer_getTransfer($post_data) {
 	global $_opDB ;
 	
+	if( $post_data['filter_transferFilerecordId'] ) {
+		specDbsLam_transfer_lib_updateStatus($post_data['filter_transferFilerecordId']) ;
+	}
+	
 	$TAB = array() ;
 	
 	$query = "SELECT * FROM view_file_TRANSFER" ;
@@ -21,12 +25,16 @@ function specDbsLam_transfer_getTransfer($post_data) {
 			'transfer_tpltxt' => $arr['field_TRANSFER_TPLTXT'],
 			'status_is_on' => $arr['field_STATUS_IS_ON'],
 			'status_is_ok' => $arr['field_STATUS_IS_OK'],
+			'date_touch' => substr($arr['field_DATE_TOUCH'],0,10),
 			'spec_cde' => !!$arr['field_SPEC_CDE'],
 			'steps' => array(),
 			'cde_links' => array(),
 			'cde_needs' => array(),
 			'ligs' => array()
 		);
+		if( !$TAB[$filerecord_id]['date_touch'] || $TAB[$filerecord_id]['date_touch']=='0000-00-00' ) {
+			$TAB[$filerecord_id]['date_touch'] = null ;
+		}
 		if( $post_data['filter_transferFilerecordId'] && !$post_data['filter_fast'] ) {
 			$ttmp = specDbsLam_transfer_getTransferLig($post_data) ;
 			$TAB[$filerecord_id]['ligs'] = $ttmp['data'] ;
@@ -935,6 +943,7 @@ function specDbsLam_transfer_createDoc($post_data) {
 	
 	$arr_ins = array(
 		'field_TRANSFER_TXT' => $form_data['transfer_txt'] ,
+		'field_DATE_TOUCH' => date('Y-m-d H:i:s')
 	);
 	foreach( $tpltransfer_row as $mkey=>$mvalue ) {
 		$dbkey = 'field_'.strtoupper($mkey) ;
@@ -1072,7 +1081,71 @@ function specDbsLam_transfer_lib_advanceDoc($transfer_filerecordId) {
 	
 }
 
-
+function specDbsLam_transfer_lib_updateStatus($transfer_filerecordId) {
+	global $_opDB ;
+	
+	$arr_update = array() ;
+	$arr_update['field_STATUS_IS_ON'] = 0 ;
+	$arr_update['field_STATUS_IS_OK'] = 0 ;
+	
+	$query = "SELECT mvt.field_COMMIT_IS_OK, max(mvt.field_COMMIT_DATE), count(*)
+				FROM view_file_TRANSFER_LIG tl
+				JOIN view_file_MVT mvt ON mvt.filerecord_id=tl.field_FILE_MVT_ID
+				WHERE tl.filerecord_parent_id='{$transfer_filerecordId}'
+				GROUP BY field_COMMIT_IS_OK" ;
+	$result = $_opDB->query($query) ;
+	if( $_opDB->num_rows($result) > 0 ) {
+		$arr_update['field_STATUS_IS_OK'] = 1 ;
+	}
+	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+		$arr_update['field_STATUS_IS_ON'] = 1 ;
+		if( $arr[0] ) {
+			$arr_update['field_DATE_TOUCH'] = $arr[1] ;
+		} else {
+			$arr_update['field_STATUS_IS_OK'] = 0 ;
+		}
+	}
+	
+	
+	$spec_cde = FALSE ;
+	$spec_noCdeOut_stepIdx = 0 ;
+	
+	$query = "SELECT field_TRANSFERSTEP_IDX FROM view_file_TRANSFER_STEP 
+			WHERE filerecord_parent_id='{$transfer_filerecordId}' AND field_SPEC_NOCDE_OUT='1'
+			ORDER BY field_TRANSFERSTEP_IDX DESC LIMIT 1" ;
+	$spec_noCdeOut_stepIdx = $_opDB->query_uniqueValue($query) ;
+	
+	$query = "SELECT field_SPEC_CDE FROM view_file_TRANSFER WHERE filerecord_id='{$transfer_filerecordId}'" ;
+	$spec_cde = !!$_opDB->query_uniqueValue($query) ;
+	
+	$_outPending = FALSE ;
+	if( $spec_noCdeOut_stepIdx > 0 ) {
+		$query = "SELECT count(*) FROM view_file_TRANSFER_LIG tl 
+				WHERE filerecord_parent_id='{$transfer_filerecordId}' and field_TRANSFERSTEP_IDX='{$spec_noCdeOut_stepIdx}'
+				AND field_STATUS_IS_OUT='0'" ;
+		if( $_opDB->query_uniqueValue($query) > 0 ) {
+			$_outPending = TRUE ;
+		}
+	}
+	if( $spec_cde ) {
+		$query = "SELECT count(*) FROM view_file_TRANSFER_CDE_PACK tcp
+				WHERE filerecord_parent_id='{$transfer_filerecordId}'" ;
+		if( $_opDB->query_uniqueValue($query) == 0 ) {
+			$_outPending = TRUE ;
+		}
+		$query = "SELECT count(*) FROM view_file_TRANSFER_CDE_PACK tcp
+				WHERE filerecord_parent_id='{$transfer_filerecordId}'
+				AND field_STATUS_IS_SHIPPED='0'" ;
+		if( $_opDB->query_uniqueValue($query) > 0 ) {
+			$_outPending = TRUE ;
+		}
+	}
+	if( !$_outPending && $arr_update['field_STATUS_IS_OK'] ) {
+		$arr_update['field_STATUS_IS_ON'] = 0 ;
+	}
+	
+	paracrm_lib_data_updateRecord_file('TRANSFER',$arr_update,$transfer_filerecordId) ;
+}
 
 
 

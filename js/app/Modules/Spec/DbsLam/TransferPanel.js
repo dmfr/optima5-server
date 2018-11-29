@@ -2,6 +2,7 @@ Ext.define('DbsLamTransferTreeModel',{
 	extend: 'Ext.data.Model',
 	fields: [
 		{name: 'display_txt', string: 'string'},
+		{name: 'display_date', string: 'date', allowNull:true, dateFormat:'Y-m-d'},
 		{name: 'type', type:'string'},
 		{name: 'transfer_filerecord_id', type:'int'},
 		{name: 'status_is_on', type:'boolean'},
@@ -166,7 +167,8 @@ Ext.define('DbsLamTransferOneModel',{
 		{name: 'transfer_tpltxt', type:'string'},
 		{name: 'spec_cde', type:'boolean'},
 		{name: 'status_is_on', type:'boolean'},
-		{name: 'status_is_ok', type:'boolean'}
+		{name: 'status_is_ok', type:'boolean'},
+		{name: 'date_touch', type:'date', dateFormat:'Y-m-d'}
 	],
 	hasMany: [{
 		model: 'DbsLamTransferStepModel',
@@ -258,24 +260,26 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 						text: 'Document ID',
 						width: 180
 					},{
-						dataIndex: 'status_is_ok',
-						text: '<b>Status</b>',
-						width: 70,
-						renderer: function(v,metaData,record) {
-							if( record.get('status_is_ok') ) {
-								metadata.tdCls = 'op5-spec-dbslam-stock-ok'
-							} else if( record.get('status_is_on') ) {
-								return 'ACTIVE' ;
-							} else if( record.get('type') == 'transfer' ) {
-								return '-' ;
-							}
-						}
+						xtype: 'datecolumn',
+						format: 'd/m/Y',
+						dataIndex: 'display_date',
+						text: 'Date',
+						width: 100
 					}]
 				},
 				listeners: {
 					itemcontextmenu: this.onTransfersContextMenu,
 					selectionchange: this.onTransfersSelection,
 					scope: this
+				},
+				viewConfig: {
+					//enableTextSelection: true,
+					//preserveScrollOnRefresh: true,
+					getRowClass: function(record) {
+						if( record.get('type')=='transfer' && ( record.get('status_is_on') || !record.get('status_is_ok') ) ) {
+							return 'op5-spec-dbslam-transfer-active' ;
+						}
+					}
 				}
 			},{
 				flex: 2,
@@ -628,7 +632,22 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 	
 	
 	
-	
+	doLoadTransfers_tool_getIconUrl: function( transferDocData ) {
+		var iconUrl ;
+		if( !transferDocData.status_is_on && !transferDocData.status_is_ok ) {
+			iconUrl = 'images/op5img/ico_wait_small.gif' ;
+		}
+		if( transferDocData.status_is_on && !transferDocData.status_is_ok ) {
+			iconUrl = 'images/op5img/ico_orangedot.gif' ;
+		}
+		if( transferDocData.status_is_on && transferDocData.status_is_ok ) {
+			iconUrl = 'images/op5img/ico_greendot.gif' ;
+		}
+		if( !transferDocData.status_is_on && transferDocData.status_is_ok ) {
+			iconUrl = ' ' ;
+		}
+		return iconUrl ;
+	},
 	doLoadTransfers: function() {
 		var ajaxParams = {
 			_moduleId: 'spec_dbs_lam',
@@ -645,14 +664,18 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 				
 				var map_flowCode_rows = {} ;
 				var map_flowCode_txt = {} ;
-				Ext.Array.each( ajaxResponse.data, function(transferDoc) {
+				Ext.Array.each( ajaxResponse.data, function(transferDocData) {
+					var transferRecord = Ext.ux.dams.ModelManager.create('DbsLamTransferOneModel',transferDocData),
+						transferDoc = transferRecord.getData() ;
 					var row = {
 						leaf: true,
 						type: 'transfer',
 					};
 					Ext.applyIf(row,transferDoc) ;
 					Ext.apply(row,{
-						display_txt: transferDoc.transfer_txt
+						icon: this.doLoadTransfers_tool_getIconUrl(transferDoc),
+						display_txt: transferDoc.transfer_txt,
+						display_date: transferDoc.date_touch
 					}) ;
 					
 					if( !map_flowCode_rows.hasOwnProperty(transferDoc.transfer_tpl) ) {
@@ -660,7 +683,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 						map_flowCode_txt[transferDoc.transfer_tpl] = transferDoc.transfer_tpltxt ;
 					}
 					map_flowCode_rows[transferDoc.transfer_tpl].push(row) ;
-				}) ;
+				},this) ;
 				
 				var rootChildren = [{
 					icon: 'images/op5img/ico_new_16.gif',
@@ -711,6 +734,16 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 		pTransfers.getSelectionModel().setLocked(true) ;
 		this.doTransferLoad( transferFilerecordId, true ) ;
 	},
+	setActiveTransferIcon: function(transferFilerecordId, iconUrl) { // HACK?
+		var pTransfers = this.down('#pTransfers'),
+			pTransfersSelection = pTransfers.getSelectionModel().getSelection() ;
+		if( pTransfersSelection.length==1 && pTransfersSelection[0].get('type')=='transfer' 
+			&& pTransfersSelection[0].get('transfer_filerecord_id')==transferFilerecordId ) {
+			
+			pTransfersSelection[0].set('icon',iconUrl) ;
+			pTransfers.getView().refresh() ;
+		}
+	},
 	
 	doTransferLoad: function( transferFilerecordId=null, doBuildTabs=false ) {
 		if( !transferFilerecordId && this._activeTransferRecord ) {
@@ -749,6 +782,10 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 		//build record
 		var transferRecord = Ext.ux.dams.ModelManager.create('DbsLamTransferOneModel',transferRow) ;
 		this._activeTransferRecord = transferRecord ;
+		this.setActiveTransferIcon( 
+			this._activeTransferRecord.get('transfer_filerecord_id'),
+			this.doLoadTransfers_tool_getIconUrl(transferRecord.getData())
+		) ;
 		
 		if( doBuildTabs ) {
 			this.buildTabs() ;

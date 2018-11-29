@@ -148,6 +148,10 @@
 	background-color: #5AB5FF !important;
 }
 
+.op5-spec-dbslam-transfer-active .x-grid-cell-inner {
+	font-weight: bold !important;
+}
+
 
 .op5-spec-dbslam-liveadr-adr {
 	font-size: 18px ;
