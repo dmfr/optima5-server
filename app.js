@@ -99,6 +99,45 @@ Ext.onReady(function () {
 		}
 	});
 	
+	
+	/*
+	 * Ext 5.1.1 : bug Store if filtered initially
+	 * https://www.sencha.com/forum/showthread.php?301221-Ext-5-1-1-Bug-in-LocalStore-js/page2&s=cdf893beeb58134dad984b372228a60c
+	 */
+	Ext.data.Store.override({
+		getByInternalId: function(internalId) {
+			var data = this.getData(),
+					keyCfg;
+	
+			if (data.filtered) {
+					if (!data.$hasExtraKeys) {
+						keyCfg = {
+							byInternalId: {
+								property: 'internalId',
+								rootProperty: ''
+							}
+						};
+						data.setExtraKeys(keyCfg);
+						data.$hasExtraKeys = true;
+					}
+					data = data.getSource();
+			}
+	
+			if (!data.$hasExtraKeys) {
+					data.setExtraKeys(keyCfg || {
+						byInternalId: {
+							property: 'internalId',
+							rootProperty: ''
+						}
+					});
+					data.$hasExtraKeys = true;
+			}
+	
+			return data.byInternalId.get(internalId) || null;
+		},
+	});
+	
+	
 	/*
 	 * Ext 5.1.1 : applyRoot if TreeStore::setRoot() called with NodeInterface
 	 */
