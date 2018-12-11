@@ -890,7 +890,11 @@ function specDbsLam_lib_procCde_searchStock_doSearch( $whse_src, $stk_prod, &$qt
 	if( $from_picking ) {
 		$query.= " AND (adr.field_CONT_IS_ON='0' OR (adr.field_CONT_IS_ON='1' AND adr.field_CONT_IS_PICKING='1'))" ;
 	}
-	$query.= " ORDER BY field_LAM_DATEUPDATE ASC" ;
+	if( $from_picking ) {
+		$query.= " ORDER BY (field_QTY_AVAIL+field_QTY_PREIN) ASC" ;
+	} else {
+		$query.= " ORDER BY field_LAM_DATEUPDATE ASC" ;
+	}
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
 		if( $qty <= 0 ) {
