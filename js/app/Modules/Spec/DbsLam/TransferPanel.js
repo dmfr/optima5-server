@@ -517,8 +517,8 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 		pCenterTb.down('#btnWhseSeparator').setVisible(activeTransferStepRecord);
 		pCenterTb.down('#btnWhseDest').setVisible(activeTransferStepRecord);
 		if( activeTransferStepRecord ){
-			pCenterTb.down('#btnWhseSrc').setValue( activeTransferStepRecord.get('whse_src') ) ;
-			pCenterTb.down('#btnWhseDest').setValue( activeTransferStepRecord.get('whse_dst') ) ;
+			pCenterTb.down('#btnWhseSrc').setValue( activeTransferStepRecord.get('whse_src'), true ) ;
+			pCenterTb.down('#btnWhseDest').setValue( activeTransferStepRecord.get('whse_dst'), true ) ;
 		}
 		
 		var hasBuildPick = activeTab.hasBuildPick(),

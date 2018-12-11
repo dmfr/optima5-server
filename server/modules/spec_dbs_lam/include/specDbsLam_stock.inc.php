@@ -67,6 +67,8 @@ function specDbsLam_stock_getGrid($post_data) {
 		$row['pos_level'] = $arr['ADR_field_POS_LEVEL'] ;
 		$row['pos_bin'] = $arr['ADR_field_POS_BIN'] ;
 		
+		$row['status_is_active'] = !!$arr['ADR_field_STATUS_IS_ACTIVE'] ;
+		
 		$status = TRUE ;
 		foreach( $json_cfg['cfg_attribute'] as $stockAttribute_obj ) {
 			if( !$stockAttribute_obj['ADR_fieldcode'] ) {
@@ -78,10 +80,10 @@ function specDbsLam_stock_getGrid($post_data) {
 			$ttmp = ($arr[$ADR_fieldcode] ? json_decode($arr[$ADR_fieldcode]) : array()) ;
 			$row[$mkey] = (string)reset($ttmp) ;
 			if( !$row[$mkey] ) {
-				$status = FALSE ;
+				//$status = FALSE ;
 			}
 		}
-		if( !$arr['ADR_field_STATUS_IS_ACTIVE'] ) {
+		if( !$arr['ADR_field_STATUS_IS_ACTIVE'] && !$arr['STOCK_filerecord_id'] ) {
 			$status = FALSE ;
 		}
 		foreach( $json_cfg['cfg_attribute'] as $stockAttribute_obj ) {

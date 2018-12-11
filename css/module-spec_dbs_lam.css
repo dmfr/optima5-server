@@ -138,6 +138,9 @@
 	background: url('../images/op5img/ico_arrow-double_16.png') no-repeat center center ;
 }
 
+.x-grid-item-selected .op5-spec-dbslam-stock-disabled .x-grid-cell-inner {
+	background-color: #dfe8f6 !important;
+}
 .op5-spec-dbslam-stock-disabled .x-grid-cell-inner {
 	background-color: #cccccc ;
 }
@@ -268,4 +271,16 @@
 .op5-spec-dbslam-transferaction-stkallocoff {
 	background-image: url("../images/modules/dbslam-stkallocoff-16.png") !important;
 }
+
+
+.op5-spec-dbslam-stock-status-all {
+	background-image: url("../images/modules/dbslam-order-16.gif") !important;
+}
+.op5-spec-dbslam-stock-status-active {
+	background-image: url("../images/modules/dbslam-ordergroup-16.png") !important;
+}
+.op5-spec-dbslam-stock-status-stock {
+	background-image: url("../images/modules/dbslam-quickopen-16.png") !important;
+}
+
 

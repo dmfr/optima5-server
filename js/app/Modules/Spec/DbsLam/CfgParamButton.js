@@ -75,10 +75,10 @@ Ext.define('Optima5.Modules.Spec.DbsLam.CfgParamButton' ,{
 		return retValue ;
 	},
 	
-	setValue: function(val) {
+	setValue: function(val, disableTree=false) {
 		var cfgParamTree = this.menu.down('treepanel') ;
 		cfgParamTree.setValue(val) ;
-		cfgParamTree.setVisible((val==null)) ;
+		cfgParamTree.setVisible(!disableTree || (val==null)) ;
 	},
 	
 	onAfterLoad: function() {

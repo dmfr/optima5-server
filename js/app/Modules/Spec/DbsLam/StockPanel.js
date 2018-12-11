@@ -71,7 +71,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockPanel',{
 						this.doQuit() ;
 					},
 					scope: this
-				},Ext.create('Optima5.Modules.Spec.DbsLam.CfgParamButton',{
+				},'-',Ext.create('Optima5.Modules.Spec.DbsLam.CfgParamButton',{
 					cfgParam_id: 'WHSE',
 					icon: 'images/op5img/ico_blocs_small.gif',
 					text: 'Sites / Warehouses',
@@ -91,16 +91,116 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockPanel',{
 							scope: this
 						}
 					}
-				}),'-',{
-					icon:'images/op5img/ico_new_16.gif',
-					text:'Création adresse(s)',
-					handler: function() { this.handleNew() },
-					scope: this
+				}),{
+					xtype: 'tbseparator',
+					_visibleIfWhse: true
 				},{
-					icon:'images/op5img/ico_print_16.png',
-					text:'Impression Inventaires'
-				}],
-				items: []
+					_visibleIfWhse: true,
+					//iconCls: 'op5-spec-dbsembramach-report-clock',
+					itemId: 'tbViewmode',
+					viewConfig: {forceFit: true},
+					menu: {
+						defaults: {
+							handler:function(menuitem) {
+								//console.log('ch view '+menuitem.itemId) ;
+								this.onViewSelect( menuitem.itemId ) ;
+							},
+							scope:this
+						},
+						items: [{
+							itemId: 'status_all',
+							text: 'All locations',
+							iconCls: 'op5-spec-dbslam-stock-status-all'
+						},{
+							itemId: 'status_active',
+							text: 'Active locations',
+							iconCls: 'op5-spec-dbslam-stock-status-active'
+						},{
+							itemId: 'status_stock',
+							text: 'Occupied locations',
+							iconCls: 'op5-spec-dbslam-stock-status-stock'
+						}]
+					}
+				},{
+					xtype: 'tbseparator',
+					_visibleIfWhse: true
+				},{
+					icon: 'images/op5img/ico_loupe_16.png',
+					_visibleIfWhse: true
+				},{
+					_visibleIfWhse: true,
+					xtype: 'textfield',
+					itemId: 'btnSearch',
+					width: 150,
+					forceSelection:false,
+					allowBlank:true,
+					editable:true,
+					typeAhead:true,
+					queryMode: 'remote',
+					displayField: 'search_txt',
+					valueField: 'search_txt',
+					queryParam: 'filter_searchTxt',
+					minChars: 2,
+					triggers: {
+						clear: {
+							cls: Ext.baseCSSPrefix + 'form-clear-trigger',
+							handler: function(field) {
+								field.reset() ;
+							}
+						}
+					},
+					store: {
+						fields: ['search_txt'],
+						proxy: this.optimaModule.getConfiguredAjaxProxy({
+							extraParams : {
+								_moduleId: 'spec_dbs_tracy',
+								_action: 'hat_searchSuggest',
+								limit: 20
+							},
+							reader: {
+								type: 'json',
+								rootProperty: 'data'
+							}
+						}),
+						listeners: {
+							beforeload: function(store,options) {
+								return false ; // HACK to disable remote loading
+								
+								var params = options.getParams() ;
+								Ext.apply(params,{
+									filter_socCode: socCode
+								}) ;
+								options.setParams(params) ;
+							},
+							scope: this
+						}
+					},
+					enableKeyEvents: true,
+					listeners: {
+						/*
+						change: function() {
+							if( this.autoRefreshTask ) {
+								this.autoRefreshTask.cancel() ;
+							}
+						},
+						select: this.onSearchSelect,
+						*/
+						change: {
+							fn: function(field) {
+								this.onSearchChange() ;
+							},
+							scope: this,
+							buffer: 500
+						},
+						afterrender: function( field ) {
+							var triggers = field.getTriggers() ;
+							if( triggers.picker ) {
+								triggers.picker.hide() ;
+							}
+						},
+						scope: this
+					}
+				}]
 			},{
 				region: 'east',
 				flex: 2,
@@ -141,9 +241,25 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockPanel',{
 		}
 		
 		this.doConfigure() ;
+		this.doSetDefaults() ;
 	},
 	
-	
+	doSetDefaults: function() {
+		this.onViewSelect('status_active') ;
+		
+		//search for single "STOCK" warehouse ( != WORK warehouse )
+		var stockWhses = [] ;
+		Ext.Array.each( Optima5.Modules.Spec.DbsLam.HelperCache.getWhseAll(), function( whseRow ) {
+			if( whseRow.is_stock ) {
+				stockWhses.push( whseRow.whse_code ) ;
+			}
+		}) ;
+		if( stockWhses.length==1 ) {
+			var stockWhseCode = stockWhses[0] ;
+			var btnWhse = this.down('toolbar').down('#btnWhse') ;
+			btnWhse.setValue(stockWhseCode) ;
+		}
+	},
 	onWhseSet: function() {
 		var filterSiteBtn = this.down('#btnWhse') ;
 		if( !Ext.isEmpty(filterSiteBtn.getValue()) ) {
@@ -154,8 +270,132 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockPanel',{
 		
 		this.doConfigure() ;
 	},
+	onViewSelect: function(viewId) {
+		var tbViewmode = this.down('#tbViewmode') ;
+		if( viewId==null && tbViewmode.tbViewmodeItemId ) {
+			viewId = tbViewmode.tbViewmodeItemId ;
+		}
+			
+		var tbViewmode = this.down('#tbViewmode'),
+			tbViewmodeItem = tbViewmode.menu.getComponent(viewId),
+			iconCls, text ;
+		if( !tbViewmodeItem ) {
+			return ;
+		}
+		tbViewmode.tbViewmodeItemId = viewId ;
+		// View mode
+		var tbViewmodeItem = tbViewmode.menu.getComponent(viewId) ;
+		if( tbViewmodeItem ) {
+			tbViewmode.setText( '<b>' + tbViewmodeItem.text + '</b>' );
+			tbViewmode.setIconCls( tbViewmodeItem.iconCls );
+		}
+		
+		this.applyViewFilter() ;
+	},
+	applyViewFilter: function() {
+		var tbViewmode = this.down('#tbViewmode') ;
+		if(tbViewmode.tbViewmodeItemId ) {
+			viewId = tbViewmode.tbViewmodeItemId ;
+		}
+		if( Ext.isEmpty(viewId) ) {
+			return ;
+		}
+		
+		// filters ?
+		var doFilterActive = Ext.Array.contains(['status_active','status_stock'],viewId),
+			doFilterStock = Ext.Array.contains(['status_stock'],viewId),
+			onSearchMode = false ;
+		if( onSearchMode ) {
+			doFilterActive = false ;
+			doFilterStock = false ;
+		}
+		
+		if( !this.down('#pGrid') ) {
+			// no grid has been initialized yet ! stop
+			return ;
+		}
+		
+		// apply filters
+		var gridStore = this.down('#pGrid').getStore() ;
+		if( doFilterActive ) {
+			gridStore.filter({
+				property: 'status',
+				operator: '!=',
+				value: false
+			}) ;
+		} else {
+			gridStore.removeFilter('status') ;
+		}
+		if( doFilterStock ) {
+			gridStore.filter({
+				property: 'stk_filerecord_id',
+				operator: '>',
+				value: 0
+			}) ;
+		} else {
+			gridStore.removeFilter('stk_filerecord_id') ;
+		}
+		/*
+		this.configureToolbar() ;
+		this.configureViews() ;
+		
+		this.doLoad(true) ;
+		*/
+	},
+	onSearchChange: function() {
+		var btnSearch = this.down('#btnSearch') ;
+		var btnSearchTxt = btnSearch.getValue().toLowerCase() ;
+		
+		var gridPanel = this.down('#pGrid') ;
+		gridPanel.filters.clearFilters() ;
+		var gridStore = this.down('#pGrid').getStore() ;
+		gridStore.clearFilter() ;
+		
+		
+		if( Ext.isEmpty(btnSearchTxt) ) {
+			this.onViewSelect(null) ;
+			return ;
+		}
+		
+		// visible fields if the grid header
+		var visibleDataIndexes = [] ;
+		Ext.Array.each( gridPanel.getVisibleColumns(), function( gridCol ) {
+			if( !Ext.isEmpty(gridCol.dataIndex) ) {
+				visibleDataIndexes.push( gridCol.dataIndex ) ;
+			}
+		}) ;
+		
+		// do filtering with a custom function
+		gridStore.filterBy( function(record) {
+			// For each record, iterate over the FIELDS, and for each field "string compare" to btnSearchTxt
+			var isItAMatch = false ;
+			Ext.Array.each( visibleDataIndexes, function( dataIndex ) {
+				var recordFieldValue = record.get(dataIndex) ;
+				if( !Ext.isString(recordFieldValue) ) {
+					return ;
+				}
+				if( recordFieldValue.toLowerCase().indexOf(btnSearchTxt) != -1 ) {
+					// not equal to -1 => found !
+					isItAMatch = true ;
+				}
+			}) ;
+			return isItAMatch ;
+		}) ;
+	},
+	
 	doConfigure: function() {
 		var pCenter = this.down('#pCenter') ;
+		
+		// Toolbar
+		var tb = pCenter.down('toolbar') ;
+		var hasWhse = !!this.whseCode ;
+		tb.items.each( function(tbItem) {
+			if( tbItem._visibleIfWhse ) {
+				// hide or show
+				tbItem.setVisible( hasWhse ) ;
+			}
+		}) ;
+		
 		
 		if( !this.whseCode ) {
 			pCenter.removeAll() ;
@@ -445,15 +685,23 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockPanel',{
 				pluginId: 'bufferedRenderer',
 				synchronousRender: true
 			},{
-				ptype: 'uxgridfilters'
+				ptype: 'uxgridfilters',
+				pluginId: 'filters'
 			}],
 			viewConfig: {
+				enableTextSelection: true,
 				preserveScrollOnRefresh: true,
 				getRowClass: function(record) {
+					/*
+					var view = this,
+						selModel = view.getSelectionModel(),
+						selRecords = selModel.getSelection() ;
+					var selected = ( selRecords && Ext.Array.contains(selRecords,record) ) ;
+					*/
 					if( record.get('inv_qty_out') > 0 && record.get('inv_qty') == 0 ) {
 						return 'op5-spec-dbslam-stock-out' ;
 					}
-					if( !record.get('status') ) {
+					if( !record.get('status_is_active') ) {
 						return 'op5-spec-dbslam-stock-disabled' ;
 					}
 				},
@@ -494,6 +742,8 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockPanel',{
 		
 		pCenter.removeAll() ;
 		pCenter.add(treepanelCfg,gridpanelCfg) ;
+		
+		this.applyViewFilter() ;
 	},
 	
 	
@@ -649,29 +899,13 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockPanel',{
 	
 	
 	onBeforeExpandEast: function( eastpanel ) {
-		eastpanel.removeAll() ;
-		eastpanel.add({
-			xtype: 'form',
-			cls: 'ux-noframe-bg',
-			bodyPadding: 10,
-			bodyCls: 'ux-noframe-bg',
-			items: [{
-				xtype: 'fieldset',
-				title: 'Document selection',
-				items: [{
-					xtype: 'textfield',
-					fieldLabel: 'Adjust qty.'
-				}]
-			},{
-				xtype: 'fieldset',
-				title: 'Document selection',
-				items: [{
-					xtype: 'textfield',
-					fieldLabel: 'Adjust qty.'
-				}]
-			}]
-
-		}) ;
+		return ;
+	},
+	doConfigureEastAdr: function( eastpanel ) {
+		
+	},
+	doConfigureEastStock: function( eastpanel ) {
+		
 	},
 	
 	
