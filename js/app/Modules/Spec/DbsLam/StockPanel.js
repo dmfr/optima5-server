@@ -40,7 +40,11 @@ Ext.define('DbsLamStockGridModel',{
 Ext.define('Optima5.Modules.Spec.DbsLam.StockPanel',{
 	extend:'Ext.panel.Panel',
 	
-	requires: ['Optima5.Modules.Spec.DbsLam.CfgParamButton'],
+	requires: [
+		'Optima5.Modules.Spec.DbsLam.CfgParamButton',
+		'Optima5.Modules.Spec.DbsLam.StockAdrForm',
+		'Optima5.Modules.Spec.DbsLam.StockInvForm'
+	],
 	
 	_popupMode: false,
 	_enableDD: false,
@@ -203,23 +207,23 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockPanel',{
 				}]
 			},{
 				region: 'east',
+				itemId: 'pEast',
 				flex: 2,
 				xtype: 'panel',
 				layout: 'fit',
-				itemId:'mStockFormContainer',
+				hidden: true,
 				collapsible:true,
-				collapsed: true,
+				titleCollapse: false,
 				_empty:true,
-				listeners:{
-					/*
-					beforeexpand:function(eastpanel) {
-						if( eastpanel._empty ) {
-							return false;
-						}
+				tools: [{
+					type: 'close',
+					handler: function(e, t, p) {
+						this.handleEastDestroy() ;
 					},
-					*/
-					beforeexpand: this.onBeforeExpandEast,
-					scope:this
+					scope: this
+				}],
+				listeners:{
+					
 				}
 			}]
 		});
@@ -715,7 +719,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockPanel',{
 				}
 			},
 			listeners: {
-				itemclick: this.onItemClick,
+				itemcontextmenu: this.onItemContextMenu,
 				scope: this
 			}
 		};
@@ -804,6 +808,112 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockPanel',{
 			eastpanel.removeAll() ;
 			return ;
 		}
+	},
+	
+	
+	onItemContextMenu: function(view, record, item, index, event) {
+		var selRecords = view.getSelectionModel().getSelection();
+		
+		var gridContextMenuItems = new Array() ;
+		if( selRecords.length==0 ) {
+			return ;
+		} else if( selRecords.length==1 ) {
+			var selRecord = selRecords[0] ;
+			
+			gridContextMenuItems.push({
+				iconCls: 'op5-spec-dbslam-stock-status-all',
+				text: 'Modify location <b>'+selRecord.get('adr_id')+'</b>',
+				handler : function() {
+					this.handleOpenEastAdr( [selRecord.get('adr_id')] ) ;
+				},
+				scope : this
+			});
+			
+			if( selRecord.get('stk_filerecord_id') > 0 ) {
+				var title,
+					adrId = selRecord.get('adr_id'),
+					stkFilerecordId = selRecord.get('stk_filerecord_id') ;
+				if( selRecord.get('stk_filerecord_id') == 0 ) {
+					title = 'Append stock to <b>'+adrId+'</b>' ;
+				} else {
+					title = 'Modify stock at <b>'+adrId+'</b>' ;
+				}
+				gridContextMenuItems.push({
+					iconCls: 'op5-spec-dbslam-stock-status-stock',
+					text: title,
+					handler : function() {
+						this.handleOpenEastInv( adrId, stkFilerecordId||null ) ;
+					},
+					scope : this
+				});
+			}
+			
+			gridContextMenuItems.push('-') ;
+			
+			
+			var logMenuItems = [],
+				adrId = selRecord.get('adr_id'),
+				invContainer = selRecord.get('inv_container'),
+				invProd = selRecord.get('inv_prod') ;
+			if( !Ext.isEmpty(invContainer) ) {
+				logMenuItems.push({
+					_log_filter_property: 'container_ref',
+					_log_filter_value: invContainer,
+					text: 'container : <b>'+invContainer+'</b>'
+				}) ;
+			}
+			if( !Ext.isEmpty(invProd) ) {
+				logMenuItems.push({
+					_log_filter_property: 'prod_id',
+					_log_filter_value: invProd,
+					text: 'P/N : <b>'+invProd+'</b>'
+				}) ;
+			}
+			if( !Ext.isEmpty(adrId) ) {
+				logMenuItems.push({
+					_log_filter_property: 'adr_id',
+					_log_filter_value: adrId,
+					text: 'location : <b>'+adrId+'</b>'
+				}) ;
+			}
+			gridContextMenuItems.push({
+				iconCls: 'op5-spec-dbslam-stock-logs',
+				text: 'Movements log',
+				menu: {
+					defaults: {
+						handler: function(menuitem) {
+							console.dir(menuitem) ;
+						},
+						scope: this
+					},
+					items: logMenuItems
+				},
+				scope : this
+			});
+		} else {
+			var arrAdrIds = [] ;
+			Ext.Array.each(selRecords, function(selRecord){arrAdrIds.push(selRecord.get('adr_id'))}) ;
+			
+			gridContextMenuItems.push({
+				icon: 'images/op5img/ico_blocs_small.gif',
+				text: 'Modify <b>'+arrAdrIds.length+'</b> locations',
+				handler : function() {
+					this.handleOpenEastAdr( arrAdrIds ) ;
+				},
+				scope : this
+			});
+		}
+		
+		var gridContextMenu = Ext.create('Ext.menu.Menu',{
+			items : gridContextMenuItems,
+			listeners: {
+				hide: function(menu) {
+					Ext.defer(function(){menu.destroy();},10) ;
+				}
+			}
+		}) ;
+		
+		gridContextMenu.showAt(event.getXY());
 	},
 	
 	
@@ -901,11 +1011,61 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockPanel',{
 	onBeforeExpandEast: function( eastpanel ) {
 		return ;
 	},
-	doConfigureEastAdr: function( eastpanel ) {
+	handleOpenEastAdr: function( arrAdrIds ) {
+		var formPanel = Ext.create('Optima5.Modules.Spec.DbsLam.StockAdrForm',{
+			optimaModule: this.optimaModule,
+			_cfg_arrAdrIds: arrAdrIds,
+			listeners: {
+				destroy: this.handleEastDestroy,
+				scope: this
+			}
+		});
+		
+		var title ;
+		if( Ext.isEmpty(arrAdrIds) ) {
+			return ;
+		} else if( arrAdrIds.length==1 ) {
+			title = 'Edit '+arrAdrIds[0]+' location attributes' ;
+		} else {
+			title = 'Edit location attributes' + ' ' + '(' + arrAdrIds.length + ')' ;
+		}
+		
+		var pEast = this.down('#pEast') ;
+		pEast.removeAll() ;
+		pEast.add(formPanel) ;
+		pEast.setTitle(title) ;
+		pEast.show() ;
 		
 	},
-	doConfigureEastStock: function( eastpanel ) {
+	handleOpenEastInv: function( adrId, stkFilerecordId ) {
+		var formPanel = Ext.create('Optima5.Modules.Spec.DbsLam.StockInvForm',{
+			optimaModule: this.optimaModule,
+			_cfg_adrId: adrId,
+			_cfg_stkFilerecordId: stkFilerecordId,
+			listeners: {
+				destroy: this.handleEastDestroy,
+				scope: this
+			}
+		});
 		
+		var title ;
+		if( Ext.isEmpty(stkFilerecordId) ) {
+			title = 'Append stock to '+adrId ;
+		} else {
+			title = 'Modify stock at '+adrId ;
+		}
+		
+		var pEast = this.down('#pEast') ;
+		pEast.removeAll() ;
+		pEast.add(formPanel) ;
+		pEast.setTitle(title) ;
+		pEast.show() ;
+	},
+	handleEastDestroy: function() {
+		var pEast = this.down('#pEast'),
+			pEastInner = pEast.items.getAt(0) ;
+		pEast.removeAll() ;
+		pEast.hide() ;
 	},
 	
 	
