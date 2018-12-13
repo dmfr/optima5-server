@@ -251,4 +251,45 @@ function specDbsLam_transferPacking_getPackingRecord($post_data) {
 }
 
 
+
+function specDbsLam_transferInput_setPdaSpec($post_data) {
+	$transfer_filerecordId = $post_data['transfer_filerecordId'] ;
+	$transferStep_filerecordId = $post_data['transferStep_filerecordId'] ;
+	$pdaspec_obj = json_decode($post_data['pdaspec_obj'],true) ;
+	
+	$arr_update = array(
+		'field_PDA_IS_ON' => $pdaspec_obj['pda_is_on'],
+		'field_PDASPEC_IS_ON' => $pdaspec_obj['pdaspec_is_on'],
+		'field_PDASPEC_CODE' => $pdaspec_obj['pdaspec_code']
+	);
+	paracrm_lib_data_updateRecord_file('TRANSFER_STEP',$arr_update,$transferStep_filerecordId) ;
+	sleep(1) ;
+	
+	return array('success'=>true, 'debug'=>$pdaspec_obj) ;
+}
+function specDbsLam_transferInput_getDocuments($post_data) {
+	global $_opDB ;
+	
+	$TAB = array() ;
+	$query = "SELECT ts.filerecord_id as transferstep_filerecord_id
+				, t.filerecord_id as transfer_filerecord_id
+				, t.field_TRANSFER_TXT as transfer_txt
+				, ts.field_PDA_IS_ON as pda_is_on
+				, ts.field_PDASPEC_IS_ON as pdaspec_is_on
+				, IF(ts.field_PDASPEC_IS_ON='1',ts.field_PDASPEC_CODE,'') as pdaspec_code
+				, b.field_PDASPEC_TXT as pdaspec_txt
+				, b.field_INPUT_JSON as pdaspec_input_json
+				FROM view_file_TRANSFER_STEP ts
+				JOIN view_file_TRANSFER t ON t.filerecord_id=ts.filerecord_parent_id
+				LEFT OUTER JOIN view_bible_CFG_PDASPEC_entry b ON b.entry_key=IF(ts.field_PDASPEC_IS_ON='1',ts.field_PDASPEC_CODE,'')
+				WHERE ts.field_PDA_IS_ON='1'" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		$TAB[] = $arr ;
+	}
+	
+	return array('success'=>true, 'data'=>array_values($TAB)) ;
+}
+
+
 ?>

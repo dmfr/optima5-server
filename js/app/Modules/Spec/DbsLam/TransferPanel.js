@@ -131,7 +131,10 @@ Ext.define('DbsLamTransferStepModel',{
 		{name: 'whse_src', type:'string'},
 		{name: 'whse_dst', type:'string'},
 		{name: 'forward_is_on', type:'boolean'},
-		{name: 'forward_to_idx', type:'int'}
+		{name: 'forward_to_idx', type:'int'},
+		{name: 'pda_is_on', type:'boolean'},
+		{name: 'pdaspec_is_on', type:'boolean'},
+		{name: 'pdaspec_code', type:'string', allowNull:true}
 	],
 	hasMany: [{
 		model: 'DbsLamTransferLigModel',
@@ -194,6 +197,28 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 	],
 	
 	initComponent: function() {
+		// *** PDA Spec ****
+		var pdaSpecMenuItems = [{
+			_pdaIsOn: false,
+			_pdaSpecIsOn: false,
+			_pdaSpecCode: null,
+			text: 'PDA Disabled'
+		},{
+			_pdaIsOn: true,
+			_pdaSpecIsOn: false,
+			_pdaSpecCode: null,
+			text: 'Standard Input'
+		}] ;
+		Ext.Array.each( Optima5.Modules.Spec.DbsLam.HelperCache.getPdaspecAll(), function(pdaspec) {
+			pdaSpecMenuItems.push({
+				_pdaIsOn: true,
+				_pdaSpecIsOn: true,
+				_pdaSpecCode: pdaspec.pdaspec_code,
+				text: 'Spec: '+pdaspec.pdaspec_txt
+			});
+		}) ;
+		
+		
 		Ext.apply(this, {
 			layout: {
 				type: 'border',
@@ -327,6 +352,25 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 						this.handleInputNew() ;
 					},
 					scope: this
+				},{
+					hidden:true,
+					itemId: 'tbPdaSpec',
+					iconCls: 'op5-spec-dbslam-transfer-pda',
+					text: '',
+					menu: {
+						defaults: {
+							handler: function(menuitem) {
+								var pdaspec_obj = {
+									pda_is_on: menuitem._pdaIsOn,
+									pdaspec_is_on: menuitem._pdaSpecIsOn,
+									pdaspec_code: menuitem._pdaSpecCode
+								};
+								this.handleSelectPdaspec(pdaspec_obj) ;
+							},
+							scope: this
+						},
+						items: pdaSpecMenuItems
+					}
 				},{
 					itemId: 'tbActions',
 					icon: 'images/op5img/ico_arrow-down_16.png',
@@ -525,6 +569,24 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 			hasInput = activeTab.hasInputNew() ;
 		pCenterTb.down('#tbAdd').setVisible( hasBuildPick ) ;
 		pCenterTb.down('#tbInput').setVisible( hasInput ) ;
+		pCenterTb.down('#tbPdaSpec').setVisible( hasInput ) ;
+		if( hasInput ) { // PDA Spec
+			console.dir( activeTransferStepRecord ) ;
+			var selMenuItem = null ;
+			pCenterTb.down('#tbPdaSpec').menu.items.each( function(menuitem) {
+				var stepData = activeTransferStepRecord.getData() ;
+				if( menuitem._pdaIsOn == stepData.pda_is_on
+					&& menuitem._pdaSpecIsOn == stepData.pdaspec_is_on
+					&& menuitem._pdaSpecCode == stepData.pdaspec_code ) {
+					
+					selMenuItem = menuitem ;
+					return false ;
+				}
+			}) ;
+			if( selMenuItem ) {
+				pCenterTb.down('#tbPdaSpec').setText( selMenuItem.text ) ;
+			}
+		}
 		
 			if( true ) { // options
 				var optionsHasFastCommit = activeTab.optionsHasFastCommit(),
@@ -911,6 +973,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 			p._activeTransferRecord = this._activeTransferRecord ;
 			p.refreshData() ;
 		},this) ;
+		this.updateCenterToolbar() ;
 	},
 	
 	
@@ -1820,6 +1883,51 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 	
 	doQuit: function() {
 		this.destroy() ;
+	},
+	
+	
+	handleSelectPdaspec: function( pdaspecObj, confirmed=false ) {
+		if( !confirmed ) {
+			Ext.Msg.confirm('Confirm','Set PDA input method ?', function(btn){
+				if( btn=='yes' ) {
+					this.handleSelectPdaspec(pdaspecObj,true) ;
+				}
+			},this) ;
+			return ;
+		}
+		var pCenter = this.down('#pCenter'),
+			pCenterTb = pCenter.down('toolbar'),
+			tabPanel = pCenter.down('tabpanel') ;
+		var activeTab = tabPanel.getActiveTab();
+		if( !activeTab ) {
+			return ;
+		}
+		var activeTransferStepRecord = activeTab.getActiveTransferStepRecord() ;
+		if( !activeTransferStepRecord ) {
+			return ;
+		}
+		this.showLoadmask() ;
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_dbs_lam',
+				_action: 'transferInput_setPdaSpec',
+				transfer_filerecordId: this._activeTransferRecord.get('transfer_filerecord_id'),
+				transferStep_filerecordId: activeTransferStepRecord.get('transferstep_filerecord_id'),
+				pdaspec_obj: Ext.JSON.encode(pdaspecObj)
+			},
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					Ext.MessageBox.alert('Error',ajaxResponse.error) ;
+					return ;
+				}
+				this.optimaModule.postCrmEvent('datachange') ;
+			},
+			callback: function() {
+				this.hideLoadmask() ;
+			},
+			scope: this
+		}) ;
 	},
 	
 	

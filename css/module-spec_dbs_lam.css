@@ -231,6 +231,10 @@
 	background: url('../images/modules/dbslam-transfer-add-16.png') no-repeat 4px center ;
 	line-height: 20px ;
 }
+.op5-spec-dbslam-transfer-pda {
+	background: url('../images/modules/dbslam-pda-16.png') no-repeat 4px center ;
+	line-height: 20px ;
+}
 
 
 .op5-spec-dbslam-reloadheader-wrap {

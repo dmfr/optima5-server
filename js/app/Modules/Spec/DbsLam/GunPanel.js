@@ -6,7 +6,8 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunPanel',{
 		'Optima5.Modules.Spec.DbsLam.GunMenu',
 		'Optima5.Modules.Spec.DbsLam.GunContainers',
 		'Optima5.Modules.Spec.DbsLam.GunPicking',
-		'Optima5.Modules.Spec.DbsLam.GunPacking'
+		'Optima5.Modules.Spec.DbsLam.GunPacking',
+		'Optima5.Modules.Spec.DbsLam.GunInput'
 	],
 	
 	initComponent: function() {
@@ -50,6 +51,8 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunPanel',{
 				return me.switchToAppPanel('Optima5.Modules.Spec.DbsLam.GunPicking',{}) ;
 			case 'gun_packing' :
 				return me.switchToAppPanel('Optima5.Modules.Spec.DbsLam.GunPacking',{}) ;
+			case 'gun_input' :
+				return me.switchToAppPanel('Optima5.Modules.Spec.DbsLam.GunInput',{}) ;
 			default :
 				return ;
 		}

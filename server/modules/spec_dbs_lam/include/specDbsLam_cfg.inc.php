@@ -68,6 +68,9 @@ function specDbsLam_cfg_getConfig() {
 	$ttmp = specDbsLam_cfg_getTplTransfer() ;
 	$tpl_transfer = $ttmp['data'] ;
 	
+	$ttmp = specDbsLam_cfg_getPdaSpec() ;
+	$cfg_pdaspec = $ttmp['data'] ;
+	
 	
 	$cfg_attribute = array() ;
 	
@@ -174,6 +177,7 @@ function specDbsLam_cfg_getConfig() {
 		'cfg_attribute' => array_values($cfg_attribute),
 		'cfg_mvtflow' => $cfg_mvtflow,
 		'cfg_printer' => $cfg_printer,
+		'cfg_pdaspec' => $cfg_pdaspec,
 		'tpl_transfer' => $tpl_transfer
 	) ;
 	$GLOBALS['cache_specDbsLam_cfg']['getConfig'] = $return_data ;
@@ -361,6 +365,30 @@ function specDbsLam_cfg_getPrinter() {
 		) ;
 		
 		$TAB[$printer] = $record ;
+	}
+	
+	return array('success'=>true, 'data'=>array_values($TAB)) ;
+}
+
+
+function specDbsLam_cfg_getPdaSpec() {
+	global $_opDB ;
+	
+	$TAB = array() ;
+	
+	$query = "SELECT * FROM view_bible_CFG_PDASPEC_entry ORDER BY field_PDASPEC_TXT" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		$pdaspec = $arr['field_PDASPEC_CODE'] ;
+		$record = array(
+			'pdaspec_code' => $arr['field_PDASPEC_CODE'],
+			'pdaspec_txt' => $arr['field_PDASPEC_TXT'],
+			'input_json' => $arr['field_INPUT_JSON'],
+			'sql_process' => $arr['field_SQL_PROCESS'],
+			'sql_outputvar' => $arr['field_SQL_OUTPUTVAR']
+		) ;
+		
+		$TAB[$pdaspec] = $record ;
 	}
 	
 	return array('success'=>true, 'data'=>array_values($TAB)) ;

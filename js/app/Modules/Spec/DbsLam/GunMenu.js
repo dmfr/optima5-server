@@ -45,12 +45,17 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunMenu',{
 				type_header:true
 			},{
 				type_separator:true,
-				separator_label: 'pallets'
+				separator_label: 'Pallets'
 			},{
 				type_action:true,
 				action_caption: 'Pallets',
 				action_sendEvent:'gun_containers',
 				action_iconCls:'op5-spec-dbslam-menu-stock'
+			},{
+				type_action:true,
+				action_caption: 'Inbound/Input',
+				action_sendEvent:'gun_input',
+				action_iconCls:'op5-spec-dbslam-menu-pda'
 			},{
 				type_separator:true,
 				separator_label: 'Orders'

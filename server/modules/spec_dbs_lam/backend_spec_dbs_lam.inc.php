@@ -108,6 +108,11 @@ switch( $post_data['_action'] )
 	case 'transferPacking_getPackingRecord' :
 	return specDbsLam_transferPacking_getPackingRecord( $post_data ) ;
 	
+	case 'transferInput_setPdaSpec' :
+	return specDbsLam_transferInput_setPdaSpec( $post_data ) ;
+	case 'transferInput_getDocuments' :
+	return specDbsLam_transferInput_getDocuments( $post_data ) ;
+	
 	case 'transfer_spool_transferCdePack' :
 	return specDbsLam_transfer_spool_transferCdePack( $post_data ) ;
 	

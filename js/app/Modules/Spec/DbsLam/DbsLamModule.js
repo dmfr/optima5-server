@@ -139,6 +139,18 @@ Ext.define('DbsLamCfgPrinterModel',{
 	]
 });
 
+Ext.define('DbsLamCfgPdaspecModel',{
+	extend: 'Ext.data.Model',
+	idProperty: 'pdaspec_code',
+	fields: [
+		{name: 'pdaspec_code', type:'string'},
+		{name: 'pdaspec_txt', type:'string'},
+		{name: 'input_json', type:'string'},
+		{name: 'sql_process', type:'string'},
+		{name: 'sql_outputvar', type:'string'}
+	]
+});
+
 Ext.define('Optima5.Modules.Spec.DbsLam.DbsLamModule', {
 	extend: 'Optima5.Module',
 	requires: [

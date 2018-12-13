@@ -25,8 +25,21 @@ function specDbsLam_stock_getGrid($post_data) {
 	$query = "SELECT {$selects} FROM view_bible_ADR_entry adr
 				LEFT OUTER JOIN view_file_STOCK stock ON stock.field_ADR_ID = adr.entry_key
 				WHERE 1" ;
+	if( $post_data['filter_stkFilerecordId'] ) {
+		if( is_array($arr=json_decode($post_data['filter_stkFilerecordId'],true)) ) {
+			$list = $_opDB->makeSQLlist($arr) ;
+			$query.= " AND stock.filerecord_id IN {$list}" ;
+		} else {
+			$query.= " AND stock.filerecord_id='{$post_data['filter_stkFilerecordId']}'" ;
+		}
+	}
 	if( $post_data['filter_entryKey'] ) {
-		$query.= " AND entry_key='{$post_data['filter_entryKey']}'" ;
+		if( is_array($arr=json_decode($post_data['filter_entryKey'],true)) ) {
+			$list = $_opDB->makeSQLlist($arr) ;
+			$query.= " AND entry_key IN {$list}" ;
+		} else {
+			$query.= " AND entry_key='{$post_data['filter_entryKey']}'" ;
+		}
 	} elseif( $post_data['filter_treenodeKey'] 
 			&& ($arr_treenodes = paracrm_data_getBibleTreeBranch( 'ADR', $post_data['filter_treenodeKey'] )) ) {
 		$query.= " AND treenode_key IN ".$_opDB->makeSQLlist($arr_treenodes) ;
@@ -96,13 +109,19 @@ function specDbsLam_stock_getGrid($post_data) {
 		}
 		
 		$row['inv_id'] = $arr['STOCK_filerecord_id'] ;
+		$row['inv_soc'] = $arr['STOCK_field_SOC_CODE'] ;
 		$row['inv_prod'] = $arr['STOCK_field_PROD_ID'] ;
 		$row['inv_batch'] = $arr['STOCK_field_SPEC_BATCH'] ;
-		$row['inv_qty_prein'] = ( $arr['STOCK_field_PROD_ID'] ? $arr['STOCK_field_QTY_PREIN'] : null ) ;
-		$row['inv_qty'] = ( $arr['STOCK_field_PROD_ID'] ? $arr['STOCK_field_QTY_AVAIL'] : null ) ;
-		$row['inv_qty_out'] = ( $arr['STOCK_field_PROD_ID'] ? $arr['STOCK_field_QTY_OUT'] : null ) ;
+		$row['inv_qty_prein'] = (float)( $arr['STOCK_field_PROD_ID'] ? $arr['STOCK_field_QTY_PREIN'] : null ) ;
+		$row['inv_qty'] = (float)( $arr['STOCK_field_PROD_ID'] ? $arr['STOCK_field_QTY_AVAIL'] : null ) ;
+		$row['inv_qty_out'] = (float)( $arr['STOCK_field_PROD_ID'] ? $arr['STOCK_field_QTY_OUT'] : null ) ;
 		$row['inv_sn'] = $arr['STOCK_field_SPEC_SN'] ;
 		$row['inv_container'] = $arr['STOCK_field_CONTAINER_REF'] ;
+		
+		if( $arr['STOCK_field_CONTAINER_REF'] ) {
+			$row['inv_container_ref'] = $arr['STOCK_field_CONTAINER_REF'] ;
+			$row['inv_container_type'] = $arr['STOCK_field_CONTAINER_TYPE'] ;
+		}
 		
 		$row['status'] = $status ;
 		$row['prealloc'] = $arr['ADR_field_STATUS_IS_PREALLOC'] ;
