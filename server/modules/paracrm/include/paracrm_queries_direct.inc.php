@@ -29,6 +29,7 @@ function paracrm_queries_direct($post_data, $auth_bypass=FALSE, $is_rw=FALSE) {
 	{
 		case 'query' :
 		if( $q_id && !is_numeric($q_id) ) {
+			$q_id = $_opDB->escape_string($q_id) ;
 			$q_id = $_opDB->query_uniqueValue("SELECT query_id FROM query WHERE query_name='{$q_id}'") ;
 		}
 		if( !$q_id ) {
@@ -88,6 +89,7 @@ function paracrm_queries_direct($post_data, $auth_bypass=FALSE, $is_rw=FALSE) {
 		
 		case 'qmerge' :
 		if( $q_id && !is_numeric($q_id) ) {
+			$q_id = $_opDB->escape_string($q_id) ;
 			$q_id = $_opDB->query_uniqueValue("SELECT qmerge_id FROM qmerge WHERE qmerge_name='{$q_id}'") ;
 		}
 		if( !$q_id ) {
@@ -137,6 +139,7 @@ function paracrm_queries_direct($post_data, $auth_bypass=FALSE, $is_rw=FALSE) {
 		
 		case 'qsql' :
 		if( $q_id && !is_numeric($q_id) ) {
+			$q_id = $_opDB->escape_string($q_id) ;
 			$q_id = $_opDB->query_uniqueValue("SELECT qsql_id FROM qsql WHERE qsql_name='{$q_id}'") ;
 		}
 		if( !$q_id ) {
@@ -164,6 +167,7 @@ function paracrm_queries_direct($post_data, $auth_bypass=FALSE, $is_rw=FALSE) {
 		
 		case 'qweb' :
 		if( $q_id && !is_numeric($q_id) ) {
+			$q_id = $_opDB->escape_string($q_id) ;
 			$q_id = $_opDB->query_uniqueValue("SELECT qweb_id FROM qweb WHERE qweb_name='{$q_id}'") ;
 		}
 		if( !$q_id ) {
