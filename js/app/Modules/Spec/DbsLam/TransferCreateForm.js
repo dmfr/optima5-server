@@ -42,7 +42,30 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferCreateForm',{
 					cfgParam_id: 'TPLTRANSFER',
 					allowBlank: false,
 					cfgParam_emptyDisplayText: 'Transfer Template'
-				})]
+				}),{
+					xtype: 'fieldset',
+					title: 'Scope',
+					items: [{
+						xtype: 'checkboxfield',
+						name: 'soc_is_multi',
+						boxLabel: 'Multi-soc ?',
+						listeners: {
+							change: function( chk ) {
+								var isMulti = chk.getValue(),
+									form = chk.up('form') ;
+								form.getForm().findField('soc_code').setVisible(!isMulti) ;
+								form.getForm().findField('soc_code').allowBlank = isMulti ;
+							}
+						}
+					},Ext.create('Optima5.Modules.Spec.DbsLam.CfgParamField',{
+						optimaModule: this.optimaModule,
+						name : 'soc_code',
+						fieldLabel: 'Soc/Entity',
+						cfgParam_id: 'SOC',
+						allowBlank: false,
+						cfgParam_emptyDisplayText: 'Soc/Entity'
+					})]
+				}]
 			}],
 			buttons: [{
 				xtype: 'button',
