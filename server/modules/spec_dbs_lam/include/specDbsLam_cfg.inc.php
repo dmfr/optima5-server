@@ -612,9 +612,13 @@ function specDbsLam_cfg_lib_build() {
 				//$arr_ins['entry_field_is_key'] = 'O' ;
 				$arr_ins['entry_field_index'] = $max_index ;
 				$arr_ins['entry_field_lib'] = 'Atr: '.$attribute['atr_txt'] ;
-				$arr_ins['entry_field_type'] = 'link' ;
-				$arr_ins['entry_field_linktype'] = 'treenode' ;
-				$arr_ins['entry_field_linkbible'] = $bible_code ;
+				if( $attribute['is_bible'] ) {
+					$arr_ins['entry_field_type'] = 'link' ;
+					$arr_ins['entry_field_linktype'] = 'treenode' ;
+					$arr_ins['entry_field_linkbible'] = $bible_code ;
+				} else {
+					$arr_ins['entry_field_type'] = 'string' ;
+				}
 				$arr_ins['entry_field_is_header'] = '' ;
 				$arr_ins['entry_field_is_highlight'] = 'O' ;
 				$_opDB->insert('define_bible_entry',$arr_ins) ;
@@ -639,9 +643,13 @@ function specDbsLam_cfg_lib_build() {
 				//$arr_ins['entry_field_is_key'] = 'O' ;
 				$arr_ins['entry_field_index'] = $max_index ;
 				$arr_ins['entry_field_lib'] = 'Atr: '.$attribute['atr_txt'] ;
-				$arr_ins['entry_field_type'] = 'link' ;
-				$arr_ins['entry_field_linktype'] = 'treenode' ;
-				$arr_ins['entry_field_linkbible'] = $bible_code ;
+				if( $attribute['is_bible'] ) {
+					$arr_ins['entry_field_type'] = 'link' ;
+					$arr_ins['entry_field_linktype'] = 'treenode' ;
+					$arr_ins['entry_field_linkbible'] = $bible_code ;
+				} else {
+					$arr_ins['entry_field_type'] = 'string' ;
+				}
 				$arr_ins['entry_field_is_header'] = '' ;
 				$arr_ins['entry_field_is_highlight'] = 'O' ;
 				$_opDB->insert('define_bible_entry',$arr_ins) ;
@@ -665,7 +673,13 @@ function specDbsLam_cfg_lib_build() {
 				$arr_ins['entry_field_code'] = $field_code ;
 				$arr_ins['entry_field_index'] = $max_index ;
 				$arr_ins['entry_field_lib'] = 'Atr: '.$attribute['atr_txt'] ;
-				$arr_ins['entry_field_type'] = 'string' ;
+				if( $attribute['is_bible'] ) {
+					$arr_ins['entry_field_type'] = 'link' ;
+					$arr_ins['entry_field_linktype'] = 'treenode' ;
+					$arr_ins['entry_field_linkbible'] = $bible_code ;
+				} else {
+					$arr_ins['entry_field_type'] = 'string' ;
+				}
 				$arr_ins['entry_field_is_header'] = '' ;
 				$arr_ins['entry_field_is_highlight'] = 'O' ;
 				$_opDB->insert('define_file_entry',$arr_ins) ;

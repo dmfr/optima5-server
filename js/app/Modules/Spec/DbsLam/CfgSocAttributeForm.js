@@ -173,13 +173,10 @@ Ext.define('Optima5.Modules.Spec.DbsLam.CfgSocAttributeForm',{
 		
 		form.findField('use_multi').setVisible( formValues.use == 'PROD' ) ;
 		form.findField('cfg_is_editable').setVisible( formValues.use == 'PROD' ) ;
-		form.findField('is_bible_false').setVisible( formValues.use == 'STOCK' ) ;
+		form.findField('is_bible_false').setVisible( true ) ;
 		
 		var useAdr = true ;
-		if( formValues.use == 'STOCK' && formValues.is_bible_false ) {
-			useAdr = false ;
-		}
-		if( formValues.use == 'CDE' ) {
+		if( formValues.is_bible_false ) {
 			useAdr = false ;
 		}
 		this.down('#fsAdr').setVisible( useAdr ) ;
@@ -200,13 +197,13 @@ Ext.define('Optima5.Modules.Spec.DbsLam.CfgSocAttributeForm',{
 		var recordData = {
 			atr_code: formValues.atr_code.replace(' ','').toUpperCase(),
 			atr_txt: formValues.atr_txt,
-			is_bible: ( !(formValues.use == 'STOCK' && formValues.is_bible_false) && !(formValues.use == 'CDE') ),
+			is_bible: !formValues.is_bible_false,
 			use_prod: formValues.use == 'PROD',
 			use_prod_multi: (formValues.use == 'PROD' && formValues.use_multi),
 			use_stock: formValues.use == 'STOCK',
 			use_cde: formValues.use == 'CDE',
 			cfg_is_hidden: false,
-			cfg_is_editable: ( !( formValues.use == 'PROD' && !formValues.cfg_is_editable) && !(formValues.use == 'CDE') ),
+			cfg_is_editable: formValues.cfg_is_editable,
 			use_adr: formValues.adr_use,
 			use_adr_multi: (formValues.adr_use && formValues.adr_use_multi),
 			adr_is_optional:(formValues.adr_use && formValues.adr_is_optional=='Y'),
