@@ -9,7 +9,8 @@ Ext.define('DbsLamGunInputSummaryModel',{
 		{name: 'pdaspec_is_on', type:'boolean'},
 		{name: 'pdaspec_code', type:'string'},
 		{name: 'pdaspec_txt', type:'string'},
-		{name: 'pdaspec_input_json', type:'string'}
+		{name: 'pdaspec_input_json', type:'string'},
+		{name: 'pdaspec_sql_process', type:'string'}
 	]
 });
 

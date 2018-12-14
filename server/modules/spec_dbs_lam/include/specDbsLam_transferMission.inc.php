@@ -263,7 +263,7 @@ function specDbsLam_transferInput_setPdaSpec($post_data) {
 		'field_PDASPEC_CODE' => $pdaspec_obj['pdaspec_code']
 	);
 	paracrm_lib_data_updateRecord_file('TRANSFER_STEP',$arr_update,$transferStep_filerecordId) ;
-	sleep(1) ;
+	usleep(500*1000) ;
 	
 	return array('success'=>true, 'debug'=>$pdaspec_obj) ;
 }
@@ -279,6 +279,7 @@ function specDbsLam_transferInput_getDocuments($post_data) {
 				, IF(ts.field_PDASPEC_IS_ON='1',ts.field_PDASPEC_CODE,'') as pdaspec_code
 				, b.field_PDASPEC_TXT as pdaspec_txt
 				, b.field_INPUT_JSON as pdaspec_input_json
+				, b.field_SQL_PROCESS as pdaspec_sql_process
 				FROM view_file_TRANSFER_STEP ts
 				JOIN view_file_TRANSFER t ON t.filerecord_id=ts.filerecord_parent_id
 				LEFT OUTER JOIN view_bible_CFG_PDASPEC_entry b ON b.entry_key=IF(ts.field_PDASPEC_IS_ON='1',ts.field_PDASPEC_CODE,'')
@@ -290,6 +291,112 @@ function specDbsLam_transferInput_getDocuments($post_data) {
 	
 	return array('success'=>true, 'data'=>array_values($TAB)) ;
 }
-
+function specDbsLam_transferInput_processSql($post_data) {
+	$p_sqlProcess = $post_data['sql_process'] ;
+	$p_sqlVars = json_decode($post_data['sql_vars'],true) ;
+	
+	$forward_post = array(
+		'q_type' => 'qsql',
+		'q_id' => $p_sqlProcess,
+		'q_vars' => json_encode($p_sqlVars)
+	);
+	$return_json = paracrm_queries_direct($forward_post,$auth_bypass=true) ;
+	if( !$return_json['success'] ) {
+		return array('success'=>false, 'debug'=>$post_data) ;
+	}
+	//print_r($return_json['tabs']) ;
+	
+	// Last tab
+	$result = end($return_json['tabs']) ;
+	$map_mkey_idx = array() ;
+	foreach( $result['columns'] as $col ) {
+		$map_mkey_idx[$col['text']] = $col['dataIndex'] ;
+	}
+	$objs = array() ;
+	foreach( $result['data'] as $row ) {
+		$obj = array() ;
+		foreach( $map_mkey_idx as $mkey => $idx ) {
+			$obj[$mkey] = $row[$idx] ;
+		}
+		$objs[] = $obj ;
+	}
+	
+	return array('success'=>true, 'data'=>$objs) ;
+}
+function specDbsLam_transferInput_submit($post_data) {
+	global $_opDB ;
+	
+	$p_transferFilerecordId = $post_data['transfer_filerecordId'] ;
+	$p_transferStepFilerecordId = $post_data['transferStep_filerecordId'] ;
+	$p_stkDataObj = json_decode($post_data['stkData_obj'],true) ;
+	
+	// TODO : retrieve SOC
+	if( $p_stkDataObj['stk_prod'] ) {
+		$json = specDbsLam_prods_getGrid( array('entry_key'=>$p_stkDataObj['stk_prod']) ) ;
+		$row_prod = $json['data'][0] ;
+		
+		$p_stkDataObj['soc_code'] = $row_prod['prod_soc'] ;
+		$p_stkDataObj['stk_prod'] = $row_prod['id'] ;
+	}
+	
+	// TODO : retrieve WHSE+DEST
+	if( TRUE ) {
+		$formard_post = array(
+			'filter_transferFilerecordId' => $p_transferFilerecordId,
+			'filter_fast' => true
+		) ;
+		$json = specDbsLam_transfer_getTransfer($formard_post) ;
+		$transfer_row = reset($json['data']) ;
+		$transferstep_row = NULL ;
+		if( !$transfer_row ) {
+			return array('success'=>false) ;
+		}
+		foreach( $transfer_row['steps'] as $transferstep_iter ) {
+			if( $transferstep_iter['transferstep_filerecord_id'] == $p_transferStepFilerecordId ) {
+				$transferstep_row = $transferstep_iter ;
+			}
+		}
+		if( !$transferstep_row ) {
+			return array('success'=>false) ;
+		}
+		
+		$dst_whse = $transferstep_row['whse_dst'] ;
+		$dst_adr = $dst_whse.'_'.'PDA' ;
+	}
+	
+	$stk_obj = array(
+		'dst_whse' => $dst_whse,
+		'dst_adr' => $dst_adr,
+		'commit' => true,
+		'stkData_obj' => $p_stkDataObj
+	) ;
+	
+	$forward_post = array(
+		'stock_objs' => json_encode(array($stk_obj)),
+		'transfer_filerecordId' => $p_transferFilerecordId,
+		'transferStep_filerecordId' => $p_transferStepFilerecordId
+	);
+	$json = specDbsLam_transfer_addStock($forward_post) ;
+	if( !$json['success'] ) {
+		return array('success'=>false) ;
+	}
+	
+	$transferlig_filerecord_id = reset($json['ids']) ;
+	
+	
+	// TODO: has been forwarded ???
+	$query = "SELECT filerecord_id FROM view_file_TRANSFER_LIG
+				WHERE filerecord_parent_id='{$p_transferFilerecordId}'
+				AND field_FILE_MVT_ID IN (
+					SELECT filerecord_id FROM view_file_MVT WHERE field_SRC_FILE_STOCK_ID IN (
+						SELECT field_DST_FILE_STOCK_ID FROM view_file_MVT WHERE filerecord_id IN (
+							SELECT field_FILE_MVT_ID FROM view_file_TRANSFER_LIG WHERE filerecord_id='{$transferlig_filerecord_id}'
+						)
+					)
+				)" ;
+	$forward_transferlig_filerecord_id = $_opDB->query_uniqueValue($query) ;
+	
+	return array('success'=>true, 'forward_transferlig_filerecord_id'=>$forward_transferlig_filerecord_id) ;
+}
 
 ?>

@@ -571,7 +571,6 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 		pCenterTb.down('#tbInput').setVisible( hasInput ) ;
 		pCenterTb.down('#tbPdaSpec').setVisible( hasInput ) ;
 		if( hasInput ) { // PDA Spec
-			console.dir( activeTransferStepRecord ) ;
 			var selMenuItem = null ;
 			pCenterTb.down('#tbPdaSpec').menu.items.each( function(menuitem) {
 				var stepData = activeTransferStepRecord.getData() ;

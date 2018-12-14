@@ -17,16 +17,38 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunInputForm',{
 				icon: 'images/op5img/ico_reload_small.gif',
 				text: '<b>Reset</b>',
 				handler: function() {
-					this.doLoadTransferStep( this._transferstepFilerecordId ) ;
+					this.handleReset() ;
 				},
 				scope: this
 			}],
 			layout: 'fit',
-			items: []
+			items: [],
+			listeners: {
+				afterrender: this.initComponentAfterRender
+			}
 		}) ;
 		this.callParent() ;
 		this.doLoadTransferStep( this._transferstepFilerecordId ) ;
 	},
+	initComponentAfterRender: function(panel) {
+		console.log('afterrender') ;
+		panel.getEl().on('keypress',panel.onKeyPress,panel);
+	},
+	
+	handleReset: function() {
+		this.doLoadTransferStep( this._transferstepFilerecordId ) ;
+	},
+	
+	onKeyPress: function(e) {
+		var key = e.getKey();
+		if( key === e.ENTER ){
+			console.dir(arguments) ;
+				//Ext.Msg.alert('ENTER Key Pressed!', 'omg!' );
+		} else {
+				//Ext.Msg.alert('Other Key Pressed!', key );
+		}
+	},
+	
 	doLoadTransferStep: function(transferstepFilerecordId) {
 		this.showLoadmask() ;
 		this.optimaModule.getConfiguredAjaxConnection().request({
@@ -69,6 +91,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunInputForm',{
 	
 	buildFormStandard: function(formValues) {
 		var form = {
+			itemId: 'fpStandard',
 			xtype: 'form',
 			bodyCls: 'ux-noframe-bg',
 			border: false,
@@ -122,7 +145,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunInputForm',{
 				selectOnFocus: true,
 				selectOnTab: false,
 				queryMode: 'remote',
-				displayField: 'prod_id',
+				displayField: 'id',
 				valueField: 'id',
 				queryParam: 'filter',
 				minChars: 2,
@@ -151,6 +174,10 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunInputForm',{
 				xtype: 'numberfield',
 				name: 'mvt_qty',
 				fieldLabel: 'Pallet/Bulk Quantity',
+				allowNegative: false,
+				allowBlank: false,
+				minValue: 1,
+				allowDecimals: false,
 				anchor: '',
 				width: 120
 			},{
@@ -169,7 +196,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunInputForm',{
 					icon: 'images/op5img/ico_ok_16.gif',
 					text: 'OK!',
 					handler: function() {
-						this.fireEvent('quit') ;
+						this.handleSubmitFormStandard() ;
 					},
 					scope: this
 				}]
@@ -178,6 +205,22 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunInputForm',{
 		
 		this.removeAll() ;
 		this.add(form) ;
+		if(formValues) {
+			var formPanel = this.down('#fpStandard'),
+				form = formPanel.getForm() ;
+			form.setValues(formValues) ;
+		}
+	},
+	handleSubmitFormStandard() {
+		var formPanel = this.down('#fpStandard'),
+			form = formPanel.getForm() ;
+		if( !form.isValid() ) {
+			return ;
+		}
+		var formValues = form.getFieldValues() ;
+		
+		var stkData_obj = formValues ;
+		this.buildFormSummary(stkData_obj) ;
 	},
 	
 	
@@ -186,6 +229,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunInputForm',{
 		Ext.Array.each( inputObj, function(inputObjField) {
 			formItems.push({
 				xtype: 'textfield',
+				allowBlank: false,
 				name: inputObjField.sql_var,
 				fieldLabel: inputObjField.txt,
 				anchor: '100%'
@@ -207,13 +251,14 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunInputForm',{
 				icon: 'images/op5img/ico_ok_16.gif',
 				text: 'OK!',
 				handler: function() {
-					this.fireEvent('quit') ;
+					this.handleSubmitFormSpec() ;
 				},
 				scope: this
 			}]
 		});
 		
 		var form = {
+			itemId: 'fpSpec',
 			xtype: 'form',
 			bodyCls: 'ux-noframe-bg',
 			border: false,
@@ -229,9 +274,164 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunInputForm',{
 		this.removeAll() ;
 		this.add(form) ;
 	},
+	handleSubmitFormSpec: function() {
+		var formPanel = this.down('#fpSpec') ;
+			form = formPanel.getForm() ;
+		if( !form.isValid() ) {
+			return ;
+		}
+		var formValues = form.getValues() ;
+		
+		var transferstepRow = this._transferstepRow ;
+		if( !transferstepRow.pdaspec_is_on ) {
+			return ;
+		} else {
+			var sqlProcess = transferstepRow.pdaspec_sql_process ;
+		}
+		
+		this.showLoadmask() ;
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_dbs_lam',
+				_action: 'transferInput_processSql',
+				sql_process: sqlProcess,
+				sql_vars: Ext.JSON.encode(formValues)
+			},
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( !ajaxResponse.success ) {
+					Ext.MessageBox.alert('Error','Error') ;
+					return ;
+				}
+				this.doForwardSpecResult(ajaxResponse.data) ;
+			},
+			callback: function() {
+				this.hideLoadmask() ;
+			},
+			scope: this
+		}) ;
+	},
+	doForwardSpecResult: function(objs) {
+		if( objs.length != 1 ) {
+			Ext.MessageBox.alert('Error / NA','Unexpected SQL return',function(){this.handleReset();},this) ;
+			return ;
+		}
+		var mvtObj = objs[0] ;
+		this.buildFormStandard(mvtObj) ;
+	},
 	
 	
-	buildSummary: function(mvtObj) {
+	buildFormSummary: function(stkData_obj) {
+		var form = {
+			_stkData_obj: stkData_obj,
+			itemId: 'fpSummary',
+			xtype: 'form',
+			bodyCls: 'ux-noframe-bg',
+			border: false,
+			layout: 'anchor',
+			fieldDefaults: {
+				labelAlign: 'left',
+				labelWidth: 100,
+				anchor: '100%'
+			},
+			items: [{
+				xtype: 'fieldset',
+				title: 'Summary',
+				items: [{
+					xtype: 'displayfield',
+					name: 'container_type',
+					fieldLabel: 'Container Ref'
+				},{
+					xtype: 'displayfield',
+					name: 'container_ref',
+					fieldLabel: 'Container Type'
+				},{
+					xtype: 'displayfield',
+					name: 'stk_prod',
+					fieldLabel: 'P/N'
+				},{
+					xtype: 'displayfield',
+					name: 'mvt_qty',
+					fieldLabel: 'P/N'
+				}]
+			},{
+				xtype: 'container',
+				itemId: 'fsSubmit',
+				layout: {
+					type: 'hbox',
+					pack: 'center'
+				},
+				items: [{
+					margin: '0px 10px',
+					xtype: 'button',
+					scale: 'large',
+					icon: 'images/op5img/ico_ok_16.gif',
+					text: 'OK!',
+					handler: function() {
+						this.handleSubmitFormSummary(true) ;
+					},
+					scope: this
+				},{
+					margin: '0px 10px',
+					xtype: 'button',
+					scale: 'large',
+					icon: 'images/op5img/ico_cancel_small.gif',
+					text: 'Modify',
+					handler: function() {
+						this.handleSubmitFormSummary(false) ;
+					},
+					scope: this
+				}]
+			}]
+		};
+		
+		this.removeAll() ;
+		this.add(form) ;
+		
+		if(true) {
+			var formPanel = this.down('#fpSummary'),
+				form = formPanel.getForm() ;
+			form.setValues(formPanel._stkData_obj) ;
+		}
+	},
+	handleSubmitFormSummary: function(torf) {
+		var formPanel = this.down('#fpSummary') ;
+			stkData_obj = formPanel._stkData_obj ;
+		if( !torf ) {
+			// cancel
+			return this.buildFormStandard(stkData_obj) ;
+		}
+		
+		var transferstepRow = this._transferstepRow ;
+		
+		this.showLoadmask() ;
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_dbs_lam',
+				_action: 'transferInput_submit',
+				transfer_filerecordId: transferstepRow.transfer_filerecord_id,
+				transferStep_filerecordId: transferstepRow.transferstep_filerecord_id,
+				stkData_obj: Ext.JSON.encode(stkData_obj)
+			},
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( !ajaxResponse.success ) {
+					Ext.MessageBox.alert('Error','Error') ;
+					return ;
+				}
+				if( ajaxResponse.forward_transferlig_filerecord_id ) {
+					this.fireEvent('openforwardtransferlig',this,ajaxResponse.forward_transferlig_filerecord_id) ;
+				} else {
+					this.handleReset() ;
+				}
+			},
+			callback: function() {
+				//this.hideLoadmask() ;
+			},
+			scope: this
+		}) ;
+	},
+	onSubmitResult: function() {
 		
 	},
 	

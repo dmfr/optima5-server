@@ -112,6 +112,10 @@ switch( $post_data['_action'] )
 	return specDbsLam_transferInput_setPdaSpec( $post_data ) ;
 	case 'transferInput_getDocuments' :
 	return specDbsLam_transferInput_getDocuments( $post_data ) ;
+	case 'transferInput_processSql' :
+	return specDbsLam_transferInput_processSql( $post_data ) ;
+	case 'transferInput_submit' :
+	return specDbsLam_transferInput_submit( $post_data ) ;
 	
 	case 'transfer_spool_transferCdePack' :
 	return specDbsLam_transfer_spool_transferCdePack( $post_data ) ;

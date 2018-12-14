@@ -55,4 +55,23 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunInput',{
 		this.removeAll() ;
 		this.add(formPanel) ;
 	},
+	openForwardTransferLig: function(transferligFilerecordId) {
+		var palletPanel = Ext.create('Optima5.Modules.Spec.DbsLam.GunContainersTake',{
+			border: false,
+			optimaModule: this.optimaModule,
+			_transferligFilerecordId: transferligFilerecordId,
+			listeners: {
+				quit: function() {
+					if( this._runTransferstepFilerecordId ) {
+						this.openTransferStep(this._runTransferstepFilerecordId) ;
+					} else {
+						this.openList() ;
+					}
+				},
+				scope: this
+			}
+		}) ;
+		this.removeAll() ;
+		this.add(palletPanel) ;
+	}
 }) ;
