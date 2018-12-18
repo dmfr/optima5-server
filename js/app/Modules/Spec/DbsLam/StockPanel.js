@@ -860,7 +860,10 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockPanel',{
 				menu: {
 					defaults: {
 						handler: function(menuitem) {
-							console.dir(menuitem) ;
+							this.optimaModule.postCrmEvent('openstocklog',{
+								log_filter_property: menuitem._log_filter_property,
+								log_filter_value: menuitem._log_filter_value
+							}) ;
 						},
 						scope: this
 					},

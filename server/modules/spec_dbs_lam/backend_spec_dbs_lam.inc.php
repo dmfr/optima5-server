@@ -24,6 +24,8 @@ switch( $post_data['_action'] )
 	return specDbsLam_stock_submitAdrAction( $post_data ) ;
 	case 'stock_submitInvAction' :
 	return specDbsLam_stock_submitInvAction( $post_data ) ;
+	case 'stock_getLogs' :
+	return specDbsLam_stock_getLogs( $post_data ) ;
 	
 	case 'prods_getGrid' :
 	return specDbsLam_prods_getGrid( $post_data ) ;

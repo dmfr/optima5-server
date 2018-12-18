@@ -13,7 +13,9 @@ Ext.define('Optima5.Modules.Spec.DbsLam.MainPanel',{
 		
 		'Optima5.Modules.Spec.DbsLam.GunPanel',
 		
-		'Optima5.Modules.Spec.DbsLam.CdePanel'
+		'Optima5.Modules.Spec.DbsLam.CdePanel',
+		
+		'Optima5.Modules.Spec.DbsLam.StockLogPanel'
 	],
 	
 	initComponent: function() {
@@ -27,6 +29,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.MainPanel',{
 			}]
 		});
 		this.callParent() ;
+		this.mon(this.optimaModule,'op5broadcast',this.onCrmeventBroadcast,this) ;
 		
 		var helperCache = Optima5.Modules.Spec.DbsLam.HelperCache ;
 		helperCache.init(this.optimaModule) ;
@@ -36,6 +39,14 @@ Ext.define('Optima5.Modules.Spec.DbsLam.MainPanel',{
 			this.mon(helperCache,'ready',function(helperCache) {
 				this.switchToMainMenu() ;
 			},this,{single:true}) ;
+		}
+	},
+	onCrmeventBroadcast: function(crmEvent, eventParams) {
+		switch( crmEvent ) {
+			case 'openstocklog' :
+				this.openStockLogWindow(eventParams) ;
+				break ;
+			default: break ;
 		}
 	},
 	switchToMainMenu: function() {
@@ -196,6 +207,50 @@ Ext.define('Optima5.Modules.Spec.DbsLam.MainPanel',{
 					}
 				}
 			})]
+		}) ;
+	},
+	openStockLogWindow: function(params) {
+		// recherche d'une fenetre deja ouverte
+		/*
+		var doOpen = true ;
+		this.optimaModule.eachWindow(function(win){
+			if( win.itemId == 'stockLog' ) {
+				win.show() ;
+				win.focus() ;
+				doOpen = false ;
+				return false ;
+			}
+		},this) ;
+		if( !doOpen ) {
+			return ;
+		}
+		*/
+		var stockLogPanel = Ext.create('Optima5.Modules.Spec.DbsLam.StockLogPanel',{
+				border: false,
+				header: false,
+				optimaModule: this.optimaModule,
+				
+				_log_filter_property: params.log_filter_property,
+				_log_filter_value: params.log_filter_value,
+				
+				noDestroy: true,
+				listeners: {
+					candestroy: function(w) {
+						w.close() ;
+					}
+				}
+			}) ;
+		
+		// new window
+		this.optimaModule.createWindow({
+			title: stockLogPanel.getTitle(),
+			itemId: 'windowStockLog',
+			width:1050,
+			height:600,
+			iconCls: 'op5-crmbase-dataformwindow-icon',
+			animCollapse:false,
+			layout: 'fit',
+			items: stockLogPanel
 		}) ;
 	}
 }) ;

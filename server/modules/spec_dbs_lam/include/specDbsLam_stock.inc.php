@@ -220,6 +220,13 @@ function specDbsLam_stock_submitInvAction( $post_data ) {
 }
 
 
+function specDbsLam_stock_getLogs($post_data) {
+	global $_opDB ;
+	sleep(1) ;
+	return array('success'=>true, 'data'=>array()) ;
+}
+
+
 function specDbsLam_stock_getStkMvts( $post_data ) {
 	global $_opDB ;
 	

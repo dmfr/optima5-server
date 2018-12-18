@@ -183,6 +183,10 @@ Ext.define('Optima5.Modules.Spec.DbsLam.DbsLamModule', {
 		switch( crmEvent ) {
 			case 'datachange' :
 				break ;
+				
+			case 'openstocklog' :
+				eventParams = postParams ;
+				break ;
 			
 			default :
 				return ;
