@@ -20,6 +20,10 @@ switch( $post_data['_action'] )
 	return specDbsLam_stock_getStkMvts( $post_data ) ;
 	case 'stock_printEtiq' :
 	return specDbsLam_stock_printEtiq( $post_data ) ;
+	case 'stock_submitAdrAction' :
+	return specDbsLam_stock_submitAdrAction( $post_data ) ;
+	case 'stock_submitInvAction' :
+	return specDbsLam_stock_submitInvAction( $post_data ) ;
 	
 	case 'prods_getGrid' :
 	return specDbsLam_prods_getGrid( $post_data ) ;

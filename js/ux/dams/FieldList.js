@@ -64,6 +64,16 @@ Ext.define('Ext.ux.dams.FieldList',{
 			k: arrIds
 		};
 	},
+	getValue: function() {
+		if( !this.mygrid ) {
+			return null ;
+		}
+		var arrIds = [] ;
+		this.mygrid.getStore().each( function(v) {
+			arrIds.push( v.get('id') ) ;
+		},this) ;
+		return arrIds ;
+	},
 	
 	setValue: function( data ) {
 		if( !this.mygrid ) {

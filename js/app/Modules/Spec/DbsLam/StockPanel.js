@@ -241,7 +241,6 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockPanel',{
 		
 		if( this._popupMode ) {
 			this.down('toolbar').setVisible(false) ;
-			this.down('#mStockFormContainer').setVisible(false) ;
 		}
 		
 		this.doConfigure() ;
@@ -761,7 +760,6 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockPanel',{
 	},
 	onDataChange: function() {
 		if( this.isVisible() ) {
-			this.setFormRecord(null) ;
 			this.doGridReload() ;
 		} else {
 			this.on('activate',function(){this.onDataChange();}, this, {single:true}) ;
@@ -788,26 +786,6 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockPanel',{
 		}
 		
 		options.setParams(params) ;
-	},
-	onItemClick: function( view, record, itemNode, index, e ) {
-		var cellNode = e.getTarget( view.getCellSelector() ),
-			cellColumn = view.getHeaderByCell( cellNode ) ;
-		
-		var eastpanel = this.getComponent('mStockFormContainer') ;
-		if( eastpanel.isVisible() ) {
-			this.setFormRecord(null) ;
-		}
-	},
-	
-	setFormRecord: function(record) {
-		var me = this,
-			eastpanel = me.getComponent('mStockFormContainer') ;
-		if( record == null ) {
-			eastpanel._empty = true ;
-			eastpanel.collapse() ;
-			eastpanel.removeAll() ;
-			return ;
-		}
 	},
 	
 	
@@ -1017,6 +995,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockPanel',{
 			_cfg_arrAdrIds: arrAdrIds,
 			listeners: {
 				destroy: this.handleEastDestroy,
+				saved: this.handleEastSaved,
 				scope: this
 			}
 		});
@@ -1044,6 +1023,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockPanel',{
 			_cfg_stkFilerecordId: stkFilerecordId,
 			listeners: {
 				destroy: this.handleEastDestroy,
+				saved: this.handleEastSaved,
 				scope: this
 			}
 		});
@@ -1060,6 +1040,9 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockPanel',{
 		pEast.add(formPanel) ;
 		pEast.setTitle(title) ;
 		pEast.show() ;
+	},
+	handleEastSaved: function() {
+		this.optimaModule.postCrmEvent('datachange') ;
 	},
 	handleEastDestroy: function() {
 		var pEast = this.down('#pEast'),

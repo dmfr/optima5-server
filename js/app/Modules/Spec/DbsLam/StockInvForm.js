@@ -59,6 +59,9 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockInvForm',{
 				fieldStyle: 'font-weight:bold',
 				fieldLabel: 'Location'
 			},{
+				xtype: 'hiddenfield',
+				name: 'stk_filerecord_id'
+			},{
 				xtype: 'fieldset',
 				title: 'Stock attributes',
 				hidden: (atrStkFormFields.length==0),
@@ -110,6 +113,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockInvForm',{
 				items: [{
 					xtype: 'textfield',
 					name: 'adjust_txt',
+					allowBlank: false,
 					fieldLabel: 'Comment',
 					labelStyle: 'font-weight:bold'
 				},{
@@ -142,7 +146,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockInvForm',{
 						icon: 'images/op5img/ico_procblue_16.gif',
 						text: 'Submit',
 						handler: function() {
-							this.handleSubmit() ;
+							this.handleSubmitAction('adjust_qty') ;
 						},
 						scope: this
 					}]
@@ -231,6 +235,40 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockInvForm',{
 		} else {
 			form.findField('target_qty').setValue( targetQty ) ;
 		}
+	},
+	
+	handleSubmitAction( actionCode ) {
+		var formPanel = this,
+			form = formPanel.getForm(),
+			formValues = form.getFieldValues() ;
+		if( !form.isValid() ) {
+			//return ;
+		}
+		
+		this.showLoadmask() ;
+		var ajaxParams = {
+			_moduleId: 'spec_dbs_lam',
+			_action: 'stock_submitInvAction',
+			form_action: actionCode,
+			form_data: Ext.JSON.encode(formValues)
+		} ;
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: ajaxParams,
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success != true ) {
+					Ext.MessageBox.alert('Error',ajaxResponse.error||'Error') ;
+					this.hideLoadmask() ;
+					return ;
+				}
+				this.fireEvent('saved') ;
+				this.destroy() ;
+			},
+			callback: function() {
+				//this.hideLoadmask() ;
+			},
+			scope: this
+		}) ;
 	},
 	
 	

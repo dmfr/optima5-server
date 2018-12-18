@@ -67,6 +67,7 @@ function specDbsLam_stock_getGrid($post_data) {
 		}
 		
 		$row['ADR_entry_key'] = $arr['ADR_entry_key'] ;
+		$row['ADR_treenode_key'] = $arr['ADR_treenode_key'] ;
 		
 		$row['adr_id'] = $arr['ADR_entry_key'] ;
 		
@@ -131,6 +132,92 @@ function specDbsLam_stock_getGrid($post_data) {
 	return array('success'=>true, 'data'=>$tab_DATA) ;
 }
 
+
+function specDbsLam_stock_submitAdrAction( $post_data ) {
+	global $_opDB ;
+	
+	$ttmp = specDbsLam_cfg_getConfig() ;
+	$json_cfg = $ttmp['data'] ;
+	
+	$p_formData = json_decode($post_data['form_data'],true) ;
+	
+	$arr_update = array() ;
+	if( $p_formData['status_toggle'] && (($val=trim($p_formData['status_is_active']))!='') ) {
+		$arr_update['field_STATUS_IS_ACTIVE'] = (!!((int)$val) ? 1 : 0) ;
+	}
+	if( $p_formData['container_toggle'] ) {
+		$arr_update['field_CONT_IS_ON'] = ($p_formData['container_is_on'] ? 1 : 0) ;
+		if( $val=trim($p_formData['container_type']) ) {
+			$arr_update['field_CONT_TYPES'] = json_encode(array($val)) ;
+		}
+		if( ($val=trim($p_formData['container_is_picking']))!='' ) {
+			$arr_update['field_CONT_IS_PICKING'] = (!!((int)$val) ? 1 : 0) ;
+		}
+	}
+	if( $p_formData['atr_toggle'] ) {
+		foreach( $json_cfg['cfg_attribute'] as $stockAttribute_obj ) {
+			if( !$stockAttribute_obj['ADR_fieldcode'] ) {
+				continue ;
+			}
+			$mkey = $stockAttribute_obj['mkey'] ;
+			$mkey_toggle = $mkey.'_toggle' ;
+			$mkey_value = $mkey.'_value' ;
+			if( $p_formData[$mkey_toggle] ) {
+				$arr_update[$stockAttribute_obj['ADR_fieldcode']] = NULL ;
+				if( $val = $p_formData[$mkey_value] ) {
+					$arr_update[$stockAttribute_obj['ADR_fieldcode']] = json_encode(array($val)) ;
+				}
+			}
+		}
+	}
+	if( count($arr_update)==0 ) {
+		return array('success'=>true) ;
+	}
+	
+	foreach( $p_formData['adrs_list'] as $adr ) {
+		$entry_key = $adr ;
+		$arr_update['entry_key'] = $entry_key ;
+		$arr_update['field_ADR_ID'] = $entry_key ;
+		paracrm_lib_data_updateRecord_bibleEntry( 'ADR', $entry_key, $arr_update );
+	}
+	
+	return array('success'=>true, 'debug'=>$arr_update, 'form_data'=>$p_actionCode, 'form_data'=>$p_formData) ;
+}
+
+
+function specDbsLam_stock_submitInvAction( $post_data ) {
+	global $_opDB ;
+	$p_actionCode = $post_data['form_action'] ;
+	$p_formData = json_decode($post_data['form_data'],true) ;
+	
+	switch( $p_actionCode ) {
+		case 'adjust_qty' :
+			$json = specDbsLam_stock_getGrid( array('filter_stkFilerecordId'=>$p_formData['stk_filerecord_id']) ) ;
+			$stk_row = reset($json['data']) ;
+			if( count($json['data']) != 1 || $stk_row['stk_filerecord_id']!=$p_formData['stk_filerecord_id'] ) {
+				return array('success'=>false) ;
+			}
+			$adjust_qty = $p_formData['adjust_qty'] ;
+			if( $adjust_qty == 0 ) {
+				return array('success'=>false, 'error'=>'Null quantity') ;
+			}
+			if( $stk_row['inv_qty'] + $adjust_qty != $p_formData['target_qty'] ) {
+				return array('success'=>false, 'error'=>'Qty mismatch. Retry.') ;
+			}
+			sleep(1) ;
+			if( !trim($p_formData['adjust_txt']) ) {
+				return array('success'=>false, 'error'=>'Please write description') ;
+			}
+			$res = specDbsLam_lib_procMvt_rawMvt($stk_row['stk_filerecord_id'], $adjust_qty, $p_formData['adjust_txt']);
+			return array('success'=>!!$res) ;
+			break ;
+		
+		default :
+			return array('success'=>false, 'form_data'=>$p_actionCode, 'form_data'=>$p_formData) ;
+	}
+	
+	return array('success'=>true, 'debug'=>$p_formData) ;
+}
 
 
 function specDbsLam_stock_getStkMvts( $post_data ) {

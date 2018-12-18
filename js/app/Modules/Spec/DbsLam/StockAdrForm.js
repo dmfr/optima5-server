@@ -265,8 +265,36 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockAdrForm',{
 	},
 	
 	handleSubmit: function() {
-		this.fireEvent('saved') ;
-		this.destroy() ;
+		var formPanel = this,
+			form = formPanel.getForm(),
+			formValues = form.getFieldValues() ;
+		if( !form.isValid() ) {
+			//return ;
+		}
+		
+		this.showLoadmask() ;
+		var ajaxParams = {
+			_moduleId: 'spec_dbs_lam',
+			_action: 'stock_submitAdrAction',
+			form_data: Ext.JSON.encode(formValues)
+		} ;
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: ajaxParams,
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success != true ) {
+					Ext.MessageBox.alert('Error',ajaxResponse.error||'Error') ;
+					this.hideLoadmask() ;
+					return ;
+				}
+				this.fireEvent('saved') ;
+				this.destroy() ;
+			},
+			callback: function() {
+				//this.hideLoadmask() ;
+			},
+			scope: this
+		}) ;
 	},
 	
 	dummyFn: Ext.emptyFn

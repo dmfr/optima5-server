@@ -464,4 +464,94 @@ function specDbsLam_lib_procMvt_out($stockDst_filerecordId,$stockOut_qty) {
 }
 
 
+
+
+function specDbsLam_lib_procMvt_rawMvt($stock_filerecordId, $adjust_qty, $adjust_txt) {
+	global $_opDB ;
+	
+	// Load cfg attributes
+	$ttmp = specDbsLam_cfg_getConfig() ;
+	$json_cfg = $ttmp['data'] ;
+	
+	// TODO: fetch whseCode !
+	$map_adrTreenodeKey_whseCode = array() ;
+	foreach( $json_cfg['cfg_whse'] as $whse_row ) {
+		$whse_code = $whse_row['whse_code'] ;
+		foreach( paracrm_data_getBibleTreeBranch( 'ADR', $whse_code ) as $adrTreenodeKey ) {
+			$map_adrTreenodeKey_whseCode[$adrTreenodeKey] = $whse_code ;
+		}
+	}
+	
+	
+	$query = "SELECT * FROM view_file_STOCK WHERE
+		filerecord_id='{$stock_filerecordId}'" ;
+	$result = $_opDB->query($query) ;
+	if( $_opDB->num_rows($result) != 1 ) {
+		return 0 ;
+	}
+	$row_stock = $_opDB->fetch_assoc($result) ;
+	
+	$query = "SELECT treenode_key FROM view_bible_ADR_entry
+				WHERE entry_key='{$row_stock['field_ADR_ID']}'" ;
+	$adr_treenodeKey = $_opDB->query_uniqueValue($query) ;
+	$whse_code = $map_adrTreenodeKey_whseCode[$adr_treenodeKey] ;
+	if( !$whse_code ) {
+		return 0 ;
+	}
+	
+	$row_mvt = array(
+		'field_SOC_CODE' => $row_stock['field_SOC_CODE'],
+		'field_CONTAINER_TYPE' => ($qte_mvt ? NULL : $row_stock['field_CONTAINER_TYPE']),
+		'field_CONTAINER_REF' => ($qte_mvt ? NULL : $row_stock['field_CONTAINER_REF']),
+		'field_CONTAINER_DISPLAY' => $row_stock['field_CONTAINER_REF'],
+		'field_PROD_ID' => $row_stock['field_PROD_ID'],
+		'field_QTY_MVT' => abs($adjust_qty),
+		'field_SPEC_BATCH' => $row_stock['field_SPEC_BATCH'],
+		'field_SPEC_DATELC' => $row_stock['field_SPEC_DATELC'],
+		'field_SPEC_SN' => $row_stock['field_SPEC_SN'],
+		'field_MVTDIRECT_TXT' => $adjust_txt
+	);
+	if( $adjust_qty < 0 ) {
+		$row_mvt += array(
+			'field_SRC_FILE_STOCK_ID' => $stock_filerecordId,
+			'field_SRC_WHSE' => $whse_code,
+			'field_SRC_ADR_ID' => $row_stock['field_ADR_ID']
+		);
+	}
+	if( $adjust_qty > 0 ) {
+		$row_mvt += array(
+			'field_DST_FILE_STOCK_ID' => $stock_filerecordId,
+			'field_DST_WHSE' => $whse_code,
+			'field_DST_ADR_ID' => $row_stock['field_ADR_ID']
+		);
+	}
+	foreach( $json_cfg['cfg_attribute'] as $stockAttribute_obj ) {
+		if( !$stockAttribute_obj['STOCK_fieldcode'] ) {
+			continue ;
+		}
+		$mkey = $stockAttribute_obj['mkey'] ;
+		$STOCK_fieldcode = $stockAttribute_obj['STOCK_fieldcode'] ;
+		
+		$row_mvt[$STOCK_fieldcode] = $row_stock[$STOCK_fieldcode] ;
+	}
+	$mvt_filerecordId = paracrm_lib_data_insertRecord_file('MVT',0,$row_mvt) ;
+	
+	
+	$query = "UPDATE view_file_STOCK 
+			SET field_QTY_AVAIL = field_QTY_AVAIL + '{$adjust_qty}'
+			WHERE filerecord_id='{$stock_filerecordId}'" ;
+	$_opDB->query($query) ;
+	
+	
+	$row_mvt = array(
+		'field_COMMIT_IS_OK' => 1,
+		'field_COMMIT_DATE' => date('Y-m-d H:i:s')
+	);
+	paracrm_lib_data_updateRecord_file('MVT',$row_mvt,$mvt_filerecordId) ;
+	
+	return $mvt_filerecordId ;
+}
+
+
+
 ?>
