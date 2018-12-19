@@ -222,8 +222,159 @@ function specDbsLam_stock_submitInvAction( $post_data ) {
 
 function specDbsLam_stock_getLogs($post_data) {
 	global $_opDB ;
-	sleep(1) ;
-	return array('success'=>true, 'data'=>array()) ;
+	
+	// Load cfg attributes
+	$ttmp = specDbsLam_cfg_getConfig() ;
+	$json_cfg = $ttmp['data'] ;
+	
+	// Warehouses
+	$arr_stockWhses = array() ;
+	foreach( $json_cfg['cfg_whse'] as $whse_row ) {
+		if( !$whse_row['is_stock'] ) {
+			continue ;
+		}
+		$arr_stockWhses[] = $whse_row['whse_code'] ;
+	}
+	
+	
+	// **************** SQL selection *****************
+	$ignores = array() ;
+	$selects = array() ;
+	foreach( array('tl'=>'view_file_TRANSFER_LIG','mvt'=>'view_file_MVT') as $prefix=>$table ) {
+		$query = "SHOW COLUMNS FROM {$table}" ;
+		$result = $_opDB->query($query) ;
+		while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+			$field = $arr[0] ;
+			if( !(strpos($field,'field_')===0) ) {
+				continue ;
+			}
+			$mkey = $prefix.'.'.$field ;
+			if( in_array($mkey,$ignores) ) {
+				continue ;
+			}
+			
+			$selects[] = $prefix.'.'.$field ;
+		}
+	}
+	$selects = implode(',',$selects) ;
+	
+	$query = "SELECT mvt.filerecord_id as mvt_filerecord_id, t.filerecord_id as transfer_filerecord_id, t.field_TRANSFER_TXT as transfer_txt
+			, {$selects}
+			FROM view_file_MVT mvt
+			LEFT OUTER JOIN view_file_TRANSFER_LIG tl ON tl.field_FILE_MVT_ID=mvt.filerecord_id
+			LEFT OUTER JOIN view_file_TRANSFER t ON t.filerecord_id=tl.filerecord_parent_id
+			WHERE 1" ;
+	switch( $post_data['log_filter_property'] ) {
+		case 'container_ref' :
+			$query.= " AND (field_CONTAINER_REF='{$post_data['log_filter_value']}' OR field_CONTAINER_DISPLAY='{$post_data['log_filter_value']}')" ;
+			break ;
+		case 'prod_id' :
+			$query.= " AND (field_PROD_ID='{$post_data['log_filter_value']}')" ;
+			break ;
+		case 'adrç' :
+			$query.= " AND (field_SRC_ADR_ID='{$post_data['log_filter_value']}' OR field_DST_ADR_ID='{$post_data['log_filter_value']}')" ;
+			break ;
+		default :
+			break ;
+	}
+	$query.= " ORDER BY mvt.filerecord_id DESC" ;
+	
+	
+	$result = $_opDB->query($query) ;
+	// *********************************************
+	
+	$TAB = array() ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		foreach( array(1,-1) as $coef ) {
+			$row = array(
+				'mvt_filerecord_id' => $arr['mvt_filerecord_id'],
+				
+				'soc_code' => $arr['field_SOC_CODE'],
+				'container_type' => $arr['field_CONTAINER_TYPE'],
+				'container_ref' => $arr['field_CONTAINER_REF'],
+				'container_ref_display' => $arr['field_CONTAINER_DISPLAY'],
+				'stk_prod' => $arr['field_PROD_ID'],
+				'stk_batch' => $arr['field_SPEC_BATCH'],
+				'stk_datelc' => $arr['field_SPEC_DATELC'],
+				'stk_sn' => $arr['field_SPEC_SN'],
+				'mvt_qty' => ( (float)$arr['field_QTY_MVT'] * $coef ),
+				
+				'commit_is_ok' => !!$arr['field_COMMIT_IS_OK'],
+				'commit_date' => $arr['field_COMMIT_DATE'],
+				
+				'transfer_txt' => ($arr['transfer_txt'] ? $arr['transfer_txt'] : $arr['field_MVTDIRECT_TXT'])
+			);
+			foreach( $json_cfg['cfg_attribute'] as $stockAttribute_obj ) {
+				if( !$stockAttribute_obj['STOCK_fieldcode'] ) {
+					continue ;
+				}
+				$mkey = $stockAttribute_obj['mkey'] ;
+				$STOCK_fieldcode = $stockAttribute_obj['STOCK_fieldcode'] ;
+				$row[$mkey] = $arr[$STOCK_fieldcode] ;
+			}
+			if( $coef > 0 ) {
+				if( !in_array($arr['field_DST_WHSE'],$arr_stockWhses) ) {
+					continue ;
+				}
+				if( $post_data['log_filter_property']=='adr_id' && $arr['field_DST_ADR_ID']!=$post_data['log_filter_value'] ) {
+					continue ;
+				}
+				$row+= array(
+					'stk_filerecord_id' => $arr['field_DST_FILE_STOCK_ID'],
+					'adr_whse' => $arr['field_DST_WHSE'],
+					'adr_id' => $arr['field_DST_ADR_ID']
+				) ;
+			}
+			if( $coef < 0 ) {
+				if( !in_array($arr['field_SRC_WHSE'],$arr_stockWhses) ) {
+					continue ;
+				}
+				if( $post_data['log_filter_property']=='adr_id' && $arr['field_SRC_ADR_ID']!=$post_data['log_filter_value'] ) {
+					continue ;
+				}
+				$row+= array(
+					'stk_filerecord_id' => $arr['field_SRC_FILE_STOCK_ID'],
+					'adr_whse' => $arr['field_SRC_WHSE'],
+					'adr_id' => $arr['field_SRC_ADR_ID']
+				) ;
+			}
+			
+			if( $arr['field_PICK_TRSFRCDENEED_ID'] && ($coef==-1) ) {
+				$query_link = "SELECT mvt.field_QTY_MVT, mvt.field_SRC_WHSE, mvt.field_SRC_ADR_ID, c.field_CDE_NR
+						FROM view_file_MVT mvt
+						JOIN view_file_TRANSFER_LIG tl ON tl.field_FILE_MVT_ID=mvt.filerecord_id
+						JOIN view_file_TRANSFER_CDE_LINK tcl ON tcl.filerecord_id=tl.field_PACK_TRSFRCDELINK_ID
+						JOIN view_file_CDE_LIG cl ON cl.filerecord_id=tcl.field_FILE_CDELIG_ID
+						JOIN view_file_CDE c ON c.filerecord_id=cl.filerecord_parent_id
+						WHERE tcl.field_FILE_TRSFRCDENEED_ID='{$arr['field_PICK_TRSFRCDENEED_ID']}'" ;
+				$res_link = $_opDB->query($query_link) ;
+				
+				$links = array() ;
+				$links_qty = 0 ;
+				while( ($arr_link = $_opDB->fetch_assoc($res_link)) != FALSE ) {
+					$links[] = array(
+						'link' => true,
+						'transfer_txt' => $arr_link['field_CDE_NR'],
+						'adr_whse' => $arr_link['field_SRC_WHSE'],
+						'adr_id' => $arr_link['field_SRC_ADR_ID'],
+						'mvt_qty' => ( (float)$arr_link['field_QTY_MVT'] * $coef )
+					);
+					$links_qty += (float)$arr_link['field_QTY_MVT'] ;
+				}
+				if( abs($links_qty)>abs($row['mvt_qty']) ) {
+					foreach( $links as &$link ) {
+						$link['link_partial'] = true ;
+					}
+					unset($link) ;
+				}
+				$row['links'] = $links ;
+			}
+			
+			$TAB[] = $row ;
+		}
+	}
+	
+	return array('success'=>true, 'data'=>$TAB) ;
 }
 
 

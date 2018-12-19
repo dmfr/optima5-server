@@ -5,19 +5,24 @@ Ext.define('DbsLamStockLogModel',{
 		{name: 'stk_filerecord_id', type:'int'},
 		
 		{name: 'commit_is_ok', type:'boolean'},
-		{name: 'commit_date', type:'boolean', dateFormat: 'Y-m-d H:i:s'},
+		{name: 'commit_date', type:'date', dateFormat: 'Y-m-d H:i:s'},
 		
 		{name: 'transfer_txt', type:'string'},
 		
 		{name: 'adr_whse', type:'string'},
 		{name: 'adr_id', type:'string'},
+		
+		{name: 'soc_code', type:'string'},
 		{name: 'container_ref', type:'string'},
 		{name: 'container_ref_display', type:'string'},
 		{name: 'stk_prod', type:'string'},
 		{name: 'stk_batch', type:'string'},
 		{name: 'stk_datelc', type:'string'},
 		{name: 'stk_sn', type:'string'},
-		{name: 'mvt_qty', type:'number'}
+		{name: 'mvt_qty', type:'number'},
+		
+		{name: 'link', type:'boolean'},
+		{name: 'link_partial', type:'boolean'}
 	]
 });
 
@@ -127,6 +132,10 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockLogPanel',{
 			},
 			items: [{
 				xtype: 'treecolumn',
+				width: 48
+			},{
+				xtype: 'datecolumn',
+				format: 'Y-m-d H:i',
 				dataIndex: 'commit_date',
 				text: 'Date/Time',
 				width: 150
@@ -137,16 +146,31 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockLogPanel',{
 			},{
 				dataIndex: 'adr_id',
 				text: 'Location',
-				width: 100
+				width: 100,
+				renderer: function(v,m,r) {
+					if( r.get('link') ) {
+						return '&#160;' ;
+					}
+					return v ;
+				}
 			},{
 				text: 'Stock Attributes',
 				columns: atrStockColumns
 			},{
 				text: '<b>SKU details</b>',
 				columns: [{
-					dataIndex: 'container_ref',
+					dataIndex: 'container_ref_display',
 					text: 'Cont/Ref',
-					width: 100
+					width: 100,
+					renderer: function(v,m,r) {
+						if( Ext.isEmpty(v) ) {
+							return '&#160;' ;
+						}
+						if( Ext.isEmpty(r.get('container_ref')) ) {
+							return '('+v+')' ;
+						}
+						return '<b>'+v+'</b>' ;
+					}
 				},{
 					dataIndex: 'stk_prod',
 					text: 'P/N',
@@ -160,6 +184,23 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockLogPanel',{
 					text: 'Qty disp',
 					align: 'right',
 					width: 75,
+					renderer: function(v,m,r) {
+						if( r.get('link') ) {
+							var str = '(' ;
+							str+= v ;
+							if( r.get('link_partial') ) {
+								str+= ' <b>**</b>' ;
+							}
+							str+=')' ;
+							return str ;
+						}
+						if( v<0 ) {
+							return '<font color="red"><b>'+'- '+Math.abs(v)+'</b>' ;
+						}
+						if( v>0 ) {
+							return '<font color="green"><b>'+'+ '+Math.abs(v)+'</b>' ;
+						}
+					}
 				},{
 					dataIndex: 'stk_sn',
 					text: 'Serial',
@@ -169,9 +210,10 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockLogPanel',{
 		};
 		
 		var treePanel = {
+			border: false,
 			xtype: 'treepanel',
 			store: {
-				model: 'DbsLamTransferTreeModel',
+				model: this.tmpModelName,
 				root:{root: true, children:[]},
 				proxy: {
 					type: 'memory',
@@ -185,6 +227,9 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockLogPanel',{
 			multiSelect: false,
 			singleExpand: false,
 			columns: gridColumns,
+			viewConfig: {
+				enableTextSelection: true
+			}
 		};
 		
 		this.add(treePanel) ;
@@ -219,7 +264,35 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockLogPanel',{
 	},
 	onLoad: function(ajaxData) {
 		console.dir(ajaxData) ;
+		var rootChildren = [] ;
+		Ext.Array.each(ajaxData, function(row) {
+			var node = row ;
+			Ext.apply( node, {
+				icon: (node.commit_is_ok ? 'images/op5img/ico_greendot.gif' : 'images/op5img/ico_wait_small.gif')
+			}) ;
+			if( row['links'] ) {
+				node['expanded'] = true ;
+				node['children'] = [] ;
+				
+				Ext.Array.each(row['links'], function(srow) {
+					srow['leaf'] = true ;
+					srow['icon'] = ' ' ;
+					node['children'].push(srow) ;
+				}) ;
+				delete node['links'] ;
+			} else {
+				node['leaf'] = true ;
+			}
+			rootChildren.push(node) ;
+		}) ;
 		
+		var rootNode = {
+			root: true,
+			expanded: true,
+			children: rootChildren
+		}
+		
+		this.down('treepanel').setRootNode(rootNode) ;
 	},
 	
 	
