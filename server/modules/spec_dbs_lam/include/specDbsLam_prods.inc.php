@@ -1,6 +1,8 @@
 <?php
-
-function specDbsLam_prods_getGrid($post_data) {
+function specDbsLam_prods_getIds($post_data) {
+	return specDbsLam_prods_getGrid($post_data,$ids_mode=true) ;
+}
+function specDbsLam_prods_getGrid($post_data, $ids_mode=false) {
 	global $_opDB ;
 	
 	// Load cfg attributes
@@ -29,10 +31,14 @@ function specDbsLam_prods_getGrid($post_data) {
 	if( !isset($post_data['filter']) ) {
 		$query.= "" ;
 	} else {
-		$query.= " LIMIT 100" ;
+		//$query.= " LIMIT 100" ;
 	}
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		if( $ids_mode ) {
+			$tab_DATA[] = array('id'=>$arr['entry_key']) ;
+			continue ;
+		}
 		$row = array() ;
 		$row['id'] = $arr['entry_key'] ;
 		$ttmp = explode('_',$arr['entry_key'],2) ;

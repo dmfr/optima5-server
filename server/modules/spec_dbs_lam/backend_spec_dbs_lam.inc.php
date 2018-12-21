@@ -29,6 +29,8 @@ switch( $post_data['_action'] )
 	
 	case 'prods_getGrid' :
 	return specDbsLam_prods_getGrid( $post_data ) ;
+	case 'prods_getIds' :
+	return specDbsLam_prods_getIds( $post_data ) ;
 	case 'prods_getStockGrid' :
 	return specDbsLam_prods_getStockGrid( $post_data ) ;
 	case 'prods_doRelocate' :

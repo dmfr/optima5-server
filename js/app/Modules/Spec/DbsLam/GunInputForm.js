@@ -31,7 +31,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunInputForm',{
 		this.doLoadTransferStep( this._transferstepFilerecordId ) ;
 	},
 	initComponentAfterRender: function(panel) {
-		console.log('afterrender') ;
+		//console.log('afterrender') ;
 		panel.getEl().on('keypress',panel.onKeyPress,panel);
 	},
 	
@@ -143,7 +143,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunInputForm',{
 				editable:true,
 				typeAhead:false,
 				selectOnFocus: true,
-				selectOnTab: false,
+				selectOnTab: true,
 				queryMode: 'remote',
 				displayField: 'id',
 				valueField: 'id',
@@ -151,12 +151,12 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunInputForm',{
 				minChars: 2,
 				fieldStyle: 'text-transform:uppercase',
 				store: {
-					model: 'DbsLamProdComboboxModel',
+					//autoLoad: true,
+					fields: ['id'],
 					proxy: this.optimaModule.getConfiguredAjaxProxy({
 						extraParams : {
 							_moduleId: 'spec_dbs_lam',
-							_action: 'prods_getGrid',
-							limit: 20
+							_action: 'prods_getIds'
 						},
 						reader: {
 							type: 'json',
@@ -416,7 +416,8 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunInputForm',{
 			success: function(response) {
 				var ajaxResponse = Ext.decode(response.responseText) ;
 				if( !ajaxResponse.success ) {
-					Ext.MessageBox.alert('Error','Error') ;
+					Ext.MessageBox.alert('Error',ajaxResponse.error||'Error') ;
+					this.hideLoadmask() ;
 					return ;
 				}
 				if( ajaxResponse.forward_transferlig_filerecord_id ) {

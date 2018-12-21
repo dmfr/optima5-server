@@ -135,7 +135,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferInnerStepPanel',{
 				},{
 					dataIndex: 'stk_prod',
 					text: 'P/N',
-					width: 100,
+					width: 150,
 					editorTplNew: {
 								xtype: 'combobox',
 								forceSelection:true,
@@ -143,20 +143,20 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferInnerStepPanel',{
 								editable:true,
 								typeAhead:false,
 								selectOnFocus: true,
-								selectOnTab: false,
+								selectOnTab: true,
 								queryMode: 'remote',
-								displayField: 'prod_id',
+								displayField: 'id',
 								valueField: 'id',
 								queryParam: 'filter',
 								minChars: 2,
 								fieldStyle: 'text-transform:uppercase',
 								store: {
-									model: 'DbsLamProdComboboxModel',
+									//autoLoad: true,
+									fields: ['id'],
 									proxy: this.optimaModule.getConfiguredAjaxProxy({
 										extraParams : {
 											_moduleId: 'spec_dbs_lam',
-											_action: 'prods_getGrid',
-											limit: 20
+											_action: 'prods_getIds'
 										},
 										reader: {
 											type: 'json',
