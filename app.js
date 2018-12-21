@@ -19,6 +19,11 @@ Ext.onReady(function () {
 	Load record for multi-select COMBO
 	http://www.sencha.com/forum/archive/index.php/t-202456.html?s=ef437a00595a4b216c80d979879ef5fc
 	http://stackoverflow.com/questions/6299164/using-ext-form-basic-loadrecord-to-load-data-into-combo-box-fields-with-remote-s
+	
+	
+	Import CheckValueOnChange from 5.1.4
+	https://www.sencha.com/forum/showthread.php?291421
+	https://www.sencha.com/forum/showthread.php?292816-Combo-auto-reset-while-typing-with-query-and-forceSelection
 	*/
 	Ext.form.field.ComboBox.override( {
 		setValue: function(v) {
@@ -26,6 +31,33 @@ Ext.onReady(function () {
 				arguments[0] = Ext.JSON.decode(v) ;
 			}
 			this.callOverridden(arguments);
+		},
+		checkValueOnChange: function() {
+			var me = this,
+					store = me.getStore();
+
+			// Will be triggered by removal of filters upon destroy
+			if (!me.destroying && store.isLoaded()) {
+					// If multiselecting and the base store is modified, we may have to remove records from the valueCollection
+					// if they have gone from the base store, or update the rawValue if selected records are mutated.
+					// TODO: 5.1.1: Use a ChainedStore for multiSelect so that selected records are not filtered out of the
+					// base store and are able to be removed.
+					// See https://sencha.jira.com/browse/EXTJS-16096
+					if (me.multiSelect) {
+						// TODO: Implement in 5.1.1 when selected records are available for modification and not filtered out.
+						// valueCollection must be in sync with what's available in the base store, and rendered rawValue/tags
+						// must match any updated data.
+					}
+					else {
+						if (me.forceSelection && !me.changingFilters && !me.findRecordByValue(me.value)) {
+							// skip this if query mode is remote and the user is typing or is executing a page load 
+							if (me.queryMode != 'local' && (me.hasFocus || me.isPaging)) {
+									return;
+							}
+							me.setValue(null);
+						}
+					}
+			}
 		}
 	});
 	
