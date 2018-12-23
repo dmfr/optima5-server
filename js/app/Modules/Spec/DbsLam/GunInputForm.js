@@ -142,7 +142,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunInputForm',{
 				allowBlank:false,
 				editable:true,
 				typeAhead:false,
-				selectOnFocus: true,
+				selectOnFocus: false,
 				selectOnTab: true,
 				queryMode: 'remote',
 				displayField: 'id',
@@ -151,7 +151,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunInputForm',{
 				minChars: 2,
 				fieldStyle: 'text-transform:uppercase',
 				store: {
-					//autoLoad: true,
+					autoLoad: true,
 					fields: ['id'],
 					proxy: this.optimaModule.getConfiguredAjaxProxy({
 						extraParams : {

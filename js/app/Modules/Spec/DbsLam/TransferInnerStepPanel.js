@@ -212,8 +212,8 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferInnerStepPanel',{
 					forceSelection:false,
 					editable:true,
 					typeAhead:false,
-					selectOnFocus: true,
-					selectOnTab: false,
+					selectOnFocus: false,
+					selectOnTab: true,
 					queryMode: 'remote',
 					displayField: 'entry_key',
 					valueField: 'entry_key',
@@ -221,6 +221,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferInnerStepPanel',{
 					minChars: 2,
 					fieldStyle: 'text-transform:uppercase',
 					store: {
+						autoLoad: true,
 						fields: ['entry_key'],
 						proxy: this.optimaModule.getConfiguredAjaxProxy({
 							extraParams : {
