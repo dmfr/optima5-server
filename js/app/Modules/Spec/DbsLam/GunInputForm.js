@@ -42,10 +42,53 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunInputForm',{
 	onKeyPress: function(e) {
 		var key = e.getKey();
 		if( key === e.ENTER ){
-			console.dir(arguments) ;
+			//console.dir(arguments) ;
+			//console.dir(Ext.get(arguments[1])) ;
+			this.fieldfocusNext(Ext.get(arguments[1]).component) ;
 				//Ext.Msg.alert('ENTER Key Pressed!', 'omg!' );
 		} else {
 				//Ext.Msg.alert('Other Key Pressed!', key );
+		}
+	},
+	fieldfocusBegin: function() {
+		var formPanel = this.down('form') ;
+		if( !formPanel ) {
+			return ;
+		}
+		formPanel.items.each(function(field) {
+			if( field.getValue && (Ext.isEmpty(field.getValue())||field.getValue()==0) ) {
+				//console.dir(field) ;
+				field.reset() ;
+				field.focus() ;
+				return false ;
+			}
+		});
+		
+	},
+	fieldfocusNext: function(field) {
+		var formPanel = this.down('form') ;
+		if( !formPanel ) {
+			return ;
+		}
+		var idxCur = formPanel.items.indexOf( field ) ;
+		if( idxCur == -1 ) {
+			return ;
+		}
+		idxNext = idxCur + 1 ;
+		
+		var nextField = formPanel.items.getAt(idxNext) ;
+		//console.dir(nextField) ;
+		if( nextField._fieldFocusSkip ) {
+			return this.fieldfocusNext(nextField) ;
+		}
+		if( nextField.itemId=='fsSubmit') {
+			nextField.down('button').el.dom.click() ;
+			return ;
+		}
+		if( true ) {
+			//console.log('focus') ;
+			nextField.focus() ;
+			return ;
 		}
 	},
 	
@@ -181,6 +224,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunInputForm',{
 				anchor: '',
 				width: 120
 			},{
+				_fieldFocusSkip: true,
 				xtype: 'box',
 				height: 16
 			},{
@@ -210,11 +254,14 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunInputForm',{
 				form = formPanel.getForm() ;
 			form.setValues(formValues) ;
 		}
+		//console.dir('std form') ;
+		this.fieldfocusBegin() ;
 	},
 	handleSubmitFormStandard() {
 		var formPanel = this.down('#fpStandard'),
 			form = formPanel.getForm() ;
 		if( !form.isValid() ) {
+			this.fieldfocusBegin() ;
 			return ;
 		}
 		var formValues = form.getFieldValues() ;
@@ -236,6 +283,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunInputForm',{
 			});
 		}) ;
 		formItems.push({
+			_fieldFocusSkip: true,
 			xtype: 'box',
 			height: 24
 		},{
@@ -273,11 +321,13 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunInputForm',{
 		
 		this.removeAll() ;
 		this.add(form) ;
+		this.fieldfocusBegin() ;
 	},
 	handleSubmitFormSpec: function() {
 		var formPanel = this.down('#fpSpec') ;
 			form = formPanel.getForm() ;
 		if( !form.isValid() ) {
+			this.fieldfocusBegin() ;
 			return ;
 		}
 		var formValues = form.getValues() ;
