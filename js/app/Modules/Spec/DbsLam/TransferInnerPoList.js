@@ -362,9 +362,31 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferInnerPoList',{
 		return false ;
 	},
 	handleDeleteSelf: function() {
-		console.log('delete') ;
-		this._deleteDone = true ;
-		this.close() ;
+		this.showLoadmask() ;
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_dbs_lam',
+				_action: 'transferInputPo_setState',
+				transfer_filerecordId: this.getActiveTransferRecord().get('transfer_filerecord_id'),
+				transferStep_filerecordId: this.getActiveTransferStepRecord(true).get('transferstep_filerecord_id'),
+				inputlist_obj: Ext.JSON.encode({
+					inputlist_is_on: false
+				})
+			},
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					Ext.MessageBox.alert('Error',ajaxResponse.error) ;
+					return ;
+				}
+				this._deleteDone = true ;
+				this.close() ;
+			},
+			callback: function() {
+				this.hideLoadmask() ;
+			},
+			scope: this
+		}) ;
 	},
 	
 	

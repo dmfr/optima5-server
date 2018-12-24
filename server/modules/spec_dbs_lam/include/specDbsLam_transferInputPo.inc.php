@@ -113,5 +113,22 @@ function specDbsLam_transferInputPo_setLig( $post_data ) {
 	return array('success'=>true, 'debug'=>$form_data) ;
 }
 
+function specDbsLam_transferInputPo_setState($post_data) {
+	$transfer_filerecordId = $post_data['transfer_filerecordId'] ;
+	$transferStep_filerecordId = $post_data['transferStep_filerecordId'] ;
+	$inputlist_obj = json_decode($post_data['inputlist_obj'],true) ;
+	
+	$arr_update = array() ;
+	if( isset($inputlist_obj['inputlist_is_on']) ) {
+		$arr_update += array(
+			'field_INPUTLIST_IS_ON' => $inputlist_obj['inputlist_is_on'],
+		);
+	}
+	paracrm_lib_data_updateRecord_file('TRANSFER_STEP',$arr_update,$transferStep_filerecordId) ;
+	usleep(500*1000) ;
+	
+	return array('success'=>true) ;
+}
+
 
 ?>
