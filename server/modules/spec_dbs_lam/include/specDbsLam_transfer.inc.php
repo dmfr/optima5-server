@@ -73,9 +73,13 @@ function specDbsLam_transfer_getTransfer($post_data) {
 			'whse_dst' => $arr['field_WHSE_DST'],
 			'forward_is_on' => $arr['field_FORWARD_IS_ON'],
 			'forward_to_idx' => $arr['field_FORWARD_TO_IDX'],
+			
 			'pda_is_on' => !!$arr['field_PDA_IS_ON'],
 			'pdaspec_is_on' => !!$arr['field_PDASPEC_IS_ON'],
 			'pdaspec_code' => (!!$arr['field_PDASPEC_IS_ON'] ? $arr['field_PDASPEC_CODE'] : null),
+			
+			'inputlist_is_on' => !!$arr['field_INPUTLIST_IS_ON'],
+			
 			'ligs' => array()
 		);
 	}

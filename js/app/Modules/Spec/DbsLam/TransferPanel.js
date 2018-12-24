@@ -132,9 +132,12 @@ Ext.define('DbsLamTransferStepModel',{
 		{name: 'whse_dst', type:'string'},
 		{name: 'forward_is_on', type:'boolean'},
 		{name: 'forward_to_idx', type:'int'},
+		
 		{name: 'pda_is_on', type:'boolean'},
 		{name: 'pdaspec_is_on', type:'boolean'},
-		{name: 'pdaspec_code', type:'string', allowNull:true}
+		{name: 'pdaspec_code', type:'string', allowNull:true},
+		
+		{name: 'inputlist_is_on', type:'boolean'}
 	],
 	hasMany: [{
 		model: 'DbsLamTransferLigModel',
@@ -193,7 +196,9 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 		'Optima5.Modules.Spec.DbsLam.TransferInnerStepPanel',
 		'Optima5.Modules.Spec.DbsLam.TransferInnerCdeLinkPanel',
 		'Optima5.Modules.Spec.DbsLam.TransferInnerCdePickingPanel',
-		'Optima5.Modules.Spec.DbsLam.TransferInnerCdePackingPanel'
+		'Optima5.Modules.Spec.DbsLam.TransferInnerCdePackingPanel',
+		
+		'Optima5.Modules.Spec.DbsLam.TransferInnerPoList'
 	],
 	
 	initComponent: function() {
@@ -566,9 +571,10 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 		}
 		
 		var hasBuildPick = activeTab.hasBuildPick(),
-			hasInput = activeTab.hasInputNew() ;
+			hasInput = activeTab.hasInputNew(),
+			hasSpecInputList = (activeTab.getSpecTab()=='TransferInnerPoList') ;
 		pCenterTb.down('#tbAdd').setVisible( hasBuildPick ) ;
-		pCenterTb.down('#tbInput').setVisible( hasInput ) ;
+		pCenterTb.down('#tbInput').setVisible( hasInput || hasSpecInputList ) ;
 		pCenterTb.down('#tbPdaSpec').setVisible( hasInput ) ;
 		if( hasInput ) { // PDA Spec
 			var selMenuItem = null ;
@@ -588,6 +594,8 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 		}
 		
 			if( true ) { // options
+				pCenterTb.down('#tbActions').setVisible( Ext.isEmpty(activeTab.getSpecTab()) ) ;
+				
 				var optionsHasFastCommit = activeTab.optionsHasFastCommit(),
 					optionsHasFastOut = activeTab.optionsHasFastOut(),
 					optionsCdeDocs = activeTab.optionsHasCdeDocs(),
@@ -880,6 +888,28 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 			tabItems.push(cmp) ;
 		}
 		this._activeTransferRecord.steps().each( function(transferStepRecord) {
+			if( transferStepRecord.get('spec_input') && transferStepRecord.get('inputlist_is_on') ) {
+				console.log('input PO') ;
+				
+				var className = 'Optima5.Modules.Spec.DbsLam.TransferInnerPoList' ;
+				
+				var cmp = Ext.create(className,{
+					optimaModule: this.optimaModule,
+					
+					closable: true,
+					
+					_activeTransferRecord: this._activeTransferRecord,
+					_actionTransferStepIdx: transferStepRecord.get('transferstep_idx'),
+					
+					listeners: {
+						op5lamcdeadd: this.onLamCdeAdd,
+						op5lamcderemove: this.onLamCdeRemove,
+						scope: this
+					}
+				});
+				cmp.refreshData() ;
+				tabItems.push(cmp) ;
+			}
 			if( !transferStepRecord.get('spec_cde_picking') && !transferStepRecord.get('spec_cde_packing') ) {
 				var className = 'Optima5.Modules.Spec.DbsLam.TransferInnerStepPanel' ;
 				

@@ -8,13 +8,18 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferInnerMixin',{
 	getActiveTransferRecord: function() {
 		return this._activeTransferRecord ;
 	},
-	getActiveTransferStepRecord: function() {
+	getActiveTransferStepRecord: function(doForce) {
 		var ret = null ;
 		this._activeTransferRecord.steps().each( function(transferStepRecord) {
 			if( transferStepRecord.get('transferstep_idx')==this._actionTransferStepIdx ) {
 				ret = transferStepRecord ;
 			}
 		},this) ;
+		
+		if( this._specTab && !doForce ) {
+			return null ;
+		}
+		
 		return ret ;
 	},
 	getInnerTitle: function() {
@@ -32,6 +37,10 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferInnerMixin',{
 	},
 	handleInputNew: function() {
 		console.log('default inputnew') ;
+	},
+	
+	getSpecTab: function() {
+		return this._specTab ;
 	},
 	
 	hasBuildPick: function() {

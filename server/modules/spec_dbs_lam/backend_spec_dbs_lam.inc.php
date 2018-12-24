@@ -128,6 +128,11 @@ switch( $post_data['_action'] )
 	case 'transfer_spool_transferCdePack' :
 	return specDbsLam_transfer_spool_transferCdePack( $post_data ) ;
 	
+	case 'transferInputPo_getLigs' :
+	return specDbsLam_transferInputPo_getLigs( $post_data ) ;
+	case 'transferInputPo_setLig' :
+	return specDbsLam_transferInputPo_setLig( $post_data ) ;
+	
 	default :
 	return NULL ;
 }
