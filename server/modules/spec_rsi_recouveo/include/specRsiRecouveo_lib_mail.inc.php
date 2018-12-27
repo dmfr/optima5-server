@@ -386,60 +386,60 @@ function specRsiRecouveo_lib_mail_doSend($email_filerecord_id) {
 	media_contextClose() ;
 }
 function specRsiRecouveo_lib_mail_doSendRaw($email_bin) {
-		$obj_mimeParser = PhpMimeMailParser::getInstance() ;
-		if( !$obj_mimeParser ) {
-			return FALSE ;
+	$obj_mimeParser = PhpMimeMailParser::getInstance() ;
+	if( !$obj_mimeParser ) {
+		return FALSE ;
+	}
+	
+	$smtp = PhpMailer::getSMTP() ;
+	if( !$smtp ) {
+		return FALSE ;
+	}
+	$LE = $smtp::LE  ;
+	
+	// normalize
+	$email_bin = str_replace("\r\n", "\n", $email_bin);
+	$email_bin = str_replace("\r", "\n", $email_bin);
+	$email_bin = str_replace("\n", "\r\n", $email_bin);
+	// separate header -- body
+	$ttmp = explode($LE.$LE,$email_bin,2) ;
+	if( count($ttmp) != 2 ) {
+		return FALSE ;
+	}
+	$header = $ttmp[0] ;
+	$body = $ttmp[1] ;
+	
+	
+	
+	// extract to_list 
+	// extract subject
+	$obj_mimeParser->setText($email_bin) ;
+	$to_list = array() ;
+	foreach( array('from') as $mkey ) {
+		foreach( $obj_mimeParser->getAddresses($mkey) as $adr ) {
+			$from = $adr['address'] ;
+			break ;
 		}
-		
-		$smtp = PhpMailer::getSMTP() ;
-		if( !$smtp ) {
-			return FALSE ;
+	}
+	foreach( array('to','cc') as $mkey ) {
+		foreach( $obj_mimeParser->getAddresses($mkey) as $adr ) {
+			$to_list[] = $adr['address'] ;
 		}
-		$LE = $smtp::LE  ;
-		
-		// normalize
-		$email_bin = str_replace("\r\n", "\n", $email_bin);
-		$email_bin = str_replace("\r", "\n", $email_bin);
-		$email_bin = str_replace("\n", "\r\n", $email_bin);
-		// separate header -- body
-		$ttmp = explode($LE.$LE,$email_bin,2) ;
-		if( count($ttmp) != 2 ) {
-			return FALSE ;
-		}
-		$header = $ttmp[0] ;
-		$body = $ttmp[1] ;
-		
-		
-		
-		// extract to_list 
-		// extract subject
-		$obj_mimeParser->setText($email_bin) ;
-		$to_list = array() ;
-		foreach( array('from') as $mkey ) {
-			foreach( $obj_mimeParser->getAddresses($mkey) as $adr ) {
-				$from = $adr['address'] ;
-				break ;
-			}
-		}
-		foreach( array('to','cc') as $mkey ) {
-			foreach( $obj_mimeParser->getAddresses($mkey) as $adr ) {
-				$to_list[] = $adr['address'] ;
-			}
-		}
-		
-		if( $GLOBALS['__OPTIMA_TEST'] ) {
-			return TRUE ;
-		}
-		$smtp->connect('127.0.0.1') ;
-		$smtp->hello('optima5');
-		$smtp->mail($from) ;
-		foreach( $to_list as $to ) {
-			$smtp->recipient($to) ;
-		}
-		$success = $smtp->data($email_bin) ;
-		$smtp->quit() ;
-		$smtp->close() ;
-		return $success ;
+	}
+	
+	if( $GLOBALS['__OPTIMA_TEST'] ) {
+		return TRUE ;
+	}
+	$smtp->connect('127.0.0.1') ;
+	$smtp->hello('optima5');
+	$smtp->mail($from) ;
+	foreach( $to_list as $to ) {
+		$smtp->recipient($to) ;
+	}
+	$success = $smtp->data($email_bin) ;
+	$smtp->quit() ;
+	$smtp->close() ;
+	return $success ;
 }
 
 
