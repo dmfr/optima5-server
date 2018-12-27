@@ -140,7 +140,6 @@ function specRsiRecouveo_lib_mail_sync() {
 	
 	$ttmp = specRsiRecouveo_cfg_getConfig() ;
 	$cfg_email = $ttmp['data']['cfg_email'] ;
-	
 	$mbox = 'INBOX' ;
 	foreach( $cfg_email as $cfg_email_entry ) {
 		/* DM / Rayane 07/03/18 : if exchange => fonction spéciale */
@@ -385,61 +384,107 @@ function specRsiRecouveo_lib_mail_doSend($email_filerecord_id) {
 	
 	media_contextClose() ;
 }
-function specRsiRecouveo_lib_mail_doSendRaw($email_bin) {
-	$obj_mimeParser = PhpMimeMailParser::getInstance() ;
-	if( !$obj_mimeParser ) {
-		return FALSE ;
+
+function specRsiRecouveo_lib_mail_doSendRaw($email_bin)
+{
+	$obj_mimeParser = PhpMimeMailParser::getInstance();
+	if (!$obj_mimeParser) {
+		return FALSE;
 	}
-	
-	$smtp = PhpMailer::getSMTP() ;
-	if( !$smtp ) {
-		return FALSE ;
+
+	$smtp = PhpMailer::getSMTP();
+	if (!$smtp) {
+		return FALSE;
 	}
-	$LE = $smtp::LE  ;
-	
+	$LE = $smtp::LE;
+
 	// normalize
 	$email_bin = str_replace("\r\n", "\n", $email_bin);
 	$email_bin = str_replace("\r", "\n", $email_bin);
 	$email_bin = str_replace("\n", "\r\n", $email_bin);
 	// separate header -- body
-	$ttmp = explode($LE.$LE,$email_bin,2) ;
-	if( count($ttmp) != 2 ) {
-		return FALSE ;
+	$ttmp = explode($LE . $LE, $email_bin, 2);
+	if (count($ttmp) != 2) {
+		return FALSE;
 	}
-	$header = $ttmp[0] ;
-	$body = $ttmp[1] ;
-	
-	
-	
-	// extract to_list 
+	$header = $ttmp[0];
+	$body = $ttmp[1];
+
+
+	// extract to_list
 	// extract subject
-	$obj_mimeParser->setText($email_bin) ;
-	$to_list = array() ;
-	foreach( array('from') as $mkey ) {
-		foreach( $obj_mimeParser->getAddresses($mkey) as $adr ) {
-			$from = $adr['address'] ;
-			break ;
+
+	$obj_mimeParser->setText($email_bin);
+	$to_list = array();
+	foreach (array('from') as $mkey) {
+		foreach ($obj_mimeParser->getAddresses($mkey) as $adr) {
+			$from = $adr['address'];
+			break;
 		}
 	}
-	foreach( array('to','cc') as $mkey ) {
-		foreach( $obj_mimeParser->getAddresses($mkey) as $adr ) {
-			$to_list[] = $adr['address'] ;
+	foreach (array('to', 'cc') as $mkey) {
+		foreach ($obj_mimeParser->getAddresses($mkey) as $adr) {
+			$to_list[] = $adr['address'];
 		}
 	}
-	
+
+	$ttmp = specRsiRecouveo_cfg_getConfig();
+
+
+	foreach ($ttmp['data']['cfg_email'] as $account) {
+		if ($account['email_adr'] == $from) {
+			$currentAccount = $account;
+		}
+	}
+	$hostinfo = [];
+	$url = '127.0.0.1';
+	$port = 25;
+	$hello_msg = 'optima5';
+	if (!preg_match('/^((ssl|tls):\/\/)*([a-zA-Z0-9\.-]*|\[[a-fA-F0-9:]+\]):?([0-9]*)$/', trim($currentAccount['smtp_url']), $hostinfo)) {
+		$smtp->connect('127.0.0.1');
+		$smtp->hello($hello_msg);
+	} else {
+		$smtp_username = $currentAccount['smtp_username'] ;
+		$smtp_passwd = $currentAccount['smtp_passwd'] ;
+		if (!empty($hostinfo[4])) {
+			$port = $hostinfo[4];
+		}
+		if (!empty($hostinfo[3])) {
+			$url = $hostinfo[3];
+		}
+		if (empty($hostinfo[2]) || $hostinfo[2] == 'none') {
+			$smtp->connect($url, $port);
+			$smtp->hello($hello_msg);
+			$smtp->authenticate($smtp_username, $smtp_pass);
+			print_r($smtp);
+		}
+		if ($hostinfo[2] == 'ssl') {
+			$new_url = $hostinfo[2] . '://' . $url;
+			$smtp->connect($new_url, $port);
+			$smtp->hello($hello_msg);
+			$smtp->authenticate($smtp_username, $smtp_pass);
+		}
+		if ($hostinfo[2] == 'tls') {
+			$smtp->connect($url, $port);
+			$smtp->hello($hello_msg);
+			$smtp->startTls();
+			$smtp->hello($hello_msg);
+			$smtp->authenticate($smtp_username, $smtp_pass);
+		}
+	}
+
 	if( $GLOBALS['__OPTIMA_TEST'] ) {
 		return TRUE ;
 	}
-	$smtp->connect('127.0.0.1') ;
-	$smtp->hello('optima5');
-	$smtp->mail($from) ;
-	foreach( $to_list as $to ) {
-		$smtp->recipient($to) ;
+
+	$smtp->mail($from);
+	foreach ($to_list as $to) {
+		$smtp->recipient($to);
 	}
-	$success = $smtp->data($email_bin) ;
-	$smtp->quit() ;
-	$smtp->close() ;
-	return $success ;
+	$success = $smtp->data($email_bin);
+	$smtp->quit();
+	$smtp->close();
+	return $success;
 }
 
 

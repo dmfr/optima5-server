@@ -118,7 +118,7 @@ function specRsiRecouveo_config_setUser( $post_data ) {
 
 function specRsiRecouveo_config_getEmails($post_data) {
 	global $_opDB ;
-	
+	//print_r("Optimat test: " + $GLOBALS['__OPTIMA_TEST']) ;
 	$bible_code = 'EMAIL' ;
 	
 	$ttmp = specRsiRecouveo_cfg_getConfig() ;
@@ -146,9 +146,13 @@ function specRsiRecouveo_config_setEmail( $post_data ) {
 	$arr_ins['field_SERVER_URL'] = $email_record['server_url'] ;
 	$arr_ins['field_SERVER_USERNAME'] = $email_record['server_username'] ;
 	$arr_ins['field_SERVER_PASSWD'] = $email_record['server_passwd'] ;
+	$arr_ins['field_SMTP_URL'] = $email_record['smtp_url'] ;
+	$arr_ins['field_SMTP_USERNAME'] = $email_record['smtp_username'] ;
+	$arr_ins['field_SMTP_PASSWD'] = $email_record['smtp_passwd'] ;
 	$arr_ins['field_DKIM_JSON'] = $email_record['dkim_json'] ;
 	$arr_ins['field_LINK_IS_DEFAULT'] = ($email_record['link_is_default'] ? 1 : 0) ;
-	
+
+	//print_r($GLOBALS['__OPTIMA_TEST']) ;
 	if( $email_record['link_SOC'] && json_decode($email_record['link_SOC'],true) == array('&') ) {
 		$email_record['link_SOC'] = '' ;
 	}

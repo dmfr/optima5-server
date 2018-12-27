@@ -25,6 +25,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigEmailsPanel', {
 				region: 'center',
 				flex: 1,
 				xtype: 'gridpanel',
+				scrollable: true,
 				columns: [{
 					width: 250,
 					dataIndex: 'email_adr',
@@ -76,6 +77,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigEmailsPanel', {
 				collapsible: true,
 				collapsed: true,
 				_empty:true,
+				scrollable: true,
 				listeners:{
 					beforeexpand:function(eastpanel) {
 						if( eastpanel._empty ) {
@@ -127,6 +129,24 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigEmailsPanel', {
 						anchor: '60%'
 					}]
 				},{
+					xtype: 'fieldset',
+					title: 'Serveur SMTP',
+					items: [{
+						xtype: 'textfield',
+						name: 'smtp_url',
+						fieldLabel: 'URL',
+					},{
+						xtype: 'textfield',
+						name: 'smtp_username',
+						fieldLabel: 'Username',
+						anchor: '60%'
+					},{
+						xtype: 'textfield',
+						name: 'smtp_passwd',
+						fieldLabel: 'Password',
+						anchor: '60%'
+					}]
+                },{
 					xtype: 'fieldset',
 					title: 'Authentification DKIM',
 					items: [{
@@ -180,6 +200,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigEmailsPanel', {
 			}]
 		}) ;
 		this.callParent() ;
+		this.setScrollable('vertical') ;
 	},
 	
 	doReload: function() {
