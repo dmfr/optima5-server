@@ -46,7 +46,7 @@ function specRsiRecouveo_lib_edi_post($apikey_code, $transaction, $data){ // PUB
 		'field_APILOG_KEYCODE' => $apikey_code,
 		'field_APILOG_DATE' => date('Y-m-d H:i:s'),
 		'field_APILOG_METHOD' => $transaction,
-		'field_APILOG_SUCCESS' => !(count($ret['errors']>0)),
+		'field_APILOG_SUCCESS' => !(count($ret['errors'])>0),
 		'field_APILOG_COUNT' => ($ret['count_success'] - count($ret['errors']))
 	);
 	paracrm_lib_data_insertRecord_file('Z_APILOGS', 0, $log) ;
