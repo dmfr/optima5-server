@@ -405,7 +405,14 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 		$inv_header['inv_balage'] = $inv_balage ;
 		
 		
-		if( $next_action ) {
+		if( $file_row['status_closed_void'] || $file_row['status_closed_end'] ) {
+			$file_row += array(
+				'next_closed' => true,
+				'next_action' => null,
+				'next_action_suffix' => null,
+				'next_action_suffix_txt' => 'Clôturé'
+			) ;
+		} elseif( $next_action ) {
 			switch( $next_action['link_action'] ) {
 				case 'MAIL_OUT' :
 					$next_action_suffix = $next_action['link_action'].'_'.$next_action['link_tpl'] ;

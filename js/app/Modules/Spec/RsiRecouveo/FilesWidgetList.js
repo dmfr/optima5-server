@@ -344,6 +344,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesWidgetList', {
 				    useFilters: true
 			    },
 			    renderer: function(v,metaData,r) {
+					 if( r.get('next_closed') ) {
+						metaData.style += ' background: #aaaaaa ' ;
+					 }
 				    return v ;
 			    }
 		    },{
