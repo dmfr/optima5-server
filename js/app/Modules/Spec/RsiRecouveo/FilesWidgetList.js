@@ -347,7 +347,11 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesWidgetList', {
 					 if( r.get('next_closed') ) {
 						metaData.style += ' background: #aaaaaa ' ;
 					 }
-				    return v ;
+					 if( r.get('next_notification') ) {
+						metaData.style += ' color: #aa0000 ; font-weight:bold ; ' ;
+						v = r.get('next_notification_txt') ;
+					}
+					return v ;
 			    }
 		    },{
 			    text: 'Date',
@@ -358,6 +362,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesWidgetList', {
 				    type: 'date'
 			    },
 			    renderer: function(v,metaData,r) {
+					 if( r.get('next_notification') ) {
+						v = r.get('next_notification_date')
+					 }
 				    if( Ext.isEmpty(v) ) {
 					    return '' ;
 				    }

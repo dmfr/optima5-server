@@ -24,6 +24,10 @@ Ext.define('RsiRecouveoFileTplModel',{ // TO: RsiRecouveoFileModel
 		{name: 'date_open', type:'date', dateFormat:'Y-m-d H:i:s'},
 		{name: 'date_last', type:'date', dateFormat:'Y-m-d H:i:s'},
 		{name: 'next_fileaction_filerecord_id', type: 'int'},
+		{name: 'next_closed', type: 'string', allowNull:true},
+		{name: 'next_notification', type: 'string', allowNull:true},
+		{name: 'next_notification_date', type:'date', dateFormat:'Y-m-d', allowNull:true},
+		{name: 'next_notification_txt', type: 'string', allowNull:true},
 		{name: 'next_action', type: 'string', allowNull:true},
 		{name: 'next_action_suffix', type: 'string', allowNull:true},
 		{name: 'next_action_suffix_txt', type: 'string', allowNull:true},
@@ -88,6 +92,8 @@ Ext.define('RsiRecouveoFileActionModel',{
 		{name: 'link_close', type: 'string'},
 		{name: 'link_agree', type: 'auto'},
 		
+		{name: 'notification_is_on', type: 'boolean'},
+		
 		{name: 'calc_eta_range', type:'string'}
 	]
 }) ;
@@ -128,6 +134,7 @@ Ext.define('RsiRecouveoRecordTplModel',{ // TO: RsiRecouveoRecordModel
 		{name: 'letter_code', type: 'string'},
 		{name: 'recordgroup_id', type: 'string'},
 		{name: 'bank_is_alloc', type: 'string'},
+		{name: 'notification_is_on', type: 'boolean'},
 		{name: '_checked', type: 'boolean'},
 		
 		{name: 'calc_balage_segmt_id', type:'string'}
@@ -143,6 +150,16 @@ Ext.define('RsiRecouveoRecordLinkModel',{
 		{name: 'link_is_active', type:'boolean'},
 		{name: 'date_link_on', type:'date', dateFormat:'Y-m-d H:i:s'},
 		{name: 'date_link_off', type:'date', dateFormat:'Y-m-d H:i:s'}
+	]
+}) ;
+
+Ext.define('RsiRecouveoNotificationTplModel',{ // TO: RsiRecouveoNotificationModel
+	extend: 'Ext.data.Model',
+	idProperty: 'notification_filerecord_id',
+	fields: [
+		{name: 'notification_filerecord_id', type:'int'},
+		{name: 'date_notification', type:'date', dateFormat:'Y-m-d'},
+		{name: 'txt_notification', type:'string'}
 	]
 }) ;
 

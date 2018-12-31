@@ -351,15 +351,26 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 				type: 'hbox',
 				align: 'stretch'
 			},
-			tbar:['->',{
-        itemId: 'detailExport',
-        icon: 'images/modules/rsiveo-fetch-16.gif',
-        text: 'Exporter',
-        handler: function(){
-          this.handleDownload() ;
-        },
-        scope: this
-      },{
+			tbar:[{
+				hidden: true,
+				itemId: 'tbNotifications',
+				icon: 'images/op5img/ico_warning_16.gif',
+				cls: 'op5-spec-rsiveo-button-red',
+				text: 'Notifications',
+				menu: [],
+				handler: function(){
+					this.openNotifications() ;
+				},
+				scope: this
+			},'->',{
+				itemId: 'detailExport',
+				icon: 'images/modules/rsiveo-fetch-16.gif',
+				text: 'Exporter',
+				handler: function(){
+					this.handleDownload() ;
+				},
+				scope: this
+			},{
 				itemId: 'tbBump',
 				icon: 'images/modules/rsiveo-redflag-16.gif',
 				text: '<b>Reprise dossier</b>',
@@ -1156,6 +1167,12 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		
 		this.down('#pRecordsPanel').down('#chkShowClosed').setValue( showClosed ) ;
 		
+		this.down('toolbar').down('#tbNotifications').setVisible(false) ;
+		if( accountRecord.notifications().getCount() > 0 ) {
+			this.down('toolbar').down('#tbNotifications').setVisible(true) ;
+			this.openNotifications() ;
+		}
+		
 		return ;
 	},
 	onLoadAccountBuildAdrbookTree: function( accountRecord ) {
@@ -1228,9 +1245,17 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			var pRecordsTreeChildrenRecords = [] ;
 			var totAmountDue = 0 ;
 			fileRecord.records().each( function(fileRecordRecord) {
+				var recordIcon = undefined ;
+				if( fileRecordRecord.get('notification_is_on') ) {
+					recordIcon = 'images/op5img/ico_warning_16.gif' ;
+				} else if( !Ext.isEmpty(fileRecordRecord.get('type')) ) {
+					recordIcon = 'images/modules/rsiveo-quickopen-16.png' ;
+				} else {
+					recordIcon = undefined ;
+				}
 				var record={
 					leaf: true,
-					icon: ( !Ext.isEmpty(fileRecordRecord.get('type')) ? 'images/modules/rsiveo-quickopen-16.png' : undefined ),
+					icon: recordIcon,
 					record_filerecord_id: fileRecordRecord.getId(),
 					record_id: fileRecordRecord.get('record_id'),
 					record_ref: fileRecordRecord.get('record_ref'),
@@ -1453,8 +1478,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 						if( record.getDepth() == 1 
 								&& fileRecord.get('next_fileaction_filerecord_id') == record.get('fileaction_filerecord_id') ) {
 							metaData.tdCls += ' op5-spec-rsiveo-doaction' ;
+						} else if( record.get('notification_is_on') ) {
+							metaData.tdCls += ' op5-spec-rsiveo-notification' ;
 						}
-						
 						
 						return outValue ;
 					}
@@ -2147,6 +2173,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		if( this.emailWindow ) {
 			this.emailWindow.destroy() ;
 		}
+		if( this.notificationsPanel ) {
+			this.notificationsPanel.destroy() ;
+		}
 		this.down('#pRecordsPanel').down('#windowsBar').items.each( function(btn) {
 			if( btn.win && !btn.win.isClosed ) {
 				btn.win.close() ;
@@ -2515,6 +2544,103 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			},
 			callback: function() {
 				this.hideLoadmask() ;
+			},
+			scope: this
+		}) ;
+	},
+	
+	openNotifications: function() {
+		if( !this._accountRecord ) {
+			return ;
+		}
+		
+		var notificationsData = [] ;
+		this._accountRecord.notifications().each( function(rec) {
+			notificationsData.push(rec.getData()) ;
+		}) ;
+		console.dir(notificationsData) ;
+		
+		var notificationsPanel = Ext.create('Ext.grid.Panel',{
+			optimaModule: this.optimaModule,
+			
+			title: 'Notifications',
+			
+			store: {
+				model: Optima5.Modules.Spec.RsiRecouveo.HelperCache.getNotificationModel(),
+				data: notificationsData,
+				proxy: {
+					type: 'memory'
+				}
+			},
+			columns: [{
+				width: 36,
+				renderer: function(v,m,r) {
+					m.tdCls += ' op5-spec-rsiveo-notification' ;
+				}
+			},{
+				width: 110,
+				xtype: 'datecolumn',
+				format: 'd/m/Y',
+				dataIndex: 'date_notification'
+			},{
+				flex:1,
+				dataIndex: 'txt_notification'
+			}],
+			hideHeaders: true,
+			
+			bbar: [{
+				text: 'Effacer notifications',
+				icon: 'images/op5img/ico_delete_16.gif',
+				handler: function() {
+					this.clearNotifications() ;
+				},
+				scope: this
+			}],
+			
+			frame: true,
+			
+			width:400, 
+			height:250,
+			floating: true,
+			draggable: false,
+			resizable: false,
+			renderTo: this.getEl(),
+			tools: [{
+				type: 'close',
+				handler: function(e, t, p) {
+					p.ownerCt.destroy() ;
+				},
+				scope: this
+			}]
+		});
+		
+		notificationsPanel.on('destroy',function(p) {
+			this.notificationsPanel = null ;
+		},this,{single:true}) ;
+		
+		notificationsPanel.getEl().alignTo(this.getEl(), 'tl-tl?');
+		notificationsPanel.show();
+		this.notificationsPanel = notificationsPanel ;
+	},
+	clearNotifications: function() {
+		this.showLoadmask() ;
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_rsi_recouveo',
+				_action: 'account_clearNotifications',
+				acc_id: this._accId
+			},
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					this.hideLoadmask() ;
+					Ext.MessageBox.alert('Error','Error') ;
+					return ;
+				}
+				this.notificationsPanel.destroy() ;
+				this.doReload() ;
+			},
+			callback: function() {
 			},
 			scope: this
 		}) ;

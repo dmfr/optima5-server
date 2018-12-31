@@ -235,7 +235,9 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 			'link_judic' => $arr['field_LINK_JUDIC'],
 			'link_close' => $arr['field_LINK_CLOSE'],
 			'link_agree' => ($arr['field_LINK_AGREE_JSON'] ? json_decode($arr['field_LINK_AGREE_JSON'],true) : null),
-			'link_txt' => $arr['field_LINK_TXT']
+			'link_txt' => $arr['field_LINK_TXT'],
+			
+			'notification_is_on' => false
 		);
 	}
 	
@@ -306,7 +308,8 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 			'xe_currency_code' => $arr['field_XE_CURRENCY_CODE'],
 			'letter_is_on' => ($arr['field_LETTER_IS_ON']==1),
 			'letter_code' => $arr['field_LETTER_CODE'],
-			'bank_is_alloc' => ($arr['field_BANK_LINK_FILE_ID']>0)
+			'bank_is_alloc' => ($arr['field_BANK_LINK_FILE_ID']>0),
+			'notification_is_on' => false
 		);
 		
 		if( !isset($TAB_files[$file_filerecord_id]) ) {
@@ -480,6 +483,33 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 	}
 	unset($file_row) ;
 	
+	
+	// ************ Notifications: 28/12/2018 ***************
+	$map_accId_rowFirstNotification = array() ;
+	$query = "SELECT *
+				FROM view_file_NOTIFICATION
+				WHERE field_ACTIVE_IS_ON='1'
+				ORDER BY field_DATE_NOTIFICATION" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		$acc_id = $arr['field_LINK_ACCOUNT'] ;
+		if( !isset($map_accId_rowFirstNotification[$acc_id]) ) {
+			$map_accId_rowFirstNotification[$acc_id] = array(
+				'notification_filerecord_id' => $arr['notification_filerecord_id'],
+				'date_notification' => date('Y-m-d',strtotime($arr['field_DATE_NOTIFICATION'])),
+				'txt_notification' => $arr['field_TXT_NOTIFICATION']
+			) ;
+		}
+	}
+	foreach( $TAB_files as &$file_row ) {
+		$acc_id = $file_row['acc_id'] ;
+		if( $map_accId_rowFirstNotification[$acc_id] ) {
+			$file_row['next_notification'] = true ;
+			$file_row['next_notification_date'] = $map_accId_rowFirstNotification[$acc_id]['date_notification'] ;
+			$file_row['next_notification_txt'] = $map_accId_rowFirstNotification[$acc_id]['txt_notification'] ;
+		}
+	}
+	unset($file_row) ;
 	
 	return array('success'=>true, 'data'=>array_values($TAB_files), 'map_atrId_values'=>$map_atrId_values) ;
 }

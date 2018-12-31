@@ -184,7 +184,8 @@ function specRsiRecouveo_account_open( $post_data ) {
 			'xe_currency_code' => $arr['field_XE_CURRENCY_CODE'],
 			'letter_is_on' => ($arr['field_LETTER_IS_ON']==1),
 			'letter_code' => $arr['field_LETTER_CODE'],
-			'bank_is_alloc' => ($arr['field_BANK_LINK_FILE_ID']>0)
+			'bank_is_alloc' => ($arr['field_BANK_LINK_FILE_ID']>0),
+			'notification_is_on' => false
 		);
 		
 		$unalloc_records[] = $record_row ;
@@ -203,6 +204,55 @@ function specRsiRecouveo_account_open( $post_data ) {
 	}
 	
 	
+	
+	// ************ Notifications: 28/12/2018 ***************
+	$notification_rows = array() ;
+	$notification_recordFilerecordIds = array() ;
+	$notification_fileactionFilerecordIds = array() ;
+	$query = "SELECT n.filerecord_id as notification_filerecord_id, n.field_DATE_NOTIFICATION as date_notification, n.field_TXT_NOTIFICATION as txt_notification 
+					, links.*
+				FROM view_file_NOTIFICATION n
+				LEFT OUTER JOIN ( 
+					SELECT filerecord_parent_id, field_LINK_RECORD_ID as record_filerecord_id, NULL as fileaction_filerecord_id FROM view_file_NOTIFICATION_RECORD
+					UNION ALL
+					SELECT filerecord_parent_id, NULL as record_filerecord_id, field_LINK_FILEACTION_ID as fileaction_filerecord_id FROM view_file_NOTIFICATION_FILEACTION
+				) links 
+				ON links.filerecord_parent_id=n.filerecord_id
+				WHERE field_LINK_ACCOUNT='{$p_accId}' AND field_ACTIVE_IS_ON='1'" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		$notification_filerecord_id = $arr['notification_filerecord_id'] ;
+		if( !$notification_rows[$notification_filerecord_id] ) {
+			$notification_rows[$notification_filerecord_id] = array(
+				'notification_filerecord_id' => $arr['notification_filerecord_id'],
+				'date_notification' => date('Y-m-d',strtotime($arr['date_notification'])),
+				'txt_notification' => $arr['txt_notification']
+			);
+		}
+		if( $arr['record_filerecord_id'] ) {
+			$notification_recordFilerecordIds[] = $arr['record_filerecord_id'] ;
+		}
+		if( $arr['fileaction_filerecord_id'] ) {
+			$notification_fileactionFilerecordIds[] = $arr['fileaction_filerecord_id'] ;
+		}
+	}
+	$account_record['notifications'] = array_values($notification_rows) ;
+	
+	foreach( $account_record['files'] as &$file_row ) {
+		foreach( $file_row['actions'] as &$fileaction_row ) {
+			if( in_array($fileaction_row['fileaction_filerecord_id'],$notification_fileactionFilerecordIds) ) {
+				$fileaction_row['notification_is_on'] = true ;
+			}
+		}
+		unset($fileaction_row) ;
+		foreach( $file_row['records'] as &$record_row ) {
+			if( in_array($record_row['record_filerecord_id'],$notification_recordFilerecordIds) ) {
+				$record_row['notification_is_on'] = true ;
+			}
+		}
+		unset($record_row) ;
+	}
+	unset($file_row) ;
 	
 	
 	return array(
@@ -338,6 +388,16 @@ function specRsiRecouveo_account_saveHeader( $post_data ) {
 	global $_opDB ;
 	
 	paracrm_lib_data_updateRecord_bibleEntry('LIB_ACCOUNT',$entry_key,$arr_update) ;
+	
+	return array('success'=>true) ;
+}
+
+function specRsiRecouveo_account_clearNotifications($post_data) {
+	$p_accId = $post_data['acc_id'] ;
+	
+	global $_opDB ;
+	$query = "UPDATE view_file_NOTIFICATION SET field_ACTIVE_IS_ON='0' WHERE field_LINK_ACCOUNT='{$p_accId}'" ;
+	$_opDB->query($query) ;
 	
 	return array('success'=>true) ;
 }

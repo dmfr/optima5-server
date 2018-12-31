@@ -466,6 +466,11 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 				type: 'auto'
 			}) ;
 		}) ;
+		Ext.ux.dams.ModelManager.unregister( 'RsiRecouveoNotificationModel'+'-'+cmpId ) ;
+		Ext.define('RsiRecouveoNotificationModel'+'-'+cmpId,{
+			extend: 'RsiRecouveoNotificationTplModel',
+			idProperty: 'notification_filerecord_id'
+		}) ;
 		Ext.ux.dams.ModelManager.unregister( 'RsiRecouveoRecordModel'+'-'+cmpId ) ;
 		Ext.define('RsiRecouveoRecordModel'+'-'+cmpId,{
 			extend: 'RsiRecouveoRecordTplModel',
@@ -512,6 +517,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 				model: 'RsiRecouveoRecordModel'+'-'+cmpId,
 				name: 'records',
 				associationKey: 'records'
+			},{
+				model: 'RsiRecouveoNotificationModel'+'-'+cmpId,
+				name: 'notifications',
+				associationKey: 'notifications'
 			}]
 		}) ;
 		
@@ -564,6 +573,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 	},
 	getRecordModel: function() {
 		return 'RsiRecouveoRecordModel'+'-'+this.cmpId ;
+	},
+	getNotificationModel: function() {
+		return 'RsiRecouveoNotificationModel'+'-'+this.cmpId ;
 	},
 	getBankModel: function() {
 		return 'RsiRecouveoBankModel' ;
