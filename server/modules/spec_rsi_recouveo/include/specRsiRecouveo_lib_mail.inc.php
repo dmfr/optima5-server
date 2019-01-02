@@ -107,6 +107,7 @@ function specRsiRecouveo_lib_mail_sync_exchange( $email_adr, $exchange_server, $
 						$arr_ins['field_EMAIL_PEER_NAME'] = $addressFrom['display'] ;
 						$arr_ins['field_DATE'] = $date ;
 						$arr_ins['field_SUBJECT'] = $subject ;
+						$arr_ins['field_SRV_IS_NEW'] = true ;
 						$arr_ins['field_SRV_IS_SENT'] = true ;
 						$arr_ins['field_SRV_UID'] = $message_id ;
 						$arr_ins['field_HAS_ATTACHMENTS'] = $has_attachments ;
@@ -206,6 +207,7 @@ function specRsiRecouveo_lib_mail_sync() {
 			$arr_ins['field_EMAIL_PEER_NAME'] = $addressFrom['display'] ;
 			$arr_ins['field_DATE'] = $date ;
 			$arr_ins['field_SUBJECT'] = $subject ;
+			$arr_ins['field_SRV_IS_NEW'] = true ;
 			$arr_ins['field_SRV_IS_SENT'] = true ;
 			$arr_ins['field_SRV_UID'] = $msg_uid ;
 			$arr_ins['field_HAS_ATTACHMENTS'] = $has_attachments ;
@@ -250,13 +252,16 @@ function specRsiRecouveo_lib_mail_probeInboxEmail( $email_filerecord_id=NULL ) {
 	
 	if( !$email_filerecord_id ) {
 		$arr_emailFilerecordIds = array() ;
-		$query = "SELECT filerecord_id FROM view_file_EMAIL WHERE field_MBOX='{$mbox}' AND field_LINK_IS_ON<>'1'" ;
+		$query = "SELECT filerecord_id FROM view_file_EMAIL WHERE field_MBOX='{$mbox}' AND field_LINK_IS_ON<>'1' AND field_SRV_IS_NEW='1'" ;
 		$result = $_opDB->query($query) ;
 		while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
 			$arr_emailFilerecordIds[] = $arr[0] ;
 		}
 		foreach( $arr_emailFilerecordIds as $email_filerecord_id ) {
 			specRsiRecouveo_lib_mail_probeInboxEmail($email_filerecord_id) ;
+			
+			$query = "UPDATE view_file_EMAIL SET field_SRV_IS_NEW='0' WHERE filerecord_id='$email_filerecord_id'" ;
+			$_opDB->query( $query ) ;
 		}
 	}
 	
@@ -333,8 +338,11 @@ function specRsiRecouveo_lib_mail_doSend($email_filerecord_id) {
 		$success = specRsiRecouveo_lib_mail_doSendRaw($email_bin) ;
 		break ;
 	}
-	
 	if( $success ) {
+		$query = "UPDATE view_file_EMAIL SET field_SRV_IS_SENT='1' WHERE filerecord_id='$email_filerecord_id'" ;
+		$_opDB->query( $query ) ;
+	}
+	if( $success && !$GLOBALS['__OPTIMA_TEST'] ) {
 		$msg_uid = -1 ;
 		$ttmp = specRsiRecouveo_cfg_getConfig() ;
 		$cfg_email = $ttmp['data']['cfg_email'] ;
@@ -376,9 +384,6 @@ function specRsiRecouveo_lib_mail_doSend($email_filerecord_id) {
 		
 		$msg_uid ;
 		$query = "UPDATE view_file_EMAIL SET field_SRV_IS_SENT='1', field_SRV_UID='{$msg_uid}' WHERE filerecord_id='$email_filerecord_id'" ;
-		$_opDB->query( $query ) ;
-	} else {
-		$query = "UPDATE view_file_EMAIL SET field_SRV_IS_SENT='0' WHERE filerecord_id='$email_filerecord_id'" ;
 		$_opDB->query( $query ) ;
 	}
 	
@@ -430,6 +435,9 @@ function specRsiRecouveo_lib_mail_doSendRaw($email_bin)
 
 	$ttmp = specRsiRecouveo_cfg_getConfig();
 
+	if( $GLOBALS['__OPTIMA_TEST'] ) {
+		return TRUE ;
+	}
 
 	foreach ($ttmp['data']['cfg_email'] as $account) {
 		if ($account['email_adr'] == $from) {
@@ -473,10 +481,6 @@ function specRsiRecouveo_lib_mail_doSendRaw($email_bin)
 		}
 	}
 
-	if( $GLOBALS['__OPTIMA_TEST'] ) {
-		return TRUE ;
-	}
-
 	$smtp->mail($from);
 	foreach ($to_list as $to) {
 		$smtp->recipient($to);
@@ -500,7 +504,7 @@ function specRsiRecouveo_lib_mail_associateFile( $src_emailFilerecordId, $target
 	
 	$json = specRsiRecouveo_mail_getEmailRecord( array('email_filerecord_id'=>$src_emailFilerecordId) ) ;
 	$email_record = $json['data'] ;
-	if( $email_record['link_is_on'] ) {
+	if( !$email_record || $email_record['link_is_on'] ) {
 		return FALSE ;
 	}
 	$peer_from_address = NULL ;
@@ -513,6 +517,9 @@ function specRsiRecouveo_lib_mail_associateFile( $src_emailFilerecordId, $target
 	
 	$ttmp = specRsiRecouveo_account_open(array('acc_id'=>$target_accId)) ;
 	$account_record = $ttmp['data'] ;
+	if( !$account_record ) {
+		return FALSE ;
+	}
 	
 	while( TRUE ) {
 		if( !$target_adrbookEntity ) {
