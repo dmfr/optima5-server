@@ -609,38 +609,17 @@ function specRsiRecouveo_lib_mail_associateFile( $src_emailFilerecordId, $target
 		$arr_update['field_DATE_ACTUAL'] = $src['field_DATE_RECEP'] ;
 		paracrm_lib_data_updateRecord_file( 'FILE_ACTION', $arr_update, $fileaction_filerecord_id);
 		
-		
-		if( !$map_status[$target_file_record['status']]['sched_lock'] ) {
-			$post_data = array(
-				'file_filerecord_id' => $target_file_record['file_filerecord_id'],
-				'data' => json_encode(array(
-					'link_status' => $target_file_record['status'],
-					'link_action' => 'BUMP',
-					
-				))
-			);
-			$json = specRsiRecouveo_action_doFileAction($post_data) ;
-			if( $json['next_fileaction_filerecord_id'] ) {
-				$next_fileaction_filerecord_id = $json['next_fileaction_filerecord_id'] ;
-				$arr_update = array() ;
-				$arr_update['field_LINK_TXT'] = 'Nouvel email' ;
-				paracrm_lib_data_updateRecord_file( 'FILE_ACTION', $arr_update, $next_fileaction_filerecord_id);
-			}
-		} else {
-			// insertion manuelle
-			$arr_update = array() ;
-			$arr_update['field_LINK_STATUS'] = $target_file_record['status'] ;
-			$arr_update['field_LINK_ACTION'] = 'BUMP' ;
-			$arr_update['field_DATE_SCHED'] = date('Y-m-d') ;
-			$arr_update['field_LINK_TXT'] = 'Nouvel email' ;
-			paracrm_lib_data_insertRecord_file( 'FILE_ACTION', $target_file_record['file_filerecord_id'], $arr_update );
-		}
-		
-		
 		$arr_ins = array() ;
 		$arr_ins['field_LINK_IS_ON'] = 1 ;
 		$arr_ins['field_LINK_FILE_ACTION_ID'] = $fileaction_filerecord_id ;
 		paracrm_lib_data_updateRecord_file( 'EMAIL', $arr_ins, $src_emailFilerecordId);
+		
+		
+		specRsiRecouveo_account_pushNotificationFileaction( array(
+			'acc_id' => $target_accId,
+			'txt_notification' => 'Nouvel email',
+			'fileactionFilerecordId' => $fileaction_filerecord_id
+		));
 	}
 	
 	return TRUE ;

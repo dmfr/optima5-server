@@ -401,5 +401,64 @@ function specRsiRecouveo_account_clearNotifications($post_data) {
 	
 	return array('success'=>true) ;
 }
+function specRsiRecouveo_account_pushNotificationRecords( $post_data ) {
+	global $_opDB ;
+	
+	$p_accId = $post_data['acc_id'] ;
+	$p_txtNotification = $post_data['txt_notification'] ;
+	$p_recordFilerecordIds = $post_data['arr_recordFilerecordIds'] ;
+	
+	// doublon ?
+	$new_recordFilerecordIds = array() ;
+	foreach( $p_recordFilerecordIds as $record_filerecord_id ) {
+		$query = "SELECT filerecord_id FROM view_file_NOTIFICATION_RECORD WHERE field_LINK_RECORD_ID='{$record_filerecord_id}'" ;
+		if( $_opDB->query_uniqueValue($query)>0 ) {
+			continue ;
+		}
+		$new_recordFilerecordIds[] = $record_filerecord_id ;
+	}
+	$p_recordFilerecordIds = $new_recordFilerecordIds ;
+	
+	$arr_ins = array() ;
+	$arr_ins['field_LINK_ACCOUNT'] = $p_accId ;
+	$arr_ins['field_DATE_NOTIFICATION'] = date('Y-m-d H:i:s') ;
+	$arr_ins['field_TXT_NOTIFICATION'] = $p_txtNotification ;
+	$arr_ins['field_ACTIVE_IS_ON'] = 1 ;
+	$notification_filerecord_id = paracrm_lib_data_insertRecord_file( 'NOTIFICATION', 0, $arr_ins );
+	
+	foreach( $p_recordFilerecordIds as $record_filerecord_id ) {
+		$arr_ins = array() ;
+		$arr_ins['field_LINK_RECORD_ID'] = $record_filerecord_id ;
+		paracrm_lib_data_insertRecord_file( 'NOTIFICATION_RECORD', $notification_filerecord_id, $arr_ins );
+	}
+
+	return array('success'=>true) ;
+}
+function specRsiRecouveo_account_pushNotificationFileaction( $post_data ) {
+	global $_opDB ;
+	
+	$p_accId = $post_data['acc_id'] ;
+	$p_txtNotification = $post_data['txt_notification'] ;
+	$p_fileactionFilerecordId = $post_data['fileactionFilerecordId'] ;
+	
+	// doublon ?
+	$query = "SELECT filerecord_id FROM view_file_NOTIFICATION_FILEACTION WHERE field_LINK_FILEACTION_ID='{$p_fileactionFilerecordId}'" ;
+	if( $_opDB->query_uniqueValue($query)>0 ) {
+		return array('success'=>true) ;
+	}
+	
+	$arr_ins = array() ;
+	$arr_ins['field_LINK_ACCOUNT'] = $p_accId ;
+	$arr_ins['field_DATE_NOTIFICATION'] = date('Y-m-d H:i:s') ;
+	$arr_ins['field_TXT_NOTIFICATION'] = $p_txtNotification ;
+	$arr_ins['field_ACTIVE_IS_ON'] = 1 ;
+	$notification_filerecord_id = paracrm_lib_data_insertRecord_file( 'NOTIFICATION', 0, $arr_ins );
+	
+	$arr_ins = array() ;
+	$arr_ins['field_LINK_FILEACTION_ID'] = $p_fileactionFilerecordId ;
+	paracrm_lib_data_insertRecord_file( 'NOTIFICATION_FILEACTION', $notification_filerecord_id, $arr_ins );
+
+	return array('success'=>true) ;
+}
 
 ?>
