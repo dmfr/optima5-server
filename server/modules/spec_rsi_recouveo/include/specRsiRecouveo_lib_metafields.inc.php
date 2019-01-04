@@ -37,7 +37,7 @@ function specRsiRecouveo_lib_metafields_build() {
 			$used_fields_R[] = $atr_field ;
 			$arr_ins_base = array() ;
 			$arr_ins_base['entry_field_code'] = $atr_field ;
-			$arr_ins_base['entry_field_lib'] = 'Atr: '.$attribute['atr_desc'] ;
+			$arr_ins_base['entry_field_lib'] = 'Atr: '.$atr_definition['atr_desc'] ;
 			$arr_ins_base['entry_field_type'] = 'string' ;
 			$arr_ins_base['entry_field_is_header'] = '' ;
 			$arr_ins_base['entry_field_is_highlight'] = 'O' ;

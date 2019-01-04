@@ -208,7 +208,7 @@ function specRsiRecouveo_lib_edi_post_record( $json_rows) {
 			$json_row['DateLimite'] = date_format($d, 'Y-m-d' );
 		}
 		else{
-			$d = new DateTime($arr['DateLimite']) ;
+			$d = new DateTime($json_row['DateLimite']) ;
 			$json_row['DateLimite'] = date_format($d, 'Y-m-d' );
 		}
 		$d = new DateTime($json_row['DateFact']) ;
@@ -256,7 +256,8 @@ function specRsiRecouveo_lib_edi_post_record( $json_rows) {
 			$count_success++;
 		}
 		else{
-			$filerecord_id = $_opDB->fetch_assoc($result) ;
+			$arr = $_opDB->fetch_row($result) ;
+			$filerecord_id = $arr[0] ;
 			paracrm_lib_data_updateRecord_file('RECORD', $arr_ins, $filerecord_id) ;
 			$count_success++;
 		}
