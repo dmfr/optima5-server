@@ -33,7 +33,7 @@ function specRsiRecouveo_lib_autorun_open() {
 		}
 		
 		$arr_ins = array() ;
-		$arr_ins['field_FILE_ID'] = $account_record['acc_id'].'/'.date('Ymd') ;
+		$arr_ins['field_FILE_ID'] = $account_record['acc_id'].'/'.'OFF' ;
 		$arr_ins['field_LINK_ACCOUNT'] = $account_record['acc_id'] ;
 		$arr_ins['field_STATUS'] = 'S0_PRE' ;
 		$arr_ins['field_DATE_OPEN'] = date('Y-m-d H:i:s') ;
@@ -47,20 +47,9 @@ function specRsiRecouveo_lib_autorun_open() {
 			$arr_ins['field_LINK_IS_ON'] = 1 ;
 			$arr_ins['field_DATE_LINK_ON'] = date('Y-m-d') ;
 			paracrm_lib_data_insertRecord_file( 'RECORD_LINK', $accountFileBlankRecord_record['record_filerecord_id'], $arr_ins );
-			
-			if( !$accountFileBlankRecord_record['is_disabled'] ) {
-				$ids[] = $accountFileBlankRecord_record['record_filerecord_id'] ;
-			}
 		}
 		
-		if( count($ids) > 0 ) {
-			$forward_post = array() ;
-			$forward_post['acc_id'] = $account_record['acc_id'] ;
-			$forward_post['arr_recordIds'] = json_encode($ids) ;
-			$forward_post['new_action_code'] = 'BUMP' ;
-			$forward_post['form_data'] = json_encode(array()) ;
-			$ret = specRsiRecouveo_file_createForAction($forward_post) ;
-		}
+		specRsiRecouveo_file_lib_updateStatus($account_record['acc_id']) ;
 	}
 }
 function specRsiRecouveo_lib_autorun_manageDisabled() {
@@ -72,8 +61,8 @@ function specRsiRecouveo_lib_autorun_manageDisabled() {
 				 ON rl.filerecord_parent_id=r.filerecord_id AND rl.field_LINK_IS_ON='1'
 				JOIN view_file_FILE f
 				 ON f.filerecord_id = rl.field_LINK_FILE_ID
-				WHERE ( f.field_STATUS IN ('S1_OPEN','S1_SEARCH') AND r.field_IS_DISABLED='1' )
-				OR ( f.field_STATUS IN('S0_PRE') AND r.field_IS_DISABLED='0' )" ;
+				WHERE f.field_STATUS IN ('S0_PRE','S1_OPEN','S1_SEARCH') 
+				AND f.field_STATUS_CLOSED_END='0' AND f.field_STATUS_CLOSED_VOID='0'" ;
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
 		$arr_acc[] = $arr[0] ;

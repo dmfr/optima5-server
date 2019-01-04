@@ -3,6 +3,8 @@
 function specRsiRecouveo_file_getRecords( $post_data ) {
 	global $_opDB ;
 	
+	$curDateYMD = date('Y-m-d') ;
+	
 	$ttmp = specRsiRecouveo_cfg_getConfig() ;
 	$cfg_status = $ttmp['data']['cfg_status'] ;
 	$cfg_action = $ttmp['data']['cfg_action'] ;
@@ -292,7 +294,7 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 			}
 		}
 		$record_row += array(
-			'is_disabled' => $arr['field_IS_DISABLED'],
+			'is_disabled' => ( $arr['field_IS_DISABLED'] || $curDateYMD < substr($arr['field_DATE_VALUE'],0,10) ),
 			'type' => $arr['field_TYPE'],
 			'type_temprec' => $arr['field_TYPE_TEMPREC'],
 			'record_id' => $arr['field_RECORD_ID'],
@@ -375,7 +377,8 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 				continue ;
 			}
 			if( $record_row['is_disabled'] ) {
-				continue ;
+				// OFF/EC 04/01/2019 : do not exclude disabled records
+				//continue ;
 			}
 			if( $record_row['type']==NULL ) {
 				$inv_header['inv_nb']++ ;
