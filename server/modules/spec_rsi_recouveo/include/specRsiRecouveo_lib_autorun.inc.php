@@ -49,10 +49,12 @@ function specRsiRecouveo_lib_autorun_open() {
 			paracrm_lib_data_insertRecord_file( 'RECORD_LINK', $accountFileBlankRecord_record['record_filerecord_id'], $arr_ins );
 		}
 		
+		specRsiRecouveo_file_lib_manageActivate($account_record['acc_id']) ;
 		specRsiRecouveo_file_lib_updateStatus($account_record['acc_id']) ;
+		specRsiRecouveo_account_lib_checkAdrStatus($account_record['acc_id']) ;
 	}
 }
-function specRsiRecouveo_lib_autorun_manageDisabled() {
+function specRsiRecouveo_lib_autorun_manageActivate() {
 	global $_opDB ;
 	
 	$arr_acc = array() ;
@@ -69,63 +71,7 @@ function specRsiRecouveo_lib_autorun_manageDisabled() {
 	}
 	
 	foreach( $arr_acc as $acc_id ) {
-		$toEnable_recordFilerecordIds = array() ;
-		$toDisable_recordFilerecordIds = array() ;
-		$targetFile_preFilerecordId = $targetFile_openFilerecordId = NULL ;
-		
-		$ttmp = specRsiRecouveo_account_open(array('acc_id'=>$acc_id, 'filter_archiveIsOn'=>1)) ;
-		$account_record = $ttmp['data'] ;
-		foreach( $account_record['files'] as $accountFile_record ) {
-			switch( $accountFile_record['status'] ) {
-				case 'S0_PRE' :
-					$cur_status = 'PRE' ;
-					$targetFile_preFilerecordId = $accountFile_record['file_filerecord_id'] ;
-					break ;
-				case 'S1_OPEN' :
-				case 'S1_SEARCH' :
-					$cur_status = 'OPEN' ;
-					$targetFile_openFilerecordId = $accountFile_record['file_filerecord_id'] ;
-					break ;
-				default :
-					continue 2 ;
-			}
-			foreach( $accountFile_record['records'] as $accountFileRecord_record ) {
-				if( $cur_status=='PRE' && !$accountFileRecord_record['is_disabled'] ) {
-					$toEnable_recordFilerecordIds[] = $accountFileRecord_record['record_filerecord_id'] ;
-				}
-				if( $cur_status=='OPEN' && $accountFileRecord_record['is_disabled'] ) {
-					$toDisable_recordFilerecordIds[] = $accountFileRecord_record['record_filerecord_id'] ;
-				}
-			}
-		}
-		
-		if( count($toEnable_recordFilerecordIds)>0 ) {
-			if( $targetFile_openFilerecordId ) {
-				specRsiRecouveo_file_allocateRecordTemp( array(
-					'file_filerecord_id' => $targetFile_openFilerecordId,
-					'arr_recordFilerecordIds' => json_encode($toEnable_recordFilerecordIds)
-				)) ;
-			} else {
-				$forward_post = array() ;
-				$forward_post['acc_id'] = $account_record['acc_id'] ;
-				$forward_post['arr_recordIds'] = json_encode($toEnable_recordFilerecordIds) ;
-				$forward_post['new_action_code'] = 'BUMP' ;
-				$forward_post['form_data'] = json_encode(array()) ;
-				$ret = specRsiRecouveo_file_createForAction($forward_post) ;
-			}
-			specRsiRecouveo_file_lib_updateStatus($account_record['acc_id']) ;
-		}
-		if( count($toDisable_recordFilerecordIds)>0 ) {
-			if( $targetFile_preFilerecordId ) {
-				specRsiRecouveo_file_allocateRecordTemp( array(
-					'file_filerecord_id' => $targetFile_preFilerecordId,
-					'arr_recordFilerecordIds' => json_encode($toDisable_recordFilerecordIds)
-				)) ;
-			} else {
-				// TODO
-			}
-			specRsiRecouveo_file_lib_updateStatus($account_record['acc_id']) ;
-		}
+		specRsiRecouveo_file_lib_manageActivate($acc_id) ;
 	}
 }
 
@@ -205,83 +151,32 @@ function specRsiRecouveo_lib_autorun_actions() {
 
 
 
-function specRsiRecouveo_lib_autorun_adrbook( $acc_id=NULL ) {
+function specRsiRecouveo_lib_autorun_adrbook() {
 	global $_opDB ;
 	
 	// Comptes sans adr prio
-	if( !$acc_id ) {
-		$arr_accIds = array() ;
-		$query = " SELECT distinct field_ACC_ID
-			FROM (
-				SELECT distinct a.field_ACC_ID, ae.field_ADR_TYPE
-				FROM view_file_ADRBOOK a
-				, view_file_ADRBOOK_ENTRY ae
-				WHERE a.filerecord_id = ae.filerecord_parent_id
-			) contacts
-			WHERE (field_ACC_ID, field_ADR_TYPE) NOT IN (
-				SELECT distinct a.field_ACC_ID, ae.field_ADR_TYPE
-				FROM view_file_ADRBOOK a
-				, view_file_ADRBOOK_ENTRY ae
-				WHERE a.filerecord_id = ae.filerecord_parent_id
-				AND ae.field_STATUS_IS_PRIORITY='1' AND ae.field_STATUS_IS_INVALID='0'
-			)" ;
-		$result = $_opDB->query($query) ;
-		while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
-			$arr_accIds[] = $arr['field_ACC_ID'] ;
-		}
-	} else {
-		$arr_accIds = array($acc_id) ;
+	$arr_accIds = array() ;
+	$query = " SELECT distinct field_ACC_ID
+		FROM (
+			SELECT distinct a.field_ACC_ID, ae.field_ADR_TYPE
+			FROM view_file_ADRBOOK a
+			, view_file_ADRBOOK_ENTRY ae
+			WHERE a.filerecord_id = ae.filerecord_parent_id
+		) contacts
+		WHERE (field_ACC_ID, field_ADR_TYPE) NOT IN (
+			SELECT distinct a.field_ACC_ID, ae.field_ADR_TYPE
+			FROM view_file_ADRBOOK a
+			, view_file_ADRBOOK_ENTRY ae
+			WHERE a.filerecord_id = ae.filerecord_parent_id
+			AND ae.field_STATUS_IS_PRIORITY='1' AND ae.field_STATUS_IS_INVALID='0'
+		)" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		$arr_accIds[] = $arr['field_ACC_ID'] ;
 	}
 	
 	foreach( $arr_accIds as $t_acc_id ) {
-		$query = "UPDATE view_file_ADRBOOK_ENTRY ae
-				JOIN view_file_ADRBOOK a ON a.filerecord_id=ae.filerecord_parent_id
-				SET ae.field_STATUS_IS_PRIORITY='0'
-				WHERE a.field_ACC_ID='{$t_acc_id}' AND ae.field_STATUS_IS_INVALID='1'" ;
-		$_opDB->query($query) ;
-				
-		
-		$ttmp = specRsiRecouveo_account_open(array('acc_id'=>$t_acc_id)) ;
-		$account_record = $ttmp['data'] ;
-		
-		$map_adrType_ids = array() ;
-		foreach($account_record['adrbook'] as $accAdrbook_record ) {
-			foreach( $accAdrbook_record['adrbookentries'] as $accAdrbookEntry_record ) {
-				$adr_type = $accAdrbookEntry_record['adr_type'] ;
-				if( $map_adrType_ids[$adr_type]===FALSE ) {
-					continue ;
-				}
-				if( $accAdrbookEntry_record['status_is_priority'] ) {
-					$map_adrType_ids[$adr_type] = FALSE ;
-					continue ;
-				}
-				if( $accAdrbookEntry_record['status_is_invalid'] ) {
-					continue ;
-				}
-				if( !isset($map_adrType_ids[$adr_type]) ) {
-					$map_adrType_ids[$adr_type] = array() ;
-				}
-				$map_adrType_ids[$adr_type][] = $accAdrbookEntry_record['adrbookentry_filerecord_id'] ;
-			}
-		}
-		/*
-		echo $t_acc_id."\n" ;
-		print_r($map_adrType_ids) ;
-		echo "\n\n\n" ;
-		continue ;
-		*/
-		
-		foreach( $map_adrType_ids as $adr_type => $ids ) {
-			if( !is_array($ids) ) {
-				continue ;
-			}
-			rsort($ids) ;
-			$adrbookentry_filerecord_id = reset($ids) ;
-			
-			$arr_update = array() ;
-			$arr_update['field_STATUS_IS_PRIORITY'] = 1 ;
-			paracrm_lib_data_updateRecord_file( 'ADRBOOK_ENTRY', $arr_update, $adrbookentry_filerecord_id);
-		}
+		specRsiRecouveo_account_lib_checkAdrStatus($t_acc_id) ;
 	}
 	
 	
@@ -289,126 +184,24 @@ function specRsiRecouveo_lib_autorun_adrbook( $acc_id=NULL ) {
 	
 	
 	
-	if( !$acc_id ) {
-		// Comptes sans adresse de contact
-		$arr_searchAccIds = array() ;
-		$query = "SELECT distinct field_LINK_ACCOUNT FROM view_file_FILE f
-					WHERE f.field_STATUS_CLOSED_VOID='0' AND f.field_STATUS_CLOSED_END='0'
-					AND f.field_LINK_ACCOUNT NOT IN (
-						SELECT distinct a.field_ACC_ID
-						FROM view_file_ADRBOOK a
-						, view_file_ADRBOOK_ENTRY ae
-						WHERE a.filerecord_id = ae.filerecord_parent_id
-						AND ae.field_STATUS_IS_PRIORITY='1' AND ae.field_ADR_TYPE IN ('POSTAL','TEL')
-					)" ;
-		$result = $_opDB->query($query) ;
-		while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
-			$arr_searchAccIds[] = $arr[0] ;
-		}
-		
-		foreach($arr_searchAccIds as $t_acc_id) {
-			specRsiRecouveo_lib_autorun_checkAdrStatus($t_acc_id) ;
-		}
-	} else {
-		specRsiRecouveo_lib_autorun_checkAdrStatus($acc_id) ;
-	}
-}
-
-function specRsiRecouveo_lib_autorun_checkAdrStatus( $acc_id ) {
-	global $_opDB ;
-	
-	$required_statuses = array('S1_OPEN','S1_SEARCH') ;
-	
-	$ttmp = specRsiRecouveo_cfg_getConfig() ;
-	$avail_statuses = array() ;
-	foreach( $ttmp['data']['cfg_status'] as $status ) {
-		$avail_statuses[] = $status['status_id'] ;
-	}
-	if( count(array_intersect($avail_statuses,$required_statuses)) != count($required_statuses) ) {
-		return ;
+	// Comptes sans adresse de contact
+	$arr_searchAccIds = array() ;
+	$query = "SELECT distinct field_LINK_ACCOUNT FROM view_file_FILE f
+				WHERE f.field_STATUS_CLOSED_VOID='0' AND f.field_STATUS_CLOSED_END='0'
+				AND f.field_LINK_ACCOUNT NOT IN (
+					SELECT distinct a.field_ACC_ID
+					FROM view_file_ADRBOOK a
+					, view_file_ADRBOOK_ENTRY ae
+					WHERE a.filerecord_id = ae.filerecord_parent_id
+					AND ae.field_STATUS_IS_PRIORITY='1' AND ae.field_ADR_TYPE IN ('POSTAL','TEL')
+				)" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+		$arr_searchAccIds[] = $arr[0] ;
 	}
 	
-	$has_priority = FALSE ;
-	$ttmp = specRsiRecouveo_account_open(array('acc_id'=>$acc_id)) ;
-	$account_record = $ttmp['data'] ;
-	foreach($account_record['adrbook'] as $accAdrbook_record ) {
-		foreach( $accAdrbook_record['adrbookentries'] as $accAdrbookEntry_record ) {
-			$adr_type = $accAdrbookEntry_record['adr_type'] ;
-			if( !in_array($adr_type,array('POSTAL','TEL')) ) {
-				continue ;
-			}
-			if( $accAdrbookEntry_record['status_is_priority'] ) {
-				$has_priority = TRUE ;
-			}
-		}
-	}
-	
-	if( !$has_priority ) {
-		//mise en recherche
-		$src_status = 'S1_OPEN' ;
-		$dst_status = 'S1_SEARCH' ;
-	}
-	if( $has_priority ) {
-		//sortie recherche
-		$src_status = 'S1_SEARCH' ;
-		$dst_status = 'S1_OPEN' ;
-	}
-	$query = "UPDATE view_file_FILE f SET field_STATUS='{$dst_status}' 
-		WHERE f.field_LINK_ACCOUNT='{$acc_id}' AND f.field_STATUS_CLOSED_VOID='0' AND f.field_STATUS_CLOSED_END='0' AND field_STATUS='{$src_status}'" ;
-	$_opDB->query($query) ;
-	
-	if( !$has_priority ) {
-		$query = "UPDATE view_file_FILE_ACTION fa
-						JOIN view_file_FILE f ON f.filerecord_id=fa.filerecord_parent_id
-						SET field_LINK_STATUS='S1_SEARCH'
-						, field_LINK_ACTION='BUMP'
-						, field_SCENSTEP_TAG=''
-						, field_DATE_SCHED=IF( field_DATE_SCHED>DATE(NOW()) , DATE(NOW()) , field_DATE_SCHED )
-						, field_LINK_TXT='Recherche coordonnées'
-						, field_LINK_TPL=''
-						WHERE f.field_LINK_ACCOUNT='{$acc_id}' AND f.field_STATUS_CLOSED_VOID='0' AND f.field_STATUS_CLOSED_END='0' AND f.field_STATUS='S1_SEARCH'
-						AND fa.field_STATUS_IS_OK='0'" ;
-		$_opDB->query($query) ;
-	} 
-	if( $has_priority ) {
-		$query = "SELECT f.filerecord_id AS file_filerecord_id, fa.filerecord_id AS fileaction_filerecord_id
-					FROM view_file_FILE_ACTION fa
-					JOIN view_file_FILE f ON f.filerecord_id=fa.filerecord_parent_id
-					WHERE f.field_STATUS='S1_OPEN' AND f.field_LINK_ACCOUNT='{$acc_id}' AND f.field_STATUS_CLOSED_VOID='0' AND f.field_STATUS_CLOSED_END='0'
-					AND fa.field_LINK_STATUS='S1_SEARCH' AND fa.field_LINK_ACTION='BUMP' AND fa.field_STATUS_IS_OK='0'" ;
-		$result = $_opDB->query($query) ;
-		$arr = $_opDB->fetch_assoc($result) ;
-		if( $arr ) {
-			$file_filerecord_id = $arr['file_filerecord_id'] ;
-			$fileaction_filerecord_id = $arr['fileaction_filerecord_id'] ;
-			
-			$forward_post = array() ;
-			$forward_post['fileaction_filerecord_id'] = $fileaction_filerecord_id;
-			$forward_post['link_status'] = 'S1_OPEN' ;
-			$forward_post['link_action'] = 'BUMP' ;
-			
-			// next action ?
-			$json = specRsiRecouveo_file_getScenarioLine( array(
-				'file_filerecord_id' => $file_filerecord_id,
-				'fileaction_filerecord_id' => $fileaction_filerecord_id
-			)) ;
-			if( $json['success'] ) {
-				foreach( $json['data'] as $scenline_dot ) {
-					if( $scenline_dot['is_next'] ) {
-						$forward_post['next_action'] = $scenline_dot['link_action'] ;
-						$forward_post['next_scenstep_code'] = $scenline_dot['scenstep_code'] ;
-						$forward_post['next_scenstep_tag'] = $scenline_dot['scenstep_tag'] ;
-						$forward_post['next_date'] = $scenline_dot['date_sched'] ;
-					}
-				}
-				
-				$post_data = array(
-					'file_filerecord_id' => $file_filerecord_id,
-					'data' => json_encode($forward_post)
-				);
-				specRsiRecouveo_action_doFileAction($post_data) ;
-			}
-		}
+	foreach($arr_searchAccIds as $t_acc_id) {
+		specRsiRecouveo_account_lib_checkAdrStatus($t_acc_id) ;
 	}
 }
 
@@ -515,7 +308,7 @@ function specRsiRecouveo_lib_autorun_processInboxDoc($inpostal_filerecord_id) {
 					paracrm_lib_data_updateRecord_file( 'ADRBOOK_ENTRY', $arr_update, $adrbookentry_filerecord_id);
 				}
 				
-				specRsiRecouveo_lib_autorun_checkAdrStatus( $src['field_REF_ACCOUNT'] ) ;
+				specRsiRecouveo_account_lib_checkAdrStatus( $src['field_REF_ACCOUNT'] ) ;
 			}
 			
 	} elseif( $cfg_mailin['id'] == 'MAIL_OK' ) {

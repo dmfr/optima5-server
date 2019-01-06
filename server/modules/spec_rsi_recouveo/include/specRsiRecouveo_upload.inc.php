@@ -298,10 +298,8 @@ function specRsiRecouveo_upload_EDI_IMPORT( $handle, $file_model ) {
 	if( $my_sdomain ) {
 		$_opDB->select_db( $GLOBALS['mysql_db'].'_'.$my_sdomain) ;
 	}
-	// specRsiRecouveo_lib_autorun_closeEnd() ;
+	
 	specRsiRecouveo_lib_autorun_open() ;
-	specRsiRecouveo_lib_autorun_manageDisabled() ;
-	specRsiRecouveo_lib_autorun_adrbook() ;
 	if( $file_model=='SET_ALLOC' ) {
 		specRsiRecouveo_lib_scenario_attach() ;
 	}

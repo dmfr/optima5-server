@@ -54,8 +54,6 @@ function specRsiRecouveo_lib_edi_post($apikey_code, $transaction, $data){ // PUB
 	
 	// calls Recouveo int. API
 	specRsiRecouveo_lib_autorun_open() ;
-	specRsiRecouveo_lib_autorun_manageDisabled() ;
-	specRsiRecouveo_lib_autorun_adrbook() ;
 	
 	
 	return $ret ;

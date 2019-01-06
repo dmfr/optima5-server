@@ -36,7 +36,10 @@ echo "OK\n" ;
 
 echo "Opening new files..." ;
 specRsiRecouveo_lib_autorun_open() ;
-specRsiRecouveo_lib_autorun_manageDisabled() ;
+echo "OK\n" ;
+
+echo "Activating records (dates)..." ;
+specRsiRecouveo_lib_autorun_manageActivate() ;
 echo "OK\n" ;
 
 echo "Processing INBOX..." ;

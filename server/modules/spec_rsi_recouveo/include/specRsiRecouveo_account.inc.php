@@ -12,6 +12,7 @@ function specRsiRecouveo_account_open( $post_data ) {
 	           > actions
 	   xx records > links
 	*/
+	$curDateYMD = date('Y-m-d') ;
 	
 	$ttmp = specRsiRecouveo_cfg_getConfig() ;
 	$cfg_action_eta = $ttmp['data']['cfg_action_eta'] ;
@@ -170,6 +171,7 @@ function specRsiRecouveo_account_open( $post_data ) {
 		}
 		$record_row += array(
 			'is_disabled' => $arr['field_IS_DISABLED'],
+			'is_pending' => ($curDateYMD < substr($arr['field_DATE_VALUE'],0,10)),
 			'type' => $arr['field_TYPE'],
 			'type_temprec' => $arr['field_TYPE_TEMPREC'],
 			'record_id' => $arr['field_RECORD_ID'],
@@ -323,8 +325,7 @@ function specRsiRecouveo_account_setAdrbook( $post_data ) {
 		paracrm_lib_data_deleteRecord_file( $file_code, $filerecord_id );
 	}
 	
-	specRsiRecouveo_lib_autorun_adrbook($p_accId) ;
-	specRsiRecouveo_lib_autorun_checkAdrStatus($p_accId) ;
+	specRsiRecouveo_account_lib_checkAdrStatus($p_accId) ;
 
 	return array('success'=>true) ;
 }
@@ -343,6 +344,156 @@ function specRsiRecouveo_account_setAdrbookPriority( $post_data ) {
 	
 	return array('success'=>true) ;
 }
+
+
+
+
+function specRsiRecouveo_account_lib_checkAdrStatus( $acc_id ) {
+	global $_opDB ;
+	
+	
+	$query = "UPDATE view_file_ADRBOOK_ENTRY ae
+			JOIN view_file_ADRBOOK a ON a.filerecord_id=ae.filerecord_parent_id
+			SET ae.field_STATUS_IS_PRIORITY='0'
+			WHERE a.field_ACC_ID='{$acc_id}' AND ae.field_STATUS_IS_INVALID='1'" ;
+	$_opDB->query($query) ;
+	
+	
+	$ttmp = specRsiRecouveo_account_open(array('acc_id'=>$acc_id)) ;
+	$account_record = $ttmp['data'] ;
+	
+	$map_adrType_ids = array() ;
+	foreach($account_record['adrbook'] as $accAdrbook_record ) {
+		foreach( $accAdrbook_record['adrbookentries'] as $accAdrbookEntry_record ) {
+			$adr_type = $accAdrbookEntry_record['adr_type'] ;
+			if( $map_adrType_ids[$adr_type]===FALSE ) {
+				continue ;
+			}
+			if( $accAdrbookEntry_record['status_is_priority'] ) {
+				$map_adrType_ids[$adr_type] = FALSE ;
+				continue ;
+			}
+			if( $accAdrbookEntry_record['status_is_invalid'] ) {
+				continue ;
+			}
+			if( !isset($map_adrType_ids[$adr_type]) ) {
+				$map_adrType_ids[$adr_type] = array() ;
+			}
+			$map_adrType_ids[$adr_type][] = $accAdrbookEntry_record['adrbookentry_filerecord_id'] ;
+		}
+	}
+	foreach( $map_adrType_ids as $adr_type => $ids ) {
+		if( !is_array($ids) ) {
+			continue ;
+		}
+		rsort($ids) ;
+		$adrbookentry_filerecord_id = reset($ids) ;
+		
+		$arr_update = array() ;
+		$arr_update['field_STATUS_IS_PRIORITY'] = 1 ;
+		paracrm_lib_data_updateRecord_file( 'ADRBOOK_ENTRY', $arr_update, $adrbookentry_filerecord_id);
+	}
+	
+	
+	// 04/01/2019 : moved from OLD:specRsiRecouveo_lib_autorun_checkAdrStatus 
+	
+	$required_statuses = array('S1_OPEN','S1_SEARCH') ;
+	
+	$ttmp = specRsiRecouveo_cfg_getConfig() ;
+	$avail_statuses = array() ;
+	foreach( $ttmp['data']['cfg_status'] as $status ) {
+		$avail_statuses[] = $status['status_id'] ;
+	}
+	if( count(array_intersect($avail_statuses,$required_statuses)) != count($required_statuses) ) {
+		return ;
+	}
+	
+	$has_priority = FALSE ;
+	$ttmp = specRsiRecouveo_account_open(array('acc_id'=>$acc_id)) ;
+	$account_record = $ttmp['data'] ;
+	foreach($account_record['adrbook'] as $accAdrbook_record ) {
+		foreach( $accAdrbook_record['adrbookentries'] as $accAdrbookEntry_record ) {
+			$adr_type = $accAdrbookEntry_record['adr_type'] ;
+			if( !in_array($adr_type,array('POSTAL','TEL')) ) {
+				continue ;
+			}
+			if( $accAdrbookEntry_record['status_is_priority'] ) {
+				$has_priority = TRUE ;
+			}
+		}
+	}
+	
+	if( !$has_priority ) {
+		//mise en recherche
+		$src_status = 'S1_OPEN' ;
+		$dst_status = 'S1_SEARCH' ;
+	}
+	if( $has_priority ) {
+		//sortie recherche
+		$src_status = 'S1_SEARCH' ;
+		$dst_status = 'S1_OPEN' ;
+	}
+	$query = "UPDATE view_file_FILE f SET field_STATUS='{$dst_status}' 
+		WHERE f.field_LINK_ACCOUNT='{$acc_id}' AND f.field_STATUS_CLOSED_VOID='0' AND f.field_STATUS_CLOSED_END='0' AND field_STATUS='{$src_status}'" ;
+	$_opDB->query($query) ;
+	
+	if( !$has_priority ) {
+		$query = "UPDATE view_file_FILE_ACTION fa
+						JOIN view_file_FILE f ON f.filerecord_id=fa.filerecord_parent_id
+						SET field_LINK_STATUS='S1_SEARCH'
+						, field_LINK_ACTION='BUMP'
+						, field_SCENSTEP_TAG=''
+						, field_DATE_SCHED=IF( field_DATE_SCHED>DATE(NOW()) , DATE(NOW()) , field_DATE_SCHED )
+						, field_LINK_TXT='Recherche coordonnées'
+						, field_LINK_TPL=''
+						WHERE f.field_LINK_ACCOUNT='{$acc_id}' AND f.field_STATUS_CLOSED_VOID='0' AND f.field_STATUS_CLOSED_END='0' AND f.field_STATUS='S1_SEARCH'
+						AND fa.field_STATUS_IS_OK='0'" ;
+		$_opDB->query($query) ;
+	} 
+	if( $has_priority ) {
+		$query = "SELECT f.filerecord_id AS file_filerecord_id, fa.filerecord_id AS fileaction_filerecord_id
+					FROM view_file_FILE_ACTION fa
+					JOIN view_file_FILE f ON f.filerecord_id=fa.filerecord_parent_id
+					WHERE f.field_STATUS='S1_OPEN' AND f.field_LINK_ACCOUNT='{$acc_id}' AND f.field_STATUS_CLOSED_VOID='0' AND f.field_STATUS_CLOSED_END='0'
+					AND fa.field_LINK_STATUS='S1_SEARCH' AND fa.field_LINK_ACTION='BUMP' AND fa.field_STATUS_IS_OK='0'" ;
+		$result = $_opDB->query($query) ;
+		$arr = $_opDB->fetch_assoc($result) ;
+		if( $arr ) {
+			$file_filerecord_id = $arr['file_filerecord_id'] ;
+			$fileaction_filerecord_id = $arr['fileaction_filerecord_id'] ;
+			
+			$forward_post = array() ;
+			$forward_post['fileaction_filerecord_id'] = $fileaction_filerecord_id;
+			$forward_post['link_status'] = 'S1_OPEN' ;
+			$forward_post['link_action'] = 'BUMP' ;
+			
+			// next action ?
+			$json = specRsiRecouveo_file_getScenarioLine( array(
+				'file_filerecord_id' => $file_filerecord_id,
+				'fileaction_filerecord_id' => $fileaction_filerecord_id
+			)) ;
+			if( $json['success'] ) {
+				foreach( $json['data'] as $scenline_dot ) {
+					if( $scenline_dot['is_next'] ) {
+						$forward_post['next_action'] = $scenline_dot['link_action'] ;
+						$forward_post['next_scenstep_code'] = $scenline_dot['scenstep_code'] ;
+						$forward_post['next_scenstep_tag'] = $scenline_dot['scenstep_tag'] ;
+						$forward_post['next_date'] = $scenline_dot['date_sched'] ;
+					}
+				}
+				
+				$post_data = array(
+					'file_filerecord_id' => $file_filerecord_id,
+					'data' => json_encode($forward_post)
+				);
+				specRsiRecouveo_action_doFileAction($post_data) ;
+			}
+		}
+	}
+}
+
+
+
 
 
 
