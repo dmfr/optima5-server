@@ -1,5 +1,203 @@
 <?php
 
+function specRsiRecouveo_lib_edi_upload($apikey_code, $transaction, $data){
+	switch ($transaction){
+		case "upload_account":
+			$json = specRsiRecouveo_lib_edi_IMPORT_ACCOUNT($data,false, false) ;
+			//print_r($json) ;
+			$ret_acc = specRsiRecouveo_lib_edi_post( $apikey_code, "account", $json["account"] ) ;
+			$ret_adrbook = specRsiRecouveo_lib_edi_post( $apikey_code, "account_adrbookentry", $json["adrbook"] ) ;
+			return array("account" => $ret_acc, "adrbook" => $ret_adrbook) ;
+		case "upload_record":
+			$json = specRsiRecouveo_lib_edi_IMPORT_RECORD($data,false, false) ;
+			$ret_rec = specRsiRecouveo_lib_edi_post( $apikey_code, "record", $json["records"] ) ;
+			return array("records" => $ret_rec) ;
+	}
+}
+
+function specRsiRecouveo_lib_edi_IMPORT_ACCOUNT($handle, $doUpload = true, $isXls = true){
+	if ($isXls){
+		$handle = paracrm_lib_dataImport_preHandle($handle) ;
+	}
+
+	$headers = fgetcsv($handle) ;
+	//print_r($headers) ;
+	$account_headers = array() ;
+	foreach ($headers as $head){
+		$new_head = null ;
+		switch ($head) {
+			case "Société":
+				$new_head = "IdSoc";
+				break;
+			case "Numéro client":
+				$new_head = "IdCli";
+				break;
+			case "Langue":
+				$new_head = "Meta:LANG" ;
+				break ;
+			case "Pro/part.":
+				$new_head = "Meta:PROPART" ;
+				break ;
+			case "Raison sociale":
+				$new_head = "NameCli" ;
+				break ;
+			case "SIREN":
+				$new_head = "SIRET" ;
+				break;
+			default:
+				$new_head = $head ;
+		}
+		$account_headers[$j] = $new_head;
+		$j++;
+	}
+	//print_r($account_headers) ;
+	$array_csv = array() ;
+	$i = 0 ;
+
+	while ($data = fgetcsv($handle)){
+		$data = array_combine($account_headers, $data) ;
+		$array_csv[$i] = $data ;
+		$i++;
+	}
+	//print_r($array_csv) ;
+	$array_json = json_encode($array_csv) ;
+	$adrbook_array = specRsiRecouveo_lib_edi_HANDLE_ADRBOOK($array_csv) ;
+	$adrbook_json = json_encode($adrbook_array) ;
+	//print_r($adrbook_array) ;
+	//print_r($array_csv) ;
+	//print_r($adrbook_array) ;
+	if (!$doUpload){
+		return array("account" => $array_json, "adrbook" => $adrbook_json) ;
+	}
+
+	$account = specRsiRecouveo_lib_edi_post($_SESSION["login_data"]["userstr"], "account", $array_json) ;
+	$adrbook = specRsiRecouveo_lib_edi_post($_SESSION["login_data"]["userstr"], "account_adrbookentry", $adrbook_json) ;
+	if (count($account["errors"]) > 0 || count($adrbook["errors"]) > 0){
+		return false ;
+	}
+	return true ;
+
+
+}
+
+function specRsiRecouveo_lib_edi_HANDLE_ADRBOOK($array_csv){
+	// HACK Rayane DEV, format ADR + reindent
+	$adrbook_array = array() ;
+	$i = 0 ;
+	foreach ($array_csv as $row){
+		//print_r($row["IdSoc"]) ;
+		if ($row["Adresse 1"]){
+			$adresse = $row["Adresse 1"]."\n".$row["Code postal"]." ".$row["Ville"]."\n".$row["Pays"] ;
+			$adrbook_array[$i]["AdrType"] = "POSTAL";
+			$adrbook_array[$i]["IdSoc"] = $row["IdSoc"] ;
+			$adrbook_array[$i]["Adr"] = $adresse;
+			$adrbook_array[$i]["IdCli"] = $row["IdCli"] ;
+			$adrbook_array[$i]["Lib"] = $row["NameCli"] ;
+			$i++ ;
+		} if ($row["Tél. 1"]){
+			$adrbook_array[$i]["AdrType"] = "TEL";
+			$adrbook_array[$i]["Adr"] = $row["Tél. 1"];
+			$adrbook_array[$i]["IdCli"] = $row["IdCli"] ;
+			$adrbook_array[$i]["Lib"] = $row["NameCli"] ;
+			$adrbook_array[$i]["IdSoc"] = $row["IdSoc"] ;
+			$i++ ;
+		} if ($row["Tél. 2"]){
+			$adrbook_array[$i]["AdrType"] = "TEL";
+			$adrbook_array[$i]["Adr"] = $row["Tél. 2"];
+			$adrbook_array[$i]["IdCli"] = $row["IdCli"] ;
+			$adrbook_array[$i]["Lib"] = $row["NameCli"] ;
+			$adrbook_array[$i]["IdSoc"] = $row["IdSoc"] ;
+			$i++ ;
+		} if ($row["Mail"]){
+			$adrbook_array[$i]["AdrType"] = "EMAIL";
+			$adrbook_array[$i]["Adr"] = $row["Mail"];
+			$adrbook_array[$i]["IdCli"] = $row["IdCli"] ;
+			$adrbook_array[$i]["Lib"] = $row["NameCli"] ;
+			$adrbook_array[$i]["IdSoc"] = $row["IdSoc"] ;
+			$i++ ;
+		}
+	}
+	return $adrbook_array ;
+}
+
+function specRsiRecouveo_lib_edi_IMPORT_RECORD($handle, $doUpload = true, $isXls = true){
+	if ($isXls){
+		$handle = paracrm_lib_dataImport_preHandle($handle) ;
+	}
+
+	$headers = fgetcsv($handle) ;
+	$json_headers = array() ;
+	$j = 0 ;
+	foreach ($headers as $head){
+		$new_head = null ;
+		switch ($head){
+			case "Société":
+				$new_head = "IdSoc";
+				break ;
+			case "Numéro client":
+				$new_head = "IdCli" ;
+				break ;
+			case "Date transmission":
+				$new_head = "DateTrans" ;
+				break ;
+			case "Date facture":
+				$new_head = "DateFact" ;
+				break ;
+			case "Date échéance":
+				$new_head = "DateLimite" ;
+				break ;
+			case "Id facture":
+				$new_head = "IdFact" ;
+				break ;
+			case "Numéro facture":
+				$new_head = "NumFact" ;
+				break ;
+			case "Libellé":
+				$new_head = "Lib" ;
+				break ;
+			case "Montant HT":
+				$new_head = "MontantHT" ;
+				break ;
+			case "Montant TTC":
+				$new_head = "MontantTTC" ;
+				break ;
+			case "Montant TVA":
+				$new_head = "MontantTVA" ;
+				break ;
+			case "Journal":
+				$new_head = "Journal" ;
+				break ;
+			case "Lettrage":
+				$new_head = "Letter" ;
+				break ;
+			default:
+				$new_head = $head ;
+
+		}
+
+		$json_headers[$j] = $new_head;
+		$j++;
+	}
+	$array_csv = array() ;
+	$i = 0 ;
+
+	while ($data = fgetcsv($handle)){
+		$data = array_combine($json_headers, $data) ;
+		$array_csv[$i] = $data ;
+		$i++;
+	}
+	//print_r($array_csv) ;
+	$array_json = json_encode($array_csv) ;
+	if (!$doUpload){
+		return array("records" => $array_json) ;
+	}
+	$records = specRsiRecouveo_lib_edi_post($_SESSION["login_data"]["userstr"], "record", $array_json) ;
+	if (count($records["errors"]) > 0){
+		//print_r($records) ;
+		return false ;
+	}
+	return true ;
+}
 function specRsiRecouveo_lib_edi_post($apikey_code, $transaction, $data){ // PUBLIC
 	// Tab normalisé de retour
 		// - count_success
