@@ -4,24 +4,32 @@ Ext.define('RsiRecouveoFileDetailRecordsTreeModel', {
         {name: 'new_is_on',  type: 'boolean'},
 		  {name: 'new_action', type: 'string'},
  		  {name: 'new_text', type: 'string'},
+		  
 		  {name: 'file_filerecord_id', type: 'int'},
 		  {name: 'file_focus', type: 'boolean'},
         {name: 'file_id_ref',  type: 'string'},
         {name: 'file_status',  type: 'string'},
         {name: 'file_status_color',  type: 'string'},
+		  
 		  {name: 'record_filerecord_id', type: 'int'},
 		  {name: 'record_id', type: 'string'},
 		  {name: 'record_ref', type: 'string'},
 		  {name: 'record_txt', type: 'string'},
 		  {name: 'record_date', type: 'date'},
 		  {name: 'record_dateload', type: 'date'},
+		  {name: 'record_datevalue', type: 'date'},
 		  {name: 'record_amount', type: 'number'},
 		  {name: 'record_xe_currency_amount', type: 'number'},
 		  {name: 'record_xe_currency_sign', type: 'string'},
 		  {name: 'record_xe_currency_code', type: 'string'},
-		  {name: 'record_letter',  type: 'string'},
+		  {name: 'record_letter_code',  type: 'string'},
+ 		  {name: 'record_letter_is_confirm',  type: 'boolean'},
  		  {name: 'record_type',  type: 'string'},
-		  {name: 'record_readonly', type: 'boolean'}
+		  {name: 'record_readonly', type: 'boolean'},
+		  
+		  {name: 'letter_node', type: 'boolean'},
+		  {name: 'letter_code', type: 'string'},
+		  {name: 'letter_is_confirm', type: 'boolean'}
      ]
 });
 Ext.define('RsiRecouveoAdrbookTreeModel',{
@@ -279,6 +287,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 				if( !Ext.isEmpty(r.get('file_id_ref')) ) {
 					return '<b>'+r.get('file_id_ref')+'</b>' ;
 				}
+				if( r.get('letter_node') ) {
+					return '<b>'+r.get('letter_code')+'</b>' ;
+				}
 				return r.get('record_ref') ;
 			}
 		},{
@@ -298,6 +309,13 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			width: 90,
 			renderer: Ext.util.Format.dateRenderer('d/m/Y')
 		},{
+			hidden: true,
+			text: 'Echeance',
+			dataIndex: 'record_datevalue',
+			align: 'center',
+			width: 90,
+			renderer: Ext.util.Format.dateRenderer('d/m/Y')
+		},{
 			text: 'Montant',
 			dataIndex: 'record_amount',
 			align: 'right',
@@ -308,6 +326,13 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 				}
 				if( !Ext.isEmpty(r.get('file_id_ref')) ) {
 					return '<b>'+v+'</b>' ;
+				}
+				if( r.get('letter_node') ) {
+					if( r.get('letter_is_confirm') ) {
+						return '' ;
+					} else {
+						return '<b>'+v+'</b>' ;
+					}
 				}
 				return v ;
 			}
@@ -329,6 +354,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 				return '' ;
 			}
 		},{
+			hidden: true,
 			text: 'Integr.',
 			dataIndex: 'record_dateload',
 			align: 'center',
@@ -339,6 +365,22 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 					str = r.get('record_type') ;
 				}
 				return str ;
+			}
+		},{
+			text: 'Lettrage',
+			dataIndex: 'record_letter_code',
+			align: 'left',
+			width: 100,
+			renderer: function(v,m,r) {
+				if( Ext.isEmpty(r.get('record_letter_code')) ) {
+					return '' ;
+				}
+				if( r.get('record_letter_is_confirm') ) {
+					m.tdCls += ' op5-spec-rsiveo-recordstree-letter-green ' ;
+				} else {
+					m.tdCls += ' op5-spec-rsiveo-recordstree-letter-orange ' ;
+				}
+				return v ;
 			}
 		}] ;
 		Ext.Array.each( atrRecColumns, function(atrRecColumn) {
@@ -758,6 +800,21 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 						},
 						scope: this
 					}
+				},'-',{
+					xtype: 'checkbox',
+					boxLabel: 'Grouper lettrages',
+					itemId: 'chkShowLetterGroup',
+					hideLabel: true,
+					margin: '0 10 0 10',
+					inputValue: 'true',
+					value: 'false',
+					listeners: {
+						change: function (cb, newValue, oldValue) {
+							this._showLetterGroup = newValue ;
+							this.doReload();
+						},
+						scope: this
+					}
 				}],
 				flex: 1,
 				bodyCls: 'ux-noframe-bg',
@@ -865,10 +922,14 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 							if( r.isRoot() ) {
 								return '' ;
 							}
-							if( r.get('new_is_on') || r.parentNode.get('new_is_on') ) {
+							var parentNode = r ;
+							while( parentNode.parentNode && !parentNode.parentNode.isRoot() ) {
+								parentNode = parentNode.parentNode ;
+							}
+							if( parentNode.get('new_is_on') ) {
 								return 'op5-spec-rsiveo-pom' ;
 							}
-							if( r.get('file_focus') || r.parentNode.get('file_focus') ) {
+							if( parentNode.get('file_focus') ) {
 								return 'op5-spec-rsiveo-pis' ;
 							}
 						},
@@ -1244,6 +1305,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			
 			var pRecordsTreeChildrenRecords = [] ;
 			var totAmountDue = 0 ;
+			var map_letterCode_records = {} ;
 			fileRecord.records().each( function(fileRecordRecord) {
 				var recordIcon = undefined ;
 				if( fileRecordRecord.get('notification_is_on') ) {
@@ -1261,20 +1323,61 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 					record_ref: fileRecordRecord.get('record_ref'),
 					record_txt: fileRecordRecord.get('record_txt'),
 					record_date: fileRecordRecord.get('date_record'),
+					record_datevalue: fileRecordRecord.get('date_value'),
 					record_dateload: fileRecordRecord.get('date_load'),
 					record_amount: fileRecordRecord.get('amount'),
 					record_xe_currency_amount: fileRecordRecord.get('xe_currency_amount'),
 					record_xe_currency_sign: fileRecordRecord.get('xe_currency_sign'),
-					record_letter: (fileRecordRecord.get('letter_is_on') ? fileRecordRecord.get('letter_code') : ''),
+					record_letter_code: fileRecordRecord.get('letter_code'),
+					record_letter_is_confirm: fileRecordRecord.get('letter_is_confirm'),
 					record_type: fileRecordRecord.get('type'),
 					record_readonly: (Ext.isEmpty(fileRecordRecord.get('type_temprec')) || fileRecordRecord.get('bank_is_alloc'))
 				};
 				Ext.Array.each(atrRecFields, function(atrRecField) {
 					record[atrRecField] = fileRecordRecord.get(atrRecField) ;
 				});
-				pRecordsTreeChildrenRecords.push(record) ;
+				
 				totAmountDue += fileRecordRecord.get('amount') ;
+				
+				var letterCode = fileRecordRecord.get('letter_code'),
+					letterIsConfirm = fileRecordRecord.get('letter_is_confirm');
+				if( letterIsConfirm && !this._showClosed ) {
+					return ;
+				}
+				if( Ext.isEmpty(letterCode) || !this._showLetterGroup ) {
+					pRecordsTreeChildrenRecords.push(record) ;
+					return ;
+				}
+				
+				if( this._showLetterGroup ) {
+					if( !map_letterCode_records.hasOwnProperty(letterCode) ) {
+						map_letterCode_records[letterCode] = [] ;
+					}
+					map_letterCode_records[letterCode].push( record ) ;
+					return ;
+				}
+				
+				
 			},this) ;
+			
+			Ext.Object.each( map_letterCode_records, function(letterCode, records) {
+				var letterSum = 0,
+					letterIsConfirm = records[0].letter_is_confirm ;
+				Ext.Array.each(records, function(rec) {
+					letterSum += rec.record_amount ;
+				}) ;
+				pRecordsTreeChildrenRecords.push({
+					icon: (letterIsConfirm ? 'images/op5img/ico_greendot.gif' : 'images/op5img/ico_orangedot.gif'),
+					letter_node: true,
+					letter_code: letterCode,
+					letter_is_confirm: letterIsConfirm,
+					record_amount: letterSum,
+					
+					expanded: true,
+					children: records,
+					leaf: false
+				}) ;
+			}) ;
 			
 			var statusCode = fileRecord.get('status'),
 				statusColor, statusColorNodash ;
@@ -1821,7 +1924,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		recordsTree.getRootNode().cascadeBy( function(r) {
 			if( r.get('file_filerecord_id') > 0 ) {
 				r.set('file_focus',r.get('file_filerecord_id')==fileFilerecordId) ;
-				isFirst = false ;
 				return false ;
 			}
 		}) ;
@@ -1973,7 +2075,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 				tempRecIds.push(dragRecord.get('record_filerecord_id')) ;
 			}
 		},this) ;
-		if( tempRec && tempRecIds.length>0 && !overModel.get('new_is_on') && dropPosition == 'append' ) {
+		if( tempRec && tempRecIds.length>0 && !overModel.get('new_is_on') && (overModel.get('file_filerecord_id')>0) && dropPosition == 'append' ) {
 			this.associateTempRecords(tempRecIds,overModel.get('file_filerecord_id')) ;
 			return ;
 		}

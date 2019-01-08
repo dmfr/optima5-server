@@ -309,8 +309,10 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 			'xe_currency_amount' => $arr['field_XE_CURRENCY_AMOUNT'],
 			'xe_currency_sign' => $arr['field_XE_CURRENCY_SIGN'],
 			'xe_currency_code' => $arr['field_XE_CURRENCY_CODE'],
-			'letter_is_on' => ($arr['field_LETTER_IS_ON']==1),
 			'letter_code' => $arr['field_LETTER_CODE'],
+			'letter_is_local' => ($arr['field_LETTER_IS_LOCAL']==1),
+			'letter_is_confirm' => ($arr['field_LETTER_IS_CONFIRM']==1),
+			'letter_date' => $arr['field_LETTER_DATE'],
 			'bank_is_alloc' => ($arr['field_BANK_LINK_FILE_ID']>0),
 			'notification_is_on' => false
 		);

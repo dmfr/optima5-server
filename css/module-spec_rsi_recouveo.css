@@ -112,16 +112,16 @@
 }
 
 
-.op5-spec-rsiveo-alm .x-grid-cell-inner {
+.op5-spec-rsiveo-alm .x-grid-cell {
 	background-color: rgba(255,190,121,0.4) ;
 }
-.op5-spec-rsiveo-pis .x-grid-cell-inner {
+.op5-spec-rsiveo-pis .x-grid-cell {
 	background-color: rgba(183,235,113,0.4) ;
 }
-.op5-spec-rsiveo-pom .x-grid-cell-inner {
+.op5-spec-rsiveo-pom .x-grid-cell {
 	background-color: rgba(255,122,122,0.4) ;
 }
-.op5-spec-rsiveo-taupe .x-grid-cell-inner {
+.op5-spec-rsiveo-taupe .x-grid-cell {
 	background-color: rgba(220,220,220,0.4) ;
 }
 
@@ -264,6 +264,19 @@
 	padding-left: 42px
 }
 
+
+.op5-spec-rsiveo-recordstree-letter-orange {
+	background-position: 4px center !important;
+	background-repeat: no-repeat !important;
+	background-image: url("../images/op5img/ico_orangedot.gif") !important;
+	padding-left: 20px ;
+}
+.op5-spec-rsiveo-recordstree-letter-green {
+	background-position: 4px center !important;
+	background-repeat: no-repeat !important;
+	background-image: url("../images/op5img/ico_greendot.gif") !important;
+	padding-left: 20px ;
+}
 
 
 .op5-spec-rsiveo-config-meta-big {

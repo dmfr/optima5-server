@@ -127,11 +127,16 @@ Ext.define('RsiRecouveoRecordTplModel',{ // TO: RsiRecouveoRecordModel
 		{name: 'date_record', type:'date', dateFormat:'Y-m-d H:i:s'},
 		{name: 'date_value', type:'date', dateFormat:'Y-m-d H:i:s'},
 		{name: 'amount', type:'number'},
+		
 		{name: 'xe_currency_amount', type:'number'},
 		{name: 'xe_currency_sign', type:'string'},
 		{name: 'xe_currency_code', type:'string'},
-		{name: 'letter_is_on', type:'boolean'},
+		
 		{name: 'letter_code', type: 'string'},
+		{name: 'letter_is_local', type: 'boolean'},
+		{name: 'letter_is_confirm', type: 'boolean'},
+		{name: 'letter_date', type:'date', dateFormat:'Y-m-d H:i:s'},
+		
 		{name: 'recordgroup_id', type: 'string'},
 		{name: 'bank_is_alloc', type: 'string'},
 		{name: 'notification_is_on', type: 'boolean'},
