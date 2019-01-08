@@ -598,6 +598,7 @@ function specRsiRecouveo_lib_mail_associateFile( $src_emailFilerecordId, $target
 		$forward_post['link_status'] = $target_file_record['status'] ;
 		$forward_post['link_action'] = 'EMAIL_IN' ;
 		$forward_post['email_filerecord_id'] = $src_emailFilerecordId ;
+		$forward_post['next_action_save'] = true ;
 		
 		$post_data = array(
 			'file_filerecord_id' => $target_file_record['file_filerecord_id'],

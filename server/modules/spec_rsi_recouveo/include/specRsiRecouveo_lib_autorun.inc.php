@@ -356,6 +356,7 @@ function specRsiRecouveo_lib_autorun_processInboxDoc($inpostal_filerecord_id) {
 				$forward_post['link_status'] = $target_file_record['status'] ;
 				$forward_post['link_action'] = 'MAIL_IN' ;
 				$forward_post['inpostal_filerecord_id'] = $inpostal_filerecord_id ;
+				$forward_post['next_action_save'] = true ;
 				
 				$post_data = array(
 					'file_filerecord_id' => $target_file_record['file_filerecord_id'],

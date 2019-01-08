@@ -830,6 +830,9 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 	
 	// File status change + next actions
 	$do_clean_next_actions = TRUE ;
+	if( $post_form['next_action_save'] ) {
+		$do_clean_next_actions = FALSE ;
+	}
 	if( $is_sched_lock ) {
 		$do_clean_next_actions = FALSE ;
 		switch( $post_form['schedlock_next'] ) {
@@ -1064,7 +1067,7 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 	
 	
 	$status_change = NULL ;
-	if( !$is_sched_lock ) {
+	if( !$is_sched_lock && !$post_form['next_action_save'] ) {
 		if( !$post_form['next_action'] ) {
 			$post_form['next_action'] = 'BUMP' ;
 		}
