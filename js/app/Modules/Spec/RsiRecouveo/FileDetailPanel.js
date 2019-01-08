@@ -997,6 +997,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 							scope: this
 						}]
 					},'->',{
+						hidden: !Ext.isEmpty(Optima5.Modules.Spec.RsiRecouveo.HelperCache.getMetagenValue('gen_uimode_saas')),
 						itemId: 'tbRecordTemp',
 						icon: 'images/modules/rsiveo-quickopen-16.png',
 						text: '<b>Ajustement comptable temporaire</b>',
