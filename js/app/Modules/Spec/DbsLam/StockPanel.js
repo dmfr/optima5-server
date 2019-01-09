@@ -69,6 +69,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockPanel',{
 					align: 'stretch'
 				},
 				tbar:[{
+					hidden: this._popupMode,
 					icon: 'images/op5img/ico_back_16.gif',
 					text: '<u>Back</u>',
 					handler: function(){
@@ -80,6 +81,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockPanel',{
 					icon: 'images/op5img/ico_blocs_small.gif',
 					text: 'Sites / Warehouses',
 					itemId: 'btnWhse',
+					btnReadOnly: this._popupMode,
 					optimaModule: this.optimaModule,
 					listeners: {
 						change: {
@@ -239,7 +241,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockPanel',{
 			}
 		},this) ;
 		
-		if( this._popupMode ) {
+		if( false ) {
 			this.down('toolbar').setVisible(false) ;
 		}
 		
@@ -296,7 +298,8 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockPanel',{
 		this.applyViewFilter() ;
 	},
 	applyViewFilter: function() {
-		var tbViewmode = this.down('#tbViewmode') ;
+		var tbViewmode = this.down('#tbViewmode'),
+			viewId ;
 		if(tbViewmode.tbViewmodeItemId ) {
 			viewId = tbViewmode.tbViewmodeItemId ;
 		}
