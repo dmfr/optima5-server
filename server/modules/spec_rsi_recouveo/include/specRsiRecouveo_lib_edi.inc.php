@@ -22,43 +22,49 @@ function specRsiRecouveo_lib_edi_IMPORT_ACCOUNT($handle, $doUpload = true, $isXl
 
 	$headers = fgetcsv($handle) ;
 	//print_r($headers) ;
-	$account_headers = array() ;
-	foreach ($headers as $head){
-		$new_head = null ;
+	$map_header_csvIdx = array() ;
+	foreach ($headers as $csv_idx => $head){
 		switch ($head) {
 			case "Société":
-				$new_head = "IdSoc";
+				$head = "IdSoc";
 				break;
 			case "Numéro client":
-				$new_head = "IdCli";
+				$head = "IdCli";
 				break;
 			case "Langue":
-				$new_head = "Meta:LANG" ;
+				$head = "Meta:LANG" ;
 				break ;
 			case "Pro/part.":
-				$new_head = "Meta:PROPART" ;
+				$head = "Meta:PROPART" ;
 				break ;
 			case "Raison sociale":
-				$new_head = "NameCli" ;
+				$head = "NameCli" ;
 				break ;
 			case "SIREN":
-				$new_head = "SIRET" ;
+				$head = "SIRET" ;
 				break;
 			default:
-				$new_head = $head ;
+				break ;
 		}
-		$account_headers[$j] = $new_head;
-		$j++;
-	}
-	//print_r($account_headers) ;
-	$array_csv = array() ;
-	$i = 0 ;
 
-	while ($data = fgetcsv($handle)){
-		$data = array_combine($account_headers, $data) ;
-		$array_csv[$i] = $data ;
-		$i++;
+		if( trim($head)=='' ) {
+			continue ;
+		}
+
+		$map_header_csvIdx[$head] = $csv_idx ;
 	}
+	$array_csv = array() ;
+	while ($data = fgetcsv($handle)){
+		if( !$data ) {
+			continue ;
+		}
+		$row = array() ;
+		foreach( $map_header_csvIdx as $mkey => $idx ) {
+			$row[$mkey] = $data[$idx] ;
+		}
+		$array_csv[] = $row ;
+	}
+
 	//print_r($array_csv) ;
 	$array_json = json_encode($array_csv) ;
 	$adrbook_array = specRsiRecouveo_lib_edi_HANDLE_ADRBOOK($array_csv) ;
@@ -126,67 +132,72 @@ function specRsiRecouveo_lib_edi_IMPORT_RECORD($handle, $doUpload = true, $isXls
 	}
 
 	$headers = fgetcsv($handle) ;
-	$json_headers = array() ;
-	$j = 0 ;
-	foreach ($headers as $head){
-		$new_head = null ;
+	$map_header_csvIdx = array() ;
+	foreach ($headers as $csv_idx => $head){
 		switch ($head){
 			case "Société":
-				$new_head = "IdSoc";
+				$head = "IdSoc";
 				break ;
 			case "Numéro client":
-				$new_head = "IdCli" ;
+				$head = "IdCli" ;
 				break ;
 			case "Date transmission":
-				$new_head = "DateTrans" ;
+				$head = "DateTrans" ;
 				break ;
 			case "Date facture":
-				$new_head = "DateFact" ;
+				$head = "DateFact" ;
 				break ;
 			case "Date échéance":
-				$new_head = "DateLimite" ;
+				$head = "DateLimite" ;
 				break ;
 			case "Id facture":
-				$new_head = "IdFact" ;
+				$head = "IdFact" ;
 				break ;
 			case "Numéro facture":
-				$new_head = "NumFact" ;
+				$head = "NumFact" ;
 				break ;
 			case "Libellé":
-				$new_head = "Lib" ;
+				$head = "Lib" ;
 				break ;
 			case "Montant HT":
-				$new_head = "MontantHT" ;
+				$head = "MontantHT" ;
 				break ;
 			case "Montant TTC":
-				$new_head = "MontantTTC" ;
+				$head = "MontantTTC" ;
 				break ;
 			case "Montant TVA":
-				$new_head = "MontantTVA" ;
+				$head = "MontantTVA" ;
 				break ;
 			case "Journal":
-				$new_head = "Journal" ;
+				$head = "Journal" ;
 				break ;
 			case "Lettrage":
-				$new_head = "Letter" ;
+				$head = "Letter" ;
 				break ;
 			default:
-				$new_head = $head ;
-
+				break ;
 		}
-
-		$json_headers[$j] = $new_head;
-		$j++;
+		
+		if( trim($head)=='' ) {
+			continue ;
+		}
+		
+		$map_header_csvIdx[$head] = $csv_idx ;
 	}
+	
 	$array_csv = array() ;
-	$i = 0 ;
-
 	while ($data = fgetcsv($handle)){
-		$data = array_combine($json_headers, $data) ;
-		$array_csv[$i] = $data ;
-		$i++;
+		if( !$data ) {
+			continue ;
+		}
+		$row = array() ;
+		foreach( $map_header_csvIdx as $mkey => $idx ) {
+			$row[$mkey] = $data[$idx] ;
+		}
+		$array_csv[] = $row ;
 	}
-	//print_r($array_csv) ;
+	
+	
 	$array_json = json_encode($array_csv) ;
 	if (!$doUpload){
 		return array("records" => $array_json) ;
