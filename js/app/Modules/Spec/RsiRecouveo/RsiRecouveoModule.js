@@ -25,12 +25,11 @@ Ext.define('RsiRecouveoFileTplModel',{ // TO: RsiRecouveoFileModel
 		{name: 'date_last', type:'date', dateFormat:'Y-m-d H:i:s'},
 		{name: 'next_fileaction_filerecord_id', type: 'int'},
 		{name: 'next_closed', type: 'string', allowNull:true},
-		{name: 'next_notification', type: 'string', allowNull:true},
-		{name: 'next_notification_date', type:'date', dateFormat:'Y-m-d', allowNull:true},
-		{name: 'next_notification_txt', type: 'string', allowNull:true},
+		{name: 'next_txt', type: 'string', allowNull:true},
+		{name: 'next_notification', type: 'boolean', allowNull:true},
 		{name: 'next_action', type: 'string', allowNull:true},
 		{name: 'next_action_suffix', type: 'string', allowNull:true},
-		{name: 'next_action_suffix_txt', type: 'string', allowNull:true},
+		{name: 'next_txt', type: 'string', allowNull:true},
 		{name: 'next_date', type:'date', dateFormat:'Y-m-d H:i:s', allowNull:true,
 			sortType: function(v) {
 				if( v==null ) {

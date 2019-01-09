@@ -338,7 +338,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesWidgetList', {
 			    width: 140,
 			    tdCls: 'op5-spec-dbstracy-boldcolumn',
 			    align: 'center',
-			    dataIndex: 'next_action_suffix_txt',
+			    dataIndex: 'next_txt',
 			    filter: {
 				    type: 'stringlist',
 				    useFilters: true
@@ -349,7 +349,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesWidgetList', {
 					 }
 					 if( r.get('next_notification') ) {
 						metaData.style += ' color: #aa0000 ; font-weight:bold ; ' ;
-						v = r.get('next_notification_txt') ;
 					}
 					return v ;
 			    }
@@ -363,7 +362,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesWidgetList', {
 			    },
 			    renderer: function(v,metaData,r) {
 					 if( r.get('next_notification') ) {
-						v = r.get('next_notification_date')
+						v = r.get('next_date')
 					 }
 				    if( Ext.isEmpty(v) ) {
 					    return '' ;
@@ -630,7 +629,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesWidgetList', {
 			    newAjaxData[accId]['next_actions'].push({
 				    next_fileaction_filerecord_id: fileRow['next_fileaction_filerecord_id'],
 				    next_action: fileRow['next_action'],
-				    next_action_suffix_txt: fileRow['next_action_suffix_txt'],
+				    next_action_suffix: fileRow['next_action_suffix'],
+				    next_txt: fileRow['next_txt'],
 				    next_date: fileRow['next_date'],
 				    next_eta_range: fileRow['next_eta_range']
 			    });

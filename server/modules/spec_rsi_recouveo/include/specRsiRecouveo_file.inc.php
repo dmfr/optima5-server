@@ -419,7 +419,7 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 				'next_closed' => true,
 				'next_action' => null,
 				'next_action_suffix' => null,
-				'next_action_suffix_txt' => 'Clôturé'
+				'next_txt' => 'Clôturé'
 			) ;
 		} elseif( $next_action ) {
 			switch( $next_action['link_action'] ) {
@@ -448,7 +448,7 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 				'next_fileaction_filerecord_id' => $next_action['fileaction_filerecord_id'],
 				'next_action' => $next_action['link_action'],
 				'next_action_suffix' => $next_action_suffix,
-				'next_action_suffix_txt' => ( ($next_action['link_action']=='BUMP'&&$next_action['link_txt']) ? $next_action['link_txt'] : $map_actionnext[$next_action_suffix]),
+				'next_txt' => ( ($next_action['link_action']=='BUMP'&&$next_action['link_txt']) ? $next_action['link_txt'] : $map_actionnext[$next_action_suffix]),
 				'next_date' => $next_action['date_sched'],
 				'next_eta_range' => $next_action['calc_eta_range'],
 				'next_agenda_class' => $next_action['link_action_class']
@@ -502,7 +502,7 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 		if( !isset($map_accId_rowFirstNotification[$acc_id]) ) {
 			$map_accId_rowFirstNotification[$acc_id] = array(
 				'notification_filerecord_id' => $arr['notification_filerecord_id'],
-				'date_notification' => date('Y-m-d',strtotime($arr['field_DATE_NOTIFICATION'])),
+				'date_notification' => date('Y-m-d',strtotime($arr['field_DATE_NOTIFICATION'])).' '.'00:00:00',
 				'txt_notification' => $arr['field_TXT_NOTIFICATION']
 			) ;
 		}
@@ -511,8 +511,8 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 		$acc_id = $file_row['acc_id'] ;
 		if( $map_accId_rowFirstNotification[$acc_id] ) {
 			$file_row['next_notification'] = true ;
-			$file_row['next_notification_date'] = $map_accId_rowFirstNotification[$acc_id]['date_notification'] ;
-			$file_row['next_notification_txt'] = $map_accId_rowFirstNotification[$acc_id]['txt_notification'] ;
+			$file_row['next_date'] = $map_accId_rowFirstNotification[$acc_id]['date_notification'] ;
+			$file_row['next_txt'] = $map_accId_rowFirstNotification[$acc_id]['txt_notification'] ;
 		}
 	}
 	unset($file_row) ;
