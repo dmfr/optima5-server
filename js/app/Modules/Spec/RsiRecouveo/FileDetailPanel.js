@@ -2740,7 +2740,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 					Ext.MessageBox.alert('Error','Error') ;
 					return ;
 				}
-				this.notificationsPanel.destroy() ;
+				if( this.notificationsPanel ) {
+					this.notificationsPanel.destroy() ;
+				}
 				this.doReload() ;
 			},
 			callback: function() {

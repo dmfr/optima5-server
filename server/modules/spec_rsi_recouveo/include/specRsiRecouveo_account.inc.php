@@ -557,7 +557,7 @@ function specRsiRecouveo_account_pushNotificationRecords( $post_data ) {
 	
 	$p_accId = $post_data['acc_id'] ;
 	$p_txtNotification = $post_data['txt_notification'] ;
-	$p_recordFilerecordIds = $post_data['arr_recordFilerecordIds'] ;
+	$p_recordFilerecordIds = json_decode($post_data['arr_recordFilerecordIds'],true) ;
 	
 	// doublon ?
 	$new_recordFilerecordIds = array() ;

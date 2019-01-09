@@ -1370,6 +1370,12 @@ function specRsiRecouveo_file_lib_manageActivate( $acc_id ) {
 			$ret = specRsiRecouveo_file_createForAction($forward_post) ;
 		}
 		specRsiRecouveo_file_lib_updateStatus($account_record['acc_id']) ;
+		
+		specRsiRecouveo_account_pushNotificationRecords( array(
+			'acc_id' => $account_record['acc_id'],
+			'txt_notification' => 'Entrées comptables échues',
+			'arr_recordFilerecordIds' => json_encode($toEnable_recordFilerecordIds)
+		));
 	}
 	if( count($toDisable_recordFilerecordIds)>0 ) {
 		if( $targetFile_preFilerecordId ) {
