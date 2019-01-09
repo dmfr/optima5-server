@@ -93,10 +93,24 @@ function specRsiRecouveo_lib_edi_HANDLE_ADRBOOK($array_csv){
 	foreach ($array_csv as $row){
 		//print_r($row["IdSoc"]) ;
 		if ($row["Adresse 1"]){
-			$adresse = $row["Adresse 1"]."\n".$row["Code postal"]." ".$row["Ville"]."\n".$row["Pays"] ;
+			$adr_txt = '' ;
+			if( $row["Adresse 1"] ) {
+				$adr_txt.= $row["Adresse 1"]."\n" ;
+			}
+			if( $row["Adresse 2"] ) {
+				$adr_txt.= $row["Adresse 2"]."\n" ;
+			}
+			if( $row["Code postal"] || $row["Ville"] ) {
+				$adr_txt.= $row["Code postal"]." ".$row["Ville"]."\n" ;
+			}
+			if( $row["Pays"] ) {
+				$adr_txt.= $row["Pays"]."\n" ;
+			}
+			$adr_txt = trim($adr_txt) ;
+			
 			$adrbook_array[$i]["AdrType"] = "POSTAL";
 			$adrbook_array[$i]["IdSoc"] = $row["IdSoc"] ;
-			$adrbook_array[$i]["Adr"] = $adresse;
+			$adrbook_array[$i]["Adr"] = $adr_txt;
 			$adrbook_array[$i]["IdCli"] = $row["IdCli"] ;
 			$adrbook_array[$i]["Lib"] = $row["NameCli"] ;
 			$i++ ;
