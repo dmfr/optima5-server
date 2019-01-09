@@ -1,10 +1,8 @@
 <?php
 
-include("$server_root/include/config.inc.php");
-include("$server_root/include/toolfunctions.inc.php");
-include("$server_root/modules/media/include/media.inc.php");
-
-include( "$server_root/include/database/mysql_DB.inc.php" ) ;
+$mysql_host = 'localhost' ;
+$mysql_user = 'root' ;
+$mysql_pass = 'design2017' ;
 
 $ftp_ip = '10.39.56.1' ;
 $ftp_username = 'backup' ;
@@ -52,7 +50,7 @@ foreach ($tab as $key => $arr){
 	$key1 = $key+1;
 	$JOBS['JOB'.$key1]['db_name'] = $arr ;
 	$JOBS['JOB'.$key1]['filenamebase'] = $arr ;
-	$JOBS['JOB'.$key1]['interval'] = "10 min" ;
+	$JOBS['JOB'.$key1]['interval'] = "5 min" ;
 }
 //print_r($JOBS) ;
 
@@ -98,7 +96,7 @@ foreach( $JOBS as $jobname => $arr_job )
 	{
 		// run command
 		$dest_filename = $arr_job['filenamebase'].'_'.date('Ymd',$timestamp).'_'.date('Hi',$timestamp).'.gz' ;
-		exec_command_to_ftp( "mysqldump --user=".$mysql_user." --password=".$mysql_pass."{$arr_job['db_name']} | gzip" , $conn_ftp, $dest_filename ) ;
+		exec_command_to_ftp( "mysqldump --user=".$mysql_user." --password=".$mysql_pass." {$arr_job['db_name']} | gzip" , $conn_ftp, $dest_filename ) ;
 	}
 
 
