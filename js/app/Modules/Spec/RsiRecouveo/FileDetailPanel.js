@@ -2656,6 +2656,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		if( !this._accountRecord ) {
 			return ;
 		}
+		if( this.notificationsPanel ) {
+			this.notificationsPanel.destroy() ;
+		}
 		
 		var notificationsData = [] ;
 		this._accountRecord.notifications().each( function(rec) {
