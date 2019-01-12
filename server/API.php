@@ -58,25 +58,21 @@ if( count($ttmp) > 2 ) {
 }
 $api_method = $ttmp[1] ;
 switch( $api_method ) {
-	case 'upload_account':
-	case 'upload_record':
-		$ret = specRsiRecouveo_lib_edi_upload($apikey_code, $api_method, fopen("php://input", "rb")) ;
-		header('Content-type: application/json');
-		die( json_encode($ret) ) ;
 	case 'test' :
 		die( json_encode( array('success'=>true) ) );
 	case 'account' :
 	case 'account_adrbookentry' :
 	case 'record' :
+	case 'upload_COMPTES':
+	case 'upload_FACTURES':
 		break ;
 	default :
 		header("HTTP/1.0 404 Not Found");
 		die() ;
 }
 
-$raw_post = file_get_contents("php://input") ;
-
-$json_return = specRsiRecouveo_lib_edi_post( $apikey_code, $api_method, $raw_post ) ;
+$handle_in = fopen("php://input","rb") ;
+$json_return = specRsiRecouveo_lib_edi_post( $apikey_code, $api_method, $handle_in ) ;
 
 
 // Logging TODO: clean

@@ -12,11 +12,11 @@ function specRsiRecouveo_upload( $post_data ) {
 			break ;
 			
 		case 'IMPORT_ACC' :
-			$ret = specRsiRecouveo_lib_edi_IMPORT_ACCOUNT($handle) ;
+			$ret = specRsiRecouveo_lib_edi_post($_SESSION["login_data"]["userstr"],'upload_COMPTES',$handle) ;
 			break ;
 
 		case 'IMPORT_REC' :
-			$ret = specRsiRecouveo_lib_edi_IMPORT_RECORD($handle) ;
+			$ret = specRsiRecouveo_lib_edi_post($_SESSION["login_data"]["userstr"],'upload_FACTURES',$handle) ;
 			break ;
 
 		case 'SET_ALLOC' :
