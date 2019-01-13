@@ -1,4 +1,5 @@
 <?php
+@ini_set('max_execution_time',20*60) ;
 //ob_start() ;
 $app_root='..' ;
 $server_root='.' ;

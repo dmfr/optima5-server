@@ -181,7 +181,7 @@ function ftp_file_upload_SEND_REQUEST($binary, $api_method){
 	$params = array('http' => array(
 	'method' => 'POST',
 	'content' => $binary,
-	'timeout' => 600
+	'timeout' => (30*60)
 	));
 	$ctx = stream_context_create($params);
 	$fp = @fopen($auth_url, 'rb', false, $ctx);
