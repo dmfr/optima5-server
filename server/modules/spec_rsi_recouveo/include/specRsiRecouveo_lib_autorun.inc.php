@@ -21,10 +21,16 @@ function specRsiRecouveo_lib_autorun_open() {
 		}
 		$account_record = $ttmp['data'] ;
 		$accountFileBlank_record = NULL ;
+		$accountFileOff_filerecordId = NULL ;
+		$_is_new = TRUE ;
 		foreach( $account_record['files'] as $accountFile_record ) {
 			if( $accountFile_record['file_filerecord_id'] === 0 ) {
 				$accountFileBlank_record = $accountFile_record ;
-				break ;
+				continue ;
+			}
+			$_is_new = FALSE ;
+			if( $accountFile_record['status'] == 'S0_PRE' ) {
+				$accountFileOff_filerecordId = $accountFile_record['file_filerecord_id'] ;
 			}
 		}
 		
@@ -32,24 +38,26 @@ function specRsiRecouveo_lib_autorun_open() {
 			continue ;
 		}
 		
-		$arr_ins = array() ;
-		$arr_ins['field_FILE_ID'] = $account_record['acc_id'].'/'.'OFF' ;
-		$arr_ins['field_LINK_ACCOUNT'] = $account_record['acc_id'] ;
-		$arr_ins['field_STATUS'] = 'S0_PRE' ;
-		$arr_ins['field_DATE_OPEN'] = date('Y-m-d H:i:s') ;
-		$arr_ins['field_FROM_FILE_ID'] = 0 ;
-		$file_filerecord_id = paracrm_lib_data_insertRecord_file( 'FILE', 0, $arr_ins );
+		if( !$accountFileOff_filerecordId ) {
+			$arr_ins = array() ;
+			$arr_ins['field_FILE_ID'] = $account_record['acc_id'].'/'.'OFF' ;
+			$arr_ins['field_LINK_ACCOUNT'] = $account_record['acc_id'] ;
+			$arr_ins['field_STATUS'] = 'S0_PRE' ;
+			$arr_ins['field_DATE_OPEN'] = date('Y-m-d H:i:s') ;
+			$arr_ins['field_FROM_FILE_ID'] = 0 ;
+			$accountFileOff_filerecordId = paracrm_lib_data_insertRecord_file( 'FILE', 0, $arr_ins );
+		}
 		
 		$ids = array() ;
 		foreach( $accountFileBlank_record['records'] as $accountFileBlankRecord_record ) {
 			$arr_ins = array() ;
-			$arr_ins['field_LINK_FILE_ID'] = $file_filerecord_id ;
+			$arr_ins['field_LINK_FILE_ID'] = $accountFileOff_filerecordId ;
 			$arr_ins['field_LINK_IS_ON'] = 1 ;
 			$arr_ins['field_DATE_LINK_ON'] = date('Y-m-d') ;
 			paracrm_lib_data_insertRecord_file( 'RECORD_LINK', $accountFileBlankRecord_record['record_filerecord_id'], $arr_ins );
 		}
 		
-		specRsiRecouveo_file_lib_manageActivate($account_record['acc_id']) ;
+		specRsiRecouveo_file_lib_manageActivate($account_record['acc_id'],$_is_new) ;
 		specRsiRecouveo_file_lib_updateStatus($account_record['acc_id']) ;
 		specRsiRecouveo_account_lib_checkAdrStatus($account_record['acc_id']) ;
 	}

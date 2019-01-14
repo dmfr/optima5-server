@@ -98,13 +98,11 @@ function specRsiRecouveo_lib_edi_convert_UPLCOMPTES_to_mapMethodJson( $handle ) 
 		}
 		$row = array() ;
 		foreach( $map_header_csvIdx as $mkey => $idx ) {
-			$row[$mkey] = $data[$idx] ;
+			$row[$mkey] = trim($data[$idx]) ;
 		}
 		$account_rows[] = $row ;
 	}
 	$account_json = json_encode($account_rows) ;
-	
-	
 	
 	$adrbook_rows = array() ;
 	foreach ($account_rows as $row){
@@ -158,6 +156,7 @@ function specRsiRecouveo_lib_edi_convert_UPLCOMPTES_to_mapMethodJson( $handle ) 
 			$adrbook_rows[] = $nrow ;
 		}
 	}
+	
 	$adrbook_json = json_encode($adrbook_rows) ;
 	
 	return array(
@@ -231,7 +230,7 @@ function specRsiRecouveo_lib_edi_convert_UPLFACTURES_to_mapMethodJson( $handle )
 		}
 		$row = array() ;
 		foreach( $map_header_csvIdx as $mkey => $idx ) {
-			$row[$mkey] = $data[$idx] ;
+			$row[$mkey] = trim($data[$idx]) ;
 		}
 		$record_rows[] = $row ;
 	}
@@ -449,7 +448,7 @@ function specRsiRecouveo_lib_edi_post_adrbook($json_rows){
 		$mysql_Lib = $_opDB->escape_string($json_row['Lib']) ;
 		$mysql_Adr = $_opDB->escape_string($json_row['Adr']) ;
 
-		$query = "SELECT filerecord_id FROM view_file_ADRBOOK_ENTRY WHERE field_ADR_TYPE = '{$json_row["AdrType"]}' AND REGEXP_REPLACE(field_ADR_TXT,'[^A-Za-z0-9 ]','') = REGEXP_REPLACE('{$mysql_Adr}','[^A-Za-z0-9 ]','') " ;
+		$query = "SELECT ae.filerecord_id FROM view_file_ADRBOOK_ENTRY ae JOIN view_file_ADRBOOK a ON a.filerecord_id=ae.filerecord_parent_id WHERE a.field_ACC_ID='{$json_row['IdCli']}' AND ae.field_ADR_TYPE = '{$json_row["AdrType"]}' AND REGEXP_REPLACE(ae.field_ADR_TXT,'[^A-Za-z0-9 ]','') = REGEXP_REPLACE('{$mysql_Adr}','[^A-Za-z0-9 ]','') " ;
 		$result = $_opDB->query($query) ;
 		if ($_opDB->num_rows($result) < 1 ){
 			$query = "SELECT filerecord_id FROM view_file_ADRBOOK WHERE field_ACC_ID = '{$json_row['IdCli']}' AND field_ADR_ENTITY = '{$mysql_Lib}'" ;

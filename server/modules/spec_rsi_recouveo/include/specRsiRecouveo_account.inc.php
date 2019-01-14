@@ -211,15 +211,8 @@ function specRsiRecouveo_account_open( $post_data ) {
 	$notification_rows = array() ;
 	$notification_recordFilerecordIds = array() ;
 	$notification_fileactionFilerecordIds = array() ;
-	$query = "SELECT n.filerecord_id as notification_filerecord_id, n.field_DATE_NOTIFICATION as date_notification, n.field_TXT_NOTIFICATION as txt_notification 
-					, links.*
+	$query = "SELECT n.filerecord_id as notification_filerecord_id, n.field_DATE_NOTIFICATION as date_notification, n.field_TXT_NOTIFICATION as txt_notification
 				FROM view_file_NOTIFICATION n
-				LEFT OUTER JOIN ( 
-					SELECT filerecord_parent_id, field_LINK_RECORD_ID as record_filerecord_id, NULL as fileaction_filerecord_id FROM view_file_NOTIFICATION_RECORD
-					UNION ALL
-					SELECT filerecord_parent_id, NULL as record_filerecord_id, field_LINK_FILEACTION_ID as fileaction_filerecord_id FROM view_file_NOTIFICATION_FILEACTION
-				) links 
-				ON links.filerecord_parent_id=n.filerecord_id
 				WHERE field_LINK_ACCOUNT='{$p_accId}' AND field_ACTIVE_IS_ON='1'" ;
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
@@ -231,11 +224,17 @@ function specRsiRecouveo_account_open( $post_data ) {
 				'txt_notification' => $arr['txt_notification']
 			);
 		}
-		if( $arr['record_filerecord_id'] ) {
-			$notification_recordFilerecordIds[] = $arr['record_filerecord_id'] ;
+		
+		$query = "SELECT field_LINK_RECORD_ID FROM view_file_NOTIFICATION_RECORD WHERE filerecord_parent_id='{$notification_filerecord_id}'" ;
+		$res2 = $_opDB->query($query) ;
+		while( ($arr2 = $_opDB->fetch_row($res2)) != FALSE ) {
+			$notification_recordFilerecordIds[] = $arr2[0] ;
 		}
-		if( $arr['fileaction_filerecord_id'] ) {
-			$notification_fileactionFilerecordIds[] = $arr['fileaction_filerecord_id'] ;
+		
+		$query = "SELECT field_LINK_FILEACTION_ID FROM view_file_NOTIFICATION_FILEACTION WHERE filerecord_parent_id='{$notification_filerecord_id}'" ;
+		$res2 = $_opDB->query($query) ;
+		while( ($arr2 = $_opDB->fetch_row($res2)) != FALSE ) {
+			$notification_fileactionFilerecordIds[] = $arr2[0] ;
 		}
 	}
 	$account_record['notifications'] = array_values($notification_rows) ;

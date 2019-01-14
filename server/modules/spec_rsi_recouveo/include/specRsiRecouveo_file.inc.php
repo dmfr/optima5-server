@@ -1321,7 +1321,7 @@ function specRsiRecouveo_file_lib_updateStatus( $acc_id ) {
 }
 
 
-function specRsiRecouveo_file_lib_manageActivate( $acc_id ) {
+function specRsiRecouveo_file_lib_manageActivate( $acc_id, $is_new ) {
 	$toEnable_recordFilerecordIds = array() ;
 	$toDisable_recordFilerecordIds = array() ;
 	$targetFile_preFilerecordId = $targetFile_openFilerecordId = NULL ;
@@ -1371,11 +1371,13 @@ function specRsiRecouveo_file_lib_manageActivate( $acc_id ) {
 		}
 		specRsiRecouveo_file_lib_updateStatus($account_record['acc_id']) ;
 		
-		specRsiRecouveo_account_pushNotificationRecords( array(
-			'acc_id' => $account_record['acc_id'],
-			'txt_notification' => 'Entrées comptables échues',
-			'arr_recordFilerecordIds' => json_encode($toEnable_recordFilerecordIds)
-		));
+		if( !$is_new ) {
+			specRsiRecouveo_account_pushNotificationRecords( array(
+				'acc_id' => $account_record['acc_id'],
+				'txt_notification' => 'Entrées comptables échues',
+				'arr_recordFilerecordIds' => json_encode($toEnable_recordFilerecordIds)
+			));
+		}
 	}
 	if( count($toDisable_recordFilerecordIds)>0 ) {
 		if( $targetFile_preFilerecordId ) {
