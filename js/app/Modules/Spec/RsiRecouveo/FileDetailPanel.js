@@ -844,11 +844,11 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 									'<table class="op5-spec-dbspeople-realvalidhdr-tbl">',
 									'<tr>',
 										'<td class="op5-spec-dbspeople-realvalidhdr-tdlabel">Nb Factures :</td>',
-										'<td class="op5-spec-dbspeople-realvalidhdr-tdvalue">{inv_nb}</td>',
+										'<td class="op5-spec-dbspeople-realvalidhdr-tdvalue">{inv_nb_open}</td>',
 									'</tr>',
 									'<tr>',
 										'<td class="op5-spec-dbspeople-realvalidhdr-tdlabel">Total encours :</td>',
-										'<td class="op5-spec-dbspeople-realvalidhdr-tdvalue">{inv_amount_total}&#160;€</td>',
+										'<td class="op5-spec-dbspeople-realvalidhdr-tdvalue">{inv_amount_open}&#160;€</td>',
 									'</tr>',
 									'<tr>',
 										'<td class="op5-spec-dbspeople-realvalidhdr-tdlabel">Reste dû :</td>',
@@ -1179,18 +1179,15 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		},this) ;
 		
 		
-		var inv_nb = 0, inv_amount_total = 0, inv_amount_due = 0 ;
+		var inv_nb_open = 0, inv_amount_open = 0, inv_amount_due = 0 ;
 		accountRecord.files().each( function(fileRecord) {
-			if( fileRecord.get('status_closed_end') && !this._showClosed ) {
-				return ;
-			}
-			inv_nb += fileRecord.get('inv_nb') ;
-			inv_amount_total += fileRecord.get('inv_amount_total') ;
+			inv_nb_open += fileRecord.get('inv_nb_open') ;
+			inv_amount_open += fileRecord.get('inv_amount_open') ;
 			inv_amount_due += fileRecord.get('inv_amount_due') ;
 		},this) ;
 		this.down('#pRecordsHeader').setData({
-			inv_nb: inv_nb,
-			inv_amount_total: Ext.util.Format.number(inv_amount_total,'0,000.00'),
+			inv_nb_open: inv_nb_open,
+			inv_amount_open: Ext.util.Format.number(inv_amount_open,'0,000.00'),
 			inv_amount_due: Ext.util.Format.number(inv_amount_due,'0,000.00')
 		});
 		this.down('#pRecordsHeader').setVisible(true) ;
@@ -1202,13 +1199,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			balageRecData[balageField] = 0 ;
 		}) ;
 		accountRecord.files().each( function(fileRecord) {
-			if( fileRecord.get('status_closed_void') ) {
-				return ;
-			}
-			if( fileRecord.get('status_closed_end') && !this._showClosed ) {
-				return ;
-			}
 			fileRecord.records().each( function(fileRecordRecord) {
+				if( fileRecordRecord.get('letter_is_confirm') ) {
+					return ;
+				}
 				var balageField = 'inv_balage_'+fileRecordRecord.get('calc_balage_segmt_id') ;
 				balageRecData[balageField] += fileRecordRecord.get('amount') ;
 			},this) ;
@@ -1363,7 +1357,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			
 			Ext.Object.each( map_letterCode_records, function(letterCode, records) {
 				var letterSum = 0,
-					letterIsConfirm = records[0].letter_is_confirm ;
+					letterIsConfirm = records[0].record_letter_is_confirm ;
 				Ext.Array.each(records, function(rec) {
 					letterSum += rec.record_amount ;
 				}) ;
@@ -1866,7 +1860,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 	doReload: function(focusFileFilerecordId) {
 		if( !focusFileFilerecordId ) {
 			focusFileFilerecordId = this.getActiveFileId() ;
-			//console.log(focusFileFilerecordId) ;
 		}
 		this.loadAccount( this._accId, this._filterAtr, focusFileFilerecordId, this._showClosed ) ;
 	},
@@ -2664,7 +2657,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		this._accountRecord.notifications().each( function(rec) {
 			notificationsData.push(rec.getData()) ;
 		}) ;
-		console.dir(notificationsData) ;
 		
 		var notificationsPanel = Ext.create('Ext.grid.Panel',{
 			optimaModule: this.optimaModule,

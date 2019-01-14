@@ -40,8 +40,10 @@ Ext.define('RsiRecouveoFileTplModel',{ // TO: RsiRecouveoFileModel
 		},
 		{name: 'next_eta_range', type: 'string', allowNull:true},
 		{name: 'next_agenda_class', type: 'string', allowNull:true},
-		{name: 'inv_nb', type: 'number'},
+		{name: 'inv_nb_open', type: 'number'},
+		{name: 'inv_nb_total', type: 'number'},
 		{name: 'inv_amount_due', type: 'number'},
+		{name: 'inv_amount_open', type: 'number'},
 		{name: 'inv_amount_total', type: 'number'},
 		{name: 'inv_balage', type: 'auto'},
 		
@@ -135,6 +137,9 @@ Ext.define('RsiRecouveoRecordTplModel',{ // TO: RsiRecouveoRecordModel
 		{name: 'letter_is_local', type: 'boolean'},
 		{name: 'letter_is_confirm', type: 'boolean'},
 		{name: 'letter_date', type:'date', dateFormat:'Y-m-d H:i:s'},
+		
+		{name: 'calc_is_inv', type:'boolean'},
+		{name: 'calc_amount_due', type:'number'},
 		
 		{name: 'recordgroup_id', type: 'string'},
 		{name: 'bank_is_alloc', type: 'string'},

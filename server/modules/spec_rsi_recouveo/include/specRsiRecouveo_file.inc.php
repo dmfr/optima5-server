@@ -269,7 +269,7 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 			}
 		}
 		if( !$filter_archiveIsOn ) {
-			$query.= " AND f.field_STATUS_CLOSED_VOID='0' AND f.field_STATUS_CLOSED_END='0'" ;
+			$query.= " AND f.field_STATUS_CLOSED_VOID='0' AND f.field_STATUS_CLOSED_END='0' AND r.field_LETTER_IS_CONFIRM='0'" ;
 		} else {
 			$query.= " AND f.field_STATUS_CLOSED_VOID='0'" ;
 		}
@@ -339,7 +339,9 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 	foreach( $TAB_files as &$file_row ) {
 		$next_action = NULL ;
 		$inv_header = array(
-			'inv_nb' => 0,
+			'inv_nb_open_alltypes' => 0,
+			'inv_nb_open' => 0,
+			'inv_nb_total' => 0,
 			'inv_amount_due' => 0,
 			'inv_amount_total' => 0,
 			'inv_balage' => null
@@ -376,17 +378,23 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 			}
 		}
 		foreach( $file_row['records'] as $record_row ) {
-			if( $record_row['clear_is_on'] ) {
+			if( $record_row['is_disabled'] ) {
 				continue ;
 			}
-			if( $record_row['is_disabled'] ) {
-				// OFF/EC 04/01/2019 : do not exclude disabled records
-				//continue ;
-			}
+			
 			if( $record_row['type']==NULL ) {
-				$inv_header['inv_nb']++ ;
+				$inv_header['inv_nb_total']++ ;
 				$inv_header['inv_amount_total'] += $record_row['amount'] ;
 			}
+			if( $record_row['letter_is_confirm'] ) {
+				continue ;
+			}
+			
+			if( $record_row['type']==NULL ) {
+				$inv_header['inv_nb_open']++ ;
+				$inv_header['inv_amount_open'] += $record_row['amount'] ;
+			}
+			$inv_header['inv_nb_open_alltypes']++ ;
 			$inv_header['inv_amount_due'] += $record_row['amount'] ;
 		}
 		
@@ -395,6 +403,10 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 			$inv_balage[$segmt_id] = 0 ;
 		}
 		foreach( $file_row['records'] as &$record_row ) {
+			if( $record_row['letter_is_confirm'] ) {
+				continue ;
+			}
+			
 			// calcul du J+x
 			$obj_datetime_sched = new DateTime(substr($record_row['date_value'],0,10)) ;
 			$obj_date_interval = date_diff($obj_datetime_sched,$obj_datetime_now);
@@ -1315,7 +1327,7 @@ function specRsiRecouveo_file_lib_updateStatus( $acc_id ) {
 	foreach( $account_record['files'] as $accFile_record ) {
 		$arr_update = array() ;
 		$arr_update['field_STATUS_CLOSED_VOID'] = !(count($accFile_record['records'])>0) ;
-		$arr_update['field_STATUS_CLOSED_END'] = ((count($accFile_record['records'])>0) && ($accFile_record['inv_amount_due']==0)) ;
+		$arr_update['field_STATUS_CLOSED_END'] = ((count($accFile_record['records'])>0) && ($accFile_record['inv_nb_open_alltypes']==0)) ;
 		paracrm_lib_data_updateRecord_file( 'FILE', $arr_update, $accFile_record['file_filerecord_id']);
 	}
 }

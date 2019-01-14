@@ -388,7 +388,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesWidgetList', {
 		    text: 'Finance',
 		    columns: [{
 			    text: 'Nb Fact',
-			    dataIndex: 'inv_nb',
+			    dataIndex: 'inv_nb_total',
 			    tdCls: 'op5-spec-dbstracy-boldcolumn',
 			    width:80,
 			    align: 'center',
@@ -595,7 +595,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesWidgetList', {
 					    file_filerecord_id: fileRow['file_filerecord_id'],
 					    acc_id: fileRow['acc_id'],
 					    acc_txt: fileRow['acc_txt'],
-					    inv_nb: 0,
+					    inv_nb_total: 0,
 					    inv_amount_due: 0,
 					    inv_amount_total: 0,
 					    inv_balage: {},
@@ -619,7 +619,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesWidgetList', {
 			    }
 			    newAjaxData[accId]['inv_amount_due'] += fileRow['inv_amount_due'] ;
 			    newAjaxData[accId]['inv_amount_total'] += fileRow['inv_amount_total'] ;
-			    newAjaxData[accId]['inv_nb'] += fileRow['inv_nb'] ;
+			    newAjaxData[accId]['inv_nb_total'] += fileRow['inv_nb_total'] ;
 			    Ext.Object.each( fileRow.inv_balage, function(k,v) {
 				    if( !newAjaxData[accId].inv_balage.hasOwnProperty(k) ) {
 					    newAjaxData[accId].inv_balage[k] = 0 ;
