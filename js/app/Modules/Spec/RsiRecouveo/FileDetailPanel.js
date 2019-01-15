@@ -329,7 +329,11 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 				}
 				if( r.get('letter_node') ) {
 					if( r.get('letter_is_confirm') ) {
-						return '' ;
+						if( v==0 ) {
+							return '' ;
+						} else {
+							return '<i>'+v+'</i>' ;
+						}
 					} else {
 						return '<b>'+v+'</b>' ;
 					}
@@ -1332,10 +1336,11 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 					record[atrRecField] = fileRecordRecord.get(atrRecField) ;
 				});
 				
-				totAmountDue += fileRecordRecord.get('amount') ;
-				
 				var letterCode = fileRecordRecord.get('letter_code'),
 					letterIsConfirm = fileRecordRecord.get('letter_is_confirm');
+				if( !letterIsConfirm ) {
+					totAmountDue += fileRecordRecord.get('amount') ;
+				}
 				if( letterIsConfirm && !this._showClosed ) {
 					return ;
 				}
