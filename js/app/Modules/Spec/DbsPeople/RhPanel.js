@@ -161,18 +161,61 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhPanel',{
 				}
 			}),{
 				icon: 'images/op5img/ico_zoom_16.png',
+				textOrig: 'Filtres',
 				text: 'Filtres',
+				itemId: 'btnFilters',
 				menu: {
 					layout: 'anchor',
 					bodyPadding: 10,
 					bodyCls: 'ux-noframe-bg',
+					listeners: {
+						expand: function(menu) {
+							menu.down('textfield').focus() ;
+						}
+					},
 					items: [{
 						xtype: 'textfield',
+						itemId: 'txtSearch',
 						fieldLabel: 'Recherche',
-						labelWidth: 80
+						labelWidth: 80,
+						listeners: {
+							/*
+							change: function() {
+								if( this.autoRefreshTask ) {
+									this.autoRefreshTask.cancel() ;
+								}
+							},
+							select: this.onSearchSelect,
+							*/
+							change: {
+								fn: function(field) {
+									this.applyFilters() ;
+								},
+								scope: this,
+								buffer: 500
+							},
+							afterrender: function( field ) {
+								var triggers = field.getTriggers() ;
+								if( triggers.picker ) {
+									triggers.picker.hide() ;
+								}
+							},
+							scope: this
+						}
+				
 					},{
 						xtype: 'checkbox',
-						boxLabel: 'Afficher inactifs'
+						itemId: 'chkPeopleHidden',
+						boxLabel: 'Afficher inactifs',
+						listeners: {
+							change: function() {
+								this.up().down('textfield').suspendEvents(false) ;
+								this.up().down('textfield').reset() ;
+								this.up().down('textfield').resumeEvents() ;
+								this.applyFilters() ;
+							},
+							scope: this
+						}
 					}]
 				}
 			},'->',{
@@ -600,6 +643,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhPanel',{
 		}
 		store._onLoadFilterChanged = false ;
 		store._onLoadDoFetchCalc = false ;
+		this.applyFilters() ;
 	},
 	onColumnGroupBy: function( groupField ) {
 		var grid = this.down('grid'),
@@ -629,6 +673,37 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhPanel',{
 				col.show() ;
 			}
 		}) ;
+	},
+	
+	applyFilters: function() {
+		var gridPanel = this.down('#mRhGridContainer').down('grid') ;
+		var gridStore = gridPanel.getStore() ;
+		gridStore.clearFilter() ;
+		
+		var btnFilters = this.down('#btnFilters') ;
+		
+		var btnSearch = this.down('#btnFilters').down('#txtSearch') ;
+		var btnSearchTxt = btnSearch.getValue().toLowerCase() ;
+		if( !Ext.isEmpty(btnSearchTxt) ) {
+			btnFilters.setText( btnFilters.textOrig + ' : ' + '<b>'+btnSearchTxt+'</b>' ) ;
+			
+			gridStore.filter({
+				property: 'people_name',
+				operator: 'like',
+				value: btnSearchTxt
+			}) ;
+			return ;
+		}
+		
+		btnFilters.setText( btnFilters.textOrig ) ;
+		var chkPeopleHidden = this.down('#btnFilters').down('#chkPeopleHidden') ;
+		if( !chkPeopleHidden.getValue() ) {
+			gridStore.filter({
+				property: 'status_out',
+				value: false
+			}) ;
+		}
+		return ;
 	},
 	
 	fetchCalcAttributes: function() {
