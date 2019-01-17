@@ -930,6 +930,7 @@ function specRsiRecouveo_file_createForAction( $post_data ) {
 	// Action mutation
 	$arr_recordsTxt = array() ;
 	$sum_recordsAmount = 0 ;
+	$sql_recordFilerecordIds = array() ;
 	foreach( $account_record['files'] as $accFile_record ) {
 		$arr_recordsTxtFile = array() ;
 		foreach( $accFile_record['records'] as $accFileRecord_record ) {
@@ -942,22 +943,39 @@ function specRsiRecouveo_file_createForAction( $post_data ) {
 			$arr_recordsTxtFile[] = $accFileRecord_record['record_ref'] ;
 			$sum_recordsAmount += $accFileRecord_record['amount'] ;
 			
+			$sql_recordFilerecordIds[] = $accFileRecord_record['record_filerecord_id'] ;
+		}
+		
+		if( $sql_recordFilerecordIds ) {
+			$query = "CREATE TEMPORARY TABLE recordsFilerecordIds ( record_filerecord_id INT PRIMARY KEY )" ;
+			$_opDB->query($query) ;
+			$query = "INSERT INTO recordsFilerecordIds VALUES " ;
+			$isf = TRUE ;
+			foreach( $sql_recordFilerecordIds as $record_filerecord_id ) {
+				if( !$isf ) {
+					$query.= "," ;
+				}
+				$isf = FALSE ;
+				$query.= "('".$record_filerecord_id."')" ;
+			}
+			$_opDB->query($query) ;
+			
 			// Terminaison du lien
-			$query = "SELECT filerecord_id FROM view_file_RECORD_LINK 
-				WHERE filerecord_parent_id='{$accFileRecord_record['record_filerecord_id']}' AND field_LINK_IS_ON='1'" ;
-			$recordlink_filerecord_id = $_opDB->query_uniqueValue($query) ;
-			$arr_update = array() ;
-			$arr_update['field_LINK_IS_ON'] = 0 ;
-			$arr_udpate['field_DATE_LINK_OFF'] = date('Y-m-d H:i:s') ;
-			paracrm_lib_data_updateRecord_file( 'RECORD_LINK', $arr_update, $recordlink_filerecord_id);
+			$date_now = date('Y-m-d H:i:s') ;
+			$query = "UPDATE view_file_RECORD_LINK rl
+						JOIN recordsFilerecordIds ids ON ids.record_filerecord_id = rl.filerecord_parent_id
+						SET rl.field_LINK_IS_ON='0' AND rl.field_DATE_LINK_OFF='{$date_now}'" ;
+			$_opDB->query($query) ;
 			
 			// Nouveau lien
-			$arr_ins = array() ;
-			$arr_ins['field_LINK_FILE_ID'] = $file_filerecord_id ;
-			$arr_ins['field_LINK_IS_ON'] = 1 ;
-			$arr_ins['field_DATE_LINK_ON'] = date('Y-m-d H:i:s') ;
-			paracrm_lib_data_insertRecord_file( 'RECORD_LINK', $accFileRecord_record['record_filerecord_id'], $arr_ins );
+			$query = "INSERT INTO view_file_RECORD_LINK(filerecord_parent_id,field_LINK_FILE_ID,field_LINK_IS_ON,field_DATE_LINK_ON)
+						SELECT ids.record_filerecord_id, '{$file_filerecord_id}', '1', '{$date_now}' FROM recordsFilerecordIds ids" ;
+			$_opDB->query($query) ;
+			
+			$query = "DROP TABLE recordsFilerecordIds" ;
+			$_opDB->query($query) ;
 		}
+		
 		
 		if( count($arr_recordsTxtFile) == 0 ) {
 			continue ;
@@ -1381,7 +1399,6 @@ function specRsiRecouveo_file_lib_manageActivate( $acc_id, $is_new ) {
 			$forward_post['form_data'] = json_encode(array()) ;
 			$ret = specRsiRecouveo_file_createForAction($forward_post) ;
 		}
-		specRsiRecouveo_file_lib_updateStatus($account_record['acc_id']) ;
 		
 		if( !$is_new ) {
 			specRsiRecouveo_account_pushNotificationRecords( array(
@@ -1400,8 +1417,8 @@ function specRsiRecouveo_file_lib_manageActivate( $acc_id, $is_new ) {
 		} else {
 			// TODO
 		}
-		specRsiRecouveo_file_lib_updateStatus($account_record['acc_id']) ;
 	}
+	specRsiRecouveo_file_lib_updateStatus($account_record['acc_id']) ;
 }
 
 

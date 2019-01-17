@@ -48,17 +48,36 @@ function specRsiRecouveo_lib_autorun_open() {
 			$accountFileOff_filerecordId = paracrm_lib_data_insertRecord_file( 'FILE', 0, $arr_ins );
 		}
 		
-		$ids = array() ;
+		$sql_recordFilerecordIds = array() ;
 		foreach( $accountFileBlank_record['records'] as $accountFileBlankRecord_record ) {
-			$arr_ins = array() ;
-			$arr_ins['field_LINK_FILE_ID'] = $accountFileOff_filerecordId ;
-			$arr_ins['field_LINK_IS_ON'] = 1 ;
-			$arr_ins['field_DATE_LINK_ON'] = date('Y-m-d') ;
-			paracrm_lib_data_insertRecord_file( 'RECORD_LINK', $accountFileBlankRecord_record['record_filerecord_id'], $arr_ins );
+			$sql_recordFilerecordIds[] = $accountFileBlankRecord_record['record_filerecord_id'] ;
 		}
 		
+		if( $sql_recordFilerecordIds ) {
+			$query = "CREATE TEMPORARY TABLE recordsFilerecordIds ( record_filerecord_id INT PRIMARY KEY )" ;
+			$_opDB->query($query) ;
+			$query = "INSERT INTO recordsFilerecordIds VALUES " ;
+			$isf = TRUE ;
+			foreach( $sql_recordFilerecordIds as $record_filerecord_id ) {
+				if( !$isf ) {
+					$query.= "," ;
+				}
+				$isf = FALSE ;
+				$query.= "('".$record_filerecord_id."')" ;
+			}
+			$_opDB->query($query) ;
+			
+			$date_now = date('Y-m-d H:i:s') ;
+			$query = "INSERT INTO view_file_RECORD_LINK(filerecord_parent_id,field_LINK_FILE_ID,field_LINK_IS_ON,field_DATE_LINK_ON)
+						SELECT ids.record_filerecord_id, '{$accountFileOff_filerecordId}', '1', '{$date_now}' FROM recordsFilerecordIds ids" ;
+			$_opDB->query($query) ;
+			
+			$query = "DROP TABLE recordsFilerecordIds" ;
+			$_opDB->query($query) ;
+		}
+		
+		
 		specRsiRecouveo_file_lib_manageActivate($account_record['acc_id'],$_is_new) ;
-		specRsiRecouveo_file_lib_updateStatus($account_record['acc_id']) ;
 		specRsiRecouveo_account_lib_checkAdrStatus($account_record['acc_id']) ;
 	}
 }
