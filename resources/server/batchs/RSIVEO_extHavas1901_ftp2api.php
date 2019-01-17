@@ -9,6 +9,10 @@ $api_path = getenv("API_URL");
 $ftp_upload_server = getenv('FTP_HOST') ;
 $ftp_upload_user = getenv('FTP_USER') ;
 $ftp_upload_password = getenv('FTP_PW') ;
+$ftp_upload_path = getenv('FTP_PATH') ;
+if( !$ftp_upload_path ) {
+	$ftp_upload_path = '/' ;
+}
 
 /*
 ********* Lancement en ligne de commande ***********
@@ -67,6 +71,7 @@ $string .= "Connexion réussie\n" ;
 // upload via la bonne methode (switch($pattern))
 
 $ftp_login = ftp_login($ftp_connect, $ftp_upload_user, $ftp_upload_password) ;
+ftp_chdir($ftp_connect,$ftp_upload_path) ;
 $remote_filenames = ftp_nlist($ftp_connect, ".") ;
 ftp_close($ftp_connect) ;
 sleep(1) ;
@@ -80,6 +85,7 @@ foreach( array('CLT','ENR') as $pattern ) {
 		$handle = tmpfile() ;
 		$ftp_connect = ftp_connect($ftp_upload_server) ;
 		$ftp_login = ftp_login($ftp_connect, $ftp_upload_user, $ftp_upload_password) ;
+		ftp_chdir($ftp_connect,$ftp_upload_path) ;
 		ftp_fget($ftp_connect, $handle, $remote_filename,FTP_BINARY) ;
 		fseek($handle,0) ;
 		
@@ -146,7 +152,7 @@ $string .= "\n---------------------\n\n" ;
 
 $ftp_connect = ftp_connect($ftp_upload_server) ;
 $ftp_login = ftp_login($ftp_connect, $ftp_upload_user, $ftp_upload_password) ;
-
+ftp_chdir($ftp_connect,$ftp_upload_path) ;
 foreach ($list_of_filenames as $file){
 	ftp_rename($ftp_connect, $file, './archives/'.$current_date.'-'.$current_time.'-'.$file);
 }
@@ -163,7 +169,7 @@ function add_CLT_header($binary,$separator) {
 	return implode($separator,$header)."\n".$binary ;
 }
 function add_ENR_header($binary,$separator) {
-	$header = array("Société","Numéro client","Date transmission","Date facture","Date échéance","Id facture","Numéro facture","Libellé","Montant HT","Montant TTC","Montant TVA","Meta:JOURNAL","Lettrage","Méta donnée 1","Méta donnée 2","Méta donnée 3","Méta donnée 4","Méta donnée 5") ;
+	$header = array("Société","Numéro client","Date transmission","Date facture","Date échéance","Id facture","Numéro facture","Libellé","Montant HT","Montant TTC","Montant TVA","Meta:JOURNAL","Lettrage","Méta donnée 1","Méta donnée 2","Méta donnée 3","Méta donnée 4","Méta donnée 5","Lettrage soldé ?","Date lettrage","Montant devise","Code devise") ;
 	
 	return implode($separator,$header)."\n".$binary ;
 }
