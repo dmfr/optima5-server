@@ -230,6 +230,29 @@ function specRsiRecouveo_lib_autorun_adrbook() {
 	foreach($arr_searchAccIds as $t_acc_id) {
 		specRsiRecouveo_account_lib_checkAdrStatus($t_acc_id) ;
 	}
+	
+	
+	
+	// Comptes avec adresse
+	$arr_searchAccIds = array() ;
+	$query = "SELECT distinct field_LINK_ACCOUNT FROM view_file_FILE f
+				WHERE f.field_STATUS_CLOSED_VOID='0' AND f.field_STATUS_CLOSED_END='0'
+				AND f.field_STATUS='S1_SEARCH'
+				AND f.field_LINK_ACCOUNT IN (
+					SELECT distinct a.field_ACC_ID
+					FROM view_file_ADRBOOK a
+					, view_file_ADRBOOK_ENTRY ae
+					WHERE a.filerecord_id = ae.filerecord_parent_id
+					AND ae.field_STATUS_IS_PRIORITY='1' AND ae.field_ADR_TYPE IN ('POSTAL','TEL')
+				)" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+		$arr_searchAccIds[] = $arr[0] ;
+	}
+	
+	foreach($arr_searchAccIds as $t_acc_id) {
+		specRsiRecouveo_account_lib_checkAdrStatus($t_acc_id) ;
+	}
 }
 
 

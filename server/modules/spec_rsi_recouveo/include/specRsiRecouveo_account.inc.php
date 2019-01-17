@@ -381,12 +381,14 @@ function specRsiRecouveo_account_lib_checkAdrStatus( $acc_id ) {
 			$map_adrType_ids[$adr_type][] = $accAdrbookEntry_record['adrbookentry_filerecord_id'] ;
 		}
 	}
+	$newPrio_adrbookentryFilerecordIds = array() ;
 	foreach( $map_adrType_ids as $adr_type => $ids ) {
 		if( !is_array($ids) ) {
 			continue ;
 		}
 		rsort($ids) ;
 		$adrbookentry_filerecord_id = reset($ids) ;
+		$newPrio_adrbookentryFilerecordIds[] = $adrbookentry_filerecord_id ;
 		
 		$arr_update = array() ;
 		$arr_update['field_STATUS_IS_PRIORITY'] = 1 ;
@@ -414,7 +416,7 @@ function specRsiRecouveo_account_lib_checkAdrStatus( $acc_id ) {
 			if( !in_array($adr_type,array('POSTAL','TEL')) ) {
 				continue ;
 			}
-			if( $accAdrbookEntry_record['status_is_priority'] ) {
+			if( $accAdrbookEntry_record['status_is_priority'] || in_array($accAdrbookEntry_record['adrbookentry_filerecord_id'],$newPrio_adrbookentryFilerecordIds) ) {
 				$has_priority = TRUE ;
 			}
 		}

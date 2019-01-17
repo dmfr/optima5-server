@@ -1351,7 +1351,7 @@ function specRsiRecouveo_file_lib_updateStatus( $acc_id ) {
 }
 
 
-function specRsiRecouveo_file_lib_manageActivate( $acc_id, $is_new ) {
+function specRsiRecouveo_file_lib_manageActivate( $acc_id, $is_new=FALSE ) {
 	$toEnable_recordFilerecordIds = array() ;
 	$toDisable_recordFilerecordIds = array() ;
 	$targetFile_preFilerecordId = $targetFile_openFilerecordId = NULL ;
