@@ -212,6 +212,18 @@ function specRsiRecouveo_lib_edi_convert_UPLFACTURES_to_mapMethodJson( $handle )
 			case "Lettrage":
 				$head = "Letter" ;
 				break ;
+			case "Lettrage soldé ?":
+				$head = "LetterConfirm" ;
+				break ;
+			case "Date lettrage":
+				$head = "LetterDate" ;
+				break ;
+			case "Montant devise":
+				$head = "XeCurrencyAmount" ;
+				break ;
+			case "Code devise":
+				$head = "XeCurrencyCode" ;
+				break ;
 			default:
 				break ;
 		}
@@ -481,7 +493,11 @@ function specRsiRecouveo_lib_edi_post_record( $json_rows) {
 		'DateTrans' => 'field_DATE_LOAD',
 		'DateLimite' => 'field_DATE_VALUE',
 		'Letter' => 'field_LETTER_CODE',
+		'LetterConfirm' => 'field_LETTER_IS_CONFIRM',
+		'LetterDate' => 'field_LETTER_DATE',
 		'NonFactType' => 'field_TYPE',
+		'XeCurrencyAmount' => 'field_XE_CURRENCY_AMOUNT',
+		'XeCurrencyCode' => 'field_XE_CURRENCY_CODE'
 	);
 	$count_success = 0;
 	$ret_errors = array() ;
@@ -498,6 +514,15 @@ function specRsiRecouveo_lib_edi_post_record( $json_rows) {
 			$json_row['DateLimite'] = date('Y-m-d',strtotime($json_row['DateLimite'])) ;
 		}
 		
+		$json_row['LetterConfirm'] = !!$json_row['LetterConfirm'] ;
+		if( $json_row['LetterConfirm'] ) {
+			if( $json_row['LetterDate'] && ($tmld=strtotime($json_row['LetterDate'])) ) {
+				$json_row['LetterDate'] = date('Y-m-d',$tmld) ;
+			} else {
+				$json_row['LetterDate'] = date('Y-m-d') ;
+			}
+		}
+		
 		$json_row['DateFact'] = date('Y-m-d',strtotime($json_row['DateFact'])) ;
 
 		if ($json_row['NumFact'] == null){
@@ -506,6 +531,9 @@ function specRsiRecouveo_lib_edi_post_record( $json_rows) {
 		
 		if( is_string($json_row['MontantTTC']) ) {
 			$json_row['MontantTTC'] = str_replace(',','.',$json_row['MontantTTC']) ;
+		}
+		if( is_string($json_row['XeCurrencyAmount']) ) {
+			$json_row['XeCurrencyAmount'] = str_replace(',','.',$json_row['XeCurrencyAmount']) ;
 		}
 		
 		$missing = array() ;
