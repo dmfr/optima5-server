@@ -798,15 +798,16 @@ function specDbsLam_lib_procCde_searchStock( $whse_src, $stk_prod, $qty_search, 
 		// tentative reappro ?
 		$tranferligFilerecordId = specDbsLam_lib_procCde_searchStock_doResupply( $whse_src, $stk_prod, $resupply_transferStep_filerecordId ) ;
 		if( !$tranferligFilerecordId ) {
-			return specDbsLam_lib_procCde_searchStock_doSearch( $whse_src, $stk_prod, $qty_search ) ;
+			$arr_results = specDbsLam_lib_procCde_searchStock_doSearch( $whse_src, $stk_prod, $qty_search, $from_picking=FALSE, $resupply_stkIds ) ;
 			break ;
 		}
 		$resupply_transferLigFilerecordIds[] = $tranferligFilerecordId ;
 		continue ;
 	}
 	
+	$echec = ($qty>0) ;
 	if( $echec=TRUE ) {
-		// clean reappros
+		// return anyway ?
 		
 	}
 	
@@ -872,8 +873,10 @@ function specDbsLam_lib_procCde_searchStock_doSearch( $whse_src, $stk_prod, &$qt
 	if( $from_picking===false ) {
 		$mstr = array() ;
 		for( $i=1 ; $i>=0 ; $i-- ) {
-			$mstr = array_merge($mstr,specDbsLam_lib_procCde_searchStock_doSearch($whse_src, $stk_prod, $qty, $i)) ;
+			$mstr = array_merge($mstr,specDbsLam_lib_procCde_searchStock_doSearch($whse_src, $stk_prod, $qty, $i, $resupply_stkIds)) ;
 		}
+		return $mstr ;
+		// 19/01/19 : always return ;
 		if( $qty<=0 ) {
 			return $mstr ;
 		}
