@@ -22,8 +22,13 @@ class MySQL_DB {
 
 	var $nb_queries = 0 ;
 
-
+	function writeLog( $str ) {
+		$ts = (microtime(true) - $this->ts) ;
+		file_put_contents($this->ts_filepath,'['.round($ts,3).']'.' '.$str."\n\n",FILE_APPEND) ;
+	}
 	function connect_mysql( $host, $db, $user, $pass ) {
+		$this->ts = microtime(true) ;
+		$this->ts_filepath = '/tmp/op5-wms1808-mysql.'.time().'.txt' ;
 		$this->connection = @mysql_connect( $host, $user, $pass, TRUE ) or die( "impossible d'ouvrir la base de donn�es\n" ); 
 		if( $db != NULL )
 			@mysql_select_db( $db, $this->connection ) or die( "impossible d'ouvrir la base de donn�es\n" );
@@ -92,6 +97,11 @@ class MySQL_DB {
 		switch ($this->type_de_base) {
 			case "MySQL" :
 			// echo $query."<br>" ;
+			/*
+			$filename = '/tmp/op5-wms1808-mysql.'.$this->ts.'.txt' ;
+			file_put_contents($filename,$query."\n\n",FILE_APPEND) ;
+			*/
+			
 			$result = mysql_query( $query, $this->connection ) ;
 			if ( !$result && $this->is_quiet == FALSE )
 			{
