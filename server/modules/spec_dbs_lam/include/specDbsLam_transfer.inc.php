@@ -1473,8 +1473,15 @@ function specDbsLam_transfer_removeCdePickingStock( $post_data, $fast=FALSE ) {
 	
 	// ** Test release ?
 	// specDbsLam_lib_procCde_releasePacking() ;
+	$arr_cdeNeed_filerecordIds = array() ;
 	foreach( $map_cdeNeedFilerecordId_arrTranferLigFilerecordIds as $cdeNeedFilerecordId => $arrTranferLigFilerecordIds ) {
-		if( !specDbsLam_lib_procCde_releasePacking($transfer_filerecordId,$cdeNeedFilerecordId) ) {
+		if( !specDbsLam_lib_procCde_releasePacking($transfer_filerecordId,$cdeNeedFilerecordId,$transfer_row) ) {
+			continue ;
+		}
+		$arr_cdeNeed_filerecordIds[] = $cdeNeedFilerecordId ;
+	}
+	foreach( $map_cdeNeedFilerecordId_arrTranferLigFilerecordIds as $cdeNeedFilerecordId => $arrTranferLigFilerecordIds ) {
+		if( !in_array($cdeNeedFilerecordId,$arr_cdeNeed_filerecordIds) ) {
 			continue ;
 		}
 		specDbsLam_transfer_removeStock( array(
@@ -1582,14 +1589,17 @@ function specDbsLam_transfer_cdeStockUnalloc( $post_data ) {
 	
 	$ttmp = specDbsLam_transfer_getTransferLig( array('filter_transferFilerecordId'=>$p_transferFilerecordId) ) ;
 	$rows_transferLig = $ttmp['data'] ;
+	$arr_transferLig_filerecordIds = array() ;
 	foreach( $rows_transferLig as $row_transferLig ) {
-		$forward_post = array(
-			'transfer_filerecordId' => $p_transferFilerecordId,
-			'transferStep_filerecordId' => $transferstepPicking_row['transferstep_filerecord_id'],
-			'transferLig_filerecordIds' => json_encode(array($row_transferLig['transferlig_filerecord_id'])),
-		) ;
-		specDbsLam_transfer_removeCdePickingStock($forward_post,$fast=true) ;
+		$arr_transferLig_filerecordIds[] = $row_transferLig['transferlig_filerecord_id'] ;
 	}
+	$forward_post = array(
+		'transfer_filerecordId' => $p_transferFilerecordId,
+		'transferStep_filerecordId' => $transferstepPicking_row['transferstep_filerecord_id'],
+		'transferLig_filerecordIds' => json_encode($arr_transferLig_filerecordIds),
+	) ;
+	specDbsLam_transfer_removeCdePickingStock($forward_post,$fast=true) ;
+	
 	
 	// Clean resupplys ?
 	if( $transferstepResupply_row ) {

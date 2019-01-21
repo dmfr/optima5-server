@@ -1476,6 +1476,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 			_action: 'transfer_cdeStockUnalloc',
 			transfer_filerecordId: this._activeTransferRecord.get('transfer_filerecord_id')
 		} ;
+		this.showLoadmask() ;
 		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: ajaxParams,
 			success: function(response) {
@@ -1486,6 +1487,9 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 				}
 				this.optimaModule.postCrmEvent('datachange') ;
 			},
+			callback: function() {
+				this.hideLoadmask() ;
+			},
 			scope: this
 		}) ;
 	},
@@ -1495,6 +1499,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 			_action: 'transfer_cdeStockAlloc',
 			transfer_filerecordId: this._activeTransferRecord.get('transfer_filerecord_id')
 		} ;
+		this.showLoadmask() ;
 		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: ajaxParams,
 			success: function(response) {
@@ -1504,6 +1509,9 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 					return ;
 				}
 				this.optimaModule.postCrmEvent('datachange') ;
+			},
+			callback: function() {
+				this.hideLoadmask() ;
 			},
 			scope: this
 		}) ;

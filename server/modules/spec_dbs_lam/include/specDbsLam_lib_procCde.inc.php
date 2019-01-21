@@ -338,15 +338,18 @@ function specDbsLam_lib_procCde_forwardPacking( $transfer_filerecord_id, $transf
 		}
 	}
 }
-function specDbsLam_lib_procCde_releasePacking( $transfer_filerecord_id, $transfercdeneed_filerecord_id ) {
+function specDbsLam_lib_procCde_releasePacking( $transfer_filerecord_id, $transfercdeneed_filerecord_id, $_cache_transferRow=NULL ) {
 	global $_opDB ;
 	
-	
-	$formard_post = array(
-		'filter_transferFilerecordId' => $transfer_filerecord_id
-	) ;
-	$json = specDbsLam_transfer_getTransfer($formard_post) ;
-	$transfer_row = reset($json['data']) ;
+	if( is_array($_cache_transferRow) && $_cache_transferRow['transfer_filerecord_id']==$transfer_filerecord_id ) {
+		$transfer_row = $_cache_transferRow ;
+	} else {
+		$formard_post = array(
+			'filter_transferFilerecordId' => $transfer_filerecord_id
+		) ;
+		$json = specDbsLam_transfer_getTransfer($formard_post) ;
+		$transfer_row = reset($json['data']) ;
+	}
 	if( !$transfer_row || !$transfer_row['spec_cde'] ) {
 		return ;
 	}
