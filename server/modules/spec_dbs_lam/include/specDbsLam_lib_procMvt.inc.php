@@ -11,6 +11,9 @@ function specDbsLam_lib_procMvt_createNewStk($stkData_obj) {
 	if( !paracrm_lib_data_getRecord_bibleEntry( 'PROD', $stkData_obj['stk_prod'] ) ) {
 		return FALSE ;
 	}
+	$json = specDbsLam_prods_getGrid( array('entry_key'=>$stkData_obj['stk_prod']) ) ;
+	$row_prod = $json['data'][0] ;
+	$stkData_obj['soc_code'] = $row_prod['prod_soc'] ;
 	
 	if( !paracrm_lib_data_getRecord_bibleEntry( 'ADR', 'TMP_RECEP' ) ) {
 		paracrm_lib_data_insertRecord_bibleEntry('ADR','TMP_RECEP','TMP',array('field_ADR_ID'=>'TMP_RECEP')) ;
