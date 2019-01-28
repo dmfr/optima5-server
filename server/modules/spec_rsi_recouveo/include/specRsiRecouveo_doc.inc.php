@@ -484,6 +484,28 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE, $stopAsHtm
 	}
 
 
+	$elements = $doc->getElementsByTagName('qbook-img');
+	$i = $elements->length - 1;
+	while ($i > -1) {
+		$node_qbookValue = $elements->item($i);
+		$i--;
+		
+		$src_value = $node_qbookValue->attributes->getNamedItem('src_img')->value ;
+		if( ($img_code=$map_mkey_value[$src_value]) && ($tplImgEntry=paracrm_lib_data_getRecord_bibleEntry('TPL_IMG',$img_code)) ) {
+			$img_code = $map_mkey_value[$src_value] ;
+			
+			$domElement_img = $doc->createElement("img");
+			$domElement_img->setAttribute("src",$tplImgEntry['field_IMG_SRC']) ;
+			foreach( array('width','height') as $atr ) {
+				if( $node_qbookValue->attributes->getNamedItem($atr) ) {
+					$domElement_img->setAttribute($atr,$node_qbookValue->attributes->getNamedItem($atr)->value) ;
+				}
+			}
+			$node_qbookValue->parentNode->replaceChild($domElement_img,$node_qbookValue) ;
+		}
+	}
+
+
 	$elements = $doc->getElementsByTagName('qbook-table');
 	$i = $elements->length - 1;
 	while ($i > -1) {
