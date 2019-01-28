@@ -257,6 +257,7 @@ function specRsiRecouveo_lib_edi_convert_UPLFACTURES_to_mapMethodJson( $handle )
 function specRsiRecouveo_lib_edi_post($apikey_code, $transaction, $handle) {
 	$handle_in = tmpfile() ;
 	stream_copy_to_stream($handle,$handle_in) ;
+	fseek($handle_in,0) ;
 
 	// Tab normalisé de retour
 		// - count_success
