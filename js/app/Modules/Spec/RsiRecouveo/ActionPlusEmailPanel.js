@@ -407,7 +407,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusEmailPanel',{
 			formData['email_cc'] = setEmailCcArr ;
 		}
 		formData['email_subject'] = subjectPrefix + ': ' + origEmailRecord.get('subject') ;
-		formData['email_body'] = bodyHtml ;
+		formData['email_body'] = bodyHtml.replace(/(\r\n|\n|\r)/gm, "") ;
 		this._actionForm.getForm().setValues(formData) ;
 		
 		if( reuseAction=='transfer' ) {

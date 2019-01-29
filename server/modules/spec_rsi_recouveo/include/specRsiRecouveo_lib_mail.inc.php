@@ -818,9 +818,7 @@ function specRsiRecouveo_lib_mail_buildEmail( $email_record, $test_mode=FALSE ) 
 	}
 	$mail->Subject  = $subject ;
 	if( $email_record['body_html'] ) {
-		$mail->isHTML(true);
-		$mail->Body = $email_record['body_html'];
-		$mail->AltBody = strip_tags($email_record['body_html']) ;
+		$mail->msgHTML($email_record['body_html']) ;
 	} elseif( $email_record['body_text'] ) {
 		$mail->Body = $email_record['body_text'];
 	} else {
