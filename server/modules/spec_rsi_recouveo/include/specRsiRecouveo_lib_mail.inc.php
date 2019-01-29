@@ -45,6 +45,11 @@ function specRsiRecouveo_lib_mail_sync_exchange( $email_adr, $exchange_server, $
 	$request->ParentFolderIds = new \jamesiarmes\PhpEws\ArrayType\NonEmptyArrayOfBaseFolderIdsType();
 	$request->ParentFolderIds->DistinguishedFolderId = new \jamesiarmes\PhpEws\Type\DistinguishedFolderIdType();
 	$request->ParentFolderIds->DistinguishedFolderId->Id = \jamesiarmes\PhpEws\Enumeration\DistinguishedFolderIdNameType::INBOX;
+	if( $email_adr != $username ) {
+		$request->ParentFolderIds->DistinguishedFolderId->Mailbox = new StdClass;
+		$request->ParentFolderIds->DistinguishedFolderId->Mailbox->EmailAddress = $email_adr;
+	}
+
 
 	$request->Traversal = \jamesiarmes\PhpEws\Enumeration\ItemQueryTraversalType::SHALLOW;
 
