@@ -289,6 +289,8 @@ function specRsiRecouveo_cfg_getConfig($skip_filter=false) {
 			'user_fullname' => $arr['field_USER_FULLNAME'],
 			'user_email' => $arr['field_USER_EMAIL'],
 			'user_tel' => $arr['field_USER_TEL'],
+			'user_signature_is_on' => !!$arr['field_USER_HTMLSIGN_IS_ON'],
+			'user_signature_html' => $arr['field_USER_HTMLSIGN_HTML'],
 			'status_is_ext' => ($arr['field_STATUS_IS_EXT']==1)
 		) ;
 	}
@@ -449,7 +451,7 @@ function specRsiRecouveo_cfg_getConfig($skip_filter=false) {
 
 
 
-function specRsiRecouveo_util_getLogUser() {
+function specRsiRecouveo_util_getLogUser($no_short=FALSE) {
 	$user_id = strtoupper($_SESSION['login_data']['delegate_userId']) ;
 	if( !$user_id ) {
 		return NULL ;
@@ -462,7 +464,7 @@ function specRsiRecouveo_util_getLogUser() {
 		$map_user[$user['user_id']] = $user ;
 	}
 	
-	if( $map_user[$user_id] && $map_user[$user_id]['user_short'] ) {
+	if( !$no_short && $map_user[$user_id] && $map_user[$user_id]['user_short'] ) {
 		return $user_id.'@'.$map_user[$user_id]['user_short'] ;
 	}
 	return $user_id ;

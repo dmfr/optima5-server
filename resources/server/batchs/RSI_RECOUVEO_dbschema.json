@@ -1492,7 +1492,7 @@
             "bible_code": "USER",
             "entry_field_code": "LINK_SOC",
             "entry_field_is_key": "",
-            "entry_field_index": "7",
+            "entry_field_index": "9",
             "entry_field_lib": "Soci\u00e9t\u00e9s",
             "entry_field_type": "link",
             "entry_field_linktype": "treenode",
@@ -1504,7 +1504,7 @@
             "bible_code": "USER",
             "entry_field_code": "STATUS_IS_EXT",
             "entry_field_is_key": "",
-            "entry_field_index": "8",
+            "entry_field_index": "10",
             "entry_field_lib": "Is externe ?",
             "entry_field_type": "bool",
             "entry_field_linktype": "",
@@ -1534,6 +1534,30 @@
             "entry_field_linktype": "",
             "entry_field_linkbible": "",
             "entry_field_is_header": "O",
+            "entry_field_is_highlight": "O"
+        },
+        {
+            "bible_code": "USER",
+            "entry_field_code": "USER_HTMLSIGN_HTML",
+            "entry_field_is_key": "",
+            "entry_field_index": "8",
+            "entry_field_lib": "Signature HTML",
+            "entry_field_type": "string",
+            "entry_field_linktype": "",
+            "entry_field_linkbible": "",
+            "entry_field_is_header": "",
+            "entry_field_is_highlight": "O"
+        },
+        {
+            "bible_code": "USER",
+            "entry_field_code": "USER_HTMLSIGN_IS_ON",
+            "entry_field_is_key": "",
+            "entry_field_index": "7",
+            "entry_field_lib": "Signature user ?",
+            "entry_field_type": "bool",
+            "entry_field_linktype": "",
+            "entry_field_linkbible": "",
+            "entry_field_is_header": "",
             "entry_field_is_highlight": "O"
         },
         {

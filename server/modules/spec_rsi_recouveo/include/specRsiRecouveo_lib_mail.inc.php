@@ -688,6 +688,7 @@ function specRsiRecouveo_lib_mail_associateCancel( $src_emailFilerecordId ) {
 function specRsiRecouveo_lib_mail_buildEmail( $email_record, $test_mode=FALSE ) {
 	$ttmp = specRsiRecouveo_cfg_getConfig() ;
 	$cfg_email = $ttmp['data']['cfg_email'] ;
+	$cfg_user = $ttmp['data']['cfg_user'] ;
 	if( !PhpMailer::getInstance() ) {
 		return NULL ;
 	}
@@ -768,6 +769,14 @@ function specRsiRecouveo_lib_mail_buildEmail( $email_record, $test_mode=FALSE ) 
 				foreach( $cfg_email as $row ) {
 					if( $row['email_adr']==$fromAddress ) {
 						$html_signature = trim($row['email_signature']) ;
+						break ;
+					}
+				}
+				foreach( $cfg_user as $row ) {
+					if( $row['user_id']==strtolower(specRsiRecouveo_util_getLogUser($no_short=TRUE)) ) {
+						if( $row['user_signature_is_on'] ) {
+							$html_signature = trim($row['user_signature_html']) ;
+						}
 						break ;
 					}
 				}

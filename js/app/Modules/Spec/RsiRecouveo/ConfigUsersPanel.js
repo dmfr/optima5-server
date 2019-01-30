@@ -123,6 +123,17 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigUsersPanel', {
 					xtype: 'textfield',
 					name: 'user_tel',
 					fieldLabel: 'Téléphone'
+				},{
+					xtype: 'fieldset',
+					checkboxToggle: true,
+					checkboxName: 'user_signature_is_on',
+					title: 'Signature personnelle (Email/Courriers)',
+					items: [{
+						labelWidth: 120,
+						xtype: 'textarea',
+						name: 'user_signature_html',
+						fieldLabel: 'Signature(HTML)'
+					}]
 				}],{
 					xtype: 'fieldset',
 					title: 'Affectation litiges',
