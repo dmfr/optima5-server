@@ -13,6 +13,10 @@ $ftp_upload_path = getenv('FTP_PATH') ;
 if( !$ftp_upload_path ) {
 	$ftp_upload_path = '/' ;
 }
+$ftp_archive_path = getenv('FTP_ARCHIVE') ;
+if( !$ftp_archive_path ) {
+	$ftp_archive_path = sys_get_temp_dir() ;
+}
 
 /*
 ********* Lancement en ligne de commande ***********
@@ -71,8 +75,7 @@ $string .= "Connexion réussie\n" ;
 // upload via la bonne methode (switch($pattern))
 
 $ftp_login = ftp_login($ftp_connect, $ftp_upload_user, $ftp_upload_password) ;
-ftp_chdir($ftp_connect,$ftp_upload_path) ;
-$remote_filenames = ftp_nlist($ftp_connect, ".") ;
+$remote_filenames = ftp_nlist($ftp_connect, $ftp_upload_path) ;
 ftp_close($ftp_connect) ;
 sleep(1) ;
 // Connexion
@@ -154,7 +157,10 @@ $ftp_connect = ftp_connect($ftp_upload_server) ;
 $ftp_login = ftp_login($ftp_connect, $ftp_upload_user, $ftp_upload_password) ;
 ftp_chdir($ftp_connect,$ftp_upload_path) ;
 foreach ($list_of_filenames as $file){
-	ftp_rename($ftp_connect, $file, './archives/'.$current_date.'-'.$current_time.'-'.$file);
+	$local_path = $ftp_archive_path.'/'.$current_date.'-'.$current_time.'-'.basename($file) ;
+	ftp_get($ftp_connect, $local_path, $file, FTP_BINARY) ;
+	ftp_delete($ftp_connect, $file) ;
+
 }
 
 ftp_close($ftp_connect) ;
