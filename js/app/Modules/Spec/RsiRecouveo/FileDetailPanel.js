@@ -180,6 +180,23 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			name: 'acc_id',
 			allowBlank: false
 		},{
+			xtype: 'fieldcontainer',
+			itemId: 'btnSimilar',
+			fieldLabel: '&#160;',
+			layout: {
+				type: 'hbox',
+				align: 'middle'
+			},
+			items: [{
+				xtype: 'button',
+				icon: 'images/op5img/ico_blocs_small.gif',
+				text: 'Comptes associés',
+				handler: function() {
+					this.doOpenAccSimilar() ;
+				},
+				scope: this
+			}]
+		},{
 			readOnly: true,
 			xtype: 'textfield',
 			fieldLabel: 'Nom / Société',
@@ -1104,7 +1121,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 				_moduleId: 'spec_rsi_recouveo',
 				_action: 'account_open',
 				acc_id: accId,
-				filter_atr: Ext.JSON.encode(filterAtr)
+				filter_atr: Ext.JSON.encode(filterAtr),
+				_similar: 1
 			},
 			success: function(response) {
 				var ajaxResponse = Ext.decode(response.responseText) ;
@@ -1169,6 +1187,12 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		
 		
 		this.onLoadAccountBuildAdrbookTree(accountRecord) ;
+		
+		
+		//btnSimilar
+		var btnSimilar = this.down('#pHeaderForm').down('#btnSimilar'),
+			btnSimilarBtn = btnSimilar.down('button') ;
+		btnSimilar.setVisible( accountRecord.similar().getCount()>0 ) ;
 		
 		
 		this.down('#tpFileActions').removeAll() ;
@@ -2752,5 +2776,26 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			},
 			scope: this
 		}) ;
+	},
+	
+	doOpenAccSimilar: function(confirmed=false) {
+		if( !this._accountRecord || this._accountRecord.similar().getCount()==0 ) {
+			return ;
+		}
+		if( !confirmed ) {
+			Ext.MessageBox.confirm('Comptes associés','Ouvrir les comptes associés ?<br>(Ouverture dans nouveaux onglets)',function(btn) {
+				if( btn=='yes' ) {
+					this.doOpenAccSimilar(true) ;
+				}
+			},this) ;
+			return ;
+		}
+		this._accountRecord.similar().each( function(altAccRecord) {
+			var accId = altAccRecord.get('acc_id') ;
+			this.optimaModule.postCrmEvent('openaccount',{
+				accId:accId,
+				showClosed: false
+			}) ;
+		},this) ;
 	}
 }) ; 

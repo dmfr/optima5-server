@@ -510,6 +510,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 			},
 			
 			{
+				model: 'RsiRecouveoAccountTplModel',
+				name: 'similar',
+				associationKey: 'similar'
+			},{
 				model: 'RsiRecouveoFileModel'+'-'+cmpId,
 				name: 'files',
 				associationKey: 'files'

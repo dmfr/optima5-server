@@ -48,12 +48,34 @@ function specRsiRecouveo_account_open( $post_data ) {
 		'acc_txt' => $arr['field_ACC_NAME'],
 		'acc_siret' => $arr['field_ACC_SIRET'],
 		'adr_postal' => $arr['field_ADR_POSTAL'],
-		'link_user' => $arr['field_LINK_USER_LOCAL']
+		'link_user' => $arr['field_LINK_USER_LOCAL'],
+		
+		'similar' => array()
 	);
 	foreach( $cfg_atr as $atr_record ) {
 		if( $atr_record['atr_type'] == 'account' ) {
 			$mkey = $atr_record['atr_field'] ;
 			$account_record[$mkey] = $arr['field_'.$mkey] ;
+		}
+	}
+	
+	if( $post_data['_similar'] ) {
+		$query = "SELECT la.* FROM view_bible_LIB_ACCOUNT_entry la WHERE la.entry_key LIKE '%\-{$account_record['acc_ref']}' AND la.entry_key<>'{$p_accId}'" ;
+		$result = $_opDB->query($query) ;
+		while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+			$account_record['similar'][] = array(
+				'soc_id' => $arr['field_SOC_ID'],
+				'soc_txt' => $arr['field_SOC_NAME'],
+				'acc_id' => $arr['field_ACC_ID'],
+				'acc_ref' => (
+					strpos($arr['field_ACC_ID'],$arr['field_SOC_ID'].'-')===0 
+					?
+					substr($arr['field_ACC_ID'],strlen($arr['field_SOC_ID'].'-'))
+					:
+					$arr['field_ACC_ID']
+				),
+				'acc_txt' => $arr['field_ACC_NAME']
+			);
 		}
 	}
 	
