@@ -622,7 +622,8 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 			break ;
 			
 		case 'BUMP' :
-			if( trim($txt=$post_form['txt']) ) {
+			if( trim($link_txt=$post_form['link_txt']) || trim($txt=$post_form['txt']) ) {
+				$arr_ins['field_LINK_TXT'] = $link_txt ;
 				$arr_ins['field_TXT'] = $txt ;
 			} else {
 				$_do_delete_currentAction = TRUE ;

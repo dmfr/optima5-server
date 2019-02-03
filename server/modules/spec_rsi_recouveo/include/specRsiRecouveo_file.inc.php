@@ -1343,11 +1343,59 @@ function specRsiRecouveo_file_lib_updateStatus( $acc_id ) {
 	$account_record = $json['data'] ;
 	
 	foreach( $account_record['files'] as $accFile_record ) {
-		$arr_update = array() ;
-		$arr_update['field_STATUS_CLOSED_VOID'] = !(count($accFile_record['records'])>0) ;
-		$arr_update['field_STATUS_CLOSED_END'] = ((count($accFile_record['records'])>0) && ($accFile_record['inv_nb_open_alltypes']==0)) ;
-		paracrm_lib_data_updateRecord_file( 'FILE', $arr_update, $accFile_record['file_filerecord_id']);
+		$needUpdateVoid = FALSE ;
+		$nextStatusVoid = !(count($accFile_record['records'])>0) ;
+		if( $nextStatusVoid && !$accFile_record['status_closed_void'] ) {
+			$needUpdateVoid = TRUE ;
+		}
+		if( !$nextStatusVoid && $accFile_record['status_closed_void'] ) {
+			$needUpdateVoid = TRUE ;
+		}
+		if( $needUpdateVoid ) {
+			$arr_update = array() ;
+			$arr_update['field_STATUS_CLOSED_VOID'] = !(count($accFile_record['records'])>0) ;
+			paracrm_lib_data_updateRecord_file( 'FILE', $arr_update, $accFile_record['file_filerecord_id']);
+		}
+		
+		$nextStatusEnd = ((count($accFile_record['records'])>0) && ($accFile_record['inv_nb_open_alltypes']==0)) ;
+		if( $nextStatusEnd && !$accFile_record['status_closed_end'] ) {
+			specRsiRecouveo_file_lib_updateStatus_doClose($accFile_record) ;
+		}
+		if( !$nextStatusEnd && $accFile_record['status_closed_end'] ) {
+			specRsiRecouveo_file_lib_updateStatus_doReopen($accFile_record) ;
+		}
 	}
+}
+function specRsiRecouveo_file_lib_updateStatus_doClose($accFile_record) {
+	$arr_update = array() ;
+	$arr_update['field_STATUS_CLOSED_END'] = 1 ;
+	paracrm_lib_data_updateRecord_file( 'FILE', $arr_update, $accFile_record['file_filerecord_id']);
+	
+	$forward_post = array(
+		'file_filerecord_id' => $accFile_record['file_filerecord_id'],
+		'data' => json_encode(array(
+			'link_status' => $accFile_record['status'],
+			'link_action' => 'BUMP',
+			'link_txt' => 'Mise en standby',
+			'next_action' => 'BUMP'
+		))
+	) ;
+	$json = specRsiRecouveo_action_doFileAction($forward_post) ;
+}
+function specRsiRecouveo_file_lib_updateStatus_doReopen($accFile_record) {
+	$arr_update = array() ;
+	$arr_update['field_STATUS_CLOSED_END'] = 0 ;
+	paracrm_lib_data_updateRecord_file( 'FILE', $arr_update, $accFile_record['file_filerecord_id']);
+	
+	$forward_post = array(
+		'file_filerecord_id' => $accFile_record['file_filerecord_id'],
+		'data' => json_encode(array(
+			'link_status' => $accFile_record['status'],
+			'link_action' => 'BUMP',
+			'next_action' => 'BUMP'
+		))
+	) ;
+	$json = specRsiRecouveo_action_doFileAction($forward_post) ;
 }
 
 
