@@ -118,6 +118,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MainPanel',{
 				return me.openInboxPopup() ;
 			case 'form_email' :
 				return me.openEmailInbox() ;
+			case 'help_wiki' :
+				return me.extOpenHelpWiki() ;
 			default :
 				return ;
 		}
@@ -433,6 +435,11 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MainPanel',{
 					}
 				}
 		},Optima5.Modules.Spec.RsiRecouveo.InboxPanel) ;
+	},
+	
+	
+	extOpenHelpWiki: function() {
+		window.open('https://doc.recouveo-si.com');
 	},
 	
 	
