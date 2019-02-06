@@ -39,6 +39,16 @@ Ext.define('RsiRecouveoCfgOptModel',{
 	}]
 });
 
+Ext.define('RsiRecouveoCfgAtrLibModel',{
+	extend: 'Ext.data.Model',
+	idProperty: 'id',
+	fields: [
+		{name: 'node', type:'string'},
+		{name: 'id', type:'string'},
+		{name: 'text', type:'string'},
+		{name: 'next', type:'string'}
+	]
+});
 Ext.define('RsiRecouveoCfgAtrModel',{
 	extend: 'Ext.data.Model',
 	idProperty: 'atr_id',
@@ -51,7 +61,12 @@ Ext.define('RsiRecouveoCfgAtrModel',{
 		{name: 'is_globalfilter', type:'boolean'},
 		{name: 'is_editable', type:'boolean'},
 		{name: 'filter_values', type:'auto'}
-	]
+	],
+	hasMany: [{
+		model: 'RsiRecouveoCfgAtrLibModel',
+		name: 'records',
+		associationKey: 'records'
+	}]
 });
 
 Ext.define('RsiRecouveoCfgStatusModel',{
@@ -632,6 +647,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 	},
 	getAtrHeader: function(atrId) {
 		return this.cfgAtrStore.getById(atrId).getData() ;
+	},
+	getAtrData: function(atrId) {
+		return this.cfgAtrStore.getById(atrId) ? Ext.pluck(this.cfgAtrStore.getById(atrId).records().getRange(), 'data') : null ;
 	},
 	
 	getAllOptIds: function() {

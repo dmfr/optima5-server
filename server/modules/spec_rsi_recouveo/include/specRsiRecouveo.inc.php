@@ -363,6 +363,30 @@ function specRsiRecouveo_cfg_getConfig($skip_filter=false) {
 					'is_globalfilter' => $metafield['is_globalfilter'],
 					'is_editable' => $metafield['is_editable']
 				);
+				
+				$bible_code = 'ATR_'.$metafield['metafield_code'] ;
+				$json_define_bible = paracrm_data_getBibleCfg(array('bible_code'=>$bible_code)) ;
+				if( $json_define_bible['success'] ) {
+					$records = array() ;
+					$query_atrs = "SELECT * FROM view_bible_{$bible_code}_tree ORDER BY treenode_key" ;
+					$result_atrs = $_opDB->query($query_atrs) ;
+					while( ($arr = $_opDB->fetch_assoc($result_atrs)) != FALSE ) {
+						$parent = $arr['treenode_parent_key'] ;
+						$node = $arr['treenode_key'] ;
+						$id = $arr['treenode_key'] ;
+						$lib = array() ;
+						foreach( $json_define_bible['data']['tree_fields'] as $tree_field ) {
+							if( strpos($tree_field['tree_field_code'],'field_')===0 && $tree_field['tree_field_is_header'] ) {
+								$lib[] = $arr[$tree_field['tree_field_code']] ;
+							}
+						}
+						$next = $arr['field_LINK_NEXT'] ;
+						$records[] = array('node'=>'', 'id'=>$id, 'parent'=>$parent, 'text'=>implode(' - ',$lib), 'next'=>$next) ;
+					}
+				}
+				if( $records ) {
+					$TAB_atr[$atr_id]['records'] = $records ;
+				}
 			}
 			$TAB_soc[$soc_id]['atr_ids'][] = $atr_id ;
 		}
