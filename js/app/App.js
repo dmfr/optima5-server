@@ -38,7 +38,7 @@ Ext.define('OptimaDesktopCfgModel',{
 		{name: 'dev_mode',    type:'boolean'},
 		{name: 'auth_is_admin',    type:'boolean'},
 		{name: 'auth_is_root',    type:'boolean'},
-		{name: 'login_str',   type: 'boolean'},
+		{name: 'login_str',   type: 'string'},
 		{name: 'login_userId',   type: 'string'},
 		{name: 'login_userName',   type: 'string'},
 		{name: 'login_domainName', type: 'string'},
