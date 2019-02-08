@@ -143,7 +143,7 @@ function specRsiRecouveo_cfg_getAuth( $post_data ) {
 }
 
 
-function specRsiRecouveo_cfg_getConfig($skip_filter=false) {
+function specRsiRecouveo_cfg_getConfig($post_data=NULL, $skip_filter=false) {
 	if( isset($GLOBALS['cache_specRsiRecouveo_cfg']['getConfig']) ) {
 		return array(
 			'success'=>true,

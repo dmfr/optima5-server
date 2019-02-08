@@ -401,6 +401,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.CfgParamTree',{
 	},
 	
 	fillValues: function( values ) {
+		if( !values ) {
+			values = [] ;
+		}
 		var allowed = false ;
 		if( this.cfgParam_id && this.cfgParam_id.indexOf('ATR:')===0 ) {
 			var atrId = this.cfgParam_id.substr(4),
