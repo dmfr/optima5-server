@@ -735,6 +735,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 		
 		me.authSoc = [] ;
 		me.authMapAtr = {} ;
+		me.authProfile = null ;
 		me.authIsExt = null ;
 		
 		// Query Bible
@@ -753,6 +754,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 				else {
 					me.authSoc = ajaxData.authSoc ;
 					me.authMapAtr = ajaxData.authMapAtr ;
+					me.authProfile = ajaxData.authProfile ;
 					me.authIsExt = ajaxData.authIsExt ;
 				}
 				
@@ -787,6 +789,14 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 			return me.authMapAtr[atrId] ;
 		}
 		return null ;
+	},
+	authHelperGetProfile: function() {
+		var me = this ;
+			
+		if( me.optimaModule.getSdomainRecord().get('auth_has_all') ) {
+			return null ;
+		}
+		return me.authProfile ;
 	},
 	authHelperIsExt: function() {
 		var me = this ;

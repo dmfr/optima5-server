@@ -131,10 +131,13 @@ function specRsiRecouveo_cfg_getAuth( $post_data ) {
 	
 	$authIsExt = ($arr['field_STATUS_IS_EXT']==1 ? $arr['field_USER_ID'] : null) ;
 	
+	$authProfile = $arr['treenode_key'] ;
+	
 	return array(
 		'success' => true,
 		'authSoc' => $authSoc,
 		'authMapAtr' => $authMapAtr,
+		'authProfile' => $authProfile,
 		'authIsExt' => $authIsExt
 	) ;
 }
@@ -470,6 +473,25 @@ function specRsiRecouveo_cfg_getConfig($skip_filter=false) {
 	
 	
 	return array('success'=>true, 'data'=>$GLOBALS['cache_specRsiRecouveo_cfg']['getConfig'])  ;
+}
+
+function specRsiRecouveo_cfg_setPasswd($post_data) {
+	global $_opDB ;
+	
+	if( $_SESSION['login_data']['userstr'] != $post_data['login_str'] ) {
+		return array('success'=>false) ;
+	}
+	
+	$user_id = strtoupper($_SESSION['login_data']['delegate_userId']) ;
+	if( !$user_id || ($user_id!=specRsiRecouveo_util_getLogUser(true)) ) {
+		return array('success'=>false) ;
+	}
+	
+	if( !specRsiRecouveo_config_lib_setUserPasswd($user_id,$post_data['old_password'],$post_data['new_password']) ) {
+		return array('success'=>false) ;
+	}
+
+	return array('success'=>true) ;
 }
 
 

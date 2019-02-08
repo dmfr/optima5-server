@@ -19,7 +19,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MainPanel',{
 		'Optima5.Modules.Spec.RsiRecouveo.EmailInboxPanel',
 		
 		'Optima5.Modules.Spec.RsiRecouveo.UploadForm',
-		'Optima5.Modules.Spec.RsiRecouveo.InboxPanel'
+		'Optima5.Modules.Spec.RsiRecouveo.InboxPanel',
+		'Optima5.Modules.Spec.RsiRecouveo.ProfilePasswdPanel'
 	],
 	
 	initComponent: function() {
@@ -120,6 +121,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MainPanel',{
 				return me.openEmailInbox() ;
 			case 'help_wiki' :
 				return me.extOpenHelpWiki() ;
+			case 'passwd' :
+				return me.openPasswdPopup() ;
 			default :
 				return ;
 		}
@@ -435,6 +438,50 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MainPanel',{
 					}
 				}
 		},Optima5.Modules.Spec.RsiRecouveo.InboxPanel) ;
+	},
+	openPasswdPopup: function() {
+		var nbOpen = this.items.getCount() ;
+		if( nbOpen > 1 ) {
+			Ext.Msg.alert('Profil', 'Fermer les onglets en cours') ;
+			return false ;
+		}
+		
+		
+		this.getEl().mask() ;
+		// Open panel
+		var createPanel = Ext.create('Optima5.Modules.Spec.RsiRecouveo.ProfilePasswdPanel',{
+			optimaModule: this.optimaModule,
+			width:400, // dummy initial size, for border layout to work
+			height:null, // ...
+			floating: true,
+			draggable: true,
+			resizable: true,
+			renderTo: this.getEl(),
+			tools: [{
+				type: 'close',
+				handler: function(e, t, p) {
+					p.ownerCt.destroy();
+				},
+				scope: this
+			}]
+		});
+		createPanel.on('saved', function(p) {
+			this.doTreeLoad() ;
+		},this,{single:true}) ;
+		createPanel.on('destroy',function(p) {
+			this.getEl().unmask() ;
+			this.floatingPanel = null ;
+		},this,{single:true}) ;
+		createPanel.on('passwordchange',function(p) {
+			p.destroy() ;
+			this.items.each(function(tab){
+				this.allowClose = true ;
+				tab.close() ;
+			},this) ;
+		},this) ;
+		
+		createPanel.show();
+		createPanel.getEl().alignTo(this.getEl(), 'c-c?');
 	},
 	
 	

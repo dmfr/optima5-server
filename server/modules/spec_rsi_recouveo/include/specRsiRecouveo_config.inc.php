@@ -116,6 +116,22 @@ function specRsiRecouveo_config_setUser( $post_data ) {
 	
 	return array('success'=>true) ;
 }
+function specRsiRecouveo_config_lib_setUserPasswd( $user_id, $user_pw_old, $user_pw_new ) {
+	global $_opDB ;
+	$query = "SELECT field_USER_PW FROM view_bible_USER_entry WHERE entry_key='{$user_id}'" ;
+	$result = $_opDB->query($query) ;
+	if( $_opDB->num_rows($result) != 1 ) {
+		return FALSE ;
+	}
+	if( $_opDB->query_uniqueValue($query) != $user_pw_old ) {
+		return FALSE ;
+	}
+	
+	$arr_update = array('field_USER_PW'=>$user_pw_new) ;
+	$arr_cond = array('entry_key'=>$user_id) ;
+	$_opDB->update('view_bible_USER_entry',$arr_update,$arr_cond) ;
+	return TRUE ;
+}
 
 
 

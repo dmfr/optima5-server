@@ -113,6 +113,9 @@
 .op5-spec-rsiveo-mmenu-help {
 	background-image: url("../images/modules/rsiveo-help-64.png") !important;
 }
+.op5-spec-rsiveo-mmenu-passwd {
+	background-image: url("../images/modules/rsiveo-passwd-64.png") !important;
+}
 
 
 .op5-spec-rsiveo-alm .x-grid-cell {
