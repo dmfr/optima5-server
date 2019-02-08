@@ -353,6 +353,12 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MainPanel',{
 		this.focusPanel(pnl) ;
 	},
 	openDashboard: function() {
+		var desktopCfgIsDev = this.optimaModule.getApp().desktopGetCfgIsDev() ;
+		if( !desktopCfgIsDev ) {
+			Ext.Msg.alert('Development', 'Not available in prod') ;
+			return false ;
+		}
+		
 		// recherche d'une fenetre deja ouverte
 		var doOpen = true ;
 		this.eachPanel(function(pnl){
