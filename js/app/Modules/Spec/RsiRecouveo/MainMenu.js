@@ -99,6 +99,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MainMenu',{
 			}
 			switch( authProfile ) {
 				case 'CR' :
+				default :
 					menuData = [
 						{type_header:true},
 						{type_separator:true, separator_label: 'Opérations'},

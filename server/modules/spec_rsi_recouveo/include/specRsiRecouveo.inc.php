@@ -135,6 +135,7 @@ function specRsiRecouveo_cfg_getAuth( $post_data ) {
 	
 	return array(
 		'success' => true,
+		'authId' => $arr['field_USER_ID'],
 		'authSoc' => $authSoc,
 		'authMapAtr' => $authMapAtr,
 		'authProfile' => $authProfile,

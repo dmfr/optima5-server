@@ -124,6 +124,24 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigUsersPanel', {
 					name: 'user_tel',
 					fieldLabel: 'Téléphone'
 				},{
+					xtype: 'combobox',
+					name: 'user_class',
+					fieldLabel: 'Profil',
+					forceSelection: true,
+					editable: false,
+					store: {
+						fields: ['id','txt'],
+						data : [
+							{id:'CR', txt:'Chargé de recouvrement'},
+							{id:'CR_AFF', txt:'CR (avec affectation)'},
+							{id:'EXT', txt:'Externe pour traitement ltg'},
+							{id:'SUPER', txt:'Superviseur'}
+						]
+					},
+					queryMode: 'local',
+					displayField: 'txt',
+					valueField: 'id'
+				},{
 					xtype: 'fieldset',
 					checkboxToggle: true,
 					checkboxName: 'user_signature_is_on',
@@ -138,6 +156,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigUsersPanel', {
 					xtype: 'fieldset',
 					title: 'Affectation litiges',
 					items: [{
+						readOnly: true,
 						xtype: 'checkboxfield',
 						boxLabel: 'Utilisateur externe pour affectation',
 						name: 'status_is_ext'
@@ -184,6 +203,16 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigUsersPanel', {
 			}]
 		}) ;
 		this.callParent() ;
+		this.down('#cntEast').getForm().getFields().each(function(field) {
+			field.on('change',function(){
+				this.calcLayout() ;
+			},this) ;
+		},this) ;
+	},
+	
+	calcLayout: function() {
+		var form = this.down('#cntEast').getForm() ;
+		form.findField('status_is_ext').setValue( form.findField('user_class').getValue()=='EXT' ) ;
 	},
 	
 	doReload: function() {

@@ -407,6 +407,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 	
 	applyAuth: function() {
 		var helperCache = Optima5.Modules.Spec.RsiRecouveo.HelperCache,
+			authId = helperCache.authHelperGetId(),
+			authProfile = helperCache.authHelperGetProfile(),
 			authSoc = [],
 			authMapAtr = {},
 			authIsExt = null ;
@@ -434,6 +436,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				}
 			}
 			if( cfgParam_id=='USER' ) {
+				if( authProfile=='CR_AFF' ) {
+					cfgParamBtn.setValue(authId,silent) ;
+				}
 				if( authIsExt != null ) {
 					cfgParamBtn.setValue(authIsExt,silent) ;
 					//HACK ?
@@ -461,6 +466,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 	},
 	onUserSet: function() {
 		var tbUser = this.down('toolbar').down('#tbUser'),
+			userProfile = Optima5.Modules.Spec.RsiRecouveo.HelperCache.authHelperGetProfile(),
 			userExtSet = ( !Ext.isEmpty( tbUser.getLeafNodesKey() ) && Optima5.Modules.Spec.RsiRecouveo.HelperCache.authHelperIsExt() ) ;
 		this.down('toolbar').down('#btnSearchIcon').setVisible( !userExtSet );
 		this.down('toolbar').down('#btnSearch').setVisible( !userExtSet );

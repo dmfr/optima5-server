@@ -61,6 +61,7 @@ function specRsiRecouveo_config_getUsers($post_data) {
 			'user_tel' => $arr['field_USER_TEL'],
 			'user_signature_is_on' => !!$arr['field_USER_HTMLSIGN_IS_ON'],
 			'user_signature_html' => $arr['field_USER_HTMLSIGN_HTML'],
+			'user_class' => $arr['treenode_key'],
 			'status_is_ext' => ($arr['field_STATUS_IS_EXT']==1)
 		);
 		$user_rec['link_SOC'] = json_decode($arr['field_LINK_SOC'],true) ;
@@ -108,8 +109,14 @@ function specRsiRecouveo_config_setUser( $post_data ) {
 	}
 	
 	$treenode_key = 'CR' ;
-	if( $user_record['status_is_ext'] ) {
-		$treenode_key = 'EXT' ;
+	if( $user_record['user_class'] ) {
+		$treenode_key = $user_record['user_class'] ;
+	}
+	
+	if( !paracrm_lib_data_getRecord_bibleTreenode('USER',$treenode_key) ) {
+		$arr_inst = array() ;
+		$arr_inst['field_USER_CLASS'] = $treenode_key ;
+		paracrm_lib_data_insertRecord_bibleTreenode( 'USER', $treenode_key, '&', $arr_inst ) ;
 	}
 	
 	paracrm_lib_data_insertRecord_bibleEntry( 'USER', $user_record['user_id'], $treenode_key, $arr_ins ) ;

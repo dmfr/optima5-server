@@ -733,6 +733,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 	authHelperInit: function() {
 		var me = this ;
 		
+		me.authId = null ;
 		me.authSoc = [] ;
 		me.authMapAtr = {} ;
 		me.authProfile = null ;
@@ -752,6 +753,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 					Ext.Msg.alert('Failed', 'Unknown error');
 				}
 				else {
+					me.authId = ajaxData.authId ;
 					me.authSoc = ajaxData.authSoc ;
 					me.authMapAtr = ajaxData.authMapAtr ;
 					me.authProfile = ajaxData.authProfile ;
@@ -789,6 +791,14 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 			return me.authMapAtr[atrId] ;
 		}
 		return null ;
+	},
+	authHelperGetId: function() {
+		var me = this ;
+			
+		if( me.optimaModule.getSdomainRecord().get('auth_has_all') ) {
+			return null ;
+		}
+		return me.authId ;
 	},
 	authHelperGetProfile: function() {
 		var me = this ;
