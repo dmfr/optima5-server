@@ -382,6 +382,9 @@ function specRsiRecouveo_account_lib_checkAdrStatus( $acc_id ) {
 	
 	$ttmp = specRsiRecouveo_account_open(array('acc_id'=>$acc_id)) ;
 	$account_record = $ttmp['data'] ;
+	if( !$account_record ) {
+		return ;
+	}
 	
 	$map_adrType_ids = array() ;
 	foreach($account_record['adrbook'] as $accAdrbook_record ) {

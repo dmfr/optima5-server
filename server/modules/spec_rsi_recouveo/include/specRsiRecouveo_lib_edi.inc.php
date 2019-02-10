@@ -420,7 +420,8 @@ function specRsiRecouveo_lib_edi_post_adrbook($json_rows){
 	// adrbookenty filerecord_parent_id = adrbook filerecord_id
 	$map_json2adrbookentry = array(
 		'AdrType' => 'field_ADR_TYPE',
-		'Adr' => 'field_ADR_TXT'
+		'Adr' => 'field_ADR_TXT',
+		'AdrConfirm' => 'field_STATUS_IS_CONFIRM'
 	);
 	$count_success = 0;
 	$ret_errors = array() ;
