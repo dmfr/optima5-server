@@ -469,7 +469,7 @@ function specRsiRecouveo_lib_mail_doSendRaw($email_bin)
 			$smtp->connect($url, $port);
 			$smtp->hello($hello_msg);
 			$smtp->authenticate($smtp_username, $smtp_pass);
-			print_r($smtp);
+			//print_r($smtp);
 		}
 		if ($hostinfo[2] == 'ssl') {
 			$new_url = $hostinfo[2] . '://' . $url;
@@ -773,7 +773,7 @@ function specRsiRecouveo_lib_mail_buildEmail( $email_record, $test_mode=FALSE ) 
 					}
 				}
 				foreach( $cfg_user as $row ) {
-					if( $row['user_id']==strtolower(specRsiRecouveo_util_getLogUser($no_short=TRUE)) ) {
+					if( strtolower($row['user_id'])==strtolower(specRsiRecouveo_util_getLogUser($no_short=TRUE)) ) {
 						if( $row['user_signature_is_on'] ) {
 							$html_signature = trim($row['user_signature_html']) ;
 						}
