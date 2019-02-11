@@ -195,7 +195,7 @@ function specRsiRecouveo_lib_edi_convert_UPLFACTURES_to_mapMethodJson( $handle )
 				$head = "NumFact" ;
 				break ;
 			case "Libellé":
-				$head = "Lib" ;
+				$head = "LibFact" ;
 				break ;
 			case "Montant HT":
 				$head = "MontantHT" ;

@@ -417,11 +417,17 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE, $stopAsHtm
 	}
 	
 	// ************ DONNEES Tableau ***********************
+	$usort = function($arr1,$arr2)
+	{
+		return ($arr1['date_record'] < $arr2['date_record']) ;
+	};
+	usort($accFile_record['records'],$usort) ;
+	
 	$map_columns = array(
-		'record_ref' => 'Réf. pièce',
+		'record_ref' => 'Réf.Pièce',
 		'record_txt' => 'Libellé',
-		'date_record' => 'Date',
-		'type_temprec' => 'Journal',
+		'date_record' => 'Date.Pièce',
+		'date_value' => 'Date.Echéa.',
 		'amount_tot' => 'Montant'
 	);
 	if( $cfg_soc && $cfg_soc['soc_xe_currency'] ) {
@@ -431,7 +437,7 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE, $stopAsHtm
 	foreach( $accFile_record['records'] as $record_row ) {
 		$row_table = array(
 			'record_ref' => $record_row['record_ref'],
-			'record_txt' => $record_row['record_txt'],
+			'record_txt' => trim(substr($record_row['record_txt'],0,35)),
 			'type_temprec' => $record_row['type_temprec'],
 			'txt' => $record_row['txt'],
 			'date_load' => date('d/m/Y',strtotime($record_row['date_load'])),
