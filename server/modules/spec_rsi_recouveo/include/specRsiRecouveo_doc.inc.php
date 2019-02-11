@@ -417,11 +417,17 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE, $stopAsHtm
 	}
 	
 	// ************ DONNEES Tableau ***********************
+	$records = array();
+	foreach( $account_record['files'] as $accountFile_record ) {
+		foreach( $accountFile_record['records'] as $accountFileRecord_record ) {
+			$records[] = $accountFileRecord_record ;
+		}
+	}
 	$usort = function($arr1,$arr2)
 	{
 		return ($arr1['date_record'] < $arr2['date_record']) ;
 	};
-	usort($accFile_record['records'],$usort) ;
+	usort($records,$usort) ;
 	
 	$map_columns = array(
 		'record_ref' => 'Réf.Pièce',
@@ -434,7 +440,7 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE, $stopAsHtm
 		$map_columns['xe_currency_amount'] = 'MntDevise' ;
 	}
 	$table_data = $table_datafoot = array() ;
-	foreach( $accFile_record['records'] as $record_row ) {
+	foreach( $records as $record_row ) {
 		if( $record_row['letter_is_confirm'] ) {
 			continue ;
 		}
