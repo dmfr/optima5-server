@@ -1377,7 +1377,6 @@ function specRsiRecouveo_file_lib_updateStatus_doClose($accFile_record) {
 		'data' => json_encode(array(
 			'link_status' => $accFile_record['status'],
 			'link_action' => 'BUMP',
-			'link_txt' => 'Mise en standby',
 			'next_action' => 'BUMP'
 		))
 	) ;
