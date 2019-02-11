@@ -1963,6 +1963,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		});
 		
 		recordsTree.down('toolbar').down('#tbNew').setDisabled( fileRec.statusIsSchedNone() )  ;
+		this.down('toolbar').down('#tbNew').setDisabled( fileRec.statusIsSchedNone() )  ;
 	},
 	getActiveFileId: function() {
 		var recordsTree = this.down('#pRecordsTree'),
