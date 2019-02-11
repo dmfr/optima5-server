@@ -342,6 +342,7 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 			'inv_nb_open_alltypes' => 0,
 			'inv_nb_open' => 0,
 			'inv_nb_total' => 0,
+			'inv_amount_due_over' => 0,
 			'inv_amount_due' => 0,
 			'inv_amount_total' => 0,
 			'inv_balage' => null
@@ -396,6 +397,9 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 			}
 			$inv_header['inv_nb_open_alltypes']++ ;
 			$inv_header['inv_amount_due'] += $record_row['amount'] ;
+			if( !$record_row['is_pending'] ) {
+				$inv_header['inv_amount_due_over'] += $record_row['amount'] ;
+			}
 		}
 		
 		$inv_balage = array() ;

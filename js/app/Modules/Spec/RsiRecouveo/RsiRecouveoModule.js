@@ -43,6 +43,7 @@ Ext.define('RsiRecouveoFileTplModel',{ // TO: RsiRecouveoFileModel
 		{name: 'inv_nb_open', type: 'number'},
 		{name: 'inv_nb_total', type: 'number'},
 		{name: 'inv_amount_due', type: 'number'},
+		{name: 'inv_amount_due_over', type: 'number'},
 		{name: 'inv_amount_open', type: 'number'},
 		{name: 'inv_amount_total', type: 'number'},
 		{name: 'inv_balage', type: 'auto'},

@@ -868,12 +868,12 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 										'<td class="op5-spec-dbspeople-realvalidhdr-tdvalue">{inv_nb_open}</td>',
 									'</tr>',
 									'<tr>',
-										'<td class="op5-spec-dbspeople-realvalidhdr-tdlabel">Total encours :</td>',
-										'<td class="op5-spec-dbspeople-realvalidhdr-tdvalue">{inv_amount_open}&#160;€</td>',
+										'<td class="op5-spec-dbspeople-realvalidhdr-tdlabel">Encours total:</td>',
+										'<td class="op5-spec-dbspeople-realvalidhdr-tdvalue">{inv_amount_due}&#160;€</td>',
 									'</tr>',
 									'<tr>',
-										'<td class="op5-spec-dbspeople-realvalidhdr-tdlabel">Reste dû :</td>',
-										'<td class="op5-spec-dbspeople-realvalidhdr-tdvalue">{inv_amount_due}&#160;€</td>',
+										'<td class="op5-spec-dbspeople-realvalidhdr-tdlabel">Encours overdue :</td>',
+										'<td class="op5-spec-dbspeople-realvalidhdr-tdvalue">{inv_amount_due_over}&#160;€</td>',
 									'</tr>',
 									'</table>',
 								'</div>',
@@ -1207,16 +1207,18 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		},this) ;
 		
 		
-		var inv_nb_open = 0, inv_amount_open = 0, inv_amount_due = 0 ;
+		var inv_nb_open = 0, inv_amount_open = 0, inv_amount_due = 0, inv_amount_due_over = 0 ;
 		accountRecord.files().each( function(fileRecord) {
 			inv_nb_open += fileRecord.get('inv_nb_open') ;
 			inv_amount_open += fileRecord.get('inv_amount_open') ;
 			inv_amount_due += fileRecord.get('inv_amount_due') ;
+			inv_amount_due_over += fileRecord.get('inv_amount_due_over') ;
 		},this) ;
 		this.down('#pRecordsHeader').setData({
 			inv_nb_open: inv_nb_open,
 			inv_amount_open: Ext.util.Format.number(inv_amount_open,'0,000.00'),
-			inv_amount_due: Ext.util.Format.number(inv_amount_due,'0,000.00')
+			inv_amount_due: Ext.util.Format.number(inv_amount_due,'0,000.00'),
+			inv_amount_due_over: Ext.util.Format.number(inv_amount_due_over,'0,000.00')
 		});
 		this.down('#pRecordsHeader').setVisible(true) ;
 		
