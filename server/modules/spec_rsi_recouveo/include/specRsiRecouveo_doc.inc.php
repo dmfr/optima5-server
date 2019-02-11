@@ -435,6 +435,9 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE, $stopAsHtm
 	}
 	$table_data = $table_datafoot = array() ;
 	foreach( $accFile_record['records'] as $record_row ) {
+		if( $record_row['letter_is_confirm'] ) {
+			continue ;
+		}
 		$row_table = array(
 			'record_ref' => $record_row['record_ref'],
 			'record_txt' => trim(substr($record_row['record_txt'],0,35)),
