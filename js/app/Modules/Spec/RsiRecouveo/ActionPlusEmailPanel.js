@@ -257,10 +257,22 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusEmailPanel',{
 							xtype: 'box',
 							width: 16
 						},{
-							xtype: 'checkboxfield',
-							boxLabel: 'Ajouter entête',
-							value: true,
-							name: 'email_outmodel_preprocess_banner'
+							xtype: 'container',
+							layout: 'anchor',
+							defaults: {
+								anchor: '100%'
+							},
+							items: [{
+								xtype: 'checkboxfield',
+								boxLabel: 'Ajouter entête',
+								value: true,
+								name: 'email_outmodel_preprocess_banner'
+							},{
+								xtype: 'checkboxfield',
+								boxLabel: 'Joindre extrait de compte',
+								value: false,
+								name: 'email_outmodel_preprocess_attachrecords'
+							}]
 						}]
 					}]
 				},{
@@ -483,6 +495,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusEmailPanel',{
 			emailRecordData['outmodel_preprocess_banner'] = formValues.email_outmodel_preprocess_banner ;
 			emailRecordData['outmodel_preprocess_signature'] = true ;
 			emailRecordData['outmodel_preprocess_subject'] = true ;
+			emailRecordData['outmodel_preprocess_attachrecords'] = formValues.email_outmodel_preprocess_attachrecords ;
 			emailRecordData['outmodel_file_filerecord_id'] = formValues.file_filerecord_id ;
 			
 			// Attachments

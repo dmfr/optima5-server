@@ -834,6 +834,37 @@ function specRsiRecouveo_lib_mail_buildEmail( $email_record, $test_mode=FALSE ) 
 		return NULL ;
 	}
 	
+	if( $email_record['outmodel_preprocess_attachrecords'] && $email_record['outmodel_file_filerecord_id'] ) {
+		// HACK: fake template to get records_div
+		$htmls = specRsiRecouveo_doc_getMailOut(array(
+			'tpl_id' => '_EMPTY',
+			'file_filerecord_id' => $email_record['outmodel_file_filerecord_id'],
+			'adr_type' => 'EMAIL',
+			'input_fields' => json_encode(array())
+		),$real=FALSE,$htmlraw=TRUE) ;
+		
+		$html_body = $htmls[0] ;
+		unset($html_body) ;
+		
+		$attachments = array() ;
+		for( $i=1 ; $i<count($htmls) ; $i++ ) {
+			$binary_html = $htmls[$i] ;
+			$binary_pdf = specRsiRecouveo_util_htmlToPdf_buffer($binary_html) ;
+			
+			$_domain_id = DatabaseMgr_Base::dbCurrent_getDomainId() ;
+			$_sdomain_id = DatabaseMgr_Sdomain::dbCurrent_getSdomainId() ;
+			
+			$file_filerecord_id ;
+			$ttmp = specRsiRecouveo_file_getRecords( array(
+				'filter_fileFilerecordId_arr' => json_encode(array($email_record['outmodel_file_filerecord_id']))
+			)) ;
+			$file_record = $ttmp['data'][0] ;
+			
+			$filename = preg_replace("/[^a-zA-Z0-9]/", "", $file_record['acc_id']).'_'.date('Ymd').'.pdf' ;
+			$mail->addStringAttachment($binary_pdf, $filename) ;
+		}
+	}
+	
 	$_domain_id = DatabaseMgr_Base::dbCurrent_getDomainId() ;
 	$_sdomain_id = DatabaseMgr_Sdomain::dbCurrent_getSdomainId() ;
 	foreach( $email_record['attachments'] as $row ) {

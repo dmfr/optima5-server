@@ -357,6 +357,7 @@ Ext.define('RsiRecouveoEmailModel',{
 		{name: 'outmodel_preprocess_subject', type:'boolean'},
 		{name: 'outmodel_preprocess_signature', type:'boolean'},
 		{name: 'outmodel_preprocess_banner', type:'boolean'},
+		{name: 'outmodel_preprocess_attachrecords', type:'boolean'},
 		
 		{name: 'link_is_on', type: 'boolean'},
 		{name: 'link_account', type: 'string'},
