@@ -226,7 +226,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 			action_txt: currentAction.action_txt,
 			action_sched: ( this.getCurrentSched() ? Ext.util.Format.date(this.getCurrentSched(),'d/m/Y') : '' ),
 			  
-			scen_code: this.getActiveScenario()
+			scen_code: this.getActiveScenario(),
+			scen_code_blank: Ext.isEmpty(this.getActiveScenario())
 		};
 		if( this._formValues ) {
 			if( this._formValues['adrtel_default'] ) {

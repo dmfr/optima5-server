@@ -1506,6 +1506,17 @@ function specRsiRecouveo_file_getScenarioLine( $post_data ) {
 		$accFile_record = $json['data'][0] ;
 	}
 	
+	if( $p_forceScenCode === 'false' ) {
+		$TAB = array() ;
+		$TAB[] = array(
+			'link_action' => 'BUMP'
+		);
+		$TAB[] = array(
+			'link_action' => 'CALL_OUT'
+		);
+		return array('success'=>true,'data'=>array_values($TAB)) ;
+	}
+	
 	$json = specRsiRecouveo_config_getScenarios(array()) ;
 	$data_scenarios = $json['data'] ;
 	

@@ -99,19 +99,19 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusNextScenarioField',{
 		}) ;
 		me.callParent() ;
 		me.mixins.field.constructor.call(me);
-		
-		me.doLoad() ;
 	},
-	doLoad: function(scenCode) {
+	doLoadScenarioLine: function(scenCode) {
+		this.onLoadScenarioLine([]) ;
+		if( scenCode===undefined ) {
+			return ;
+		}
 		var params = {
 			_moduleId: 'spec_rsi_recouveo',
 			_action: 'file_getScenarioLine',
 			file_filerecord_id: this._fileRecord.get('file_filerecord_id'),
-			fileaction_filerecord_id: this._actionForm._fileActionFilerecordId
+			fileaction_filerecord_id: this._actionForm._fileActionFilerecordId,
+			force_scenCode: scenCode
 		} ;
-		if( scenCode ) {
-			Ext.apply(params,{force_scenCode: scenCode}) ;
-		}
 		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: params,
 			success: function(response) {
@@ -256,6 +256,36 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusNextPanel',{
 					labelWidth: 110
 				},
 				items:[{
+					xtype: 'checkbox',
+					boxLabel: 'Mode hors scénario',
+					name: 'scen_code_blank'
+				},{
+					xtype: 'combobox',
+					name: 'scen_code',
+					forceSelection:true,
+					allowBlank:true,
+					editable:true,
+					typeAhead:false,
+					queryMode: 'local',
+					displayField: 'scen_txt',
+					valueField: 'scen_code',
+					minChars: 2,
+					checkValueOnChange: function() {}, //HACK
+					store: {
+						autoLoad: true,
+						model: Optima5.Modules.Spec.RsiRecouveo.HelperCache.getConfigScenarioModel(),
+						proxy: this.optimaModule.getConfiguredAjaxProxy({
+							extraParams : {
+								_moduleId: 'spec_rsi_recouveo',
+								_action: 'config_getScenarios'
+							},
+							reader: {
+								type: 'json',
+								rootProperty: 'data'
+							}
+						})
+					}
+				},{
 					itemId: 'btnReset',
 					anchor: '',
 					xtype: 'button',
@@ -285,32 +315,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusNextPanel',{
 						scope: this
 					}],
 					scope: this
-				},{
-					xtype: 'combobox',
-					name: 'scen_code',
-					forceSelection:true,
-					allowBlank:true,
-					editable:true,
-					typeAhead:false,
-					queryMode: 'local',
-					displayField: 'scen_txt',
-					valueField: 'scen_code',
-					minChars: 2,
-					checkValueOnChange: function() {}, //HACK
-					store: {
-						autoLoad: true,
-						model: Optima5.Modules.Spec.RsiRecouveo.HelperCache.getConfigScenarioModel(),
-						proxy: this.optimaModule.getConfiguredAjaxProxy({
-							extraParams : {
-								_moduleId: 'spec_rsi_recouveo',
-								_action: 'config_getScenarios'
-							},
-							reader: {
-								type: 'json',
-								rootProperty: 'data'
-							}
-						})
-					}
 				},Ext.create('Optima5.Modules.Spec.RsiRecouveo.ActionPlusNextScenarioField',{
 					itemId: 'scenarioField',
 					optimaModule: this.optimaModule,
@@ -332,7 +336,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusNextPanel',{
 				}]
 			},{
 				xtype: 'box',
-				width: 16
+				flex: 1
 			}]
 		}) ;
 		
@@ -342,57 +346,43 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusNextPanel',{
 				this.onFormChange(this,field) ;
 			},this) ;
 		},this) ;
-		this.onFormBegin() ;
 	},
 	onFormChange: function(form,field) {
 		this.fireEvent('change',field) ;
-		if( field.getName() == 'scen_code' ) {
+		if( field.getName() == 'scen_code_blank' ) {
+			this.getForm().findField('scen_code').reset() ;
+			this.getForm().findField('scen_code').setVisible( !field.getValue() ) ;
+			if( field.getValue() ) {
+				this.onScenChange(false) ;
+			} else {
+				this.onScenChange() ;
+			}
+		}
+		if( field.getName() == 'scen_code' && !this.getForm().findField('scen_code_blank').getValue() ) {
 			this.onScenChange(field.getValue()) ;
 		}
 	},
 	onScenChange: function(scenCode) {
 		var fieldNextScen = this.getForm().findField('next') ;
-		fieldNextScen.doLoad(scenCode) ;
+		if( scenCode === undefined ) {
+			fieldNextScen.doLoadScenarioLine(undefined) ;
+		} else {
+			fieldNextScen.doLoadScenarioLine(scenCode) ;
+		}
+		
+		this.down('#btnReset').setVisible( Ext.isString(scenCode) ) ;
 	},
 	onScenStepChange: function(scenStepRecord) {
 		var fieldNextDate = this.getForm().findField('next_date') ;
+		if( this.getForm().findField('scen_code_blank').getValue()==true ) {
+			fieldNextDate.reset() ;
+			fieldNextDate.setVisible( scenStepRecord ) ;
+			return ;
+		}
 		fieldNextDate.reset() ;
 		fieldNextDate.setVisible( scenStepRecord && !Ext.isEmpty(scenStepRecord.get('scenstep_tag')) ) ;
 		if( scenStepRecord && !Ext.isEmpty(scenStepRecord.get('date_sched')) ) {
 			fieldNextDate.setValue(scenStepRecord.get('date_sched')) ;
 		}
-	},
-	onFormBegin: function(form) {
-		this.setRightPanel(null) ;
-		
-		var readOnly = this._fileRecord.statusIsSchedLock() ;
-		this.getForm().getFields().each( function(field) {
-			field.setReadOnly(readOnly) ;
-		});
-		this.down('#btnReset').setVisible(!readOnly) ;
-	},
-	setRightPanel: function(classname) {
-		var oldPanel ;
-		if( oldPanel = this.down('#cntRight') ) {
-			this.remove(oldPanel) ;
-		}
-		if( Ext.isEmpty(classname) ) {
-			this.add({
-				xtype: 'box',
-				itemId: 'cntRight',
-				border: false,
-				flex: 1
-			});
-			return ;
-		} else {
-			this.add(Ext.create(classname,{
-				itemId: 'cntRight',
-				flex: 1,
-				border: false,
-				
-				optimaModule: this.optimaModule,
-				_fileRecord: this._fileRecord,
-				_actionForm: this._actionForm
-			})) ;
-		}
-	}}) ;
+	}
+}) ;
