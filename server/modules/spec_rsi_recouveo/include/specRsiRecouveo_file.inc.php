@@ -930,9 +930,9 @@ function specRsiRecouveo_file_createForAction( $post_data ) {
 	// Action mutation
 	$arr_recordsTxt = array() ;
 	$sum_recordsAmount = 0 ;
-	$sql_recordFilerecordIds = array() ;
 	foreach( $account_record['files'] as $accFile_record ) {
 		$arr_recordsTxtFile = array() ;
+		$sql_recordFilerecordIds = array() ;
 		foreach( $accFile_record['records'] as $accFileRecord_record ) {
 			if( !in_array($accFileRecord_record['record_filerecord_id'],$p_arr_recordIds) ) {
 				continue ;
@@ -964,7 +964,8 @@ function specRsiRecouveo_file_createForAction( $post_data ) {
 			$date_now = date('Y-m-d H:i:s') ;
 			$query = "UPDATE view_file_RECORD_LINK rl
 						JOIN recordsFilerecordIds ids ON ids.record_filerecord_id = rl.filerecord_parent_id
-						SET rl.field_LINK_IS_ON='0' AND rl.field_DATE_LINK_OFF='{$date_now}'" ;
+						SET rl.field_LINK_IS_ON='0' AND rl.field_DATE_LINK_OFF='{$date_now}'
+						WHERE rl.field_LINK_IS_ON='1'" ;
 			$_opDB->query($query) ;
 			
 			// Nouveau lien
@@ -1269,7 +1270,7 @@ function specRsiRecouveo_file_lib_closeBack( $file_filerecord_id ) {
 	$map_fileFilerecordId_arrRecordsTxt = array() ;
 	foreach( $accFile_record['records'] as $accFileRecord_record ) {
 		$query = "SELECT field_LINK_FILE_ID FROM view_file_RECORD_LINK
-				WHERE filerecord_parent_id='{$accFileRecord_record['record_filerecord_id']}' AND field_LINK_IS_ON='0'
+				WHERE filerecord_parent_id='{$accFileRecord_record['record_filerecord_id']}' AND field_LINK_IS_ON='0' AND field_LINK_FILE_ID<>'{$file_filerecord_id}'
 				ORDER BY filerecord_id DESC LIMIT 1" ;
 		$dst_file_filerecord_id = $_opDB->query_uniqueValue($query) ;
 		if( !$dst_file_filerecord_id ) {
