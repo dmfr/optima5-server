@@ -196,7 +196,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 				scope: this
 			}
 		})) ;
-		if( !this._fileRecord.statusIsSchedLock() ) {
+		if( !this._fileRecord.statusIsSchedLock() && !this.isCurrentActionAuto() ) {
 			this.add(Ext.create('Optima5.Modules.Spec.RsiRecouveo.ActionPlusNextPanel',{
 				itemId: 'formNext',
 				border: false,
