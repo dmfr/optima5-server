@@ -144,13 +144,15 @@ function specRsiRecouveo_cfg_getAuth( $post_data ) {
 }
 
 
-function specRsiRecouveo_cfg_getConfig($post_data=NULL, $skip_filter=false) {
+function specRsiRecouveo_cfg_getConfig($post_data=array('skip_filter'=>true)) {
 	if( isset($GLOBALS['cache_specRsiRecouveo_cfg']['getConfig']) ) {
 		return array(
 			'success'=>true,
 			'data' => $GLOBALS['cache_specRsiRecouveo_cfg']['getConfig']
 		);
 	}
+	
+	$p_skipFilter = $post_data['skip_filter'] ;
 	
 	global $_opDB ;
 	
@@ -220,7 +222,7 @@ function specRsiRecouveo_cfg_getConfig($post_data=NULL, $skip_filter=false) {
 	$TAB_list_atr = array() ;
 	$TAB_list_opt = array() ;
 	$TAB_soc = NULL ;
-	$json_define = paracrm_define_getMainToolbar( array('data_type'=>'bible') , true ) ;
+	$json_define = paracrm_define_getMainToolbar( array('data_type'=>'bible') , true, $fast=TRUE ) ;
 	foreach( $json_define['data_bible'] as $define_bible ) {
 		if( strpos($define_bible['bibleId'],'OPT_')===0 || $define_bible['bibleId']=='LIB_ACCOUNT' ) {
 			$json_define_bible = paracrm_data_getBibleCfg(array('bible_code'=>$define_bible['bibleId'])) ;
@@ -397,7 +399,7 @@ function specRsiRecouveo_cfg_getConfig($post_data=NULL, $skip_filter=false) {
 	}
 	$TAB_soc = array_values($TAB_soc) ;
 	$TAB_atr = array_values($TAB_atr) ;
-	if( !$skip_filter ) {
+	if( !$p_skipFilter ) {
 		foreach( $TAB_atr as &$atr ) {
 			if( $atr['is_filter'] && $atr['atr_type']=='account' ) {
 				$atr['filter_values'] = array() ;

@@ -1,6 +1,6 @@
 <?php
 
-function paracrm_define_getMainToolbar($post_data, $auth_bypass=FALSE )
+function paracrm_define_getMainToolbar($post_data, $auth_bypass=FALSE, $fast=FALSE )
 {
 	global $_opDB ;
 	
@@ -17,7 +17,10 @@ function paracrm_define_getMainToolbar($post_data, $auth_bypass=FALSE )
 	}
 	
 	// Cache des "counts"
-	if( !$_SESSION['cache_counts'] && session_id() ) {
+	if( $fast ) {
+		$_SESSION['cache_counts']['count_bibles'] = array() ;
+		$_SESSION['cache_counts']['count_files'] = array() ;
+	} elseif( !$_SESSION['cache_counts'] && session_id() ) {
 		$count_bibles = $count_files = array() ;
 		$query = "SELECT table_name, TABLE_ROWS 
 						FROM INFORMATION_SCHEMA.TABLES 

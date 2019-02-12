@@ -3,7 +3,7 @@
 function specRsiRecouveo_lib_metafields_build() {
 	global $_opDB ;
 	
-	$ttmp = specRsiRecouveo_cfg_getConfig(NULL,$skip_filter=true) ;
+	$ttmp = specRsiRecouveo_cfg_getConfig() ;
 	$cfg_atr = $ttmp['data']['cfg_atr'] ;
 	
 	$used_fields_A = array() ;
