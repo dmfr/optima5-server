@@ -27,6 +27,10 @@ foreach( $define_tables as $table ) {
 	$query = "SELECT * FROM {$table}" ;
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		$mkey_bibleCode = 'bible_code' ;
+		if( isset($arr[$mkey_bibleCode]) && strpos($arr[$mkey_bibleCode],'ATR_')===0 ) {
+			continue ;
+		}
 		$mkey_fieldCode = 'entry_field_code' ;
 		if( isset($arr[$mkey_fieldCode]) && strpos($arr[$mkey_fieldCode],'ATR_')===0 ) {
 			continue ;

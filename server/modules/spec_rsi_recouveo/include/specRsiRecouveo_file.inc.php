@@ -1450,6 +1450,12 @@ function specRsiRecouveo_file_lib_manageActivate( $acc_id, $is_new=FALSE ) {
 			$forward_post['new_action_code'] = 'BUMP' ;
 			$forward_post['form_data'] = json_encode(array()) ;
 			$ret = specRsiRecouveo_file_createForAction($forward_post) ;
+			$new_fileFilerecordId = $ret['file_filerecord_id'] ;
+			
+			// 12/02/19 : tag scen_is_none pour lancement AUTO
+			$arr_update = array() ;
+			$arr_update['field_SCENARIO_IS_NEW'] = 1 ;
+			paracrm_lib_data_updateRecord_file( 'FILE', $arr_update, $new_fileFilerecordId);
 		}
 		
 		if( !$is_new ) {
