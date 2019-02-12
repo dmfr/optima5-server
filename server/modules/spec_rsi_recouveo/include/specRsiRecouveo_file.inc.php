@@ -1461,6 +1461,7 @@ function specRsiRecouveo_file_lib_manageActivate( $acc_id, $is_new=FALSE ) {
 		}
 	}
 	if( count($toDisable_recordFilerecordIds)>0 ) {
+		/*
 		if( $targetFile_preFilerecordId ) {
 			specRsiRecouveo_file_allocateRecordTemp( array(
 				'file_filerecord_id' => $targetFile_preFilerecordId,
@@ -1469,6 +1470,7 @@ function specRsiRecouveo_file_lib_manageActivate( $acc_id, $is_new=FALSE ) {
 		} else {
 			// TODO
 		}
+		*/
 	}
 	specRsiRecouveo_file_lib_updateStatus($account_record['acc_id']) ;
 }
