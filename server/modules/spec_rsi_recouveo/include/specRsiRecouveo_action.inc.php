@@ -130,6 +130,28 @@ function specRsiRecouveo_action_execMailAutoPreview( $post_data ) {
 					break ;
 				}
 			}
+				// ******** 06/02/2019 : attributs, probe LANG atr *********
+				$probe_lang_atrField = NULL ;
+				$ttmp = specRsiRecouveo_cfg_getConfig() ;
+				$cfg_atr = $ttmp['data']['cfg_atr'] ;
+				foreach( $cfg_atr as $atr_record ) {
+					$atr_id = $atr_record['atr_id'] ;
+					$ttmp = explode('@',$atr_id) ;
+					$atr_code = $ttmp[1] ;
+					if( $atr_record['atr_type']=='account' && $atr_code=='LANG' ) {
+						$probe_lang_atrField = $atr_record['atr_field'] ;
+						break ;
+					}
+				}
+				if( $probe_lang_atrField && $account ) {
+					$_lang_code = $account[$probe_lang_atrField] ;
+				}
+				if( $_lang_code ) {
+					$doc = new DOMDocument();
+					@$doc->loadHTML('<?xml encoding="UTF-8"><html>'.$subject.'</html>');
+					specRsiRecouveo_doc_replaceLang($doc,$_lang_code) ;
+					$subject = strip_tags($doc->saveHTML()) ;
+				}
 			
 			//build email record
 			$email_record = array(

@@ -290,11 +290,11 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE, $stopAsHtm
 	// ******** Current user *************
 	$json = specRsiRecouveo_config_getUsers(array()) ;
 	$data_users = $json['data'] ;
-	if( isset($_SESSION['login_data']['delegate_sdomainId']) ) {
+	if( isset($account_record['link_user']) ) {
 		$search = array_filter(
 			$data_users,
-			function ($e) {
-				return $e['user_id'] == $_SESSION['login_data']['delegate_userId'] ;
+			function ($e) use ($account_record) {
+				return strtolower($e['user_id']) == strtolower($account_record['link_user']) ;
 			}
 		);
 	} else {
