@@ -1376,6 +1376,8 @@ function specRsiRecouveo_file_lib_updateStatus_doClose($accFile_record) {
 	$arr_update['field_STATUS_CLOSED_END'] = 1 ;
 	paracrm_lib_data_updateRecord_file( 'FILE', $arr_update, $accFile_record['file_filerecord_id']);
 	
+	// TODO 13/02/19 : action de cloture (cas particulier schedNone/schedLock) et/ou purge actions
+	/*
 	$forward_post = array(
 		'file_filerecord_id' => $accFile_record['file_filerecord_id'],
 		'data' => json_encode(array(
@@ -1385,12 +1387,15 @@ function specRsiRecouveo_file_lib_updateStatus_doClose($accFile_record) {
 		))
 	) ;
 	$json = specRsiRecouveo_action_doFileAction($forward_post) ;
+	*/
 }
 function specRsiRecouveo_file_lib_updateStatus_doReopen($accFile_record) {
 	$arr_update = array() ;
 	$arr_update['field_STATUS_CLOSED_END'] = 0 ;
 	paracrm_lib_data_updateRecord_file( 'FILE', $arr_update, $accFile_record['file_filerecord_id']);
 	
+	// TODO 13/02/19 : action de réouverture (exception cas particuliers schedNone/schedLock)
+	/*
 	$forward_post = array(
 		'file_filerecord_id' => $accFile_record['file_filerecord_id'],
 		'data' => json_encode(array(
@@ -1400,12 +1405,18 @@ function specRsiRecouveo_file_lib_updateStatus_doReopen($accFile_record) {
 		))
 	) ;
 	$json = specRsiRecouveo_action_doFileAction($forward_post) ;
+	*/
 }
 
 
 function specRsiRecouveo_file_lib_manageActivate( $acc_id, $is_new=FALSE ) {
 	$toEnable_recordFilerecordIds = array() ;
 	$toDisable_recordFilerecordIds = array() ;
+	
+	$toBalance_recordFilerecordIds = array() ;
+	$toBalance_sum = 0 ;
+	$toBalance_map_recordFilerecordId_status = array() ;
+	
 	$targetFile_preFilerecordId = $targetFile_openFilerecordId = NULL ;
 	
 	$json = specRsiRecouveo_account_open(array('acc_id'=>$acc_id, 'filter_archiveIsOn'=>1)) ;
@@ -1428,11 +1439,34 @@ function specRsiRecouveo_file_lib_manageActivate( $acc_id, $is_new=FALSE ) {
 			if( $accountFileRecord_record['is_disabled'] ) {
 				continue ;
 			}
-			if( $cur_status=='PRE' && !$accountFileRecord_record['is_pending'] ) {
-				$toEnable_recordFilerecordIds[] = $accountFileRecord_record['record_filerecord_id'] ;
+			if( $accountFileRecord_record['letter_is_confirm'] ) {
+				if( $cur_status=='PRE' ) {
+					$toEnable_recordFilerecordIds[] = $accountFileRecord_record['record_filerecord_id'] ;
+				}
+				continue ;
 			}
-			if( $cur_status=='OPEN' && $accountFileRecord_record['is_pending'] ) {
-				$toDisable_recordFilerecordIds[] = $accountFileRecord_record['record_filerecord_id'] ;
+			if( !$accountFileRecord_record['is_pending'] || $cur_status=='OPEN' ) {
+				$record_filerecord_id = $accountFileRecord_record['record_filerecord_id'] ;
+				
+				$toBalance_recordFilerecordIds[] = $record_filerecord_id ;
+				$toBalance_sum += $accountFileRecord_record['amount'] ;
+				$toBalance_map_recordFilerecordId_status[$record_filerecord_id] = $cur_status ;
+			}
+		}
+	}
+	
+	$toBalance_sum = round($toBalance_sum,10) ;
+	if( $toBalance_sum > 0 ) {
+		foreach( $toBalance_recordFilerecordIds as $record_filerecord_id ) {
+			if( $toBalance_map_recordFilerecordId_status[$record_filerecord_id] == 'PRE' ) {
+				$toEnable_recordFilerecordIds[] = $record_filerecord_id ;
+			}
+		}
+	}
+	if( $toBalance_sum <= 0 ) {
+		foreach( $toBalance_recordFilerecordIds as $record_filerecord_id ) {
+			if( $toBalance_map_recordFilerecordId_status[$record_filerecord_id] == 'OPEN' ) {
+				$toDisable_recordFilerecordIds[] = $record_filerecord_id ;
 			}
 		}
 	}
@@ -1458,7 +1492,8 @@ function specRsiRecouveo_file_lib_manageActivate( $acc_id, $is_new=FALSE ) {
 			paracrm_lib_data_updateRecord_file( 'FILE', $arr_update, $new_fileFilerecordId);
 		}
 		
-		if( !$is_new ) {
+		if( FALSE ) {
+			// HACK 13/02/19 : suprr. notification (Havas tmp)
 			specRsiRecouveo_account_pushNotificationRecords( array(
 				'acc_id' => $account_record['acc_id'],
 				'txt_notification' => 'Entrées comptables échues',
@@ -1467,7 +1502,6 @@ function specRsiRecouveo_file_lib_manageActivate( $acc_id, $is_new=FALSE ) {
 		}
 	}
 	if( count($toDisable_recordFilerecordIds)>0 ) {
-		/*
 		if( $targetFile_preFilerecordId ) {
 			specRsiRecouveo_file_allocateRecordTemp( array(
 				'file_filerecord_id' => $targetFile_preFilerecordId,
@@ -1476,7 +1510,6 @@ function specRsiRecouveo_file_lib_manageActivate( $acc_id, $is_new=FALSE ) {
 		} else {
 			// TODO
 		}
-		*/
 	}
 	specRsiRecouveo_file_lib_updateStatus($account_record['acc_id']) ;
 }
