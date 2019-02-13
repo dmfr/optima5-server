@@ -958,7 +958,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 							ptype: 'treeviewdragdrop',
 							ddGroup: 'RsiRecouveoFileDetailRecordsTreeDD',
 							dragText: 'Glisser factures pour ajouter au dossier',
-							appendOnly: true
+							appendOnly: true,
+							containerScroll: true
 						},
 						listeners: {
 							beforedrop: this.onRecordsTreeDrop,
@@ -1296,6 +1297,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			})
 		}) ;
 		
+		adrbookTree.setRootNode({root:true, children:[]}) ;
 		adrbookTree.setRootNode({
 			root: true,
 			expanded: true,
