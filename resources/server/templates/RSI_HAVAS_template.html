@@ -171,19 +171,16 @@
 				<div>
 				<qbook-img src_img="img_logo"></qbook-img>
 				</div>
-				<div class="hvs-header">
-				Quai de Dion Bouton - 92000 Puteaux - France<br>
-				</div>
 			</td>
 			
 			<td valign="middle" width="200">
 				<div class="hvs-header">
-				HAVAS<br>
-				RCS Nanterre xxx xxx xxx<br>
-				SAS au capital de 10,000,000,00 €<br>
-				<br>
-				Tel :  +33 (0) 1 77 68 05 20<br>
-				Fax : +33 (0) 1 77 68 05 21<br>
+					<qbook-value src_value="soc_header_adr1"></qbook-value><br>
+					<qbook-value src_value="soc_header_adr2"></qbook-value><br>
+					<qbook-value src_value="soc_header_adr3"></qbook-value><br>
+					<qbook-value src_value="soc_header_adr4"></qbook-value><br>
+					<qbook-value src_value="soc_header_adr5"></qbook-value><br>
+					<qbook-value src_value="soc_header_adr6"></qbook-value><br>
 				</div>
 			</td>
 			
@@ -195,13 +192,21 @@
 			<br><br>
 			<table>
 				<tr>
-				<td class="celltitle">Référence client&nbsp;:&nbsp;<</td>
+				<td class="celltitle"><b><qbook-condition lang='FR'>N/ Réf</qbook-condition><qbook-condition lang='EN'>Our ref</qbook-condition></b>&nbsp;:&nbsp;</td>
 				<td class="celldata"><qbook-value src_value="header_ref_client"></qbook-value></td>
 				</tr>
 				
 				<tr>
-				<td class="celltitle">Date&nbsp;:&nbsp;<</td>
-				<td class="celldata"><qbook-value src_value="body_date"></qbook-value></td>
+				<td class="celltitle"><b>Date</b>&nbsp;:&nbsp;</td>
+				<td class="celldata">
+					<qbook-condition lang='FR'><qbook-value src_value="body_date"></qbook-value></qbook-condition>
+					<qbook-condition lang='EN'><qbook-value src_value="body_date_sql"></qbook-value></qbook-condition>
+				</td>
+				</tr>
+				
+				<tr>
+				<td class="celltitle"><b><qbook-condition lang='FR'>Objet</qbook-condition><qbook-condition lang='EN'>Subject</qbook-condition></b>&nbsp;:&nbsp;</td>
+				<td class="celldata"><qbook-value src_value="body_title"></qbook-value></td>
 				</tr>
 				
 			</table>
@@ -218,9 +223,18 @@
 		<table class='letterwidth' id='div_header_to' style="padding:10px ; height: 75px"><tr>
 			<td width="58%" valign="top">
 			<br><br>
-			<table>
+			<table width='100%'>
 				<tr>
-				<td class="celldata">Référence client&nbsp;:&nbsp;<qbook-value src_value="header_ref_client"></qbook-value></td>
+				<td class="celldata">
+				<b><qbook-condition lang='FR'>N/ Réf</qbook-condition><qbook-condition lang='EN'>Our ref</qbook-condition></b>
+				&nbsp;:&nbsp;
+				<qbook-value src_value="header_ref_client"></qbook-value>
+				</td>
+				</tr>
+				<tr>
+				<td class="celldata">
+				<b><qbook-condition lang='FR'>(à rappeler dans toute correspondance)</qbook-condition><qbook-condition lang='EN'>(to be recalled in any correspondence)</qbook-condition></b>
+				</td>
 				</tr>
 				
 				<tr>
@@ -228,7 +242,19 @@
 				</tr>
 				
 				<tr>
-				<td class="celldata">Puteaux, &nbsp;<qbook-value src_value="body_date"></qbook-value>,</td>
+				<td class="celldata">
+				<b><qbook-condition lang='FR'>Affaire suivie par</qbook-condition><qbook-condition lang='EN'>Your correspondant</qbook-condition></b>
+				&nbsp;:&nbsp;
+				<qbook-value src_value="header_cr_fullname"></qbook-value>
+				</td>
+				</tr>
+				
+				<tr>
+				<td class="celldata">
+				<b><qbook-condition lang='FR'>Tel</qbook-condition><qbook-condition lang='EN'>Tel</qbook-condition></b>
+				&nbsp;:&nbsp;
+				<qbook-value src_value="header_cr_tel"></qbook-value>
+				</td>
 				</tr>
 				
 			</table>
@@ -236,20 +262,28 @@
 			</td>
 			<td width="42%" valign="top">
 				<br>
-				<span style="font-size:14px">Réf. courrier : <qbook-value src_value="header_ref_mail"></qbook-value></span><br><br>
+				<!--<span style="font-size:14px">Réf. courrier : <qbook-value src_value="header_ref_mail"></qbook-value></span>--><br><br>
 				
 				<b><qbook-value src_value="header_dest_name"></qbook-value></b><br>
 				<qbook-value src_value="header_dest_adrpost"></qbook-value><br>
 				<br>
 			</td>
 		</tr></table>
-		</qbook-condition>
+		<br><br>
 		
-		<table class='letterwidth'><tr>
-			<td width="100%" valign="top" align="center" style="font-size:24px; border:2px solid #000000 ; margin:10px ; padding:4px">
-			<b><qbook-value src_value="body_title"></qbook-value></b>
-			</td>
-		</tr></table>
+		<div class="letterwidth" style="margin:10px">
+			<b><qbook-condition lang='FR'>Objet</qbook-condition><qbook-condition lang='EN'>Subject</qbook-condition></b>
+			&nbsp;:&nbsp;
+			<qbook-value src_value="body_title"></qbook-value>
+			<br><br>
+			
+			Puteaux,
+			<qbook-condition lang='FR'><qbook-value src_value="body_date"></qbook-value></qbook-condition>
+			<qbook-condition lang='EN'><qbook-value src_value="body_date_sql"></qbook-value></qbook-condition>
+			<br><br>
+		</div>
+		
+		</qbook-condition>
 		
 		<br>
 		
@@ -276,7 +310,12 @@
 		
 		<table class='letterwidth'><tr>
 			<td width="100%" valign="top" align="center" style="font-size:24px; border:1px solid gray ; margin:10px ; padding:4px">
-			<b>Référence client n°&nbsp;<qbook-value src_value="table_refcli"></qbook-value>&nbsp;-&nbsp;Extrait de compte</b>
+			<qbook-condition lang='FR'>
+			<b>Référence client&nbsp;:&nbsp;<qbook-value src_value="table_refcli"></qbook-value>&nbsp;-&nbsp;Extrait de compte</b>
+			</qbook-condition>
+			<qbook-condition lang='EN'>
+			<b>Customer ref&nbsp;:&nbsp;<qbook-value src_value="table_refcli"></qbook-value>&nbsp;-&nbsp;Account summary</b>
+			</qbook-condition>
 			&nbsp;
 			<qbook-tablerecords-paging></qbook-tablerecords-paging>
 			</td>

@@ -382,6 +382,7 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE, $stopAsHtm
 	);
 	$map_mkey_value += array(
 		'body_balance' => number_format($accFile_record['inv_amount_due'],2),
+		'body_date_sql' => date('Y-m-d'),
 		'body_date' => date('d/m/Y'),
 		'body_now' => date('d/m/Y').' à '.date('H:i')
 	);
