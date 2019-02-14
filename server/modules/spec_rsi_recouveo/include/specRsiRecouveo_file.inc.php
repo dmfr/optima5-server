@@ -1415,6 +1415,7 @@ function specRsiRecouveo_file_lib_manageActivate( $acc_id, $is_new=FALSE ) {
 	
 	$toBalance_recordFilerecordIds = array() ;
 	$toBalance_sum = 0 ;
+	$toBalance_sumLastResort = 0 ;
 	$toBalance_map_recordFilerecordId_status = array() ;
 	
 	$targetFile_preFilerecordId = $targetFile_openFilerecordId = NULL ;
@@ -1452,21 +1453,23 @@ function specRsiRecouveo_file_lib_manageActivate( $acc_id, $is_new=FALSE ) {
 				$toBalance_sum += $accountFileRecord_record['amount'] ;
 				$toBalance_map_recordFilerecordId_status[$record_filerecord_id] = $cur_status ;
 			}
+			if( ($accountFileRecord_record['amount']<0) || !$accountFileRecord_record['is_pending'] || $cur_status=='OPEN' ) {
+				$toBalance_sumLastResort += $accountFileRecord_record['amount'] ;
+			}
 		}
 	}
 	
 	$toBalance_sum = round($toBalance_sum,10) ;
-	if( $toBalance_sum > 0 ) {
-		foreach( $toBalance_recordFilerecordIds as $record_filerecord_id ) {
-			if( $toBalance_map_recordFilerecordId_status[$record_filerecord_id] == 'PRE' ) {
-				$toEnable_recordFilerecordIds[] = $record_filerecord_id ;
-			}
-		}
-	}
-	if( $toBalance_sum <= 0 ) {
+	if( ($toBalance_sum <= 0) || ($toBalance_sumLastResort <= 0) ) {
 		foreach( $toBalance_recordFilerecordIds as $record_filerecord_id ) {
 			if( $toBalance_map_recordFilerecordId_status[$record_filerecord_id] == 'OPEN' ) {
 				$toDisable_recordFilerecordIds[] = $record_filerecord_id ;
+			}
+		}
+	} elseif( $toBalance_sum > 0 ) {
+		foreach( $toBalance_recordFilerecordIds as $record_filerecord_id ) {
+			if( $toBalance_map_recordFilerecordId_status[$record_filerecord_id] == 'PRE' ) {
+				$toEnable_recordFilerecordIds[] = $record_filerecord_id ;
 			}
 		}
 	}
