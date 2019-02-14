@@ -290,20 +290,25 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE, $stopAsHtm
 	// ******** Current user *************
 	$json = specRsiRecouveo_config_getUsers(array()) ;
 	$data_users = $json['data'] ;
-	if( isset($account_record['link_user']) ) {
-		$search = array_filter(
-			$data_users,
-			function ($e) use ($account_record) {
-				return strtolower($e['user_id']) == strtolower($account_record['link_user']) ;
-			}
-		);
-	} else {
+	while(TRUE) {
+		if( isset($account_record['link_user']) && ($account_record['link_user']!=NULL) ) {
+			$search = array_filter(
+				$data_users,
+				function ($e) use ($account_record) {
+					return strtolower($e['user_id']) == strtolower($account_record['link_user']) ;
+				}
+			);
+		}
+		if( count($search) > 0 ) {
+			break ;
+		}
 		$search = array_filter(
 			$data_users,
 			function ($e) {
-				return $e['_default'] == true ;
+				return ($e['_default'] == true) ;
 			}
 		);
+		break ;
 	}
 	$cfg_user = reset($search) ;
 	

@@ -136,7 +136,7 @@ function specRsiRecouveo_lib_autorun_actions() {
 		)) ;
 		$file = $json_file['data'][0] ;
 		$nextaction_filerecord_id = $file['next_fileaction_filerecord_id'] ;
-		if( !$nextaction_filerecord_id || $file['next_date'] > date('Y-m-d') ) {
+		if( !$nextaction_filerecord_id || date('Y-m-d',strtotime($file['next_date'])) > date('Y-m-d') ) {
 			continue ;
 		}
 		$next_action = NULL ;

@@ -1660,9 +1660,12 @@ function specRsiRecouveo_file_getScenarioLine( $post_data ) {
 		$dates = array() ;
 		$dates[] = date('Y-m-d') ;
 		foreach( $accFile_record['records'] as $accFileRecord_record ) {
+			if( $accFileRecord_record['letter_is_confirm'] ) {
+				continue ;
+			}
 			$dates[] = date('Y-m-d',strtotime($accFileRecord_record['date_value'])) ;
 		}
-		$lastdone_date = max($dates) ;
+		$lastdone_date = min($dates) ;
 	}
 	if( !$lastdone_date ) {
 		$lastdone_date = date('Y-m-d') ;

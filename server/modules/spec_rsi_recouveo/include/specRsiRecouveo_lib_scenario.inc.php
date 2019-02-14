@@ -110,6 +110,9 @@ function specRsiRecouveo_lib_scenario_attachFile( $file_filerecord_id ) {
 			)) ;
 			foreach( $json['data'] as $scenline_dot ) {
 				if( $scenline_dot['is_next'] ) {
+					if( $scenline_dot['date_sched'] < date('Y-m-d') ) {
+						$scenline_dot['date_sched'] = date('Y-m-d') ;
+					}
 					$forward_post['next_action'] = $scenline_dot['link_action'] ;
 					$forward_post['scen_code'] = $assign_scenario ;
 					$forward_post['next_scenstep_code'] = $scenline_dot['scenstep_code'] ;
