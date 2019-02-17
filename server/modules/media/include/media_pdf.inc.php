@@ -205,7 +205,7 @@ function media_pdf_getPreviewsBinary( $src_id )
 	}
 	
 	$arr_previewBinaries = array() ;
-	foreach( glob($src_path.'*') as $path ) {
+	foreach( glob($src_path.'.*') as $path ) {
 		$ttmp = explode('.',basename($path)) ;
 		if( $ttmp[1] == 'thumb' ) {
 			$arr_previewBinaries[] = file_get_contents($path) ;
