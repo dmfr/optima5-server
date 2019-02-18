@@ -32,6 +32,9 @@ function specRsiRecouveo_lib_autorun_open() {
 			if( $accountFile_record['status'] == 'S0_PRE' ) {
 				$accountFileOff_filerecordId = $accountFile_record['file_filerecord_id'] ;
 			}
+			if( strpos($accountFile_record['status'],'S1_')===0 ) {
+				$accountFileOn_filerecordId = $accountFile_record['file_filerecord_id'] ;
+			}
 		}
 		
 		if( !$accountFileBlank_record ) {
@@ -46,6 +49,15 @@ function specRsiRecouveo_lib_autorun_open() {
 			$arr_ins['field_DATE_OPEN'] = date('Y-m-d H:i:s') ;
 			$arr_ins['field_FROM_FILE_ID'] = 0 ;
 			$accountFileOff_filerecordId = paracrm_lib_data_insertRecord_file( 'FILE', 0, $arr_ins );
+		}
+		if( !$accountFileOn_filerecordId ) {
+			$arr_ins = array() ;
+			$arr_ins['field_FILE_ID'] = $account_record['acc_id'].'/'.'EC' ;
+			$arr_ins['field_LINK_ACCOUNT'] = $account_record['acc_id'] ;
+			$arr_ins['field_STATUS'] = 'S1_OPEN' ;
+			$arr_ins['field_DATE_OPEN'] = date('Y-m-d H:i:s') ;
+			$arr_ins['field_FROM_FILE_ID'] = 0 ;
+			$accountFileOn_filerecordId = paracrm_lib_data_insertRecord_file( 'FILE', 0, $arr_ins );
 		}
 		
 		$sql_recordFilerecordIds = array() ;

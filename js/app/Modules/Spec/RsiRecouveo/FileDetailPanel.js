@@ -1198,7 +1198,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		
 		this.down('#tpFileActions').removeAll() ;
 		accountRecord.files().each( function(fileRecord) {
-			if( fileRecord.get('status_closed_void') ) {
+			if( fileRecord.get('status_closed_void') && fileRecord.get('status_closed_end') ) {
 				return ;
 			}
 			if( fileRecord.get('status_closed_end') && !this._showClosed ) {
@@ -1965,6 +1965,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		});
 		
 		recordsTree.down('toolbar').down('#tbNew').setDisabled( fileRec.statusIsSchedNone() )  ;
+		this.down('toolbar').down('#tbBump').setDisabled( fileRec.statusIsSchedNone() )  ;
 		this.down('toolbar').down('#tbNew').setDisabled( fileRec.statusIsSchedNone() )  ;
 	},
 	getActiveFileId: function() {
