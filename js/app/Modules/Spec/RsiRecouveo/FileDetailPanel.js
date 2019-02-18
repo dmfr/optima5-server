@@ -1198,11 +1198,14 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		
 		this.down('#tpFileActions').removeAll() ;
 		accountRecord.files().each( function(fileRecord) {
-			if( fileRecord.get('status_closed_void') && fileRecord.get('status_closed_end') ) {
-				return ;
-			}
-			if( fileRecord.get('status_closed_end') && !this._showClosed ) {
-				return ;
+			if( fileRecord.statusIsSchedLock() ) {
+				// DONE 18/02 on ne masque que les schedlock
+				if( fileRecord.get('status_closed_void') ) {
+					return ;
+				}
+				if( fileRecord.get('status_closed_end') && !this._showClosed ) {
+					return ;
+				}
 			}
 			this.onLoadAccountAddFileActions( fileRecord, accountRecord ) ;
 		},this) ;

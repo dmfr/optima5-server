@@ -1351,7 +1351,7 @@ function specRsiRecouveo_file_lib_updateStatus( $acc_id ) {
 	
 	foreach( $account_record['files'] as $accFile_record ) {
 		$needUpdateVoid = FALSE ;
-		$nextStatusVoid = ($accFile_record['inv_nb_open_alltypes']==0) ;
+		$nextStatusVoid = !(count($accFile_record['records'])>0) ;
 		if( $nextStatusVoid && !$accFile_record['status_closed_void'] ) {
 			$needUpdateVoid = TRUE ;
 		}
@@ -1364,7 +1364,7 @@ function specRsiRecouveo_file_lib_updateStatus( $acc_id ) {
 			paracrm_lib_data_updateRecord_file( 'FILE', $arr_update, $accFile_record['file_filerecord_id']);
 		}
 		
-		$nextStatusEnd = ($accFile_record['status_is_schedlock'] && ($accFile_record['inv_nb_open_alltypes']==0)) ;
+		$nextStatusEnd = ((count($accFile_record['records'])>0) && ($accFile_record['inv_nb_open_alltypes']==0)) ;
 		if( $nextStatusEnd && !$accFile_record['status_closed_end'] ) {
 			$needUpdateEnd = TRUE ;
 		}
