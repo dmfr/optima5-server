@@ -466,7 +466,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 						this.handleNewAction('MAIL_IN') ;
 					},
 					scope: this
-				},{
+				},'-',{
 					iconCls: 'op5-spec-rsiveo-action-mailout',
 					text: 'Courrier postal',
 					handler: function() {
@@ -485,6 +485,13 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 					text: 'E-mail',
 					handler: function() {
 						this.handleNewAction('EMAIL_OUT',{adrpost_default: true}) ;
+					},
+					scope: this
+				},'-',{
+					iconCls: 'op5-spec-rsiveo-action-mailout',
+					text: 'Envoi hors scénario',
+					handler: function() {
+						this.handleNewAction('MAIL_AUTO') ;
 					},
 					scope: this
 				}]

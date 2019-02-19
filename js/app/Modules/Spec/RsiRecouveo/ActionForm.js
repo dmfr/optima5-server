@@ -132,6 +132,11 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 			nowActionClass = 'Optima5.Modules.Spec.RsiRecouveo.ActionPlusMailAutoPanel' ;
 		} else {
 			switch( currentAction.action_id ) {
+				case 'MAIL_AUTO' :
+					nowActionClass = 'Optima5.Modules.Spec.RsiRecouveo.ActionPlusMailAutoPanel' ;
+					hasPreviewMulti = true ;
+					break ;
+					
 				case 'AGREE_FOLLOW' :
 					nowActionClass = 'Optima5.Modules.Spec.RsiRecouveo.ActionPlusAgreeFollowPanel' ;
 					break ;
@@ -346,18 +351,45 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 		// Gestion du template
 		var tplField = this.getForm().findField('tpl_id') ;
 		if( tplField ) {
-			if( this.getCurrentTpl() ) {
-				tplField.getStore().clearFilter();
-				tplField.setReadOnly(true) ;
-				tplField.setValue( this.getCurrentTpl() ) ;
-			} else {
-				tplField.getStore().clearFilter();
-				tplField.getStore().filter([{
-					property: 'manual_is_on',
-					value: true
-				}]);
-				tplField.setReadOnly(false) ;
-				tplField.reset() ;
+			while(true) {
+				if( this.isCurrentActionAuto() ) {
+					tplField.getStore().clearFilter();
+					tplField.setReadOnly(true) ;
+					tplField.setValue( this.getCurrentTpl() ) ;
+					break ;
+				} 
+				switch( currentAction.action_id ) {
+					case 'MAIL_OUT' :
+					case 'EMAIL_OUT' :
+						tplField.getStore().clearFilter();
+						tplField.getStore().filter([{
+							property: 'manual_is_on',
+							value: true
+						}]);
+						tplField.setReadOnly(false) ;
+						tplField.reset() ;
+						break ;
+					case 'MAIL_AUTO' :
+						tplField.getStore().clearFilter();
+						tplField.getStore().filter([{
+							property: 'manual_is_on',
+							value: false
+						}]);
+						tplField.setReadOnly(false) ;
+						tplField.reset() ;
+						break ;
+					default :
+						tplField.getStore().clearFilter();
+						tplField.getStore().filter([{
+							property: 'tpl_id',
+							operator: 'eq',
+							value: ''
+						}]);
+						tplField.setReadOnly(false) ;
+						tplField.reset() ;
+						break ;
+				}
+				break ;
 			}
 		}
 	},
@@ -776,7 +808,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 			success: function(response) {
 				var ajaxResponse = Ext.decode(response.responseText) ;
 				if( ajaxResponse.success == false ) {
-					var error = ajaxResponse.success || 'File not saved !' ;
+					var error = ajaxResponse.error || 'File not saved !' ;
 					Ext.MessageBox.alert('Error',error) ;
 					return ;
 				}
@@ -799,13 +831,22 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 	
 	
 	handlePreviewMulti: function(adrType) {
+		var tplField = this.getForm().findField('tpl_id') ;
+		if( !tplField ) {
+			return ;
+		}
+		var tplId = tplField.getValue() ;
+		if( Ext.isEmpty(tplId) ) {
+			return ;
+		}
+		
 		this.showLoadmask() ;
 		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: {
 				_moduleId: 'spec_rsi_recouveo',
 				_action: 'action_execMailAutoPreview',
 				file_filerecord_id: this._fileRecord.get('file_filerecord_id'),
-				fileaction_filerecord_id: this._fileActionFilerecordId,
+				tpl_id: tplId,
 				adr_type: adrType
 			},
 			success: function(response) {
