@@ -17,6 +17,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusAgreeFollowPanel',{
 				if( accountFileRecordRecord.get('amount') >= 0 ) {
 					return ;
 				}
+				if( accountFileRecordRecord.get('letter_is_confirm') ) {
+					return ;
+				}
 				toAllocatePaymentRecords.push( accountFileRecordRecord.getData() ) ;
 			},this) ;
 		},this) ;

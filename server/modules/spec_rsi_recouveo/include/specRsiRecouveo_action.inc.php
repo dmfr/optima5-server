@@ -714,12 +714,13 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 					$map_recordId_amount = array() ;
 					foreach( $agree_milestone_cur['milestone_commit_record_ids'] as $record_filerecord_id ) {
 						foreach( $account_record['files'] as $iter_file_row ) {
-							if( $iter_file_row['file_filerecord_id']==0 ) {
-								foreach( $iter_file_row['records'] as $iter_record_row ) {
-									if( $iter_record_row['record_filerecord_id'] == $record_filerecord_id ) {
-										$map_recordId_amount[$record_filerecord_id] = ((-1) * $iter_record_row['amount']) ;
-										$txt_records[] = $iter_record_row['record_ref'] ;
-									}
+							if( $iter_file_row['status_is_schedlock'] ) {
+								continue ;
+							}
+							foreach( $iter_file_row['records'] as $iter_record_row ) {
+								if( $iter_record_row['record_filerecord_id'] == $record_filerecord_id ) {
+									$map_recordId_amount[$record_filerecord_id] = ((-1) * $iter_record_row['amount']) ;
+									$txt_records[] = $iter_record_row['record_ref'] ;
 								}
 							}
 						}
