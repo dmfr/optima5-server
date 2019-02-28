@@ -3,6 +3,8 @@
 function specDbsLam_transfer_getTransfer($post_data) {
 	global $_opDB ;
 	
+	$closed_dateTouch = date('Y-m-d',strtotime('-3 days')) ;
+	
 	if( $post_data['filter_transferFilerecordId'] ) {
 		specDbsLam_transfer_lib_updateStatus($post_data['filter_transferFilerecordId']) ;
 	}
@@ -23,8 +25,9 @@ function specDbsLam_transfer_getTransfer($post_data) {
 			'transfer_txt' => $arr['field_TRANSFER_TXT'],
 			'transfer_tpl' => $arr['field_TRANSFER_TPL'],
 			'transfer_tpltxt' => $arr['field_TRANSFER_TPLTXT'],
-			'status_is_on' => $arr['field_STATUS_IS_ON'],
-			'status_is_ok' => $arr['field_STATUS_IS_OK'],
+			'status_is_on' => !!$arr['field_STATUS_IS_ON'],
+			'status_is_ok' => !!$arr['field_STATUS_IS_OK'],
+			'status_is_alert' => !!$arr['field_STATUS_IS_ALERT'],
 			'date_touch' => substr($arr['field_DATE_TOUCH'],0,10),
 			'spec_cde' => !!$arr['field_SPEC_CDE'],
 			'steps' => array(),
@@ -34,6 +37,9 @@ function specDbsLam_transfer_getTransfer($post_data) {
 		);
 		if( !$TAB[$filerecord_id]['date_touch'] || $TAB[$filerecord_id]['date_touch']=='0000-00-00' ) {
 			$TAB[$filerecord_id]['date_touch'] = null ;
+		}
+		if( $TAB[$filerecord_id]['date_touch'] && ($closed_dateTouch>$TAB[$filerecord_id]['date_touch']) && $TAB[$filerecord_id]['status_is_ok'] ) {
+			$TAB[$filerecord_id]['status_is_closed'] = TRUE ;
 		}
 		if( $post_data['filter_transferFilerecordId'] && !$post_data['filter_fast'] ) {
 			$ttmp = specDbsLam_transfer_getTransferLig($post_data) ;
@@ -1095,8 +1101,9 @@ function specDbsLam_transfer_lib_updateStatus($transfer_filerecordId) {
 	$arr_update['field_STATUS_IS_ON'] = 0 ;
 	$arr_update['field_STATUS_IS_OK'] = 0 ;
 	
-	$query = "SELECT mvt.field_COMMIT_IS_OK, max(mvt.field_COMMIT_DATE), count(*)
+	$query = "SELECT mvt.field_COMMIT_IS_OK, max(mvt.field_COMMIT_DATE), count(*), t.field_DATE_TOUCH
 				FROM view_file_TRANSFER_LIG tl
+				JOIN view_file_TRANSFER t ON t.filerecord_id=tl.filerecord_parent_id
 				JOIN view_file_MVT mvt ON mvt.filerecord_id=tl.field_FILE_MVT_ID
 				WHERE tl.filerecord_parent_id='{$transfer_filerecordId}'
 				GROUP BY field_COMMIT_IS_OK" ;
@@ -1107,13 +1114,15 @@ function specDbsLam_transfer_lib_updateStatus($transfer_filerecordId) {
 	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
 		$arr_update['field_STATUS_IS_ON'] = 1 ;
 		if( $arr[0] ) {
-			$arr_update['field_DATE_TOUCH'] = $arr[1] ;
+			if( ($arr[3]<$arr[1]) ) {
+				$arr_update['field_DATE_TOUCH'] = $arr[1] ;
+			}
 		} else {
 			$arr_update['field_STATUS_IS_OK'] = 0 ;
 		}
 	}
 	
-	
+	// ********* Partie CDE *********
 	$spec_cde = FALSE ;
 	$spec_noCdeOut_stepIdx = 0 ;
 	
@@ -1150,6 +1159,51 @@ function specDbsLam_transfer_lib_updateStatus($transfer_filerecordId) {
 	if( !$_outPending && $arr_update['field_STATUS_IS_OK'] ) {
 		$arr_update['field_STATUS_IS_ON'] = 0 ;
 	}
+	
+	
+	// ******* Partie RECEP (INPUTLIST)*************
+	$arr_update['field_STATUS_IS_ALERT'] = 0 ;
+	$query = "SELECT field_TRANSFERSTEP_IDX FROM view_file_TRANSFER_STEP 
+			WHERE filerecord_parent_id='{$transfer_filerecordId}' AND field_INPUTLIST_IS_ON='1'
+			ORDER BY field_TRANSFERSTEP_IDX DESC LIMIT 1" ;
+	$spec_hasInputlist_stepIdx = $_opDB->query_uniqueValue($query) ;
+	if( $spec_hasInputlist_stepIdx > 0 ) {
+		$map_prod_Qtys = array() ;
+		
+		$query = "SELECT field_PROD_ID, sum(field_QTY_PO) FROM view_file_TRANSFER_INPUT_PO
+					WHERE filerecord_parent_id='{$transfer_filerecordId}' AND field_TRANSFERSTEP_IDX='{$spec_hasInputlist_stepIdx}'
+					GROUP BY field_PROD_ID" ;
+		$result = $_opDB->query($query) ;
+		while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+			if( !isset($map_prod_Qtys[$arr[0]]) ) {
+				$map_prod_Qtys[$arr[0]] = array() ;
+			}
+			$map_prod_Qtys[$arr[0]]['qty_po'] = (float)$arr[1] ;
+		}
+		
+		$query = "SELECT mvt.field_PROD_ID, sum(mvt.field_QTY_MVT) FROM view_file_TRANSFER_LIG tl
+					JOIN view_file_MVT mvt ON mvt.filerecord_id=tl.field_FILE_MVT_ID
+					WHERE tl.filerecord_parent_id='{$transfer_filerecordId}' AND tl.field_TRANSFERSTEP_IDX='{$spec_hasInputlist_stepIdx}'
+					GROUP BY field_PROD_ID" ;
+		$result = $_opDB->query($query) ;
+		while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+			if( !isset($map_prod_Qtys[$arr[0]]) ) {
+				$map_prod_Qtys[$arr[0]] = array() ;
+			}
+			$map_prod_Qtys[$arr[0]]['qty_mvt'] = (float)$arr[1] ;
+		}
+		
+		foreach( $map_prod_Qtys as $prodId => $qtys ) {
+			if( $qtys['qty_po'] != $qtys['qty_mvt'] ) {
+				$arr_update['field_STATUS_IS_ALERT'] = 1 ;
+				break ;
+			}
+		}
+	}
+	if( $arr_update['field_STATUS_IS_ALERT'] ) {
+		$arr_update['field_STATUS_IS_OK'] = 0 ;
+	}
+	
 	
 	paracrm_lib_data_updateRecord_file('TRANSFER',$arr_update,$transfer_filerecordId) ;
 }

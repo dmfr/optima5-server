@@ -270,6 +270,8 @@ function specDbsLam_transferInput_setPdaSpec($post_data) {
 function specDbsLam_transferInput_getDocuments($post_data) {
 	global $_opDB ;
 	
+	$closed_dateTouch = date('Y-m-d',strtotime('-3 days')) ;
+	
 	$TAB = array() ;
 	$query = "SELECT ts.filerecord_id as transferstep_filerecord_id
 				, t.filerecord_id as transfer_filerecord_id
@@ -283,7 +285,9 @@ function specDbsLam_transferInput_getDocuments($post_data) {
 				FROM view_file_TRANSFER_STEP ts
 				JOIN view_file_TRANSFER t ON t.filerecord_id=ts.filerecord_parent_id
 				LEFT OUTER JOIN view_bible_CFG_PDASPEC_entry b ON b.entry_key=IF(ts.field_PDASPEC_IS_ON='1',ts.field_PDASPEC_CODE,'')
-				WHERE ts.field_PDA_IS_ON='1'" ;
+				WHERE ts.field_PDA_IS_ON='1'
+				AND ( (t.field_STATUS_IS_OK='0') OR (DATE(t.field_DATE_TOUCH) > '$closed_dateTouch') )
+				ORDER BY t.filerecord_id DESC" ;
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
 		$TAB[] = $arr ;
@@ -364,6 +368,14 @@ function specDbsLam_transferInput_submit($post_data) {
 		$dst_adr = $dst_whse.'_'.'PDA' ;
 	}
 	
+	//HACK !!!
+	if( $p_stkDataObj['container_ref'] ) {
+		$query = "SELECT count(*) FROM view_file_STOCK WHERE field_CONTAINER_REF='{$p_stkDataObj['container_ref']}'" ;
+		if( $_opDB->query_uniqueValue($query) > 0 ) {
+			return array('success'=>false,'error'=>'Existing ContainerRef/SSCC') ;
+		}
+	}
+	
 	$stk_obj = array(
 		'dst_whse' => $dst_whse,
 		'dst_adr' => $dst_adr,
@@ -396,7 +408,7 @@ function specDbsLam_transferInput_submit($post_data) {
 				)" ;
 	$forward_transferlig_filerecord_id = $_opDB->query_uniqueValue($query) ;
 	
-	return array('success'=>true, 'forward_transferlig_filerecord_id'=>$forward_transferlig_filerecord_id) ;
+	return array('success'=>true, 'forward_transferlig_filerecord_id'=>0) ;
 }
 
 ?>
