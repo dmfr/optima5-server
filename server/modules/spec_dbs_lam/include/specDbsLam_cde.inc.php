@@ -3,6 +3,8 @@
 function specDbsLam_cde_getGrid($post_data) {
 	global $_opDB ;
 	
+	$closed_dateTouch = date('Y-m-d',strtotime('-3 days')) ;
+	
 	// Load cfg attributes
 	$ttmp = specDbsLam_cfg_getConfig() ;
 	$json_cfg = $ttmp['data'] ;
@@ -48,6 +50,9 @@ function specDbsLam_cde_getGrid($post_data) {
 			'link_transfer_filerecord_id' => $arr['link_transfer_filerecord_id'],
 			'link_transfer_txt' => $arr['link_transfer_txt']
 		);
+		if( $row['date_closed']!='0000-00-00' && ($closed_dateTouch>$row['date_closed']) ) {
+			$row['status_is_closed'] = TRUE ;
+		}
 		foreach( $json_cfg['cfg_attribute'] as $stockAttribute_obj ) {
 			if( !$stockAttribute_obj['CDE_fieldcode'] ) {
 				continue ;

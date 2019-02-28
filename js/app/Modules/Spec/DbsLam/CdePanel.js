@@ -14,12 +14,14 @@ Ext.define('DbsLamCdeGridModel',{
 	extend: 'Ext.data.Model',
 	idProperty: 'cde_filerecord_id',
 	fields: [
+		{name: 'soc_code', type: 'string'},
 		{name: 'cde_filerecord_id', type:'int'},
 		{name: 'cde_nr', type:'string'},
 		{name: 'cde_bl', type:'string'},
 		{name: 'cde_ref', type:'string'},
 		{name: 'status', type:'string'},
 		{name: 'status_txt', type:'string'},
+		{name: 'status_is_closed', type:'boolean'},
 		{name: 'date_cde', type:'date', dateFormat:'Y-m-d'},
 		{name: 'date_due', type:'date', dateFormat:'Y-m-d'},
 		{name: 'date_closed', type:'date', dateFormat:'Y-m-d'},
@@ -68,14 +70,28 @@ Ext.define('Optima5.Modules.Spec.DbsLam.CdePanel',{
 					this.doRefresh() ;
 				},
 				scope: this
-			},'->',{
-				itemId: 'xlsExport',
-				text: 'Export CSV',
-				icon: 'images/op5img/ico_save_16.gif',
-				handler: function() {
-					this.doDownload() ;
-				},
-				scope: this
+			},'-',Ext.create('Optima5.Modules.Spec.DbsLam.CfgParamButton',{
+				cfgParam_id: 'SOC',
+				icon: 'images/op5img/ico_blocs_small.gif',
+				text: 'Scope',
+				itemId: 'btnSoc',
+				optimaModule: this.optimaModule,
+				listeners: {
+					change: function() {
+						this.doRefresh() ;
+					},
+					scope: this
+				}
+			}),'->',{
+				xtype: 'checkbox',
+				itemId: 'chkClosed',
+				boxLabel: 'Show closed ?',
+				listeners: {
+					change: function() {
+						this.doRefresh() ;
+					},
+					scope: this
+				}
 			}],
 			items: [{
 				region: 'center',
@@ -178,7 +194,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.CdePanel',{
 				}),
 				listeners: {
 					beforeload: Ext.emptyFn,
-					load: Ext.emptyFn,
+					load: this.onAfterLoad,
 					scope: this
 				}
 			},
@@ -541,6 +557,24 @@ Ext.define('Optima5.Modules.Spec.DbsLam.CdePanel',{
 	
 	onBeforeLoad: function(store, operation) {
 		operation.setLimit(this.maxPerPage) ;
+	},
+	onAfterLoad: function(store) {
+		store.clearFilter() ;
+		//apply filters
+		var filterSoc = this.down('#btnSoc').getValue() ;
+		if( filterSoc ) {
+			store.filter({
+				property: 'soc_code',
+				value: filterSoc
+			}) ;
+		}
+		var showClosed = this.down('#chkClosed').getValue() ;
+		if( !showClosed ) {
+			store.filter({
+				property: 'status_is_closed',
+				value: false
+			}) ;
+		}
 	},
 	
 	
