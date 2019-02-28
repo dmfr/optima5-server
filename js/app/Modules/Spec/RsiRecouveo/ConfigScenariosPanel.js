@@ -4,6 +4,12 @@ Ext.define('RsiRecouveoConfigScenarioStepEditModel',{
 		{name:'_phantom', type:'boolean'}
 	]
 });
+Ext.define('RsiRecouveoConfigScenarioPreEditModel',{
+	extend: 'RsiRecouveoConfigScenarioPreModel',
+	fields: [
+		{name:'_phantom', type:'boolean'}
+	]
+});
 
 
 Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigScenarioMailField',{
@@ -363,7 +369,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigScenariosPanel', {
 								displayField: 'action_txt',
 								listeners: {
 									select: function(cmb) {
-										this.onEditorActionChange(cmb.getValue()) ;
+										this.onEditorStepActionChange(cmb.getValue()) ;
 									},
 									scope: this
 								}
@@ -397,7 +403,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigScenariosPanel', {
 								displayField: 'tpl_name',
 								listeners: {
 									select: function(cmb) {
-										this.onEditorTemplateChange(cmb.getValue()) ;
+										this.onEditorStepTemplateChange(cmb.getValue()) ;
 									},
 									scope: this
 								}
@@ -471,51 +477,208 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigScenariosPanel', {
 							scope: this
 						}
 					},{
-						title: 'Non échu',
+						title: 'Non-échu',
 						_actionMap: actionMap,
 						_templateMap: templateMap,
+						xtype: 'grid',
+						itemId: 'gridEditorPre',
 						flex: 1,
-						xtype: 'form',
-						cls: 'ux-noframe-bg',
-						bodyPadding: 8,
-						bodyCls: 'ux-noframe-bg',
-						layout: 'anchor',
-						fieldDefaults: {
-							labelWidth: 90,
-							anchor: '50%'
+						store: {
+							model: 'RsiRecouveoConfigScenarioPreEditModel',
+							sorters: [{
+								property: 'prestep_daybefore',
+								direction: 'DESC'
+							}],
+							data: [],
+							proxy: {
+								type: 'memory',
+								reader: {
+									type: 'json'
+								}
+							}
 						},
-						items: [{
-							xtype: 'box',
-							html: '<b>Actions automatiques lors de l\'intégration factures sur dossier existant</b>',
-							padding: 16
-						},{
-							xtype: 'fieldset',
-							bodyPadding: 10,
-							collapsed: true,
-							checkboxToggle: true,
-							title: 'Ré-édition courrier sur intégration nouvelles factures',
+						tbar: [{
+							itemId: 'tbNew',
+							icon: 'images/add.png',
+							text: 'Créer étape...',
+							handler: function() {
+								this.handleNewPre();
+							},
+							scope: this
+						},'-',{
+							disabled: true,
+							itemId: 'tbDelete',
+							icon: 'images/delete.png',
+							text: 'Supprimer',
+							handler: function() {
+								this.handleDeletePre();
+							},
+							scope: this
+						}],
+						plugins: [{
+							ptype: 'rowediting',
+							pluginId: 'rowediting',
+							listeners: {
+								edit: this.onAfterEditPre,
+								canceledit: this.onCancelEditPre,
+								beforeedit: this.onBeforeEditPre,
+								scope: this
+							}
+						}],
+						columns: {
+							defaults: {
+								menuDisabled: true,
+								draggable: false,
+								sortable: false,
+								hideable: false,
+								resizable: false,
+								groupable: false,
+								lockable: false
+							},
 							items: [{
-								xtype: 'combobox',
-								fieldLabel: 'Template',
-								//hidden: true,
-								queryMode: 'local',
-								forceSelection: true,
-								allowBlank: false,
-								editable: false,
-								store: {
-									model: 'RsiRecouveoCfgTemplateModel',
-									data: []
-								},
-								valueField: 'tpl_id',
-								displayField: 'tpl_name',
-								listeners: {
-									select: function(cmb) {
-										this.onEditorTemplateChange(cmb.getValue()) ;
+								text: 'J - x',
+								width: 80,
+								dataIndex: 'prestep_daybefore',
+								editor: {
+									xtype: 'numberfield',
+									hideTrigger:true
+								}
+							},{
+								text: 'Code',
+								width: 90,
+								dataIndex: 'prestep_tag',
+								editor: {
+									xtype: 'textfield',
+									allowBlank: false,
+									maxLength: 10,
+									enforceMaxLength: true
+								}
+							},{
+								text: 'Action',
+								width: 150,
+								dataIndex: 'link_action',
+								editor: {
+									xtype: 'combobox',
+									queryMode: 'local',
+									forceSelection: true,
+									allowBlank: false,
+									editable: false,
+									store: {
+										model: 'RsiRecouveoCfgActionModel',
+										data: directActions
 									},
-									scope: this
+									valueField: 'action_id',
+									displayField: 'action_txt',
+									listeners: {
+										select: function(cmb) {
+											this.onEditorPreActionChange(cmb.getValue()) ;
+										},
+										scope: this
+									}
+								},
+								renderer: function(value,metaData,record,rowIndex,colIndex,store,view) {
+									//var columnHeader = this.grid.getColumnManager().getHeaderAtIndex(curColIdx) ;
+									//var header = this.headerCt.getHeaderAtIndex(colIndex) ;
+									var actionMap = view.up('panel')._actionMap ;
+									if( actionMap.hasOwnProperty(value) ) {
+										var actionData = actionMap[value] ;
+										return '<b>'+actionData.action_txt+'</b>' ;
+									}
+									return '?' ;
+								}
+							},{
+								text: 'Template',
+								width: 150,
+								dataIndex: 'link_tpl',
+								editorTpl: {
+									xtype: 'combobox',
+									//hidden: true,
+									queryMode: 'local',
+									forceSelection: true,
+									allowBlank: false,
+									editable: false,
+									store: {
+										model: 'RsiRecouveoCfgTemplateModel',
+										data: []
+									},
+									valueField: 'tpl_id',
+									displayField: 'tpl_name',
+									listeners: {
+										select: function(cmb) {
+											this.onEditorPreTemplateChange(cmb.getValue()) ;
+										},
+										scope: this
+									}
+								},
+								renderer: function(value,metaData,record,rowIndex,colIndex,store,view) {
+									//var columnHeader = this.grid.getColumnManager().getHeaderAtIndex(curColIdx) ;
+									//var header = this.headerCt.getHeaderAtIndex(colIndex) ;
+									var templateMap = view.up('panel')._templateMap ;
+									if( templateMap.hasOwnProperty(value) ) {
+										var templateData = templateMap[value] ;
+										return '<b>'+templateData.tpl_name+'</b>' ;
+									}
+									return '&#160;' ;
+								}
+							},{
+								text: 'Mode d\'envoi',
+								width: 150,
+								dataIndex: 'mail_modes_json',
+								editorTpl: {
+									xtype: 'op5specrsiveomailfield'
+								},
+								renderer: function(value,metaData,record,rowIndex,colIndex,store,view) {
+									if( !record.get('link_tpl') ) {
+										return ;
+									}
+									
+									var templateMap = view.up('panel')._templateMap ;
+									if( !templateMap.hasOwnProperty(record.get('link_tpl')) ) {
+										return ;
+									}
+									
+									var templateData = templateMap[record.get('link_tpl')] ;
+									if( templateData._empty ) {
+										return ;
+									}
+									
+									value = Ext.JSON.decode(value,true) || [] ;
+									var str = '' ;
+									if( Ext.Array.contains(value,'postal_std') ) {
+										str += '<span class="op5-spec-rsiveo-mailthumb-display op5-spec-rsiveo-mail-postal-std">&#160;</span>' ;
+									}
+									if( Ext.Array.contains(value,'postal_rar') ) {
+										str += '<span class="op5-spec-rsiveo-mailthumb-display op5-spec-rsiveo-mail-postal-rar">&#160;</span>' ;
+									}
+									if( Ext.Array.contains(value,'tel') ) {
+										str += '<span class="op5-spec-rsiveo-mailthumb-display op5-spec-rsiveo-mail-sms">&#160;</span>' ;
+									}
+									if( Ext.Array.contains(value,'email') ) {
+										str += '<span class="op5-spec-rsiveo-mailthumb-display op5-spec-rsiveo-mail-email">&#160;</span>' ;
+									}
+									return str ;
+								}
+							},{
+								text: 'Auto?',
+								width: 48,
+								dataIndex: 'exec_is_auto',
+								editor: {
+									xtype: 'checkboxfield'
+								},
+								renderer: function(v) {
+									if( v ) {
+										return '<b>'+'X'+'</b>' ;
+									}
+									return '&#160;' ;
 								}
 							}]
-						}]
+						},
+						listeners: {
+							selectionchange: function(selModel,records) {
+								this.down('#gridEditorPre').down('toolbar').down('#tbDelete').setDisabled( !(records && records.length > 0) ) ;
+							},
+							scope: this
+						}
 					},{
 						title: 'Promesses',
 						_actionMap: actionMap,
@@ -759,7 +922,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigScenariosPanel', {
 		
 		var pEditor = this.down('#pEditor'),
 			editorForm = pEditor.down('form'),
-			editorGrid = pEditor.down('grid') ;
+			editorGridScen = pEditor.down('#gridEditorSteps'),
+			editorGridPre = pEditor.down('#gridEditorPre');
 		this.down('#pEmpty').setVisible(false) ;
 		pEditor.setVisible(true) ;
 		editorForm.reset() ;
@@ -769,7 +933,13 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigScenariosPanel', {
 		selectedScenario.steps().each( function(stepRecord) {
 			gridData.push( stepRecord.getData() ) ;
 		}) ;
-		editorGrid.getStore().loadData( gridData ) ;
+		editorGridScen.getStore().loadData( gridData ) ;
+		
+		var gridData = [] ;
+		selectedScenario.presteps().each( function(preRecord) {
+			gridData.push( preRecord.getData() ) ;
+		}) ;
+		editorGridPre.getStore().loadData( gridData ) ;
 		
 		this.setEditMode(false) ;
 	},
@@ -779,11 +949,13 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigScenariosPanel', {
 		
 		var pEditor = this.down('#pEditor'),
 			editorForm = pEditor.down('form'),
-			editorGrid = pEditor.down('grid') ;
+			editorGridScen = pEditor.down('#gridEditorSteps'),
+			editorGridPre = pEditor.down('#gridEditorPre');
 		this.down('#pEmpty').setVisible(false) ;
 		pEditor.setVisible(true) ;
 		editorForm.reset() ;
-		editorGrid.getStore().loadData([]) ;
+		editorGridScen.getStore().loadData([]) ;
+		editorGridPre.getStore().loadData([]) ;
 		
 		this.setEditMode(true) ;
 	},
@@ -794,19 +966,27 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigScenariosPanel', {
 	handleScenSave: function(doDelete) {
 		var pEditor = this.down('#pEditor'),
 			editorForm = pEditor.down('form'),
-			editorGrid = pEditor.down('grid') ;
+			editorGridScen = pEditor.down('#gridEditorSteps'),
+			editorGridPre = pEditor.down('#gridEditorPre');
 		if( !editorForm.isValid() ) {
 			return ;
 		}
 		
 		var data = editorForm.getValues(false,false,false,true) ;
+		
 		data['steps'] = [] ;
 		var cnt = 0 ;
-		editorGrid.getStore().each( function(stepRecord) {
+		editorGridScen.getStore().each( function(stepRecord) {
 			cnt++ ;
 			stepRecord.set('schedule_idx',cnt) ;
 			data['steps'].push(stepRecord.getData()) ;
 		}) ;
+		
+		data['presteps'] = [] ;
+		editorGridPre.getStore().each( function(preRecord) {
+			data['presteps'].push(preRecord.getData()) ;
+		}) ;
+		
 		
 		this.showLoadmask() ;
 		this.optimaModule.getConfiguredAjaxConnection().request({
@@ -833,7 +1013,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigScenariosPanel', {
 	handleScenDelete: function() {
 		var pEditor = this.down('#pEditor'),
 			editorForm = pEditor.down('form'),
-			editorGrid = pEditor.down('grid') ;
+			editorGridScen = pEditor.down('#gridEditorSteps'),
+			editorGridPre = pEditor.down('#gridEditorPre');
 		
 		var data = editorForm.getValues(false,false,false,true) ;
 		
@@ -854,7 +1035,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigScenariosPanel', {
 		
 		var pEditor = this.down('#pEditor'),
 			editorForm = pEditor.down('form'),
-			editorGrid = pEditor.down('grid') ;
+			editorGridScen = pEditor.down('#gridEditorSteps'),
+			editorGridPre = pEditor.down('#gridEditorPre');
 		editorForm.getForm().getFields().each( function(field) {
 			field.setReadOnly(!torf) ;
 			if( setAsNew ) {
@@ -868,21 +1050,24 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigScenariosPanel', {
 				}
 			}
 		}) ;
-		editorGrid.getPlugin('rowediting')._disabled = !torf ;
+		editorGridScen.getPlugin('rowediting')._disabled = !torf ;
+		editorGridPre.getPlugin('rowediting')._disabled = !torf ;
 		
 		pEditor.down('#btnEdit').setVisible(!torf) ;
 		pEditor.down('#btnCopy').setVisible(!torf) ;
 		pEditor.down('#btnDelete').setVisible(!torf) ;
 		pEditor.down('#btnOk').setVisible(torf) ;
 		pEditor.down('#btnCancel').setVisible(torf) ;
-		editorGrid.down('toolbar').setVisible(torf) ;
+		editorGridScen.down('toolbar').setVisible(torf) ;
+		editorGridPre.down('toolbar').setVisible(torf) ;
 		
 		if( torf ) {
-			editorGrid.getView().getPlugin('reorder').enable();
+			editorGridScen.getView().getPlugin('reorder').enable();
 		} else {
-			editorGrid.getView().getPlugin('reorder').disable();
+			editorGridScen.getView().getPlugin('reorder').disable();
 		}
 	},
+	
 	onAfterEditStep: function(editor,context) {
 		context.record.set('_phantom',false) ;
 		context.record.commit() ;
@@ -897,10 +1082,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigScenariosPanel', {
 			return false ;
 		}
 		var actionColumn = this.down('#gridEditorSteps').headerCt.down('[dataIndex="link_action"]') ;
-		this.onEditorActionChange(context.record.get('link_action')) ;
-		this.onEditorTemplateChange(context.record.get('link_tpl')) ;
+		this.onEditorStepActionChange(context.record.get('link_action')) ;
+		this.onEditorStepTemplateChange(context.record.get('link_tpl')) ;
 	},
-	onEditorActionChange: function(selectedAction) {
+	onEditorStepActionChange: function(selectedAction) {
 		// Load appropriate templates
 		var templatesData = [],
 			templateColumn = this.down('#gridEditorSteps').headerCt.down('[dataIndex="link_tpl"]'),
@@ -928,7 +1113,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigScenariosPanel', {
 			this.down('#gridEditorSteps').getPlugin('rowediting').getEditor().syncFieldWidth(templateColumn) ; // HACK
 		}
 	},
-	onEditorTemplateChange: function(selectedTemplate) {
+	onEditorStepTemplateChange: function(selectedTemplate) {
 		var mailmodesColumn = this.down('#gridEditorSteps').headerCt.down('[dataIndex="mail_modes_json"]'),
 			mailmodesEditor = Ext.clone( mailmodesColumn.editorTpl ) ;
 		if( Ext.isEmpty(selectedTemplate) || selectedTemplate=='_' ) {
@@ -952,6 +1137,84 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigScenariosPanel', {
 	},
 	handleDeleteStep: function() {
 		var stepGrid = this.down('#gridEditorSteps') ;
+		if( stepGrid.getPlugin('rowediting')._disabled ) {
+			return ;
+		}
+		var toDeleteRecords = stepGrid.getSelectionModel().getSelection() ;
+		if( toDeleteRecords && toDeleteRecords.length>0 ) {
+			stepGrid.getStore().remove(toDeleteRecords) ;
+		}
+	},
+	
+	onAfterEditPre: function(editor,context) {
+		context.record.set('_phantom',false) ;
+		context.record.commit() ;
+	},
+	onCancelEditPre: function(editor,context) {
+		if( context.record.get('_phantom') ) {
+			context.grid.getStore().remove(context.record) ;
+		}
+	},
+	onBeforeEditPre: function(editor,context) {
+		if(editor._disabled){
+			return false ;
+		}
+		var actionColumn = this.down('#gridEditorPre').headerCt.down('[dataIndex="link_action"]') ;
+		this.onEditorPreActionChange(context.record.get('link_action')) ;
+		this.onEditorPreTemplateChange(context.record.get('link_tpl')) ;
+	},
+	onEditorPreActionChange: function(selectedAction) {
+		// Load appropriate templates
+		var templatesData = [],
+			templateColumn = this.down('#gridEditorPre').headerCt.down('[dataIndex="link_tpl"]'),
+			templateEditor = Ext.clone( templateColumn.editorTpl ) ;
+			
+		//var editorComponent = this.down('#gridEditorSteps').getPlugin('rowediting').getEditor() ;
+		if( selectedAction == 'CALL_OUT' ) {
+			templatesData.push({_empty:true,tpl_id:'_',tpl_name:'- Pas de courrier -'});
+		}
+		
+		var length = 0 ;
+		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getTemplateAll(), function(templateRow) {
+			if( templateRow.tpl_group == selectedAction ) {
+				templatesData.push(templateRow) ;
+				length++ ;
+			}
+		}) ;
+		if( length<1 ) {
+			templateColumn.setEditor(null);
+		} else {
+			templateEditor.store.data = templatesData ;
+			templateColumn.setEditor(templateEditor) ;
+		}
+		if( templateColumn.getEditor().el ) {
+			this.down('#gridEditorPre').getPlugin('rowediting').getEditor().syncFieldWidth(templateColumn) ; // HACK
+		}
+	},
+	onEditorPreTemplateChange: function(selectedTemplate) {
+		var mailmodesColumn = this.down('#gridEditorPre').headerCt.down('[dataIndex="mail_modes_json"]'),
+			mailmodesEditor = Ext.clone( mailmodesColumn.editorTpl ) ;
+		if( Ext.isEmpty(selectedTemplate) || selectedTemplate=='_' ) {
+			mailmodesColumn.setEditor(null);
+		} else {
+			mailmodesColumn.setEditor(mailmodesEditor) ;
+		}
+		if( mailmodesColumn.getEditor().el ) {
+			this.down('#gridEditorPre').getPlugin('rowediting').getEditor().syncFieldWidth(mailmodesColumn) ; // HACK
+		}
+	},
+	handleNewPre: function() {
+		var stepGrid = this.down('#gridEditorPre') ;
+		if( stepGrid.getPlugin('rowediting')._disabled ) {
+			return ;
+		}
+		var newRecords = stepGrid.getStore().add( Ext.create('RsiRecouveoConfigScenarioPreEditModel',{
+			_phantom: true
+		}) ) ;
+		stepGrid.getPlugin('rowediting').startEdit(newRecords[0]) ;
+	},
+	handleDeletePre: function() {
+		var stepGrid = this.down('#gridEditorPre') ;
 		if( stepGrid.getPlugin('rowediting')._disabled ) {
 			return ;
 		}

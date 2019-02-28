@@ -196,6 +196,19 @@ Ext.define('RsiRecouveoConfigScenarioStepModel',{
 		{name: 'exec_is_auto', type:'boolean'}
 	]
 });
+Ext.define('RsiRecouveoConfigScenarioPreModel',{
+	extend: 'Ext.data.Model',
+	idProperty: 'scenstep_code',
+	fields: [
+		{name: 'prestep_code', type:'string'},
+		{name: 'prestep_tag', type:'string'},
+		{name: 'prestep_daybefore', type:'int'},
+		{name: 'link_action', type:'string'},
+		{name: 'link_tpl', type:'string'},
+		{name: 'mail_modes_json', type:'string'},
+		{name: 'exec_is_auto', type:'boolean'}
+	]
+});
 Ext.define('RsiRecouveoConfigScenarioTplModel',{
 	extend: 'Ext.data.Model',
 	idProperty: 'scen_code',
@@ -566,6 +579,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 				model: 'RsiRecouveoConfigScenarioStepModel',
 				name: 'steps',
 				associationKey: 'steps'
+			},{
+				model: 'RsiRecouveoConfigScenarioPreModel',
+				name: 'presteps',
+				associationKey: 'presteps'
 			}]
 		}) ;
 		

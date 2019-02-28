@@ -222,7 +222,8 @@ function specRsiRecouveo_config_getScenarios($post_data) {
 			'balance_min' => $arr['field_BALANCE_MIN'],
 			'balance_max' => $arr['field_BALANCE_MAX'],
 			
-			'steps' => array()
+			'steps' => array(),
+			'presteps' => array()
 		) ;
 		foreach( $cfg_atr as $atr_record ) {
 			// TODO : HACK ! Migrer vers nouveau format scénario
@@ -230,7 +231,7 @@ function specRsiRecouveo_config_getScenarios($post_data) {
 		$TAB[$scen_code] = $record ;
 	}
 	
-	$query = "SELECT * FROM view_bible_SCENARIO_entry ORDER BY treenode_key, field_SCHEDULE_IDX" ;
+	$query = "SELECT * FROM view_bible_SCENARIO_entry WHERE field_SCHEDULE_IDX>'0' ORDER BY treenode_key, field_SCHEDULE_IDX" ;
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
 		$scen_code = $arr['treenode_key'] ;
@@ -249,6 +250,26 @@ function specRsiRecouveo_config_getScenarios($post_data) {
 			'exec_is_auto' => ($arr['field_EXEC_IS_AUTO']==1)
 		) ;
 		$TAB[$scen_code]['steps'][] = $record ;
+	}
+	
+	$query = "SELECT * FROM view_bible_SCENARIO_entry WHERE field_SCHEDULE_IDX='-1' ORDER BY treenode_key, field_SCHEDULE_IDX" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		$scen_code = $arr['treenode_key'] ;
+		if( !$TAB[$scen_code] ) {
+			continue ;
+		}
+		
+		$record = array(
+			'prestep_code' => $arr['field_SCENSTEP_CODE'],
+			'prestep_tag' => $arr['field_SCENSTEP_TAG'],
+			'prestep_daybefore' => (abs($arr['field_SCHEDULE_DAYSTEP'])),
+			'link_action' => $arr['field_LINK_ACTION'],
+			'link_tpl' => $arr['field_LINK_TPL'],
+			'mail_modes_json' => $arr['field_MAIL_MODES_JSON'],
+			'exec_is_auto' => ($arr['field_EXEC_IS_AUTO']==1)
+		) ;
+		$TAB[$scen_code]['presteps'][] = $record ;
 	}
 	
 	return array('success'=>true,'data'=>array_values($TAB)) ;
@@ -304,6 +325,23 @@ function specRsiRecouveo_config_setScenario( $post_data ) {
 		$arr_ins['field_EXEC_IS_AUTO'] = ($scenstep_record['exec_is_auto'] ? 1 : 0) ;
 		paracrm_lib_data_insertRecord_bibleEntry( 'SCENARIO', $arr_ins['field_SCENSTEP_CODE'], $scen_code, $arr_ins ) ;
 	}
+	
+	$cnt = 0 ;
+	foreach( $scenario_record['presteps'] as $prestep_record ) {
+		$cnt++ ;
+		
+		$arr_ins = array() ;
+		$arr_ins['field_SCENSTEP_CODE'] = $scenario_record['scen_code'].'_P_'.$prestep_record['prestep_tag'] ;
+		$arr_ins['field_SCENSTEP_TAG'] = $prestep_record['prestep_tag'] ;
+		$arr_ins['field_SCHEDULE_IDX'] = -1 ;
+		$arr_ins['field_SCHEDULE_DAYSTEP'] = (abs($prestep_record['prestep_daybefore'])*-1) ;
+		$arr_ins['field_LINK_ACTION'] = $prestep_record['link_action'] ;
+		$arr_ins['field_LINK_TPL'] = $prestep_record['link_tpl'] ;
+		$arr_ins['field_MAIL_MODES_JSON'] = $prestep_record['mail_modes_json'] ;
+		$arr_ins['field_EXEC_IS_AUTO'] = ($prestep_record['exec_is_auto'] ? 1 : 0) ;
+		paracrm_lib_data_insertRecord_bibleEntry( 'SCENARIO', $arr_ins['field_SCENSTEP_CODE'], $scen_code, $arr_ins ) ;
+	}
+	
 	return array('success'=>true) ;
 }
 
