@@ -158,14 +158,9 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 			$atr_id = $atr_record['atr_id'] ;
 			$mkey = $atr_record['atr_field'] ;
 			$value = $arr['field_'.$mkey] ;
-			if( $value && !in_array($value,$map_atrId_values[$atr_id]) ) {
-				$map_atrId_values[$atr_id][] = $value ;
+			if( $value && $atr_record['is_filter'] ) {
+				$map_atrId_values[$atr_id][$value] = TRUE ;
 			}
-			/*
-			if( $filter_atr && $filter_atr[$atr_id] && !in_array($value,$filter_atr[$atr_id]) ) {
-				continue 2 ;
-			}
-			*/
 			$record[$mkey] = $value ;
 		}
 		
@@ -282,20 +277,7 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 	
 		$record_row = array(
 			'record_filerecord_id' => $arr['filerecord_id'],
-			'acc_id' => $arr['field_LINK_ACCOUNT']
-		);
-		foreach( $cfg_atr as $atr_record ) {
-			if( $atr_record['atr_type']=='record' ) {
-				$atr_id = $atr_record['atr_id'] ;
-				$mkey = $atr_record['atr_field'] ;
-				$value = $arr['field_'.$mkey] ;
-				if( $value && !in_array($value,$map_atrId_values[$atr_id]) ) {
-					$map_atrId_values[$atr_id][] = $value ;
-				}
-				$record_row[$mkey] = $value ;
-			}
-		}
-		$record_row += array(
+			
 			'is_disabled' => $arr['field_IS_DISABLED'],
 			'is_pending' => ($curDateYMD < substr($arr['field_DATE_VALUE'],0,10)),
 			'type' => $arr['field_TYPE'],
@@ -318,6 +300,17 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 			'bank_is_alloc' => ($arr['field_BANK_LINK_FILE_ID']>0),
 			'notification_is_on' => false
 		);
+		foreach( $cfg_atr as $atr_record ) {
+			if( $atr_record['atr_type']=='record' ) {
+				$atr_id = $atr_record['atr_id'] ;
+				$mkey = $atr_record['atr_field'] ;
+				$value = $arr['field_'.$mkey] ;
+				if( $value && $atr_record['is_filter'] ) {
+					$map_atrId_values[$atr_id][$value] = TRUE ;
+				}
+				$record_row[$mkey] = $value ;
+			}
+		}
 		
 		if( !isset($TAB_files[$file_filerecord_id]) ) {
 			continue ;
@@ -535,6 +528,9 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 	}
 	unset($file_row) ;
 	
+	foreach( $map_atrId_values as $atr_id => $keys_values ) {
+		$map_atrId_values[$atr_id] = array_keys($keys_values) ;
+	}
 	return array('success'=>true, 'data'=>array_values($TAB_files), 'map_atrId_values'=>$map_atrId_values) ;
 }
 
@@ -638,6 +634,7 @@ function specRsiRecouveo_file_searchSuggest( $post_data ) {
 		);
 	}
 	
+	/*
 	$query = "SELECT acc.entry_key, acc.field_ACC_SIRET FROM view_bible_LIB_ACCOUNT_entry acc
 				WHERE acc.entry_key IN ({$sub_query_acc})
 				AND acc.field_ACC_SIRET LIKE '%{$search_txt}%'
@@ -698,6 +695,7 @@ function specRsiRecouveo_file_searchSuggest( $post_data ) {
 			'result_value' => $res_value
 		);
 	}
+	*/
 	
 	$query = "SELECT f.field_LINK_ACCOUNT, f.filerecord_id, f.field_FILE_ID, r.field_RECORD_REF
 				FROM view_file_RECORD r, view_file_RECORD_LINK rl, view_file_FILE f
@@ -724,6 +722,7 @@ function specRsiRecouveo_file_searchSuggest( $post_data ) {
 		);
 	}
 	
+	/*
 	foreach( $cfg_atr as $atr_record ) {
 		if( $atr_record['atr_type']=='record' ) {
 			$atr_id = $atr_record['atr_id'] ;
@@ -757,6 +756,7 @@ function specRsiRecouveo_file_searchSuggest( $post_data ) {
 			}
 		}
 	}
+	*/
 	
 	
 	
@@ -1391,7 +1391,7 @@ function specRsiRecouveo_file_lib_manageActivate( $acc_id, $is_new=FALSE ) {
 	
 	$targetFile_preFilerecordId = $targetFile_openFilerecordId = NULL ;
 	
-	$json = specRsiRecouveo_account_open(array('acc_id'=>$acc_id, 'filter_archiveIsOn'=>1)) ;
+	$json = specRsiRecouveo_account_open(array('acc_id'=>$acc_id)) ;
 	$account_record = $json['data'] ;
 	foreach( $account_record['files'] as $accountFile_record ) {
 		switch( $accountFile_record['status'] ) {
