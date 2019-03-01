@@ -501,20 +501,52 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 						scope: this
 					}]
 				},'->',{
-					//itemId: 'tbClose',
-					icon: 'images/op5img/ico_reload_small.gif',
-					text: 'Reload',
-					handler: function() {
-						this.doTransferLoad() ;
-					},
-					scope: this
-				},{
-					icon: 'images/op5img/ico_cancel_small.gif',
-					text: 'Close',
-					handler: function() {
-						this.setActiveTransfer(null) ;
-					},
-					scope: this
+					itemId: 'tbDoc',
+					text: 'Document',
+					hidden:false,
+					iconCls: 'op5-crmbase-qtoolbar-file',
+					viewConfig: {forceFit: true},
+					menu: [{
+						//itemId: 'tbClose',
+						icon: 'images/op5img/ico_reload_small.gif',
+						text: 'Reload',
+						handler: function() {
+							this.doTransferLoad() ;
+						},
+						scope: this
+					},{
+						icon: 'images/op5img/ico_cancel_small.gif',
+						text: 'Close',
+						handler: function() {
+							this.setActiveTransfer(null) ;
+						},
+						scope: this
+					},'-',{
+						itemId: 'reopen',
+						text: 'Reopen',
+						icon: 'images/op5img/ico_arrow-double_16.png',
+						handler: function() {
+							this.handleReopenDoc() ;
+						},
+						scope: this
+					},{
+						itemId: 'rename',
+						text: 'Rename',
+						iconCls: 'op5-crmbase-qtoolbar-file-save',
+						handler: function() {
+							this.handleRenameDoc() ;
+						},
+						scope: this
+					},{
+						itemId: 'delete',
+						text: 'Delete doc.',
+						iconCls: 'op5-crmbase-qtoolbar-file-delete',
+						handler: function() {
+							var transferFilerecordId = this._activeTransferRecord.get('transfer_filerecord_id') ;
+							this.handleDeleteDoc( transferFilerecordId ) ;
+						},
+						scope: this
+					}]
 				}],
 				items: [{
 					xtype: 'component',
@@ -658,26 +690,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 			return ;
 		}
 		
-		var gridContextMenuItems = new Array() ;
-		gridContextMenuItems.push({
-			iconCls: 'icon-bible-delete',
-			text: 'Delete <b>'+selRecord.get('display_txt')+'</b> doc',
-			handler : function() {
-				this.handleDeleteDoc( selRecord.get('transfer_filerecord_id') ) ;
-			},
-			scope : this
-		});
-		
-		var gridContextMenu = Ext.create('Ext.menu.Menu',{
-			items : gridContextMenuItems,
-			listeners: {
-				hide: function(menu) {
-					Ext.defer(function(){menu.destroy();},10) ;
-				}
-			}
-		}) ;
-		
-		gridContextMenu.showAt(event.getXY());
+		return ;
 	},
 	
 	
@@ -796,7 +809,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 		if( !transferFilerecordId ) {
 			this._activeTransferRecord = null ;
 			
-			pTransfers.getSelectionModel().setLocked(false) ;
+			//pTransfers.getSelectionModel().setLocked(false) ;
 			pTransfers.getSelectionModel().deselectAll() ;
 			
 			pCenter.removeAll() ;
@@ -808,8 +821,26 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 			pCenter.down('toolbar').setVisible(false) ;
 			return ;
 		}
-		pTransfers.getSelectionModel().setLocked(true) ;
-		this.doTransferLoad( transferFilerecordId, true ) ;
+		//pTransfers.getSelectionModel().setLocked(true) ;
+		
+		var activeTabIndex = null,
+			tabpanel = this.down('#pCenter').down('tabpanel') ;
+		if( tabpanel ) {
+			var activeTab = tabpanel.getActiveTab();
+			var activeTabIndex = tabpanel.items.indexOf(activeTab);
+		}
+		this.doTransferLoad( transferFilerecordId, true, activeTabIndex ) ;
+	},
+	setActiveTransferTxt: function(transferFilerecordId, transferTxt) { // HACK?
+		var pTransfers = this.down('#pTransfers'),
+			pTransfersSelection = pTransfers.getSelectionModel().getSelection() ;
+		if( pTransfersSelection.length==1 && pTransfersSelection[0].get('type')=='transfer' 
+			&& pTransfersSelection[0].get('transfer_filerecord_id')==transferFilerecordId ) {
+			
+			pTransfersSelection[0].set('display_txt',transferTxt) ;
+			pTransfersSelection[0].commit() ;
+			pTransfers.getView().refresh() ;
+		}
 	},
 	setActiveTransferIcon: function(transferFilerecordId, iconUrl) { // HACK?
 		var pTransfers = this.down('#pTransfers'),
@@ -822,7 +853,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 		}
 	},
 	
-	doTransferLoad: function( transferFilerecordId=null, doBuildTabs=false ) {
+	doTransferLoad: function( transferFilerecordId=null, doBuildTabs=false, setActiveTab=null ) {
 		if( !transferFilerecordId && this._activeTransferRecord ) {
 			transferFilerecordId = this._activeTransferRecord.get('transfer_filerecord_id') ;
 			return this.doTransferLoad(transferFilerecordId,doBuildTabs);
@@ -842,7 +873,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 				if( ajaxResponse.data.length != 1 ) {
 					return this.onTransferLoad(null);
 				}
-				this.onTransferLoad(ajaxResponse.data[0],doBuildTabs) ;
+				this.onTransferLoad(ajaxResponse.data[0],doBuildTabs,setActiveTab) ;
 			},
 			callback: function() {
 				this.hideLoadmask() ;
@@ -851,7 +882,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 		}) ;
 		
 	},
-	onTransferLoad: function( transferRow, doBuildTabs=false ) {
+	onTransferLoad: function( transferRow, doBuildTabs=false, setActiveTab ) {
 		if( !transferRow ) {
 			return this.setActiveTransfer(null);
 		}
@@ -865,12 +896,12 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 		) ;
 		
 		if( doBuildTabs ) {
-			this.buildTabs() ;
+			this.buildTabs(setActiveTab) ;
 		} else {
 			this.refreshTabs() ;
 		}
 	},
-	buildTabs: function() {
+	buildTabs: function(setActiveTab) {
 		if( !this._activeTransferRecord ) {
 			return this.setActiveTransfer(null);
 		}
@@ -990,7 +1021,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 		})
 		pCenter.down('toolbar').setVisible(true) ;
 		// select first tab ?
-		pCenter.down('tabpanel').setActiveTab(0) ;
+		pCenter.down('tabpanel').setActiveTab(setActiveTab||0) ;
 		this.updateCenterToolbar() ;
 		
 	},
@@ -1442,7 +1473,66 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 	
 	
 	
-	handleDeleteDoc: function(transferFilerecordId) {
+	handleReopenDoc: function(transferTxtNew=null) {
+		if( !this._activeTransferRecord ) {
+			return ;
+		}
+		var transferFilerecordId = this._activeTransferRecord.get('transfer_filerecord_id') ;
+		var ajaxParams = {
+			_moduleId: 'spec_dbs_lam',
+			_action: 'transfer_reopenDoc',
+			transfer_filerecordId: transferFilerecordId
+		} ;
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: ajaxParams,
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					Ext.MessageBox.alert('Error','Error') ;
+					return ;
+				}
+			},
+			scope: this
+		}) ;
+	},
+	handleRenameDoc: function(transferTxtNew=null) {
+		if( !this._activeTransferRecord ) {
+			return ;
+		}
+		var transferFilerecordId = this._activeTransferRecord.get('transfer_filerecord_id'),
+			transferTxt = this._activeTransferRecord.get('transfer_txt') ;
+		if( !transferTxtNew ) {
+			Ext.Msg.prompt('Rename','Set new document name :', function(btn, text){
+				if (btn == 'ok'){
+					this.handleRenameDoc(text) ;
+				}
+			},this,false,transferTxt) ;
+			return ;
+		}
+		var ajaxParams = {
+			_moduleId: 'spec_dbs_lam',
+			_action: 'transfer_renameDoc',
+			transfer_filerecordId: transferFilerecordId,
+			transfer_txt: transferTxtNew
+		} ;
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: ajaxParams,
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					Ext.MessageBox.alert('Error','Error') ;
+					return ;
+				}
+				this.setActiveTransferTxt(transferFilerecordId,transferTxtNew) ;
+			},
+			scope: this
+		}) ;
+	},
+	handleDeleteDoc: function() {
+		if( !this._activeTransferRecord ) {
+			return ;
+		}
+		var transferFilerecordId = this._activeTransferRecord.get('transfer_filerecord_id') ;
 		var ajaxParams = {
 			_moduleId: 'spec_dbs_lam',
 			_action: 'transfer_deleteDoc',

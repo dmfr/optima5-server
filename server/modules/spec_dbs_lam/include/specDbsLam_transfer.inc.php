@@ -3,7 +3,7 @@
 function specDbsLam_transfer_getTransfer($post_data) {
 	global $_opDB ;
 	
-	$closed_dateTouch = date('Y-m-d',strtotime('-3 days')) ;
+	$closed_dateTouch = date('Y-m-d',strtotime('-1 day')) ;
 	
 	if( $post_data['filter_transferFilerecordId'] ) {
 		specDbsLam_transfer_lib_updateStatus($post_data['filter_transferFilerecordId']) ;
@@ -975,6 +975,28 @@ function specDbsLam_transfer_createDoc($post_data) {
 	return array('success'=>true, 'debug'=>$form_data) ;
 }
 
+function specDbsLam_transfer_reopenDoc($post_data) {
+	global $_opDB ;
+	
+	$transfer_filerecordId = $post_data['transfer_filerecordId'] ;
+	
+	$arr_update = array() ;
+	$arr_update['field_DATE_TOUCH'] = date('Y-m-d H:i:s') ;
+	paracrm_lib_data_updateRecord_file('TRANSFER',$arr_update,$transfer_filerecordId) ;
+	
+	return array('success'=>true) ;
+}
+function specDbsLam_transfer_renameDoc($post_data) {
+	global $_opDB ;
+	
+	$transfer_filerecordId = $post_data['transfer_filerecordId'] ;
+	
+	$arr_update = array() ;
+	$arr_update['field_TRANSFER_TXT'] = $post_data['transfer_txt'] ;
+	paracrm_lib_data_updateRecord_file('TRANSFER',$arr_update,$transfer_filerecordId) ;
+	
+	return array('success'=>true) ;
+}
 function specDbsLam_transfer_deleteDoc($post_data) {
 	global $_opDB ;
 	

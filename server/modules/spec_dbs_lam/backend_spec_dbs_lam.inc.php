@@ -62,6 +62,10 @@ switch( $post_data['_action'] )
 	return specDbsLam_transfer_printDoc( $post_data ) ;
 	case 'transfer_createDoc' :
 	return specDbsLam_transfer_createDoc( $post_data ) ;
+	case 'transfer_reopenDoc' :
+	return specDbsLam_transfer_reopenDoc( $post_data ) ;
+	case 'transfer_renameDoc' :
+	return specDbsLam_transfer_renameDoc( $post_data ) ;
 	case 'transfer_deleteDoc' :
 	return specDbsLam_transfer_deleteDoc( $post_data ) ;
 	

@@ -270,7 +270,7 @@ function specDbsLam_transferInput_setPdaSpec($post_data) {
 function specDbsLam_transferInput_getDocuments($post_data) {
 	global $_opDB ;
 	
-	$closed_dateTouch = date('Y-m-d',strtotime('-3 days')) ;
+	$closed_dateTouch = date('Y-m-d',strtotime('-1 day')) ;
 	
 	$TAB = array() ;
 	$query = "SELECT ts.filerecord_id as transferstep_filerecord_id
