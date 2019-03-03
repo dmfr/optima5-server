@@ -98,6 +98,34 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferInnerStepPanel',{
 			},{
 				text: '<b>SKU details</b>',
 				columns: [{
+					dataIndex: 'soc_code',
+					text: 'Soc',
+					resizable: false,
+					editorTplNew: {
+								xtype: 'combobox',
+								anchor: '100%',
+								forceSelection:true,
+								allowBlank:false,
+								editable:false,
+								queryMode: 'local',
+								displayField: 'soc_txt',
+								valueField: 'soc_code',
+								fieldStyle: 'text-transform:uppercase',
+								store: {
+									model: 'DbsLamCfgContainerTypeModel',
+									data: Ext.Array.merge(Optima5.Modules.Spec.DbsLam.HelperCache.getSocAll()),
+									proxy: {
+										type: 'memory'
+									},
+									listeners: {
+										scope: this
+									}
+								},
+								listeners: {
+									scope: this
+								}
+					}
+				},{
 					dataIndex: 'container_type',
 					text: 'Cont/Ref',
 					width: 100,
@@ -164,6 +192,19 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferInnerStepPanel',{
 										}
 									}),
 									listeners: {
+										beforeload: function(store,options) {
+											var colSoc = this.headerCt.down('[dataIndex="soc_code"]'),
+												editorSoc = colSoc.getEditor() ;
+											
+											var params = options.getParams() ;
+											if( editorSoc ) {
+												socCode = editorSoc.getValue() ;
+												Ext.apply(params,{
+													soc_code: socCode
+												}) ;
+											}
+											options.setParams(params) ;
+										},
 										scope: this
 									}
 								},
@@ -311,6 +352,13 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferInnerStepPanel',{
 		this.callParent() ;
 		this.initInner() ;
 		this.setTitle( this.getInnerTitle() ) ;
+		
+		var transferRecord = this.getActiveTransferRecord() ;
+		if( transferRecord && !transferRecord.get('soc_is_multi') ) {
+			//HACK
+			this.headerCt.down('[dataIndex="soc_code"]').setWidth(0) ;
+			//this.headerCt.down('[dataIndex="soc_code"]').hide() ;
+		}
 	},
 	
 	refreshData: function() {
@@ -454,7 +502,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferInnerStepPanel',{
 			values = context.newValues ;
 		
 		var skuData_obj = {
-			"soc_code":prodRecord.get('prod_soc'),
+			"soc_code": Ext.isEmpty(values.soc_code) ? prodRecord.get('prod_soc') : values.soc_code,
 			"stk_prod":prodRecord.get('id'),
 			"stk_batch":'',
 			"stk_sn":'',
@@ -613,9 +661,13 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferInnerStepPanel',{
 			return ;
 		}
 		
-		
+		var transferRecord = this.getActiveTransferRecord() ;
+		if( !transferRecord ) {
+			return ;
+		}
 		var news = this.getStore().insert(0,{
-			_input_is_on: true
+			_input_is_on: true,
+			soc_code: transferRecord.get('soc_is_multi') ? null : transferRecord.get('soc_code')
 		}) ;
 		var newRecord = news[0] ;
 		this.getPlugin('pEditor').startEdit(newRecord) ;

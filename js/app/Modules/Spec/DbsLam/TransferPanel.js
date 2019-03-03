@@ -2,6 +2,7 @@ Ext.define('DbsLamTransferTreeModel',{
 	extend: 'Ext.data.Model',
 	fields: [
 		{name: 'display_txt', string: 'string'},
+		{name: 'display_soc', string: 'string'},
 		{name: 'display_date', string: 'date', allowNull:true, dateFormat:'Y-m-d'},
 		{name: 'type', type:'string'},
 		{name: 'transfer_filerecord_id', type:'int'},
@@ -9,6 +10,7 @@ Ext.define('DbsLamTransferTreeModel',{
 		{name: 'status_is_ok', type:'boolean'},
 		{name: 'status_is_alert', type:'boolean'},
 		{name: 'status_is_closed', type:'boolean'},
+		{name: 'soc_code', type:'string'},
 		{name: 'whse_src', type:'string'},
 		{name: 'whse_dest', type:'string'},
 		{name: 'flow_code', type:'string'}
@@ -173,6 +175,8 @@ Ext.define('DbsLamTransferOneModel',{
 		{name: 'transfer_txt', type:'string'},
 		{name: 'transfer_tpl', type:'string'},
 		{name: 'transfer_tpltxt', type:'string'},
+		{name: 'soc_code', type:'string'},
+		{name: 'soc_is_multi', type:'boolean'},
 		{name: 'spec_cde', type:'boolean'},
 		{name: 'status_is_on', type:'boolean'},
 		{name: 'status_is_ok', type:'boolean'},
@@ -235,7 +239,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 			},
 			items: [{
 				border: 1,
-				width: 240,
+				width: 300,
 				
 				tbar:[{
 					icon: 'images/op5img/ico_back_16.gif',
@@ -244,7 +248,19 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 						this.doQuit() ;
 					},
 					scope: this
-				},'-',{
+				},'-',Ext.create('Optima5.Modules.Spec.DbsLam.CfgParamButton',{
+					cfgParam_id: 'SOC',
+					icon: 'images/op5img/ico_blocs_small.gif',
+					text: 'Scope',
+					itemId: 'btnSoc',
+					optimaModule: this.optimaModule,
+					listeners: {
+						change: function() {
+							this.doLoadTransfers() ;
+						},
+						scope: this
+					}
+				}),{
 					itemId: 'tbCreate',
 					icon: 'images/op5img/ico_new_16.gif',
 					text: '<b>New doc.</b>',
@@ -255,7 +271,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 				},'->',{
 					xtype: 'checkbox',
 					itemId: 'chkClosed',
-					boxLabel: 'Show closed ?',
+					boxLabel: 'Closed ?',
 					listeners: {
 						change: function() {
 							this.doLoadTransfers() ;
@@ -297,11 +313,15 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 						text: 'Document ID',
 						width: 180
 					},{
+						dataIndex: 'display_soc',
+						text: 'Soc',
+						width: 70
+					},{
 						xtype: 'datecolumn',
 						format: 'd/m/Y',
 						dataIndex: 'display_date',
 						text: 'Date',
-						width: 100
+						width: 85
 					}]
 				},
 				listeners: {
@@ -571,7 +591,9 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 		var treepanel = this.down('#pTransfers'),
 			selectedNodes = treepanel.getView().getSelectionModel().getSelection(),
 			isDocSelected = (selectedNodes.length==1 && selectedNodes[0].get('type')=='transfer') ;
-		treepanel.down('toolbar').down('#tbCreate').setVisible( selectedNodes[0] && selectedNodes[0].get('type')=='_new' ) ;
+		var newMode = (selectedNodes[0] && selectedNodes[0].get('type')=='_new') ;
+		treepanel.down('toolbar').down('#tbCreate').setVisible( newMode ) ;
+		treepanel.down('toolbar').down('#btnSoc').setVisible( !newMode ) ;
 	},
 	updateCenterToolbar: function() {
 		
@@ -747,12 +769,16 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 					return ;
 				}
 				
-				var showClosed = this.down('#chkClosed').getValue() ;
+				var showClosed = this.down('#chkClosed').getValue(),
+					filterSoc = this.down('#btnSoc').getValue() ;
 				
 				var map_flowCode_rows = {} ;
 				var map_flowCode_txt = {} ;
 				Ext.Array.each( ajaxResponse.data, function(transferDocData) {
 					if( !showClosed && transferDocData.status_is_closed ) {
+						return ;
+					}
+					if( !Ext.isEmpty(filterSoc) && (transferDocData.soc_code!=filterSoc) ) {
 						return ;
 					}
 					var transferRecord = Ext.ux.dams.ModelManager.create('DbsLamTransferOneModel',transferDocData),
@@ -765,6 +791,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 					Ext.apply(row,{
 						icon: this.doLoadTransfers_tool_getIconUrl(transferDoc),
 						display_txt: transferDoc.transfer_txt,
+						display_soc: (transferDoc.soc_is_multi ? '<i>multi</i>' : transferDoc.soc_code),
 						display_date: transferDoc.date_touch
 					}) ;
 					
