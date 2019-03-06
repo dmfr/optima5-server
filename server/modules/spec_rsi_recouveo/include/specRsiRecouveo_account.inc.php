@@ -163,7 +163,7 @@ function specRsiRecouveo_account_open( $post_data ) {
 			$existing_ids[] = $accFileRecord_record['record_filerecord_id'] ;
 		}
 	}
-	$query = "SELECT * FROM view_file_RECORD r
+	$query = "SELECT r.* FROM view_file_RECORD r
 		LEFT OUTER JOIN view_file_RECORD_LINK rl ON rl.filerecord_parent_id=r.filerecord_id AND rl.field_LINK_IS_ON='1'
 		WHERE field_LINK_ACCOUNT='{$p_accId}' AND rl.filerecord_id IS NULL" ;
 	if( $p_atrFilter ) {

@@ -89,7 +89,7 @@ function specRsiRecouveo_lib_autorun_open() {
 		}
 		
 		
-		specRsiRecouveo_file_lib_managePre($account_record['acc_id']) ;
+		//specRsiRecouveo_file_lib_managePre($account_record['acc_id']) ;
 		specRsiRecouveo_file_lib_manageActivate($account_record['acc_id'],$_is_new) ;
 		specRsiRecouveo_account_lib_checkAdrStatus($account_record['acc_id']) ;
 	}
@@ -111,7 +111,7 @@ function specRsiRecouveo_lib_autorun_manageActivate() {
 	}
 	
 	foreach( $arr_acc as $acc_id ) {
-		specRsiRecouveo_file_lib_managePre($acc_id) ;
+		//specRsiRecouveo_file_lib_managePre($acc_id) ;
 		specRsiRecouveo_file_lib_manageActivate($acc_id) ;
 	}
 }
