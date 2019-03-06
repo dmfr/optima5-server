@@ -1692,6 +1692,15 @@
             "gmap_is_on": "N"
         },
         {
+            "file_code": "FILE_SUB",
+            "file_parent_code": "FILE",
+            "file_iconfile": "ico_filechild_16.gif",
+            "file_lib": "SS-Groupe",
+            "file_type": "",
+            "file_specdata": "",
+            "gmap_is_on": "N"
+        },
+        {
             "file_code": "IN_POSTAL",
             "file_parent_code": "",
             "file_iconfile": "ico_showref_listall.gif",
@@ -2645,7 +2654,7 @@
         {
             "file_code": "FILE_ACTION",
             "entry_field_code": "LINK_AGREE_JSON",
-            "entry_field_index": "17",
+            "entry_field_index": "18",
             "entry_field_lib": "Cfg promesse JSON",
             "entry_field_type": "stringplus",
             "entry_field_linktype": "",
@@ -2658,7 +2667,7 @@
         {
             "file_code": "FILE_ACTION",
             "entry_field_code": "LINK_CLOSE",
-            "entry_field_index": "16",
+            "entry_field_index": "17",
             "entry_field_lib": "Close code",
             "entry_field_type": "string",
             "entry_field_linktype": "",
@@ -2671,7 +2680,7 @@
         {
             "file_code": "FILE_ACTION",
             "entry_field_code": "LINK_ENV_ID",
-            "entry_field_index": "11",
+            "entry_field_index": "12",
             "entry_field_lib": "Envelope ID",
             "entry_field_type": "extid",
             "entry_field_linktype": "",
@@ -2683,8 +2692,21 @@
         },
         {
             "file_code": "FILE_ACTION",
+            "entry_field_code": "LINK_FILESUB_ID",
+            "entry_field_index": "10",
+            "entry_field_lib": "Link subfile(prerelance)",
+            "entry_field_type": "extid",
+            "entry_field_linktype": "",
+            "entry_field_linkbible": "",
+            "entry_field_is_header": "O",
+            "entry_field_is_highlight": "O",
+            "entry_field_is_mandatory": "",
+            "entry_field_is_primarykey": ""
+        },
+        {
+            "file_code": "FILE_ACTION",
             "entry_field_code": "LINK_JUDIC",
-            "entry_field_index": "15",
+            "entry_field_index": "16",
             "entry_field_lib": "Judic code",
             "entry_field_type": "string",
             "entry_field_linktype": "",
@@ -2697,7 +2719,7 @@
         {
             "file_code": "FILE_ACTION",
             "entry_field_code": "LINK_LITIG",
-            "entry_field_index": "14",
+            "entry_field_index": "15",
             "entry_field_lib": "Litig code",
             "entry_field_type": "string",
             "entry_field_linktype": "",
@@ -2710,7 +2732,7 @@
         {
             "file_code": "FILE_ACTION",
             "entry_field_code": "LINK_MAILIN",
-            "entry_field_index": "13",
+            "entry_field_index": "14",
             "entry_field_lib": "Code MAIL IN",
             "entry_field_type": "string",
             "entry_field_linktype": "",
@@ -2723,7 +2745,7 @@
         {
             "file_code": "FILE_ACTION",
             "entry_field_code": "LINK_MEDIA_FILECODE",
-            "entry_field_index": "19",
+            "entry_field_index": "20",
             "entry_field_lib": "Media, file code",
             "entry_field_type": "string",
             "entry_field_linktype": "",
@@ -2736,7 +2758,7 @@
         {
             "file_code": "FILE_ACTION",
             "entry_field_code": "LINK_MEDIA_FILEID",
-            "entry_field_index": "20",
+            "entry_field_index": "21",
             "entry_field_lib": "Media, file ID",
             "entry_field_type": "extid",
             "entry_field_linktype": "",
@@ -2749,7 +2771,7 @@
         {
             "file_code": "FILE_ACTION",
             "entry_field_code": "LINK_NEW_FILE_ID",
-            "entry_field_index": "10",
+            "entry_field_index": "11",
             "entry_field_lib": "Link child file",
             "entry_field_type": "extid",
             "entry_field_linktype": "",
@@ -2788,7 +2810,7 @@
         {
             "file_code": "FILE_ACTION",
             "entry_field_code": "LINK_TPL",
-            "entry_field_index": "12",
+            "entry_field_index": "13",
             "entry_field_lib": "TPL ID",
             "entry_field_type": "string",
             "entry_field_linktype": "",
@@ -2801,7 +2823,7 @@
         {
             "file_code": "FILE_ACTION",
             "entry_field_code": "LINK_TXT",
-            "entry_field_index": "18",
+            "entry_field_index": "19",
             "entry_field_lib": "Lien (texte)",
             "entry_field_type": "string",
             "entry_field_linktype": "",
@@ -2856,6 +2878,45 @@
             "entry_field_index": "8",
             "entry_field_lib": "Observation",
             "entry_field_type": "stringplus",
+            "entry_field_linktype": "",
+            "entry_field_linkbible": "",
+            "entry_field_is_header": "O",
+            "entry_field_is_highlight": "O",
+            "entry_field_is_mandatory": "",
+            "entry_field_is_primarykey": ""
+        },
+        {
+            "file_code": "FILE_SUB",
+            "entry_field_code": "FILESUB_DATEVALUE",
+            "entry_field_index": "2",
+            "entry_field_lib": "Date value",
+            "entry_field_type": "date",
+            "entry_field_linktype": "",
+            "entry_field_linkbible": "",
+            "entry_field_is_header": "O",
+            "entry_field_is_highlight": "O",
+            "entry_field_is_mandatory": "",
+            "entry_field_is_primarykey": ""
+        },
+        {
+            "file_code": "FILE_SUB",
+            "entry_field_code": "FILESUB_IS_VOID",
+            "entry_field_index": "3",
+            "entry_field_lib": "Void ?",
+            "entry_field_type": "bool",
+            "entry_field_linktype": "",
+            "entry_field_linkbible": "",
+            "entry_field_is_header": "O",
+            "entry_field_is_highlight": "O",
+            "entry_field_is_mandatory": "",
+            "entry_field_is_primarykey": ""
+        },
+        {
+            "file_code": "FILE_SUB",
+            "entry_field_code": "FILESUB_TXT",
+            "entry_field_index": "1",
+            "entry_field_lib": "Description",
+            "entry_field_type": "string",
             "entry_field_linktype": "",
             "entry_field_linkbible": "",
             "entry_field_is_header": "O",
@@ -3386,7 +3447,7 @@
         {
             "file_code": "RECORD_LINK",
             "entry_field_code": "DATE_LINK_OFF",
-            "entry_field_index": "4",
+            "entry_field_index": "5",
             "entry_field_lib": "Date fin",
             "entry_field_type": "date",
             "entry_field_linktype": "",
@@ -3399,7 +3460,7 @@
         {
             "file_code": "RECORD_LINK",
             "entry_field_code": "DATE_LINK_ON",
-            "entry_field_index": "3",
+            "entry_field_index": "4",
             "entry_field_lib": "Date d\u00e9but",
             "entry_field_type": "date",
             "entry_field_linktype": "",
@@ -3424,8 +3485,21 @@
         },
         {
             "file_code": "RECORD_LINK",
-            "entry_field_code": "LINK_IS_ON",
+            "entry_field_code": "LINK_FILESUB_ID",
             "entry_field_index": "2",
+            "entry_field_lib": "FileSub ID",
+            "entry_field_type": "extid",
+            "entry_field_linktype": "",
+            "entry_field_linkbible": "",
+            "entry_field_is_header": "O",
+            "entry_field_is_highlight": "O",
+            "entry_field_is_mandatory": "",
+            "entry_field_is_primarykey": ""
+        },
+        {
+            "file_code": "RECORD_LINK",
+            "entry_field_code": "LINK_IS_ON",
+            "entry_field_index": "3",
             "entry_field_lib": "Actif ?",
             "entry_field_type": "bool",
             "entry_field_linktype": "",

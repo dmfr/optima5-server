@@ -520,6 +520,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 				name: 'actions',
 				associationKey: 'actions'
 			},{
+				model: 'RsiRecouveoFileSubModel',
+				name: 'filesubs',
+				associationKey: 'filesubs'
+			},{
 				model: 'RsiRecouveoRecordModel'+'-'+cmpId,
 				name: 'records',
 				associationKey: 'records'

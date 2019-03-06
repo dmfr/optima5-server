@@ -1215,6 +1215,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 					return ;
 				}
 			}
+			if( fileRecord.statusIsSchedNone() ) {
+				this.onLoadAccountAddFilePreActions( fileRecord, accountRecord ) ;
+				return ;
+			}
 			this.onLoadAccountAddFileActions( fileRecord, accountRecord ) ;
 		},this) ;
 		
@@ -1450,6 +1454,383 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		if( activePanel ) {
 			this.setActiveFileId( activePanel._fileFilerecordId ) ;
 		}
+	},
+	onLoadAccountAddFilePreActions: function( fileRecord, accountRecord ) {
+		var statusMap = {} ;
+		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getStatusAll(), function(status) {
+			statusMap[status.status_id] = status ;
+		}) ;
+		
+		var actionMap = {} ;
+		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getActionAll(), function(action) {
+			actionMap[action.action_id] = action ;
+		}) ;
+		
+		var actionEtaMap = {} ;
+		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getActionEtaAll(), function(actionEta) {
+			actionEtaMap[actionEta.eta_range] = actionEta ;
+		}) ;
+		
+		
+		
+		
+		var pFileTitle = fileRecord.get('id_ref'),
+			pAccId = fileRecord.get('acc_id') ;
+		if( pFileTitle.indexOf(pAccId+'/') === 0 ) {
+			pFileTitle = pFileTitle.substring(pAccId.length+1) ;
+		}
+		var pActionsGridData = [],
+			arr_filesubFilerecordId = [],
+			map_filesubFilerecordId_datevalue = {},
+			map_filesubFilerecordId_actions = {},
+			map_filesubFilerecordId_records = {},
+			map_filesubFilerecordId_recordsCount = {},
+			map_filesubFilerecordId_recordsSum = {} ;
+		fileRecord.filesubs().sort({
+			property: 'filesub_datevalue',
+			direction: 'ASC'
+		}) ;
+		fileRecord.filesubs().each( function(filesubRecord) {
+			var filesubFilerecordId = filesubRecord.get('filesub_filerecord_id') ;
+			map_filesubFilerecordId_datevalue[filesubFilerecordId] = filesubRecord.get('filesub_datevalue') ;
+			
+			arr_filesubFilerecordId.push(filesubFilerecordId) ;
+		},this) ;
+		fileRecord.actions().each( function(fileactionRecord) {
+			var filesubFilerecordId = fileactionRecord.get('link_filesub_filerecord_id') ;
+			if( !map_filesubFilerecordId_actions.hasOwnProperty(filesubFilerecordId) ) {
+				map_filesubFilerecordId_actions[filesubFilerecordId] = [] ;
+			}
+			map_filesubFilerecordId_actions[filesubFilerecordId].push(fileactionRecord.getData()) ;
+		},this) ;
+		fileRecord.records().each( function(recordRecord) {
+			var filesubFilerecordId = recordRecord.get('link_filesub_filerecord_id') ;
+			if( !map_filesubFilerecordId_records.hasOwnProperty(filesubFilerecordId) ) {
+				map_filesubFilerecordId_records[filesubFilerecordId] = [] ;
+				map_filesubFilerecordId_recordsCount[filesubFilerecordId] = 0 ;
+				map_filesubFilerecordId_recordsSum[filesubFilerecordId] = 0 ;
+			}
+			map_filesubFilerecordId_records[filesubFilerecordId].push(recordRecord.getData()) ;
+			map_filesubFilerecordId_recordsCount[filesubFilerecordId]++ ;
+			map_filesubFilerecordId_recordsSum[filesubFilerecordId] += recordRecord.get('amount') ;
+		},this) ;
+		
+		
+		
+		console.dir(arr_filesubFilerecordId) ;
+		console.dir(map_filesubFilerecordId_datevalue) ;
+		console.dir(map_filesubFilerecordId_actions) ;
+		console.dir(map_filesubFilerecordId_records) ;
+		console.dir(map_filesubFilerecordId_recordsCount) ;
+		console.dir(map_filesubFilerecordId_recordsSum) ;
+		
+		
+		Ext.Array.each( arr_filesubFilerecordId, function(filesubFilerecordId) {
+			if( !map_filesubFilerecordId_actions.hasOwnProperty(filesubFilerecordId) ) {
+				return ;
+			}
+			if( !map_filesubFilerecordId_records.hasOwnProperty(filesubFilerecordId) ) {
+				return ;
+			}
+			var actions = map_filesubFilerecordId_actions[filesubFilerecordId] ;
+			
+			Ext.Array.sort( actions, function(o1,o2) {
+				var d1 = o1.status_is_ok ? o1.date_actual : o1.date_sched ;
+				var d2 = o2.status_is_ok ? o2.date_actual : o2.date_sched ;
+				return (d1<d2) ;
+			}) ;
+			Ext.Array.each( actions, function(o) {
+				if( !o.status_is_ok ) {
+					o.is_next = true ;
+					return false ;
+				}
+			}) ;
+			
+			var pSubfileActions = [] ;
+			Ext.Array.each( actions, function(actionRow) {
+				Ext.apply( actionRow, {
+					leaf: true,
+					icon: Ext.BLANK_IMAGE_URL
+				}) ;
+				pSubfileActions.push(actionRow) ;
+			},this) ;
+			
+			pActionsGridData.push({
+				link_status: 'S0_PRE',
+				link_action: 'BUMP',
+				
+				date_actual: map_filesubFilerecordId_datevalue[filesubFilerecordId],
+				status_is_ok: true,
+				
+				txt_short: 'Mnt:&nbsp;'+Math.round(map_filesubFilerecordId_recordsSum[filesubFilerecordId])+'&nbsp;€&nbsp;/&nbsp;Nb:&nbsp;'+map_filesubFilerecordId_recordsCount[filesubFilerecordId],
+				
+				leaf: false,
+				icon: Ext.BLANK_IMAGE_URL,
+				expanded: true,
+				expandable: false,
+				children: pSubfileActions
+			}) ;
+			
+		},this) ;
+		
+		var statusCode = fileRecord.get('status'),
+			  statusIconCls = '' ;
+		if( statusMap.hasOwnProperty(statusCode) ) {
+			var statusData = statusMap[statusCode],
+				statusColor = statusData.status_color,
+				statusColorNodash = statusColor.substring(1) ;
+			statusIconCls = 'bgcolor-'+statusColorNodash ;
+		}
+		
+		
+		var tabPanel = this.down('#tpFileActions') ;
+		tabPanel.add({
+			_fileFilerecordId: fileRecord.getId(),
+			title: pFileTitle,
+			iconCls: statusIconCls,
+			xtype: 'treepanel',
+			useArrows: true,
+			rootVisible: false,
+			_fileRecord: fileRecord,
+			_statusMap: statusMap,
+			_actionMap: actionMap,
+			_actionEtaMap: actionEtaMap,
+			hideHeaders: true,
+			columns: {
+				defaults: {
+					menuDisabled: true,
+					draggable: true,
+					sortable: false,
+					hideable: false,
+					resizable: false,
+					groupable: false,
+					lockable: false
+				},
+				items: [{
+					xtype: 'treecolumn',
+					tdCls: 'op5-spec-rsiveo-actionstree-firstcol',
+					width: 48,
+					renderer: function(value,metaData,record,rowIndex,colIndex,store,view) {
+						var outValue ;
+						var vStatus = record.get('link_status'),
+							vAction = record.get('link_action'),
+							vTag = record.get('scenstep_tag') ;
+						var statusMap = view.up('panel')._statusMap ;
+						if( statusMap.hasOwnProperty(vStatus) ) {
+							var statusData = statusMap[vStatus] ;
+							metaData.style += '; background: '+statusData.status_color ;
+						}
+						/*
+						switch( vAction ) {
+							case 'CALL_OUT' :
+								metaData.tdCls += ' op5-spec-rsiveo-actiontree-callout' ;
+								break ;
+							case 'CALL_IN' :
+								metaData.tdCls += ' op5-spec-rsiveo-actiontree-callin' ;
+								break ;
+							case 'MAIL_OUT' :
+								metaData.tdCls += ' op5-spec-rsiveo-actiontree-mailout' ;
+								break ;
+							case 'MAIL_IN' :
+								metaData.tdCls += ' op5-spec-rsiveo-actiontree-mailin' ;
+								break ;
+						}
+						*/
+						outValue = '&#160;' ;
+						if( !Ext.isEmpty(vTag) ) {
+							//outValue = vTag ;
+							metaData.style += '; font-weight: bold' ;
+						}
+						
+						
+						// Invite next action
+						var fileRecord = view.up('panel')._fileRecord ;
+						if( record.getDepth() == 2 ) {
+							if( record.get('status_is_ok') ) {
+								metaData.tdCls += ' op5-spec-rsiveo-doaction-ok' ;
+							} else if( record.get('is_next') ) {
+								metaData.tdCls += ' op5-spec-rsiveo-doaction' ;
+							} else {
+								metaData.tdCls += ' op5-spec-rsiveo-doaction-wait' ;
+							}
+						}
+						
+						return outValue ;
+					}
+				},{
+					text: 'Date',
+					align: 'center',
+					width: 80,
+					dataIndex: 'calc_date',
+					renderer: function(value,metaData,record,rowIndex,colIndex,store,view) {
+						if( !record.get('status_is_ok') ) {
+							var etaValue = record.get('calc_eta_range') ;
+							var actionEtaMap = view.up('panel')._actionEtaMap ;
+							if( actionEtaMap.hasOwnProperty(etaValue) ) {
+								var actionEtaData = actionEtaMap[etaValue] ;
+								metaData.style += '; background: '+actionEtaData.eta_color ;
+							}
+						}
+						var str = Ext.Date.format(Ext.Date.parse(value,'Y-m-d'),'d/m/y') ;
+						if( record.getDepth() == 1 ) {
+							metaData.style += 'font-weight: bold ; color: blue' ;
+						}
+						return str ;
+					}
+				},{
+					width: 24,
+					renderer: function(value,metaData,record,rowIndex,colIndex,store,view) {
+						var outValue ;
+						var vStatus = record.get('link_status'),
+							vAction = record.get('link_action'),
+							vTag = record.get('scenstep_tag') ;
+						dance:
+						while(true) {
+							switch( vAction ) {
+								case 'CALL_OUT' :
+									metaData.tdCls += ' op5-spec-rsiveo-actiontree-callout' ;
+									break dance ;
+								case 'MAIL_OUT' :
+									metaData.tdCls += ' op5-spec-rsiveo-actiontree-mailout' ;
+									break dance ;
+								default :
+									break ;
+							}
+							break ;
+						}
+						return '' ;
+					}
+				},{
+					dataIndex: 'txt_short',
+					flex: 1,
+					maxWidth: 250,
+					renderer: function(value,metaData,record,rowIndex,colIndex,store,view) {
+						while( true ) {
+							var txt ;
+							
+							if( !Ext.isEmpty(value) ) {
+								var arrV = value.split( Ext.util.Format.nl2brRe ) ;
+								arrV[0] = '<b>'+arrV[0]+'</b>' ;
+								txt = arrV.join('<br/>') ;
+								break ;
+							}
+						
+							var vAction = record.get('link_action'),
+								actionMap = view.up('panel')._actionMap ;
+							if( actionMap.hasOwnProperty(vAction) ) {
+								txt = '' ;
+								if( !Ext.isEmpty(record.get('scenstep_tag')) ) {
+									txt+= '<b>'+record.get('scenstep_tag')+'</b>'+'&#160;'+':'+'&#160;' ;
+								}
+								var actionData = actionMap[vAction] ;
+								txt+= '<b>'+actionData.action_txt+'</b>' ;
+								
+								break ;
+							}
+							
+							txt = '?' ;
+							break ;
+						}
+						if( !record.get('status_is_ok') ) {
+							return '<i>'+Ext.util.Format.stripTags(txt)+'</i>' ;
+						}
+						return txt ;
+					}
+				},{
+					align: 'center',
+					xtype:'actioncolumn',
+					width:32,
+					disabledCls: 'x-item-invisible',
+					items: [{
+						icon: 'images/op5img/ico_pdf_16.png',
+						tooltip: 'Vue PDF',
+						handler: function(grid, rowIndex, colIndex, item, e) {
+							var rec = grid.getStore().getAt(rowIndex);
+							if( rec.get('link_env_filerecord_id') ) {
+								this.openEnvelope(rec.get('link_env_filerecord_id')) ;
+							}
+							switch( rec.get('link_media_file_code') ) {
+								case 'IN_POSTAL' :
+									this.openMedia(rec.get('link_media_file_code'),rec.get('link_media_filerecord_id')) ;
+									break ;
+								default :
+									break ;
+							}
+						},
+						scope: this,
+						disabledCls: 'x-item-invisible',
+						isDisabled: function(view,rowIndex,colIndex,item,record ) {
+							var passed = false ;
+							if( record.get('link_env_filerecord_id') ) {
+								passed = true ;
+							}
+							switch( record.get('link_media_file_code') ) {
+								case 'IN_POSTAL' :
+									passed = true ;
+									break ;
+								default :
+									break ;
+							}
+							return !passed ;
+						}
+					},{
+						icon: 'images/modules/rsiveo-mail-email-16.png',
+						tooltip: 'Email',
+						handler: function(grid, rowIndex, colIndex, item, e) {
+							var rec = grid.getStore().getAt(rowIndex);
+							if( rec.get('link_media_file_code') == 'EMAIL' ) {
+								var emailFilerecordId = rec.get('link_media_filerecord_id') ;
+								this.openEmail(emailFilerecordId) ;
+							}
+						},
+						scope: this,
+						disabledCls: 'x-item-invisible',
+						isDisabled: function(view,rowIndex,colIndex,item,record ) {
+							var passed = false ;
+							switch( record.get('link_media_file_code') ) {
+								case 'EMAIL' :
+									passed = true ;
+									break ;
+								default :
+									break ;
+							}
+							return !passed ;
+						}
+					}]
+				}]
+			},
+			viewConfig: {
+				enableTextSelection: true,
+				getRowClass: function(record) {
+					if( record.getDepth() == 2 ) {
+						return 'op5-spec-rsiveo-actionstree-depth2' ;
+					}
+				}
+			},
+			store: {
+				model: 'RsiRecouveoFileActionPreModel',
+				root: {root: true, fileaction_filerecord_id:0, expanded: true, children:pActionsGridData},
+				proxy: {
+					type: 'memory',
+					reader: {
+						type: 'json'
+					}
+				}
+			},
+			listeners: {
+				itemclick: function( view, record, itemNode, index, e ) {
+					var cellNode = e.getTarget( view.getCellSelector() ),
+						cellColumn = view.getHeaderByCell( cellNode ),
+						fileRecord = view.up('panel')._fileRecord ;
+					if( cellColumn instanceof Ext.tree.Column
+						&& fileRecord.get('next_fileaction_filerecord_id') == record.get('fileaction_filerecord_id') ) {
+
+						this.doNextAction( fileRecord, record.get('fileaction_filerecord_id'), record.get('link_action') ) ;
+					}
+				},
+				scope: this
+			}
+		});
 	},
 	onLoadAccountAddFileActions: function( fileRecord, accountRecord ) {
 		var statusMap = {} ;

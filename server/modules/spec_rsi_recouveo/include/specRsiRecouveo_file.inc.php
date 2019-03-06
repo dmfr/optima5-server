@@ -151,6 +151,7 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 			
 			'records' => array(),
 			'actions' => array(),
+			'filesubs' => array(),
 			
 			'link_user' => $arr['field_LINK_USER_LOCAL'],
 			'link_user_txt' => $arr['user_fullname'],
@@ -232,6 +233,8 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 			'scenstep_code' => $arr['field_LINK_SCENARIO'],
 			'scenstep_tag' => $arr['field_SCENSTEP_TAG'],
 			
+			'link_filesub_filerecord_id' => ($arr['field_LINK_FILESUB_ID'] > 0 ? $arr['field_LINK_FILESUB_ID'] : null),
+			
 			'link_newfile_filerecord_id' => ($arr['field_LINK_NEW_FILE_ID'] > 0 ? $arr['field_LINK_NEW_FILE_ID'] : null),
 			'link_env_filerecord_id' => ($arr['field_LINK_ENV_ID'] > 0 ? $arr['field_LINK_ENV_ID'] : null),
 			'link_media_file_code' => ($arr['field_LINK_MEDIA_FILECODE'] ? $arr['field_LINK_MEDIA_FILECODE'] : null),
@@ -250,7 +253,54 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 	}
 	
 	
-	$query = "SELECT f.filerecord_id AS file_filerecord_id, r.*" ;
+	$query = "SELECT fs.* FROM view_file_FILE_SUB fs" ;
+	$query.= " JOIN view_file_FILE f ON f.filerecord_id=fs.filerecord_parent_id" ;
+	$query.= " JOIN view_bible_LIB_ACCOUNT_entry la ON la.entry_key = f.field_LINK_ACCOUNT" ;
+	$query.= " WHERE 1" ;
+	if( isset($filter_fileFilerecordId_list) ) {
+		$query.= " AND f.filerecord_id IN {$filter_fileFilerecordId_list}" ;
+		if( $filter_archiveIsOff ) {
+			$query.= " AND f.field_STATUS_CLOSED_VOID='0' AND f.field_STATUS_CLOSED_END='0'" ;
+		}
+	} else {
+		if( $filter_atr ) {
+			foreach( $cfg_atr as $atr_record ) {
+				$atr_id = $atr_record['atr_id'] ;
+				$atr_dbfield = 'field_'.$atr_record['atr_field'] ;
+				switch( $atr_record['atr_type'] ) {
+					case 'account' : $atr_dbalias='la' ; break ;
+					case 'record' : $atr_dbalias='f' ; break ;
+					default : continue 2 ;
+				}
+				if( $filter_atr[$atr_id] ) {
+					$mvalue = $filter_atr[$atr_id] ;
+					$query.= " AND {$atr_dbalias}.{$atr_dbfield} IN ".$_opDB->makeSQLlist($mvalue) ;
+				}
+			}
+		}
+		if( !$filter_archiveIsOn ) {
+			$query.= " AND f.field_STATUS_CLOSED_VOID='0' AND f.field_STATUS_CLOSED_END='0'" ;
+		} else {
+			$query.= " AND f.field_STATUS_CLOSED_VOID='0'" ;
+		}
+	}
+	$query. " ORDER BY fs.filerecord_id ASC" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		if( !isset($TAB_files[$arr['filerecord_parent_id']]) ) {
+			continue ;
+		}
+		$TAB_files[$arr['filerecord_parent_id']]['filesubs'][] = array(
+			'filesub_filerecord_id' => $arr['filerecord_id'],
+			
+			'filesub_txt' => $arr['field_FILESUB_TXT'],
+			'filesub_datevalue' => $arr['field_FILESUB_DATEVALUE'],
+			'filesub_is_void' => ($arr['field_FILESUB_IS_VOID']==1)
+		);
+	}
+	
+	
+	$query = "SELECT f.filerecord_id AS file_filerecord_id, r.*, rl.field_LINK_FILESUB_ID as link_filesub_filerecord_id" ;
 	$query.= " FROM view_file_FILE f" ;
 	$query.= " JOIN view_file_RECORD_LINK rl ON rl.field_LINK_FILE_ID=f.filerecord_id AND rl.field_LINK_IS_ON='1'" ;
 	$query.= " JOIN view_file_RECORD r ON r.filerecord_id=rl.filerecord_parent_id" ;
@@ -322,6 +372,10 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 				}
 				$record_row[$mkey] = $value ;
 			}
+		}
+		
+		if( $arr['link_filesub_filerecord_id'] > 0 ) {
+			$record_row['link_filesub_filerecord_id'] = $arr['link_filesub_filerecord_id'] ;
 		}
 		
 		if( !isset($TAB_files[$file_filerecord_id]) ) {
@@ -1392,6 +1446,199 @@ function specRsiRecouveo_file_lib_updateStatus( $acc_id ) {
 }
 
 
+function specRsiRecouveo_file_lib_managePre( $acc_id ) {
+	global $_opDB ;
+	
+	$json = specRsiRecouveo_config_getScenarios(array()) ;
+	$data_scenarios = $json['data'] ;
+	
+	$json = specRsiRecouveo_account_open(array('acc_id'=>$acc_id, 'filter_archiveIsOff'=>true)) ;
+	$account_row = $json['data'] ;
+	foreach( $account_row['files'] as $accountFile_row ) {
+		$file_filerecord_id = $accountFile_row['file_filerecord_id'] ;
+		if( $accountFile_row['status'] != 'S0_PRE' ) {
+			continue ;
+		}
+		if( $accountFile_row['status_closed_void'] || $accountFile_row['status_closed_end'] ) {
+			continue ;
+		}
+		
+		$map_recordFilerecordId_dateValue = array() ;
+		$map_recordFilerecordId_subfileFilerecordId = array() ;
+		$map_subfileFilerecordId_recordIds = array(0=>array()) ;
+		$map_subfileFilerecordId_dateValue = array() ;
+		
+		
+		foreach( $accountFile_row['filesubs'] as $filesub_row ) {
+			if( $filesub_row['filesub_is_void'] ) {
+				continue ;
+			}
+			$filesub_filerecord_id = $filesub_row['filesub_filerecord_id'] ;
+			$map_subfileFilerecordId_recordIds[$filesub_filerecord_id] = array() ;
+			$map_subfileFilerecordId_dateValue[$filesub_filerecord_id] = date('Y-m-d',strtotime($filesub_row['filesub_datevalue'])) ;
+		}
+		$map_dateValue_records = array() ;
+		foreach( $accountFile_row['records'] as $record_row ) {
+			if( $record_row['letter_is_confirm'] ) {
+				continue ;
+			}
+			$record_filerecord_id = $record_row['record_filerecord_id'] ;
+			if( $record_row['type'] != NULL ) {
+				continue ;
+			}
+			
+			$date_value = date('Y-m-d',strtotime($record_row['date_value'])) ;
+			$map_recordFilerecordId_dateValue[$record_filerecord_id] = $date_value ;
+			
+			$link_filesub_filerecordId = $record_row['link_filesub_filerecord_id'] ;
+			if( $link_filesub_filerecordId && isset($map_subfileFilerecordId_recordIds[$link_filesub_filerecordId]) ) {
+				$map_subfileFilerecordId_recordIds[$link_filesub_filerecordId][] = $record_filerecord_id ;
+				$map_recordFilerecordId_subfileFilerecordId[$record_filerecord_id] = $link_filesub_filerecordId ;
+			} else {
+				$map_subfileFilerecordId_recordIds[0][] = $record_filerecord_id ;
+				$map_recordFilerecordId_subfileFilerecordId[$record_filerecord_id] = 0 ;
+			}
+		}
+		
+		foreach( $map_recordFilerecordId_dateValue as $record_filerecord_id => $date_value ) {
+			// fichier cible ?
+			if( $map_recordFilerecordId_subfileFilerecordId[$record_filerecord_id] 
+				&& ($map_subfileFilerecordId_dateValue[$map_recordFilerecordId_subfileFilerecordId[$record_filerecord_id]] == $date_value) ) {
+				
+				// existant OK
+				continue ;
+			}
+			
+			
+			$target_filesubFilerecordId = NULL ;
+			foreach( $map_subfileFilerecordId_dateValue as $filesub_filerecord_id => $sub_dateValue ) {
+				if( $sub_dateValue==$date_value ) {
+					$target_filesubFilerecordId = $filesub_filerecord_id ;
+					break ;
+				}
+			}
+			if( !$target_filesubFilerecordId ) {
+				// creation
+				$arr_ins = array() ;
+				$arr_ins['field_FILESUB_TXT'] = 'Echeance '.$date_value ;
+				$arr_ins['field_FILESUB_DATEVALUE'] = $date_value ;
+				$target_filesubFilerecordId = paracrm_lib_data_insertRecord_file( 'FILE_SUB', $file_filerecord_id, $arr_ins );
+				$map_subfileFilerecordId_recordIds[$target_filesubFilerecordId] = array() ;
+				$map_subfileFilerecordId_dateValue[$target_filesubFilerecordId] = $date_value ;
+			} else {
+				$query = "UPDATE view_file_FILE_SUB SET field_FILESUB_IS_VOID='0' WHERE filerecord_id='{$target_filesubFilerecordId}'" ;
+				$_opDB->query($query) ;
+			}
+			
+			// association
+			$query = "UPDATE view_file_RECORD_LINK 
+				SET field_LINK_FILESUB_ID='{$target_filesubFilerecordId}'
+				WHERE filerecord_parent_id='{$record_filerecord_id}' AND field_LINK_FILE_ID='{$file_filerecord_id}' AND field_LINK_IS_ON='1'" ;
+			$_opDB->query($query) ;
+			$map_subfileFilerecordId_recordIds[$target_filesubFilerecordId][] = $record_filerecord_id ;
+		}
+		
+		
+		// NEXT: close empty
+		foreach( $map_subfileFilerecordId_recordIds as $filesub_filerecord_id => $arr_recordIds ) {
+			if( count($arr_recordIds) > 0 ) {
+				continue ;
+			}
+			$query = "UPDATE view_file_FILE_SUB SET field_FILESUB_IS_VOID='1' WHERE filerecord_id='{$filesub_filerecord_id}'" ;
+			$_opDB->query($query) ;
+		}
+		
+		
+		// NEXT : refresh scenario presteps
+		$scen_code = $accountFile_row['scen_code'] ;
+		//echo $scen_code."\n" ;
+		//print_r($data_scenarios) ;
+		$scen_presteps = array() ;
+		foreach( $data_scenarios as $scen_row ) {
+			if( $scen_row['scen_code'] == $scen_code ) {
+				$scen_presteps = $scen_row['presteps'] ;
+				break ;
+			}
+		}
+		
+		$map_subfileFilerecordId_actions = array() ;
+		foreach( $map_subfileFilerecordId_recordIds as $filesub_filerecord_id => $arr_recordIds ) {
+			$map_subfileFilerecordId_actions[$filesub_filerecord_id] = array() ;
+		}
+		foreach( $accountFile_row['actions'] as $fileAction_row ) {
+			if( !$fileAction_row['link_filesub_filerecord_id'] ) {
+				continue ;
+			}
+			if( $fileAction_row['status_is_ok'] ) {
+				continue ;
+			}
+			$map_subfileFilerecordId_actions[$filesub_filerecord_id][] = $fileAction_row ;
+		}
+		
+		$date_now = date('Y-m-d') ;
+		foreach( $map_subfileFilerecordId_actions as $filesub_filerecord_id => $filesubAction_rows ) {
+			$date_value = $map_subfileFilerecordId_dateValue[$filesub_filerecord_id] ;
+			
+			$toCreate_presteps = array() ;
+			foreach( $scen_presteps as $scen_prestep ) {
+				$date_sched = date('Y-m-d H:i:s',strtotime('- '.$scen_prestep['prestep_daybefore'].' days',strtotime($date_value))) ;
+				if( $date_sched < $date_now ) {
+					continue ;
+				}
+				$toCreate_presteps[] = array(
+					'link_status' => $accountFile_row['status'],
+					'link_action' => $scen_prestep['link_action'],
+					'date_sched' => $date_sched,
+					
+					'scenstep_code' => $scen_prestep['prestep_code'],
+					'scenstep_tag' => $scen_prestep['prestep_tag'],
+					
+					'link_filesub_filerecord_id' => $filesub_filerecord_id,
+					
+					'link_tpl' => $scen_prestep['link_tpl']
+				) ;
+			}
+			
+			
+			$previous_fileactionFilerecordIds = array() ;
+			foreach( $filesubAction_rows as $filesubAction_row ) {
+				$previous_fileactionFilerecordIds[] = $filesubAction_row['fileaction_filerecord_id'] ;
+			}
+			
+			$current_fileactionFilerecordIds = array() ;
+			foreach( $toCreate_presteps as $toCreate_prestep ) {
+				foreach( $filesubAction_rows as $filesubAction_row ) {
+					$valid = TRUE ;
+					foreach( $toCreate_prestep as $mkey=>$mvalue ) {
+						if( $filesubAction_row[$mkey] != $mvalue ) {
+							$valid = FALSE ;
+							break ;
+						}
+					}
+					if( $valid ) {
+						$current_fileactionFilerecordIds[] = $filesubAction_row['fileaction_filerecord_id'] ;
+						continue 2 ;
+					}
+				}
+				
+				$arr_ins = array() ;
+				$arr_ins['field_LINK_STATUS'] = $toCreate_prestep['link_status'] ;
+				$arr_ins['field_LINK_ACTION'] = $toCreate_prestep['link_action'] ;
+				$arr_ins['field_LINK_SCENARIO'] = $toCreate_prestep['scenstep_code'] ;
+				$arr_ins['field_SCENSTEP_TAG'] = $toCreate_prestep['scenstep_tag'] ;
+				$arr_ins['field_DATE_SCHED'] = $toCreate_prestep['date_sched'] ;
+				$arr_ins['field_LINK_TPL'] = $toCreate_prestep['link_tpl'] ;
+				$arr_ins['field_LINK_FILESUB_ID'] = $toCreate_prestep['link_filesub_filerecord_id'] ;
+				paracrm_lib_data_insertRecord_file( 'FILE_ACTION', $file_filerecord_id, $arr_ins );
+			}
+			
+			$todelete_fileactionFilerecordIds = array_diff($previous_fileactionFilerecordIds,$current_fileactionFilerecordIds) ;
+			foreach( $todelete_fileactionFilerecordIds as $fileaction_filerecord_id ) {
+				paracrm_lib_data_deleteRecord_file( 'FILE_ACTION', $fileaction_filerecord_id );
+			}
+		}
+	}
+}
 function specRsiRecouveo_file_lib_manageActivate( $acc_id, $is_new=FALSE ) {
 	$toEnable_recordFilerecordIds = array() ;
 	$toDisable_recordFilerecordIds = array() ;

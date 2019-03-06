@@ -65,6 +65,18 @@ Ext.define('RsiRecouveoFileTplModel',{ // TO: RsiRecouveoFileModel
 	}
 }) ;
 
+Ext.define('RsiRecouveoFileSubModel',{
+	extend: 'Ext.data.Model',
+	idProperty: 'filesub_filerecord_id',
+	fields: [
+		{name: 'filesub_filerecord_id', type: 'int'},
+		
+		{name: 'filesub_txt', type: 'int'},
+		{name: 'filesub_datevalue', type:'date', dateFormat:'Y-m-d H:i:s'},
+		{name: 'filesub_is_void', type: 'boolean'}
+	]
+});
+
 Ext.define('RsiRecouveoFileActionModel',{
 	extend: 'Ext.data.Model',
 	idProperty: 'fileaction_filerecord_id',
@@ -83,6 +95,8 @@ Ext.define('RsiRecouveoFileActionModel',{
 		
 		{name: 'scenstep_code', type: 'string'},
 		{name: 'scenstep_tag', type: 'string'},
+		
+		{name: 'link_filesub_filerecord_id', type: 'int', allowNull:true},
 		
 		{name: 'link_newfile_filerecord_id', type: 'int', allowNull:true},
 		{name: 'link_env_filerecord_id', type: 'int', allowNull:true},
@@ -112,6 +126,20 @@ Ext.define('RsiRecouveoFileActionCalcModel',{
 		}}
 	]
 }) ;
+Ext.define('RsiRecouveoFileActionPreModel',{
+	extend: 'RsiRecouveoFileActionModel',
+	ipProperty: 'id',
+	fields: [
+		{name: 'calc_date', type:'string', allowNull:true, depends: ['date_sched', 'date_actual'], convert: function(value,record) {
+			if( record.get('status_is_ok') ) {
+				return Ext.Date.format(record.get('date_actual'),'Y-m-d') ;
+			} else {
+				return Ext.Date.format(record.get('date_sched'),'Y-m-d') ;
+			}
+		}},
+		{name: 'is_next', type: 'boolean'}
+	]
+}) ;
 
 Ext.define('RsiRecouveoRecordTplModel',{ // TO: RsiRecouveoRecordModel
 	extend: 'Ext.data.Model',
@@ -129,6 +157,8 @@ Ext.define('RsiRecouveoRecordTplModel',{ // TO: RsiRecouveoRecordModel
 		{name: 'date_record', type:'date', dateFormat:'Y-m-d H:i:s'},
 		{name: 'date_value', type:'date', dateFormat:'Y-m-d H:i:s'},
 		{name: 'amount', type:'number'},
+		
+		{name: 'link_filesub_filerecord_id', type:'int'},
 		
 		{name: 'xe_currency_amount', type:'number'},
 		{name: 'xe_currency_sign', type:'string'},
@@ -156,6 +186,7 @@ Ext.define('RsiRecouveoRecordLinkModel',{
 	fields: [
 		{name: 'recordlink_filerecord_id', type:'int'},
 		{name: 'file_filerecord_id', type:'int'},
+		{name: 'filesub_filerecord_id', type:'int'},
 		{name: 'file_id_ref', type:'string'},
 		{name: 'link_is_active', type:'boolean'},
 		{name: 'date_link_on', type:'date', dateFormat:'Y-m-d H:i:s'},

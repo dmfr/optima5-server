@@ -243,6 +243,16 @@
 	background-repeat: no-repeat !important;
 	background-image: url("../images/modules/rsiveo-process-16.gif") !important;
 }
+.op5-spec-rsiveo-doaction-ok .x-grid-cell-inner {
+	background-position: center !important;
+	background-repeat: no-repeat !important;
+	background-image: url("../images/op5img/ico_ok_16.gif") !important;
+}
+.op5-spec-rsiveo-doaction-wait .x-grid-cell-inner {
+	background-position: center !important;
+	background-repeat: no-repeat !important;
+	background-image: url("../images/op5img/ico_wait_small.gif") !important;
+}
 .op5-spec-rsiveo-notification .x-grid-cell-inner {
 	background-position: center !important;
 	background-repeat: no-repeat !important;
