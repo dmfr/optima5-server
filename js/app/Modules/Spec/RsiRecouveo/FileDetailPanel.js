@@ -1130,6 +1130,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 				_action: 'account_open',
 				acc_id: accId,
 				filter_atr: Ext.JSON.encode(filterAtr),
+				filter_archiveIsOff: (this._showClosed ? 0 : 1),
 				_similar: 1
 			},
 			success: function(response) {

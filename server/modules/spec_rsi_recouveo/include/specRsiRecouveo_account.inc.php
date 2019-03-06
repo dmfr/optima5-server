@@ -146,6 +146,9 @@ function specRsiRecouveo_account_open( $post_data ) {
 	
 	$forward_post = array() ;
 	$forward_post['filter_fileFilerecordId_arr'] = json_encode($filter_fileFilerecordId_arr) ;
+	if( $post_data['filter_archiveIsOff'] ) {
+		$forward_post['filter_archiveIsOff'] = true ;
+	}
 	$json = specRsiRecouveo_file_getRecords($forward_post) ;
 	// print_r($json['data']) ;
 	$account_record['files'] = $json['data'] ;
@@ -161,7 +164,8 @@ function specRsiRecouveo_account_open( $post_data ) {
 		}
 	}
 	$query = "SELECT * FROM view_file_RECORD r
-		WHERE field_LINK_ACCOUNT='{$p_accId}'" ;
+		LEFT OUTER JOIN view_file_RECORD_LINK rl ON rl.filerecord_parent_id=r.filerecord_id AND rl.field_LINK_IS_ON='1'
+		WHERE field_LINK_ACCOUNT='{$p_accId}' AND rl.filerecord_id IS NULL" ;
 	if( $p_atrFilter ) {
 		// TODO : record-level filters
 		/*
