@@ -84,7 +84,7 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 	$query.= " WHERE 1" ;
 	if( isset($filter_fileFilerecordId_list) ) {
 		$query.= " AND f.filerecord_id IN {$filter_fileFilerecordId_list}" ;
-		if( $filter_archiveIsOff ) {
+		if( $filter_archiveIsOff && FALSE ) {
 			$query.= " AND f.field_STATUS_CLOSED_VOID='0' AND f.field_STATUS_CLOSED_END='0'" ;
 		}
 	} else {
@@ -187,7 +187,7 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 	$query.= " WHERE 1" ;
 	if( isset($filter_fileFilerecordId_list) ) {
 		$query.= " AND f.filerecord_id IN {$filter_fileFilerecordId_list}" ;
-		if( $filter_archiveIsOff ) {
+		if( $filter_archiveIsOff && FALSE ) {
 			$query.= " AND f.field_STATUS_CLOSED_VOID='0' AND f.field_STATUS_CLOSED_END='0'" ;
 		}
 	} else {
@@ -259,7 +259,7 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 	$query.= " WHERE 1" ;
 	if( isset($filter_fileFilerecordId_list) ) {
 		$query.= " AND f.filerecord_id IN {$filter_fileFilerecordId_list}" ;
-		if( $filter_archiveIsOff ) {
+		if( $filter_archiveIsOff && FALSE ) {
 			$query.= " AND f.field_STATUS_CLOSED_VOID='0' AND f.field_STATUS_CLOSED_END='0'" ;
 		}
 	} else {
