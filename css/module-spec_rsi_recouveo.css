@@ -131,6 +131,9 @@
 	background-color: rgba(220,220,220,0.4) ;
 }
 
+.op5-spec-rsiveo-formtext-red .x-form-text {
+	background-color: #FF8D8D !important;
+}
 .op5-spec-rsiveo-negatif .x-form-text {
 	color: red ;
 	font-weight: bold;

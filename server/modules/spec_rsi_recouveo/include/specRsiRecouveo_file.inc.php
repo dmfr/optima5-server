@@ -1484,6 +1484,9 @@ function specRsiRecouveo_file_lib_managePre( $acc_id ) {
 			if( $record_row['letter_is_confirm'] ) {
 				continue ;
 			}
+			if( !$record_row['is_pending'] ) {
+				continue ;
+			}
 			$record_filerecord_id = $record_row['record_filerecord_id'] ;
 			
 			$date_value = date('Y-m-d',strtotime($record_row['date_value'])) ;
@@ -1795,7 +1798,28 @@ function specRsiRecouveo_file_lib_getNextMailNum( $file_filerecord_id ) {
 
 
 
+function specRsiRecouveo_file_setScenario( $post_data ) {
+	global $_opDB ;
+	
+	$p_accId = $post_data['acc_id'] ;
+	$p_fileFilerecordId = $post_data['file_filerecord_id'] ;
+	$p_scenCode = $post_data['scen_code'] ;
+	
+	$query = "SELECT field_LINK_ACCOUNT FROM view_file_FILE
+			WHERE filerecord_id='{$p_fileFilerecordId}'" ;
+	$acc_id = $_opDB->query_uniqueValue($query) ;
+	if( $acc_id != $p_accId ) {
+		return array('success'=>false) ;
+	}
 
+	$arr_ins = array() ;
+	$arr_ins['field_SCENARIO'] = $p_scenCode ;
+	paracrm_lib_data_updateRecord_file( 'FILE', $arr_ins, $p_fileFilerecordId);
+	
+	specRsiRecouveo_file_lib_manageActivate($acc_id);
+	specRsiRecouveo_file_lib_managePre($acc_id);
+	return array('success'=>true) ;
+}
 
 function specRsiRecouveo_file_getScenarioLine( $post_data ) {
 	global $_opDB ;

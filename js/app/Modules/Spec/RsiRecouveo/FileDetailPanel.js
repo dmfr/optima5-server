@@ -1585,6 +1585,67 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		
 		var tabPanel = this.down('#tpFileActions') ;
 		tabPanel.add({
+			dockedItems: [{
+				xtype: 'toolbar',
+				cls: 'ux-noframe-bg',
+				dock: 'top',
+				items: [{
+					itemId: 'cmbScenario',
+					fieldLabel: 'Scenario',
+					labelWidth: 75,
+					xtype: 'combobox',
+					forceSelection:true,
+					preventBlankIfVisible:true,
+					editable:true,
+					typeAhead:false,
+					queryMode: 'local',
+					displayField: 'scen_txt',
+					valueField: 'scen_code',
+					minChars: 2,
+					checkValueOnChange: function() {}, //HACK
+					value: fileRecord.get('scen_code'),
+					store: {
+						autoLoad: true,
+						model: Optima5.Modules.Spec.RsiRecouveo.HelperCache.getConfigScenarioModel(),
+						proxy: this.optimaModule.getConfiguredAjaxProxy({
+							extraParams : {
+								_moduleId: 'spec_rsi_recouveo',
+								_action: 'config_getScenarios'
+							},
+							reader: {
+								type: 'json',
+								rootProperty: 'data'
+							}
+						}),
+						listeners: {
+							load: function(store) {
+								store.insert(0,{
+									scen_code: '',
+									scen_txt: '- Désactivé -'
+								}) ;
+							}
+						}
+					},
+					listeners: {
+						select: function(cmb) {
+							cmb.addCls('op5-spec-rsiveo-formtext-red') ;
+							this.down('#btnScenarioApply').setVisible(true);
+						},
+						scope: this
+					}
+				},'->',{
+					hidden: true,
+					itemId: 'btnScenarioApply',
+					text: 'Appliquer',
+					icon: 'images/op5img/ico_save_16.gif',
+					handler: function(btn) {
+						var treepanel = btn.up('treepanel') ;
+						var scenCode = treepanel.down('#cmbScenario').getValue() ;
+						this.handleSetScenario(treepanel._fileFilerecordId,scenCode) ;
+					},
+					scope: this
+				}]
+			}],
 			_fileFilerecordId: fileRecord.getId(),
 			title: pFileTitle,
 			iconCls: statusIconCls,
@@ -3026,6 +3087,32 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			},
 			callback: function() {
 				this.hideLoadmask() ;
+			},
+			scope: this
+		}) ;
+	},
+	handleSetScenario: function( fileFilerecordId, scenCode ) {
+		this.showLoadmask() ;
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_rsi_recouveo',
+				_action: 'file_setScenario',
+				acc_id: this._accountRecord.get('acc_id'),
+				file_filerecord_id: fileFilerecordId,
+				scen_code: scenCode
+			},
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					this.hideLoadmask() ;
+					var error = ajaxResponse.success || 'Error !' ;
+					Ext.MessageBox.alert('Error',error) ;
+					return ;
+				}
+				this.doReload() ;
+			},
+			callback: function() {
+				//this.hideLoadmask() ;
 			},
 			scope: this
 		}) ;
