@@ -1464,9 +1464,11 @@ function specRsiRecouveo_file_lib_managePre( $acc_id ) {
 		}
 		
 		$map_recordFilerecordId_dateValue = array() ;
+		$map_recordFilerecordId_amount = array() ;
 		$map_recordFilerecordId_subfileFilerecordId = array() ;
-		$map_subfileFilerecordId_recordIds = array(0=>array()) ;
+		$map_subfileFilerecordId_recordIds = array() ;
 		$map_subfileFilerecordId_dateValue = array() ;
+		$map_subfileFilerecordId_sumAmount = array() ;
 		
 		
 		foreach( $accountFile_row['filesubs'] as $filesub_row ) {
@@ -1483,19 +1485,17 @@ function specRsiRecouveo_file_lib_managePre( $acc_id ) {
 				continue ;
 			}
 			$record_filerecord_id = $record_row['record_filerecord_id'] ;
-			if( $record_row['type'] != NULL ) {
-				continue ;
-			}
 			
 			$date_value = date('Y-m-d',strtotime($record_row['date_value'])) ;
 			$map_recordFilerecordId_dateValue[$record_filerecord_id] = $date_value ;
+			$map_recordFilerecordId_amount[$record_filerecord_id] = (float)$record_row['amount'] ;
 			
 			$link_filesub_filerecordId = $record_row['link_filesub_filerecord_id'] ;
 			if( $link_filesub_filerecordId && isset($map_subfileFilerecordId_recordIds[$link_filesub_filerecordId]) ) {
 				$map_subfileFilerecordId_recordIds[$link_filesub_filerecordId][] = $record_filerecord_id ;
 				$map_recordFilerecordId_subfileFilerecordId[$record_filerecord_id] = $link_filesub_filerecordId ;
 			} else {
-				$map_subfileFilerecordId_recordIds[0][] = $record_filerecord_id ;
+				//$map_subfileFilerecordId_recordIds[0][] = $record_filerecord_id ;
 				$map_recordFilerecordId_subfileFilerecordId[$record_filerecord_id] = 0 ;
 			}
 		}
@@ -1536,12 +1536,17 @@ function specRsiRecouveo_file_lib_managePre( $acc_id ) {
 				WHERE filerecord_parent_id='{$record_filerecord_id}' AND field_LINK_FILE_ID='{$file_filerecord_id}' AND field_LINK_IS_ON='1'" ;
 			$_opDB->query($query) ;
 			$map_subfileFilerecordId_recordIds[$target_filesubFilerecordId][] = $record_filerecord_id ;
+			$map_recordFilerecordId_subfileFilerecordId[$record_filerecord_id] = $target_filesubFilerecordId ;
 		}
 		
 		
 		// NEXT: close empty
 		foreach( $map_subfileFilerecordId_recordIds as $filesub_filerecord_id => $arr_recordIds ) {
 			if( count($arr_recordIds) > 0 ) {
+				$map_subfileFilerecordId_sumAmount[$filesub_filerecord_id] = 0 ;
+				foreach( $arr_recordIds as $record_filerecord_id ) {
+					$map_subfileFilerecordId_sumAmount[$filesub_filerecord_id] += $map_recordFilerecordId_amount[$record_filerecord_id] ;
+				}
 				continue ;
 			}
 			$query = "UPDATE view_file_FILE_SUB SET field_FILESUB_IS_VOID='1' WHERE filerecord_id='{$filesub_filerecord_id}'" ;
@@ -1561,6 +1566,7 @@ function specRsiRecouveo_file_lib_managePre( $acc_id ) {
 			}
 		}
 		
+		
 		$map_subfileFilerecordId_actions = array() ;
 		foreach( $map_subfileFilerecordId_recordIds as $filesub_filerecord_id => $arr_recordIds ) {
 			$map_subfileFilerecordId_actions[$filesub_filerecord_id] = array() ;
@@ -1572,31 +1578,35 @@ function specRsiRecouveo_file_lib_managePre( $acc_id ) {
 			if( $fileAction_row['status_is_ok'] ) {
 				continue ;
 			}
+			$filesub_filerecord_id = $fileAction_row['link_filesub_filerecord_id'] ;
 			$map_subfileFilerecordId_actions[$filesub_filerecord_id][] = $fileAction_row ;
 		}
+		
 		
 		$date_now = date('Y-m-d') ;
 		foreach( $map_subfileFilerecordId_actions as $filesub_filerecord_id => $filesubAction_rows ) {
 			$date_value = $map_subfileFilerecordId_dateValue[$filesub_filerecord_id] ;
 			
 			$toCreate_presteps = array() ;
-			foreach( $scen_presteps as $scen_prestep ) {
-				$date_sched = date('Y-m-d H:i:s',strtotime('- '.$scen_prestep['prestep_daybefore'].' days',strtotime($date_value))) ;
-				if( $date_sched < $date_now ) {
-					continue ;
+			if( $map_subfileFilerecordId_sumAmount[$filesub_filerecord_id] > 0 ) {
+				foreach( $scen_presteps as $scen_prestep ) {
+					$date_sched = date('Y-m-d H:i:s',strtotime('- '.$scen_prestep['prestep_daybefore'].' days',strtotime($date_value))) ;
+					if( $date_sched < $date_now ) {
+						continue ;
+					}
+					$toCreate_presteps[] = array(
+						'link_status' => $accountFile_row['status'],
+						'link_action' => $scen_prestep['link_action'],
+						'date_sched' => $date_sched,
+						
+						'scenstep_code' => $scen_prestep['prestep_code'],
+						'scenstep_tag' => $scen_prestep['prestep_tag'],
+						
+						'link_filesub_filerecord_id' => $filesub_filerecord_id,
+						
+						'link_tpl' => $scen_prestep['link_tpl']
+					) ;
 				}
-				$toCreate_presteps[] = array(
-					'link_status' => $accountFile_row['status'],
-					'link_action' => $scen_prestep['link_action'],
-					'date_sched' => $date_sched,
-					
-					'scenstep_code' => $scen_prestep['prestep_code'],
-					'scenstep_tag' => $scen_prestep['prestep_tag'],
-					
-					'link_filesub_filerecord_id' => $filesub_filerecord_id,
-					
-					'link_tpl' => $scen_prestep['link_tpl']
-				) ;
 			}
 			
 			
