@@ -428,6 +428,19 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 	getActiveScenario: function() {
 		return this._fileRecord.get('scen_code') ;
 	},
+	getCurrentActionFilerecordId: function() {
+		if( this._fileActionFilerecordId ) {
+			return this._fileActionFilerecordId ;
+		}
+	},
+	getCurrentFilesubFilerecordId: function() {
+		if( this._fileActionFilerecordId ) {
+			var nowActionRecord = this._fileRecord.actions().getById( this._fileActionFilerecordId ) ;
+			if( nowActionRecord ) {
+				return nowActionRecord.get('link_filesub_filerecord_id') ;
+			}
+		}
+	},
 	getCurrentAction: function() {
 		if( this._fileActionFilerecordId ) {
 			var nowActionRecord = this._fileRecord.actions().getById( this._fileActionFilerecordId ) ;
@@ -840,15 +853,23 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 			return ;
 		}
 		
+		var postParams = {
+			_moduleId: 'spec_rsi_recouveo',
+			_action: 'action_execMailAutoPreview',
+			file_filerecord_id: this._fileRecord.get('file_filerecord_id'),
+			tpl_id: tplId,
+			adr_type: adrType
+		} ;
+		var filesubFilerecordId = this.getCurrentFilesubFilerecordId() ;
+		if( filesubFilerecordId ) {
+			Ext.apply(postParams,{
+				filesub_filerecord_id: filesubFilerecordId
+			});
+		}
+		
 		this.showLoadmask() ;
 		this.optimaModule.getConfiguredAjaxConnection().request({
-			params: {
-				_moduleId: 'spec_rsi_recouveo',
-				_action: 'action_execMailAutoPreview',
-				file_filerecord_id: this._fileRecord.get('file_filerecord_id'),
-				tpl_id: tplId,
-				adr_type: adrType
-			},
+			params: postParams,
 			success: function(response) {
 				var jsonResponse = Ext.JSON.decode(response.responseText) ;
 				if( jsonResponse.success == true ) {

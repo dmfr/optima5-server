@@ -1570,25 +1570,31 @@ function specRsiRecouveo_file_lib_managePre( $acc_id ) {
 		}
 		
 		
-		$map_subfileFilerecordId_actions = array() ;
+		$map_subfileFilerecordId_actionsPending = array() ;
+		$map_subfileFilerecordId_actionsDone = array() ;
 		foreach( $map_subfileFilerecordId_recordIds as $filesub_filerecord_id => $arr_recordIds ) {
-			$map_subfileFilerecordId_actions[$filesub_filerecord_id] = array() ;
+			$map_subfileFilerecordId_actionsPending[$filesub_filerecord_id] = array() ;
+			$map_subfileFilerecordId_actionsDone[$filesub_filerecord_id] = array() ;
 		}
 		foreach( $accountFile_row['actions'] as $fileAction_row ) {
 			if( !$fileAction_row['link_filesub_filerecord_id'] ) {
 				continue ;
 			}
-			if( $fileAction_row['status_is_ok'] ) {
-				continue ;
-			}
 			$filesub_filerecord_id = $fileAction_row['link_filesub_filerecord_id'] ;
-			$map_subfileFilerecordId_actions[$filesub_filerecord_id][] = $fileAction_row ;
+			if( $fileAction_row['status_is_ok'] ) {
+				$map_subfileFilerecordId_actionsDone[$filesub_filerecord_id][] = $fileAction_row ;
+			} else {
+				$map_subfileFilerecordId_actionsPending[$filesub_filerecord_id][] = $fileAction_row ;
+			}
 		}
 		
 		
 		$date_now = date('Y-m-d') ;
-		foreach( $map_subfileFilerecordId_actions as $filesub_filerecord_id => $filesubAction_rows ) {
+		foreach( $map_subfileFilerecordId_recordIds as $filesub_filerecord_id => $arr_recordIds ) {
 			$date_value = $map_subfileFilerecordId_dateValue[$filesub_filerecord_id] ;
+			
+			$filesubActionPending_rows = $map_subfileFilerecordId_actionsPending[$filesub_filerecord_id] ;
+			$filesubActionDone_rows = $map_subfileFilerecordId_actionsDone[$filesub_filerecord_id] ;
 			
 			$toCreate_presteps = array() ;
 			if( $map_subfileFilerecordId_sumAmount[$filesub_filerecord_id] > 0 ) {
@@ -1614,13 +1620,18 @@ function specRsiRecouveo_file_lib_managePre( $acc_id ) {
 			
 			
 			$previous_fileactionFilerecordIds = array() ;
-			foreach( $filesubAction_rows as $filesubAction_row ) {
+			foreach( $filesubActionPending_rows as $filesubAction_row ) {
 				$previous_fileactionFilerecordIds[] = $filesubAction_row['fileaction_filerecord_id'] ;
 			}
 			
 			$current_fileactionFilerecordIds = array() ;
 			foreach( $toCreate_presteps as $toCreate_prestep ) {
-				foreach( $filesubAction_rows as $filesubAction_row ) {
+				foreach( $filesubActionDone_rows as $filesubAction_row ) {
+					if( $filesubAction_row['scenstep_tag'] == $toCreate_prestep['scenstep_tag'] ) {
+						continue 2 ;
+					}
+				}
+				foreach( $filesubActionPending_rows as $filesubAction_row ) {
 					$valid = TRUE ;
 					foreach( $toCreate_prestep as $mkey=>$mvalue ) {
 						if( $filesubAction_row[$mkey] != $mvalue ) {

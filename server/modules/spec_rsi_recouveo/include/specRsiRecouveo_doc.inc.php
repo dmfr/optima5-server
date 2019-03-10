@@ -266,11 +266,15 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE, $stopAsHtm
 	global $_opDB ;
 	$p_tplId = $post_data['tpl_id'] ;
 	$p_fileFilerecordId = $post_data['file_filerecord_id'] ;
+	$p_recordsFilerecordIds = ($post_data['record_filerecord_ids'] ? json_decode($post_data['record_filerecord_ids'],true) : null) ;
 	$p_adrType = $post_data['adr_type'] ;
 	$p_adrName = $post_data['adr_name'] ;
 	$p_adrPostal = $post_data['adr_postal'] ;
 	$p_inputFields = ($post_data['input_fields'] ? json_decode($post_data['input_fields'],true) : array()) ;
 	
+	if( $p_recordsFilerecordIds ) {
+		//print_r($p_recordsFilerecordIds) ;
+	}	
 	
 	// ******** Load elements *********
 	$ttmp = specRsiRecouveo_file_getRecords( array(

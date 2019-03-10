@@ -5,6 +5,7 @@ function specRsiRecouveo_action_execMailAutoPreview( $post_data ) {
 	$cfg_template = $ttmp['data']['cfg_template'] ;
 	
 	$p_fileFilerecordId = $post_data['file_filerecord_id'] ;
+	$p_filesubFilerecordId = $post_data['filesub_filerecord_id'] ;
 	$p_tplId = $post_data['tpl_id'] ;
 	
 	$json_file = specRsiRecouveo_file_getRecords( array(
@@ -13,6 +14,19 @@ function specRsiRecouveo_action_execMailAutoPreview( $post_data ) {
 	$file = $json_file['data'][0] ;
 	if( $file['file_filerecord_id'] != $p_fileFilerecordId ) {
 		return array('success'=>false) ;
+	}
+	if( $p_filesubFilerecordId ) {
+		//return array('success'=>false, 'error'=>'FileSub not supported') ;
+	}
+	if( $p_filesubFilerecordId ) {
+		$filter_recordsFilerecordIds = array() ;
+		foreach( $file['records'] as $fileRecord_row ) {
+			$cur_filesub_filerecord_id = $fileRecord_row['link_filesub_filerecord_id'] ;
+			if( !$cur_filesub_filerecord_id || ($cur_filesub_filerecord_id!=$p_filesubFilerecordId) ) {
+				continue ;
+			}
+			$filter_recordsFilerecordIds[] = $fileRecord_row['record_filerecord_id'] ;
+		}
 	}
 	
 	switch( $post_data['adr_type'] ) {
@@ -41,6 +55,7 @@ function specRsiRecouveo_action_execMailAutoPreview( $post_data ) {
 			$json = specRsiRecouveo_doc_getMailOut(array(
 				'tpl_id' => $p_tplId,
 				'file_filerecord_id' => $p_fileFilerecordId,
+				'record_filerecord_ids' => ($filter_recordsFilerecordIds ? json_encode($filter_recordsFilerecordIds) : null ),
 				'adr_type' => $post_data['adr_type'],
 				'adr_name' => $t_adrPost_name,
 				'adr_postal' => $t_adrPost_txt,
@@ -79,6 +94,7 @@ function specRsiRecouveo_action_execMailAutoPreview( $post_data ) {
 			$htmls = specRsiRecouveo_doc_getMailOut(array(
 				'tpl_id' => $p_tplId,
 				'file_filerecord_id' => $p_fileFilerecordId,
+				'record_filerecord_ids' => ($filter_recordsFilerecordIds ? json_encode($filter_recordsFilerecordIds) : null ),
 				'adr_type' => $post_data['adr_type'],
 				'input_fields' => json_encode(array())
 			),$real=FALSE,$htmlraw=TRUE) ;
@@ -173,9 +189,13 @@ function specRsiRecouveo_action_execMailAutoAction( $post_data ) {
 	if( !$p_isNoSched ) {
 		$json = specRsiRecouveo_config_getScenarios(array()) ;
 		$map_scenCode_scenstepCode_step = array() ;
+		$map_scenCode_prestepCode_step = array() ;
 		foreach( $json['data'] as $scenario ) {
 			foreach( $scenario['steps'] as $scenstep ) {
 				$map_scenCode_scenstepTag_step[$scenario['scen_code']][$scenstep['scenstep_tag']] = $scenstep ;
+			}
+			foreach( $scenario['presteps'] as $prestep ) {
+				$map_scenCode_prestepTab_step[$scenario['scen_code']][$prestep['prestep_tag']] = $prestep ;
 			}
 		}
 		
@@ -186,47 +206,93 @@ function specRsiRecouveo_action_execMailAutoAction( $post_data ) {
 		if( $file['file_filerecord_id'] != $p_fileFilerecordId ) {
 			return array('success'=>false) ;
 		}
-		$nextaction_filerecord_id = $file['next_fileaction_filerecord_id'] ;
-		if( $nextaction_filerecord_id != $p_fileActionFilerecordId ) {
-			return array('success'=>false) ;
-		}
+		if( !$file['status_is_schednone'] ) {
+			$nextaction_filerecord_id = $file['next_fileaction_filerecord_id'] ;
+			if( $nextaction_filerecord_id != $p_fileActionFilerecordId ) {
+				return array('success'=>false) ;
+			}
 
-		$next_action = NULL ;
-		foreach( $file['actions'] as $action ) {
-			if( $action['fileaction_filerecord_id'] == $nextaction_filerecord_id ) {
-				$next_action = $action ;
+			$next_action = NULL ;
+			foreach( $file['actions'] as $action ) {
+				if( $action['fileaction_filerecord_id'] == $nextaction_filerecord_id ) {
+					$next_action = $action ;
+				}
+			}
+			if( !$next_action ) {
+				return array('success'=>false) ;
+			}
+			
+			$scen_code = $file['scen_code'] ;
+			$scenstep_tag = $next_action['scenstep_tag'] ;
+			if( !$scen_code || !$scenstep_tag ) {
+				continue ;
+			}
+			$scenstep = $map_scenCode_scenstepTag_step[$scen_code][$scenstep_tag] ;
+			if( !$scenstep ) {
+				continue ;
+			}
+			
+			if( $scenstep['exec_is_auto'] 
+			&& $next_action['link_action']=='MAIL_OUT'
+			&& $next_action['link_action'] == $scenstep['link_action']
+			&& $next_action['link_tpl'] == $scenstep['link_tpl'] ) {
+			
+				// OK
+			} else {
+				return array('success'=>false) ;
+			}
+			
+			
+			// ** Scénario : médias envoi ?
+			//print_r($scenstep) ;
+			$modes = json_decode($scenstep['mail_modes_json'],true) ;
+			if( !$modes ) {
+				$modes = array('postal_std') ;
 			}
 		}
-		if( !$next_action ) {
-			return array('success'=>false) ;
-		}
-		
-		$scen_code = $file['scen_code'] ;
-		$scenstep_tag = $next_action['scenstep_tag'] ;
-		if( !$scen_code || !$scenstep_tag ) {
-			continue ;
-		}
-		$scenstep = $map_scenCode_scenstepTag_step[$scen_code][$scenstep_tag] ;
-		if( !$scenstep ) {
-			continue ;
-		}
-		
-		if( $scenstep['exec_is_auto'] 
-		&& $next_action['link_action']=='MAIL_OUT'
-		&& $next_action['link_action'] == $scenstep['link_action']
-		&& $next_action['link_tpl'] == $scenstep['link_tpl'] ) {
-		
-			// OK
-		} else {
-			return array('success'=>false) ;
-		}
-		
-		
-		// ** Scénario : médias envoi ?
-		//print_r($scenstep) ;
-		$modes = json_decode($scenstep['mail_modes_json'],true) ;
-		if( !$modes ) {
-			$modes = array('postal_std') ;
+		if( $file['status_is_schednone'] ) {
+			$next_action = NULL ;
+			foreach( $file['actions'] as $action ) {
+				if( $action['fileaction_filerecord_id'] == $p_fileActionFilerecordId ) {
+					$next_action = $action ;
+				}
+			}
+			if( !$next_action || $next_action['status_is_ok'] ) {
+				return array('success'=>false) ;
+			}
+			
+			$filesub_filerecord_id = $next_action['link_filesub_filerecord_id'] ;
+			if( !$filesub_filerecord_id ) {
+				return array('success'=>false) ;
+			}
+			
+			$scen_code = $file['scen_code'] ;
+			$prestep_tag = $next_action['scenstep_tag'] ;
+			if( !$scen_code || !$prestep_tag ) {
+				continue ;
+			}
+			$prestep = $map_scenCode_prestepTab_step[$scen_code][$prestep_tag] ;
+			if( !$prestep ) {
+				continue ;
+			}
+			
+			if( $prestep['exec_is_auto'] 
+			&& $next_action['link_action']=='MAIL_OUT'
+			&& $next_action['link_action'] == $prestep['link_action']
+			&& $next_action['link_tpl'] == $prestep['link_tpl'] ) {
+			
+				// OK
+			} else {
+				return array('success'=>false) ;
+			}
+			
+			
+			// ** Scénario : médias envoi ?
+			//print_r($prestep) ;
+			$modes = json_decode($prestep['mail_modes_json'],true) ;
+			if( !$modes ) {
+				$modes = array('postal_std') ;
+			}
 		}
 	}
 	if( $p_isNoSched ) {
@@ -256,8 +322,13 @@ function specRsiRecouveo_action_execMailAutoAction( $post_data ) {
 	$arr_ins_base['field_LOG_USER'] = specRsiRecouveo_util_getLogUser() ;
 	$arr_ins_base['field_STATUS_IS_OK'] = 1 ;
 	$arr_ins_base['field_DATE_ACTUAL'] = date('Y-m-d H:i:s') ;
+	if( $filesub_filerecord_id ) {
+		$arr_ins_base['field_LINK_FILESUB_ID'] = $filesub_filerecord_id ;
+	}
 	$arr_ins_base['field_LINK_STATUS'] = $next_action['link_status'] ;
 	$arr_ins_base['field_LINK_TPL'] = $next_action['link_tpl'] ;
+	$arr_ins_base['field_SCENSTEP_CODE'] = $next_action['scenstep_code'] ;
+	$arr_ins_base['field_SCENSTEP_TAG'] = $next_action['scenstep_tag'] ;
 	if( $next_action['link_tpl'] ) {
 		$json = specRsiRecouveo_doc_cfg_getTpl( array('tpl_id'=>$next_action['link_tpl']) ) ;
 		$txt.= "Modèle envoi : ".$json['data'][0]['tpl_name']."\r\n" ;
@@ -271,6 +342,7 @@ function specRsiRecouveo_action_execMailAutoAction( $post_data ) {
 		// génération action envoi POSTAL
 		$json = specRsiRecouveo_action_execMailAutoPreview( array(
 			'file_filerecord_id' => $p_fileFilerecordId,
+			'filesub_filerecord_id' => $filesub_filerecord_id,
 			'tpl_id' => $next_action['link_tpl'],
 			'adr_type' => 'POSTAL'
 		));
@@ -296,6 +368,7 @@ function specRsiRecouveo_action_execMailAutoAction( $post_data ) {
 		// génération action envoi EMAIL
 		$json = specRsiRecouveo_action_execMailAutoPreview( array(
 			'file_filerecord_id' => $p_fileFilerecordId,
+			'filesub_filerecord_id' => $filesub_filerecord_id,
 			'tpl_id' => $next_action['link_tpl'],
 			'adr_type' => 'EMAIL'
 		));
@@ -322,41 +395,43 @@ function specRsiRecouveo_action_execMailAutoAction( $post_data ) {
 		return array('success'=>true) ;
 	}
 	
-	// next action ?
-	$status_next = $next_action['link_status'] ;
-	$json = specRsiRecouveo_file_getScenarioLine( array(
-		'file_filerecord_id' => $p_fileFilerecordId,
-		'fileaction_filerecord_id' => $nextaction_filerecord_id
-	)) ;
-	foreach( $json['data'] as $scenline_dot ) {
-		if( $scenline_dot['is_next'] ) {
-			$forward_post['next_action'] = $scenline_dot['link_action'] ;
-			$forward_post['scen_code'] = $scen_code ;
-			$forward_post['next_scenstep_code'] = $scenline_dot['scenstep_code'] ;
-			$forward_post['next_scenstep_tag'] = $scenline_dot['scenstep_tag'] ;
-			$forward_post['next_date'] = $scenline_dot['date_sched'] ;
-		}
-	}
-	$link_tpl_id = NULL ;
-	$ttmp = specRsiRecouveo_config_getScenarios(array()) ;
-	foreach( $ttmp['data'] as $t_row_scen ) {
-		foreach( $t_row_scen['steps'] as $t_row_scenstep ) {
-			if( $t_row_scenstep['scenstep_code'] == $forward_post['next_scenstep_code'] ) {
-				$link_tpl_id = $t_row_scenstep['link_tpl'] ;
+	if( !$file['status_is_schednone'] ) {
+		// next action ?
+		$status_next = $next_action['link_status'] ;
+		$json = specRsiRecouveo_file_getScenarioLine( array(
+			'file_filerecord_id' => $p_fileFilerecordId,
+			'fileaction_filerecord_id' => $nextaction_filerecord_id
+		)) ;
+		foreach( $json['data'] as $scenline_dot ) {
+			if( $scenline_dot['is_next'] ) {
+				$forward_post['next_action'] = $scenline_dot['link_action'] ;
+				$forward_post['scen_code'] = $scen_code ;
+				$forward_post['next_scenstep_code'] = $scenline_dot['scenstep_code'] ;
+				$forward_post['next_scenstep_tag'] = $scenline_dot['scenstep_tag'] ;
+				$forward_post['next_date'] = $scenline_dot['date_sched'] ;
 			}
 		}
-	}
-	if( $forward_post['next_action'] ) {
-		$arr_ins = array() ;
-		$arr_ins['field_LINK_STATUS'] = $status_next ;
-		$arr_ins['field_LINK_ACTION'] = $forward_post['next_action'] ;
-		$arr_ins['field_LINK_SCENARIO'] = $forward_post['next_scenstep_code'] ;
-		$arr_ins['field_SCENSTEP_TAG'] = $forward_post['next_scenstep_tag'] ;
-		$arr_ins['field_DATE_SCHED'] = $forward_post['next_date'] ;
-		if( $link_tpl_id ) {
-			$arr_ins['field_LINK_TPL'] = $link_tpl_id ;
+		$link_tpl_id = NULL ;
+		$ttmp = specRsiRecouveo_config_getScenarios(array()) ;
+		foreach( $ttmp['data'] as $t_row_scen ) {
+			foreach( $t_row_scen['steps'] as $t_row_scenstep ) {
+				if( $t_row_scenstep['scenstep_code'] == $forward_post['next_scenstep_code'] ) {
+					$link_tpl_id = $t_row_scenstep['link_tpl'] ;
+				}
+			}
 		}
-		$next_fileaction_filerecord_id = paracrm_lib_data_insertRecord_file( $file_code, $p_fileFilerecordId, $arr_ins );
+		if( $forward_post['next_action'] ) {
+			$arr_ins = array() ;
+			$arr_ins['field_LINK_STATUS'] = $status_next ;
+			$arr_ins['field_LINK_ACTION'] = $forward_post['next_action'] ;
+			$arr_ins['field_LINK_SCENARIO'] = $forward_post['next_scenstep_code'] ;
+			$arr_ins['field_SCENSTEP_TAG'] = $forward_post['next_scenstep_tag'] ;
+			$arr_ins['field_DATE_SCHED'] = $forward_post['next_date'] ;
+			if( $link_tpl_id ) {
+				$arr_ins['field_LINK_TPL'] = $link_tpl_id ;
+			}
+			$next_fileaction_filerecord_id = paracrm_lib_data_insertRecord_file( $file_code, $p_fileFilerecordId, $arr_ins );
+		}
 	}
 	// delete cur action ?
 	paracrm_lib_data_deleteRecord_file($file_code,$p_fileActionFilerecordId) ;

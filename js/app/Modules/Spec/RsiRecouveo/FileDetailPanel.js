@@ -1537,7 +1537,14 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			Ext.Array.sort( actions, function(o1,o2) {
 				var d1 = o1.status_is_ok ? o1.date_actual : o1.date_sched ;
 				var d2 = o2.status_is_ok ? o2.date_actual : o2.date_sched ;
-				return (d1<d2) ;
+				var ret = 0 ;
+				if( d1<d2 ) {
+					ret = -1 ;
+				}
+				if( d1>d2 ) {
+					ret = 1 ;
+				}
+				return ret ;
 			}) ;
 			Ext.Array.each( actions, function(o) {
 				if( !o.status_is_ok ) {
@@ -1884,7 +1891,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 						cellColumn = view.getHeaderByCell( cellNode ),
 						fileRecord = view.up('panel')._fileRecord ;
 					if( cellColumn instanceof Ext.tree.Column
-						&& fileRecord.get('next_fileaction_filerecord_id') == record.get('fileaction_filerecord_id') ) {
+						&& record.get('is_next') ) {
 
 						this.doNextAction( fileRecord, record.get('fileaction_filerecord_id'), record.get('link_action') ) ;
 					}
@@ -2454,7 +2461,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		this.openActionPanel(fileRecord, null,actionCode, formValues) ;
 	},
 	doNextAction: function(fileRecord, fileActionFilerecordId, actionCode) {
-		if( fileActionFilerecordId != fileRecord.get('next_fileaction_filerecord_id') ) {
+		if( fileRecord.statusIsSchedNone() ) {
+			// assume OK
+		} else if( fileActionFilerecordId != fileRecord.get('next_fileaction_filerecord_id') ) {
 			Ext.MessageBox.alert('Error','Erreur, action non valide ?') ;
 			return ;
 		}
