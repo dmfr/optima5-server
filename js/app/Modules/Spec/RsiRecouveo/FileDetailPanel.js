@@ -1482,6 +1482,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		var pActionsGridData = [],
 			arr_filesubFilerecordId = [],
 			map_filesubFilerecordId_datevalue = {},
+			map_filesubFilerecordId_txt = {},
 			map_filesubFilerecordId_actions = {},
 			map_filesubFilerecordId_records = {},
 			map_filesubFilerecordId_recordsCount = {},
@@ -1493,7 +1494,11 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		fileRecord.filesubs().each( function(filesubRecord) {
 			var filesubFilerecordId = filesubRecord.get('filesub_filerecord_id') ;
 			map_filesubFilerecordId_datevalue[filesubFilerecordId] = filesubRecord.get('filesub_datevalue') ;
+			map_filesubFilerecordId_txt[filesubFilerecordId] = filesubRecord.get('filesub_txt') ;
 			
+			if( !this._showClosed && filesubRecord.get('filesub_is_void') ) {
+				return ;
+			}
 			arr_filesubFilerecordId.push(filesubFilerecordId) ;
 		},this) ;
 		fileRecord.actions().each( function(fileactionRecord) {
@@ -1516,20 +1521,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		},this) ;
 		
 		
-		
-		console.dir(arr_filesubFilerecordId) ;
-		console.dir(map_filesubFilerecordId_datevalue) ;
-		console.dir(map_filesubFilerecordId_actions) ;
-		console.dir(map_filesubFilerecordId_records) ;
-		console.dir(map_filesubFilerecordId_recordsCount) ;
-		console.dir(map_filesubFilerecordId_recordsSum) ;
-		
-		
 		Ext.Array.each( arr_filesubFilerecordId, function(filesubFilerecordId) {
 			if( !map_filesubFilerecordId_actions.hasOwnProperty(filesubFilerecordId) ) {
-				return ;
-			}
-			if( !map_filesubFilerecordId_records.hasOwnProperty(filesubFilerecordId) ) {
 				return ;
 			}
 			var actions = map_filesubFilerecordId_actions[filesubFilerecordId] ;
@@ -1562,6 +1555,11 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 				pSubfileActions.push(actionRow) ;
 			},this) ;
 			
+			var txtShort = map_filesubFilerecordId_txt[filesubFilerecordId] ;
+			if( map_filesubFilerecordId_records.hasOwnProperty(filesubFilerecordId) ) {
+				txtShort = 'Mnt:&nbsp;'+Math.round(map_filesubFilerecordId_recordsSum[filesubFilerecordId])+'&nbsp;€&nbsp;/&nbsp;Nb:&nbsp;'+map_filesubFilerecordId_recordsCount[filesubFilerecordId] ;
+			}
+			
 			pActionsGridData.push({
 				link_status: 'S0_PRE',
 				link_action: 'BUMP',
@@ -1569,7 +1567,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 				date_actual: map_filesubFilerecordId_datevalue[filesubFilerecordId],
 				status_is_ok: true,
 				
-				txt_short: 'Mnt:&nbsp;'+Math.round(map_filesubFilerecordId_recordsSum[filesubFilerecordId])+'&nbsp;€&nbsp;/&nbsp;Nb:&nbsp;'+map_filesubFilerecordId_recordsCount[filesubFilerecordId],
+				txt_short: txtShort,
 				
 				leaf: false,
 				icon: Ext.BLANK_IMAGE_URL,

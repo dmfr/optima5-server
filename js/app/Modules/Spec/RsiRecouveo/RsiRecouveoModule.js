@@ -71,7 +71,7 @@ Ext.define('RsiRecouveoFileSubModel',{
 	fields: [
 		{name: 'filesub_filerecord_id', type: 'int'},
 		
-		{name: 'filesub_txt', type: 'int'},
+		{name: 'filesub_txt', type: 'string'},
 		{name: 'filesub_datevalue', type:'date', dateFormat:'Y-m-d H:i:s'},
 		{name: 'filesub_is_void', type: 'boolean'}
 	]
