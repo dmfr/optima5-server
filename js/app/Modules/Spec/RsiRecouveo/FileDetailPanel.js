@@ -326,7 +326,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			width: 90,
 			renderer: Ext.util.Format.dateRenderer('d/m/Y')
 		},{
-			hidden: true,
 			text: 'Echeance',
 			dataIndex: 'record_datevalue',
 			align: 'center',

@@ -257,6 +257,7 @@ function specRsiRecouveo_xls_createDetailPanel($post_data){
 			$factures[$i]['ID Facture'] = $record['record_id'] ;
 			$factures[$i]['Libelle Facture'] = $record['record_txt'] ;
 			$factures[$i]['Date Facture'] = $record['date_record'] ;
+			$factures[$i]['Date Echeance'] = $record['date_value'] ;
 			$factures[$i]['Montant'] = $record['amount'] ;
 			$factures[$i]['Integr'] = $record['date_load'] ;
 			$factures[$i]['MntDevise'] = ($record['xe_currency_code'] ? $record['xe_currency_amount'] : '') ;
@@ -402,11 +403,12 @@ function specRsiRecouveo_xls_createDetailPanel($post_data){
 	$sheet3->setCellValue('E1','ID Facture: ');
 	$sheet3->setCellValue('F1','Libelle Facture: ');
 	$sheet3->setCellValue('G1','Date: ');
-	$sheet3->setCellValue('H1','Montant: ');
-	$sheet3->setCellValue('I1','Integr: ');
+	$sheet3->setCellValue('H1','Echeance: ');
+	$sheet3->setCellValue('I1','Montant: ');
+	$sheet3->setCellValue('J1','Integr: ');
 	if( $metaXeCurrency ) {
-		$sheet3->setCellValue('J1','MntDevise: ');
-		$sheet3->setCellValue('K1','CodDevise: ');
+		$sheet3->setCellValue('K1','MntDevise: ');
+		$sheet3->setCellValue('L1','CodDevise: ');
 	}
 
 	foreach($factures as $key => $facture){
@@ -418,14 +420,15 @@ function specRsiRecouveo_xls_createDetailPanel($post_data){
 		  $sheet3->setCellValue('E'.$newKey, $facture['ID Facture']) ;
 		  $sheet3->setCellValue('F'.$newKey, $facture['Libelle Facture']) ;
 		  $sheet3->setCellValue('G'.$newKey, $facture['Date Facture']) ;
-		  $sheet3->setCellValue('H'.$newKey, $facture['Montant']) ;
-		  $sheet3->setCellValue('I'.$newKey, $facture['Integr']) ;
+		  $sheet3->setCellValue('H'.$newKey, $facture['Date Echeance']) ;
+		  $sheet3->setCellValue('I'.$newKey, $facture['Montant']) ;
+		  $sheet3->setCellValue('J'.$newKey, $facture['Integr']) ;
 		  if( $metaXeCurrency ) {
-			$sheet3->setCellValue('J'.$newKey, $facture['MntDevise']) ;
-			$sheet3->setCellValue('K'.$newKey, $facture['CodDevise']) ;
+			$sheet3->setCellValue('K'.$newKey, $facture['MntDevise']) ;
+			$sheet3->setCellValue('L'.$newKey, $facture['CodDevise']) ;
 		  }
 		}
-		$columnValue = ( $metaXeCurrency ? 'L' : 'J' ) ;
+		$columnValue = ( $metaXeCurrency ? 'M' : 'K' ) ;
 		foreach($metaDesc as $meta){
 		  $col = $columnValue.'1' ;
 		  $sheet3->setCellValue($col, $meta['Desc']) ;
