@@ -276,6 +276,7 @@ function specDbsLam_transferInput_getDocuments($post_data) {
 	$query = "SELECT ts.filerecord_id as transferstep_filerecord_id
 				, t.filerecord_id as transfer_filerecord_id
 				, t.field_TRANSFER_TXT as transfer_txt
+				, ts.field_INPUTLIST_IS_ON as inputlist_is_on
 				, ts.field_PDA_IS_ON as pda_is_on
 				, ts.field_PDASPEC_IS_ON as pdaspec_is_on
 				, IF(ts.field_PDASPEC_IS_ON='1',ts.field_PDASPEC_CODE,'') as pdaspec_code
