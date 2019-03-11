@@ -454,6 +454,9 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE, $stopAsHtm
 		if( $record_row['letter_is_confirm'] ) {
 			continue ;
 		}
+		if( $p_recordsFilerecordIds && !in_array($record_row['record_filerecord_id'],$p_recordsFilerecordIds) ) {
+			continue ;
+		}
 		$row_table = array(
 			'record_ref' => $record_row['record_ref'],
 			'record_txt' => trim(substr($record_row['record_txt'],0,35)),
