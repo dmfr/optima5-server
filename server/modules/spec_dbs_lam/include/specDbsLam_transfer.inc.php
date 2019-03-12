@@ -1226,7 +1226,8 @@ function specDbsLam_transfer_lib_updateStatus($transfer_filerecordId) {
 			}
 		}
 	}
-	if( $arr_update['field_STATUS_IS_ALERT'] ) {
+	if( $arr_update['field_STATUS_IS_ALERT'] && $arr_update['field_STATUS_IS_OK'] ) {
+		$arr_update['field_STATUS_IS_ON'] = 1 ;
 		$arr_update['field_STATUS_IS_OK'] = 0 ;
 	}
 	

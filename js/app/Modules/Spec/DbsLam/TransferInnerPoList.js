@@ -45,6 +45,8 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferInnerPoList',{
 						metadata.tdCls = 'op5-spec-dbslam-po-init'
 					} else if( record.get('qty_input') < record.get('qty_po') ) {
 						metadata.tdCls = 'op5-spec-dbslam-po-partial'
+					} else if( record.get('qty_input') > record.get('qty_po') ) {
+						metadata.tdCls = 'op5-spec-dbslam-po-over'
 					} else {
 						metadata.tdCls = 'op5-spec-dbslam-po-complete'
 					}
