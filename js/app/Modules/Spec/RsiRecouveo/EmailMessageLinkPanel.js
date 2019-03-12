@@ -324,6 +324,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.EmailMessageLinkPanel',{
 		if( preselect ) {
 			form.findField('adrbook_do_set').setValue(true) ;
 			form.findField('adrbook_entity_select').setValue( preselect ) ;
+		} else {
+			form.findField('adrbook_do_set').setValue(false) ;
 		}
 		formPanel.down('#cntAdrbook').setVisible(true);
 		// ***********************************
