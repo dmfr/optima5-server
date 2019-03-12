@@ -119,6 +119,8 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunInputForm',{
 	onLoadTransferStep: function(transferstepRow) {
 		this._transferstepRow = transferstepRow ;
 		
+		this.removeAll() ;
+		
 		if( !transferstepRow.pda_is_on ) {
 			return ;
 		}
@@ -133,6 +135,17 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunInputForm',{
 			this.buildSouthPoGrid() ;
 		}
 		this.hideLoadmask() ;
+	},
+	addCenter: function(pnl) {
+		var centerPnl = this.down('panel[region=center]') ;
+		if( centerPnl ) {
+			this.remove(centerPnl) ;
+		}
+		Ext.apply(pnl,{
+			region: 'center',
+			flex: 1
+		});
+		this.add(pnl) ;
 	},
 	
 	buildFormStandard: function(formValues) {
@@ -251,11 +264,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunInputForm',{
 			}]
 		};
 		
-		this.removeAll() ;
-		this.add(Ext.apply(form,{
-			region: 'center',
-			flex: 1
-		})) ;
+		this.addCenter(form) ;
 		if(formValues) {
 			var formPanel = this.down('#fpStandard'),
 				form = formPanel.getForm() ;
@@ -313,8 +322,6 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunInputForm',{
 		});
 		
 		var form = {
-			region: 'center',
-			flex: 1,
 			itemId: 'fpSpec',
 			xtype: 'form',
 			bodyCls: 'ux-noframe-bg',
@@ -329,8 +336,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunInputForm',{
 			items: formItems
 		};
 		
-		this.removeAll() ;
-		this.add(form) ;
+		this.addCenter(form) ;
 		this.fieldfocusBegin() ;
 	},
 	handleSubmitFormSpec: function() {
@@ -382,26 +388,32 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunInputForm',{
 	
 	
 	buildSouthPoGrid: function() {
+		var transferstepRow = this._transferstepRow ;
+		if( !transferstepRow ) {
+			return ;
+		}
+
 		var grid = {
 			xtype: 'grid',
 			store: {
-				model: 'DbsLamGunInputSummaryModel',
+				model: 'DbsLamTransferInputPoModel',
 				autoLoad: true,
 				proxy: this.optimaModule.getConfiguredAjaxProxy({
 					extraParams : {
 						_moduleId: 'spec_dbs_lam',
-						_action: 'transferInput_getDocuments'
+						_action: 'transferInputPo_getLigs',
+						transfer_filerecordId: transferstepRow.transfer_filerecord_id,
+						transferStep_filerecordId: transferstepRow.transferstep_filerecord_id,
 					},
 					reader: {
 						type: 'json',
 						rootProperty: 'data'
 					}
 				}),
-				listeners: {
-					load: function(store) {
-						store.removeAll() ;
-					}
-				}
+				sorters: [{
+					property: 'stk_prod',
+					direction: 'ASC'
+				}]
 			},
 			columns: [{
 				dataIndex: 'status',
@@ -412,6 +424,8 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunInputForm',{
 						metadata.tdCls = 'op5-spec-dbslam-po-init'
 					} else if( record.get('qty_input') < record.get('qty_po') ) {
 						metadata.tdCls = 'op5-spec-dbslam-po-partial'
+					} else if( record.get('qty_input') > record.get('qty_po') ) {
+						metadata.tdCls = 'op5-spec-dbslam-po-over'
 					} else {
 						metadata.tdCls = 'op5-spec-dbslam-po-complete'
 					}
@@ -447,12 +461,20 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunInputForm',{
 			}]
 		};
 		Ext.apply(grid,{
+			itemId: 'gpPoList',
 			title: 'PO list',
 			border: false,
 			region: 'south',
 			flex: 1,
 			collapsible: true,
-			collapsed: true
+			collapsed: true,
+			tools: [{
+				type: 'refresh',
+				handler: function() {
+					this.down('#gpPoList').getStore().load() ;
+				},
+				scope: this
+			}]
 		}); 
 		this.add( grid ) ;
 	},
@@ -523,8 +545,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunInputForm',{
 			}]
 		};
 		
-		this.removeAll() ;
-		this.add(form) ;
+		this.addCenter(form) ;
 		
 		if(true) {
 			var formPanel = this.down('#fpSummary'),
