@@ -292,6 +292,9 @@ function specRsiRecouveo_lib_mail_probeInboxEmail( $email_filerecord_id=NULL ) {
 		if( count($ttmp['data'])==1 ) {
 			$file_record = $ttmp['data'][0] ;
 			$acc_id = $file_record['acc_id'] ;
+			if( $file_record['status_is_schednone'] ) {
+				$file_filerecord_id = NULL ;
+			}
 			specRsiRecouveo_lib_mail_associateFile( $email_filerecord_id, $acc_id, NULL, $file_filerecord_id ) ;
 			return TRUE ;
 		}
@@ -581,7 +584,7 @@ function specRsiRecouveo_lib_mail_associateFile( $src_emailFilerecordId, $target
 					continue ;
 				}
 				$arrFileIds[] = $accountFile_record['file_filerecord_id'] ;
-				if( !$map_status[$accountFile_record['status']]['sched_lock'] ) {
+				if( !$map_status[$accountFile_record['status']]['sched_lock'] && !$accountFile_record['status_is_schednone'] ) {
 					$arrFileIds_noSchedlock[] = $accountFile_record['file_filerecord_id'] ;
 				}
 			}
