@@ -130,9 +130,13 @@ function specRsiRecouveo_lib_autorun_closeEnd() {
 function specRsiRecouveo_lib_autorun_actions() {
 	$json = specRsiRecouveo_config_getScenarios(array()) ;
 	$map_scenCode_scenstepCode_step = array() ;
+	$map_scenCode_prestepTab_step = array() ;
 	foreach( $json['data'] as $scenario ) {
 		foreach( $scenario['steps'] as $scenstep ) {
 			$map_scenCode_scenstepTag_step[$scenario['scen_code']][$scenstep['scenstep_tag']] = $scenstep ;
+		}
+		foreach( $scenario['presteps'] as $prestep ) {
+			$map_scenCode_prestepTab_step[$scenario['scen_code']][$prestep['prestep_tag']] = $prestep ;
 		}
 	}
 
@@ -149,43 +153,82 @@ function specRsiRecouveo_lib_autorun_actions() {
 			'filter_fileFilerecordId_arr' => json_encode(array($file_filerecord_id))
 		)) ;
 		$file = $json_file['data'][0] ;
-		$nextaction_filerecord_id = $file['next_fileaction_filerecord_id'] ;
-		if( !$nextaction_filerecord_id || date('Y-m-d',strtotime($file['next_date'])) > date('Y-m-d') ) {
+		
+		if( $file['status_is_schedlock'] ) {
 			continue ;
 		}
-		$next_action = NULL ;
-		foreach( $file['actions'] as $action ) {
-			if( $action['fileaction_filerecord_id'] == $nextaction_filerecord_id ) {
-				$next_action = $action ;
+		
+		if( !$file['status_is_schednone'] ) {
+			$nextaction_filerecord_id = $file['next_fileaction_filerecord_id'] ;
+			if( !$nextaction_filerecord_id || date('Y-m-d',strtotime($file['next_date'])) > date('Y-m-d') ) {
+				continue ;
+			}
+			$next_action = NULL ;
+			foreach( $file['actions'] as $action ) {
+				if( $action['fileaction_filerecord_id'] == $nextaction_filerecord_id ) {
+					$next_action = $action ;
+				}
+			}
+			if( !$next_action ) {
+				continue ;
+			}
+			
+			if( $file['inv_amount_due'] < 0 ) {
+				continue ;
+			}
+			
+			$scen_code = $file['scen_code'] ;
+			$scenstep_tag = $next_action['scenstep_tag'] ;
+			if( !$scen_code || !$scenstep_tag ) {
+				continue ;
+			}
+			$scenstep = $map_scenCode_scenstepTag_step[$scen_code][$scenstep_tag] ;
+			if( !$scenstep ) {
+				continue ;
+			}
+			
+			if( $scenstep['exec_is_auto'] 
+			&& $next_action['link_action']=='MAIL_OUT'
+			&& $next_action['link_action'] == $scenstep['link_action']
+			&& $next_action['link_tpl'] == $scenstep['link_tpl'] ) {
+			
+				specRsiRecouveo_action_execMailAutoAction( array(
+					'file_filerecord_id' => $file_filerecord_id,
+					'fileaction_filerecord_id' => $nextaction_filerecord_id
+				)) ;
 			}
 		}
-		if( !$next_action ) {
-			continue ;
-		}
 		
-		if( $file['inv_amount_due'] < 0 ) {
-			continue ;
-		}
-		
-		$scen_code = $file['scen_code'] ;
-		$scenstep_tag = $next_action['scenstep_tag'] ;
-		if( !$scen_code || !$scenstep_tag ) {
-			continue ;
-		}
-		$scenstep = $map_scenCode_scenstepTag_step[$scen_code][$scenstep_tag] ;
-		if( !$scenstep ) {
-			continue ;
-		}
-		
-		if( $scenstep['exec_is_auto'] 
-		&& $next_action['link_action']=='MAIL_OUT'
-		&& $next_action['link_action'] == $scenstep['link_action']
-		&& $next_action['link_tpl'] == $scenstep['link_tpl'] ) {
-		
-			specRsiRecouveo_action_execMailAutoAction( array(
-				'file_filerecord_id' => $file_filerecord_id,
-				'fileaction_filerecord_id' => $nextaction_filerecord_id
-			)) ;
+		if( $file['status_is_schednone'] ) {
+			if( $file['inv_amount_due'] < 0 ) {
+				continue ;
+			}
+			foreach( $file['actions'] as $action ) {
+				if( !$action['status_is_ok'] && $action['date_sched'] && (date('Y-m-d',strtotime($action['date_sched']))==date('Y-m-d')) ) {
+					$fileaction_filerecord_id = $action['fileaction_filerecord_id'] ;
+					
+					$scen_code = $file['scen_code'] ;
+					$prestep_tag = $action['scenstep_tag'] ;
+					if( !$scen_code || !$prestep_tag ) {
+						continue ;
+					}
+					$prestep = $map_scenCode_prestepTab_step[$scen_code][$prestep_tag] ;
+					if( !$prestep ) {
+						continue ;
+					}
+					
+					if( $prestep['exec_is_auto'] 
+					&& $action['link_action']=='MAIL_OUT'
+					&& $action['link_action'] == $prestep['link_action']
+					&& $action['link_tpl'] == $prestep['link_tpl'] ) {
+					
+						specRsiRecouveo_action_execMailAutoAction( array(
+							'file_filerecord_id' => $file_filerecord_id,
+							'fileaction_filerecord_id' => $fileaction_filerecord_id
+						)) ;
+					}
+				}
+			}
 		}
 	}
 }
