@@ -179,6 +179,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.EmailMessageLinkPanel',{
 				xtype:'fieldset',
 				itemId: 'cntAdrbook',
 				title: 'Enregistrement du contact',
+				checkboxToggle: true,
+				checkboxName: 'adrbook_do_set',
 				items: [{
 					xtype: 'combobox',
 					name: 'adrbook_entity_select',
@@ -320,6 +322,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.EmailMessageLinkPanel',{
 		},this);
 		form.findField('adrbook_entity_select').getStore().loadData(adrbookData) ;
 		if( preselect ) {
+			form.findField('adrbook_do_set').setValue(true) ;
 			form.findField('adrbook_entity_select').setValue( preselect ) ;
 		}
 		formPanel.down('#cntAdrbook').setVisible(true);

@@ -557,9 +557,11 @@ function specRsiRecouveo_lib_mail_associateFile( $src_emailFilerecordId, $target
 			$arr_ins['field_ADR_TXT'] = $peer_from_address ;
 			$target_adrbookEntryFilerecordId = paracrm_lib_data_insertRecord_file( 'ADRBOOK_ENTRY', $target_adrbookFilerecordId, $arr_ins );
 		}
-		$arr_update = array() ;
-		$arr_update['field_STATUS_IS_CONFIRM'] = 1 ;
-		paracrm_lib_data_updateRecord_file( 'ADRBOOK_ENTRY', $arr_update, $target_adrbookEntryFilerecordId);
+		if( $target_adrbookEntryFilerecordId ) {
+			$arr_update = array() ;
+			$arr_update['field_STATUS_IS_CONFIRM'] = 1 ;
+			paracrm_lib_data_updateRecord_file( 'ADRBOOK_ENTRY', $arr_update, $target_adrbookEntryFilerecordId);
+		}
 		break ;
 	}
 	
