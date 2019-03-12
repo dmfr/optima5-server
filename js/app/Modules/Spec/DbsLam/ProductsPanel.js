@@ -307,12 +307,11 @@ Ext.define('Optima5.Modules.Spec.DbsLam.ProductsPanel',{
 			},
 			listeners: {
 				itemclick: this.onItemClick,
+				itemcontextmenu: this.onItemContextMenu,
 				scope: this
 			}
 		});
 	},
-	
-	
 	
 	
 	onGridBeforeLoad: function(store,options) {
@@ -324,12 +323,60 @@ Ext.define('Optima5.Modules.Spec.DbsLam.ProductsPanel',{
 		
 		options.setParams(params) ;
 	},
+	
+	
 	onItemClick: function( view, record, itemNode, index, e ) {
 		var cellNode = e.getTarget( view.getCellSelector() ),
 			cellColumn = view.getHeaderByCell( cellNode ) ;
 		
 	},
-	
+	onItemContextMenu: function(view, record, item, index, event) {
+		var selRecords = view.getSelectionModel().getSelection();
+		
+		var gridContextMenuItems = new Array() ;
+		if( selRecords.length != 1 ) {
+			return ;
+		} 
+		var selRecord = selRecords[0] ;
+		
+		var logMenuItems = [],
+			invProd = selRecord.get('id') ;
+		if( !Ext.isEmpty(invProd) ) {
+			logMenuItems.push({
+				_log_filter_property: 'prod_id',
+				_log_filter_value: invProd,
+				text: 'P/N : <b>'+invProd+'</b>'
+			}) ;
+		}
+		gridContextMenuItems.push({
+			iconCls: 'op5-spec-dbslam-stock-logs',
+			text: 'Movements log',
+			menu: {
+				defaults: {
+					handler: function(menuitem) {
+						this.optimaModule.postCrmEvent('openstocklog',{
+							log_filter_property: menuitem._log_filter_property,
+							log_filter_value: menuitem._log_filter_value
+						}) ;
+					},
+					scope: this
+				},
+				items: logMenuItems
+			},
+			scope : this
+		});
+		
+		var gridContextMenu = Ext.create('Ext.menu.Menu',{
+			items : gridContextMenuItems,
+			listeners: {
+				hide: function(menu) {
+					Ext.defer(function(){menu.destroy();},10) ;
+				}
+			}
+		}) ;
+		
+		gridContextMenu.showAt(event.getXY());
+	},
 	
 	
 	

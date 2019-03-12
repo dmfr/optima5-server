@@ -263,7 +263,6 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockLogPanel',{
 		}) ;
 	},
 	onLoad: function(ajaxData) {
-		console.dir(ajaxData) ;
 		var rootChildren = [] ;
 		Ext.Array.each(ajaxData, function(row) {
 			var node = row ;
