@@ -291,6 +291,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.EmailMessageLinkPanel',{
 			if( fileRow.status_closed_void || fileRow.status_closed_end ) {
 				return ;
 			}
+			if( fileRow.status_is_schednone ) {
+				return ;
+			}
 			if( Ext.isEmpty(fileRow.file_filerecord_id) || fileRow.file_filerecord_id == 0 ) {
 				return ;
 			}
