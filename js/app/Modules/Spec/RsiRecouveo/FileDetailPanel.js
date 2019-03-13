@@ -1610,7 +1610,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 					value: fileRecord.get('scen_code'),
 					store: {
 						autoLoad: true,
-						model: Optima5.Modules.Spec.RsiRecouveo.HelperCache.getConfigScenarioModel(),
+						fields: [
+							{name: 'scen_code', type: 'string'},
+							{name: 'scen_txt', type: 'string'}
+						],
 						proxy: this.optimaModule.getConfiguredAjaxProxy({
 							extraParams : {
 								_moduleId: 'spec_rsi_recouveo',
