@@ -48,6 +48,7 @@ function specRsiRecouveo_lib_autorun_open() {
 			$arr_ins['field_STATUS'] = 'S0_PRE' ;
 			$arr_ins['field_DATE_OPEN'] = date('Y-m-d H:i:s') ;
 			$arr_ins['field_FROM_FILE_ID'] = 0 ;
+			$arr_ins['field_SCENARIO_IS_NEW'] = 1 ;
 			$accountFileOff_filerecordId = paracrm_lib_data_insertRecord_file( 'FILE', 0, $arr_ins );
 		}
 		if( !$accountFileOn_filerecordId ) {

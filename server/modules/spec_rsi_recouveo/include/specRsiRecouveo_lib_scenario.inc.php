@@ -6,7 +6,7 @@ function specRsiRecouveo_lib_scenario_attach( $reassign=FALSE ) {
 	$query = "SELECT filerecord_id 
 			FROM view_file_FILE f
 			JOIN view_bible_CFG_STATUS_tree cs ON cs.treenode_key=f.field_STATUS
-			WHERE cs.field_SCHED_LOCK='0' AND cs.field_SCHED_NONE='0' AND f.field_STATUS_CLOSED_VOID<>'1' AND f.field_STATUS_CLOSED_END<>'1'
+			WHERE cs.field_SCHED_LOCK='0' AND f.field_STATUS_CLOSED_VOID<>'1' AND f.field_STATUS_CLOSED_END<>'1'
 			AND f.field_SCENARIO_IS_AUTO='1'" ;
 	if( !$reassign ) {
 		$query.= " AND f.field_SCENARIO=''" ;
@@ -26,7 +26,7 @@ function specRsiRecouveo_lib_scenario_attach( $reassign=FALSE ) {
 	$query = "SELECT filerecord_id 
 			FROM view_file_FILE f
 			JOIN view_bible_CFG_STATUS_tree cs ON cs.treenode_key=f.field_STATUS
-			WHERE cs.field_SCHED_LOCK='0' AND cs.field_SCHED_NONE='0' AND f.field_STATUS_CLOSED_VOID<>'1' AND f.field_STATUS_CLOSED_END<>'1'
+			WHERE cs.field_SCHED_LOCK='0' AND f.field_STATUS_CLOSED_VOID<>'1' AND f.field_STATUS_CLOSED_END<>'1'
 			AND f.field_SCENARIO_IS_AUTO='1'" ;
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
@@ -82,7 +82,7 @@ function specRsiRecouveo_lib_scenario_attachFile( $file_filerecord_id ) {
 		break ;
 	}
 	
-	if( $assign_scenario ) {
+	if( $assign_scenario && !$file_record['status_is_schedlock'] ) {
 			// HACK !
 			if( in_array(strtolower(trim($file_record['ATR_A_LANG'])),array('anglais','english','allemand')) ) {
 				$assign_scenerio_ENG = $assign_scenario.'_ENG' ;
@@ -97,7 +97,10 @@ function specRsiRecouveo_lib_scenario_attachFile( $file_filerecord_id ) {
 		$arr_update = array('field_SCENARIO'=>$assign_scenario) ;
 		paracrm_lib_data_updateRecord_file( 'FILE', $arr_update, $file_record['file_filerecord_id']);
 		
-		if( $file_record['next_action']=='BUMP' ) {
+		if( $file_record['status_is_schednone'] ) {
+			specRsiRecouveo_file_lib_managePre($file_record['acc_id']);
+		}
+		if( $file_record['next_action']=='BUMP' && !$file_record['status_is_schednone'] ) {
 			$forward_post = array() ;
 			$forward_post['fileaction_filerecord_id'] = $file_record['next_fileaction_filerecord_id'] ;
 			$forward_post['link_status'] = $file_record['status'] ;
@@ -151,8 +154,11 @@ function specRsiRecouveo_lib_scenario_launchFileIfBump( $file_filerecord_id ) {
 	)) ;
 	$file_record = $json['data'][0] ;
 	
-	if( TRUE ) {
-		if( $file_record['next_action']=='BUMP' ) {
+	if( !$file_record['status_is_schedlock'] ) {
+		if( $file_record['status_is_schednone'] ) {
+			specRsiRecouveo_file_lib_managePre($file_record['acc_id']);
+		}
+		if( $file_record['next_action']=='BUMP' && !$file_record['status_is_schednone'] ) {
 			$forward_post = array() ;
 			$forward_post['fileaction_filerecord_id'] = $file_record['next_fileaction_filerecord_id'] ;
 			$forward_post['link_status'] = $file_record['status'] ;
