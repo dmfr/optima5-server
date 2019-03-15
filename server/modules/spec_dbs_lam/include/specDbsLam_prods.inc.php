@@ -52,6 +52,7 @@ function specDbsLam_prods_getGrid($post_data, $ids_mode=false) {
 		$row['picking_is_static'] = !!$arr['field_PICK_IS_STATIC'] ;
 		$row['picking_adr'] = $arr['field_PICK_ADR_ID'] ;
 		$row['vl_kg'] = $arr['field_VL_KG'] ;
+		$row['vl_containertype'] = $arr['field_VL_CONTAINERTYPE'] ;
 		
 		foreach( $json_cfg['cfg_attribute'] as $stockAttribute_obj ) {
 			if( !$stockAttribute_obj['PROD_fieldcode'] ) {

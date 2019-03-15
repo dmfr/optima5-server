@@ -163,6 +163,61 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunInputForm',{
 			},
 			items: [{
 				xtype: 'combobox',
+				name: 'stk_prod',
+				fieldLabel: 'Product P/N',
+				forceSelection:true,
+				allowBlank:false,
+				editable:true,
+				typeAhead:false,
+				selectOnFocus: false,
+				selectOnTab: true,
+				queryMode: 'remote',
+				displayField: 'id',
+				valueField: 'id',
+				queryParam: 'filter',
+				minChars: 2,
+				fieldStyle: 'text-transform:uppercase',
+				store: {
+					autoLoad: true,
+					fields: ['id','target_containertype'],
+					proxy: this.optimaModule.getConfiguredAjaxProxy({
+						extraParams : {
+							_moduleId: 'spec_dbs_lam',
+							_action: 'transferInput_getProdIds'
+						},
+						reader: {
+							type: 'json',
+							rootProperty: 'data'
+						}
+					}),
+					listeners: {
+						beforeload: function(store,options) {
+							var transferstepRow = this._transferstepRow ;
+							
+							var params = options.getParams() ;
+							Ext.apply(params,{
+								transfer_filerecordId: transferstepRow.transfer_filerecord_id,
+								transferStep_filerecordId: transferstepRow.transferstep_filerecord_id,
+							}) ;
+							options.setParams(params) ;
+						},
+						scope: this
+					}
+				},
+				listeners: {
+					select: function(cmb,selRecord) {
+						if( selRecord && !Ext.isEmpty(selRecord.get('target_containertype')) ) {
+							var targetContainerType = selRecord.get('target_containertype') ;
+							var fieldContainerType = this.down('#fpStandard').getForm().findField('container_type') ;
+							if( fieldContainerType ) {
+								fieldContainerType.setValue(targetContainerType) ;
+							}
+						}
+					},
+					scope: this
+				}
+			},{
+				xtype: 'combobox',
 				name: 'container_type',
 				fieldLabel: 'Container type',
 				anchor: '100%',
@@ -194,42 +249,6 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunInputForm',{
 				name: 'container_ref',
 				fieldLabel: 'Container Ref',
 				anchor: '100%',
-			},{
-				xtype: 'combobox',
-				name: 'stk_prod',
-				fieldLabel: 'Product P/N',
-				forceSelection:true,
-				allowBlank:false,
-				editable:true,
-				typeAhead:false,
-				selectOnFocus: false,
-				selectOnTab: true,
-				queryMode: 'remote',
-				displayField: 'id',
-				valueField: 'id',
-				queryParam: 'filter',
-				minChars: 2,
-				fieldStyle: 'text-transform:uppercase',
-				store: {
-					autoLoad: true,
-					fields: ['id'],
-					proxy: this.optimaModule.getConfiguredAjaxProxy({
-						extraParams : {
-							_moduleId: 'spec_dbs_lam',
-							_action: 'prods_getIds'
-						},
-						reader: {
-							type: 'json',
-							rootProperty: 'data'
-						}
-					}),
-					listeners: {
-						scope: this
-					}
-				},
-				listeners: {
-					scope: this
-				}
 			},{
 				xtype: 'numberfield',
 				name: 'mvt_qty',

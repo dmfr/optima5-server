@@ -296,6 +296,59 @@ function specDbsLam_transferInput_getDocuments($post_data) {
 	
 	return array('success'=>true, 'data'=>array_values($TAB)) ;
 }
+function specDbsLam_transferInput_getProdIds($post_data) {
+	global $_opDB ;
+	
+	$p_transferFilerecordId = $post_data['transfer_filerecordId'] ;
+	$p_transferStepFilerecordId = $post_data['transferStep_filerecordId'] ;
+	
+	$query = "SELECT t.field_SOC_IS_MULTI , t.field_SOC_CODE
+			FROM view_file_TRANSFER t
+			WHERE t.filerecord_id='{$p_transferFilerecordId}'" ;
+	$result = $_opDB->query($query) ;
+	$arr = $_opDB->fetch_row($result) ;
+	if( !(!!$arr[0]) ) {
+		$filter_soc = $arr[1] ;
+	} 
+	
+	$query = "SELECT ts.field_INPUTLIST_IS_ON
+			FROM view_file_TRANSFER_STEP ts
+			JOIN view_file_TRANSFER t ON t.filerecord_id=ts.filerecord_parent_id
+			WHERE t.filerecord_id='{$p_transferFilerecordId}' AND ts.filerecord_id='{$p_transferStepFilerecordId}'" ;
+	if( !!$_opDB->query_uniqueValue($query) ) {
+		$filter_arrProds = array() ;
+		$query = "SELECT distinct tip.field_PROD_ID
+					FROM view_file_TRANSFER_INPUT_PO tip
+					JOIN view_file_TRANSFER_STEP ts 
+						ON ts.filerecord_parent_id=tip.filerecord_parent_id AND ts.field_TRANSFERSTEP_IDX=tip.field_TRANSFERSTEP_IDX
+					JOIN view_file_TRANSFER t
+						ON t.filerecord_id = ts.filerecord_parent_id
+					WHERE ts.filerecord_id='{$p_transferStepFilerecordId}' AND t.filerecord_id='{$p_transferFilerecordId}'
+					ORDER BY tip.field_PROD_ID ASC" ;
+		$result = $_opDB->query($query) ;
+		while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+			$filter_arrProds[] = $arr[0] ;
+		}
+	}
+	
+	$json = specDbsLam_prods_getGrid($post_data) ;
+	$tab_DATA = array() ;
+	foreach( $json['data'] as $prod_row ) {
+		if( isset($filter_soc) && ($prod_row['prod_soc']!=$filter_soc) ) {
+			continue ;
+		}
+		if( isset($filter_arrProds) && !in_array($prod_row['id'],$filter_arrProds) ) {
+			continue ;
+		}
+		
+		$row = array('id'=>$prod_row['id']) ;
+		if( $prod_row['vl_containertype'] ) {
+			$row['target_containertype'] = $prod_row['vl_containertype'] ;
+		}
+		$tab_DATA[] = $row ;
+	}
+	return array('success'=>true, 'data'=>$tab_DATA) ;
+}
 function specDbsLam_transferInput_processSql($post_data) {
 	$p_sqlProcess = $post_data['sql_process'] ;
 	$p_sqlVars = json_decode($post_data['sql_vars'],true) ;

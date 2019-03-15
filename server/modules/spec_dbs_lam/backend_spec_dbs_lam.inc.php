@@ -124,6 +124,8 @@ switch( $post_data['_action'] )
 	return specDbsLam_transferInput_setPdaSpec( $post_data ) ;
 	case 'transferInput_getDocuments' :
 	return specDbsLam_transferInput_getDocuments( $post_data ) ;
+	case 'transferInput_getProdIds' :
+	return specDbsLam_transferInput_getProdIds( $post_data ) ;
 	case 'transferInput_processSql' :
 	return specDbsLam_transferInput_processSql( $post_data ) ;
 	case 'transferInput_submit' :
