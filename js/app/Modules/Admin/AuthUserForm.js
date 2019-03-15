@@ -99,10 +99,17 @@ Ext.define('Optima5.Modules.Admin.AuthUserForm' ,{
 			},{
 				xtype:'checkboxfield',
 				name:'auth_is_disabled',
-				fieldLabel:'Login disabled',
+				fieldLabel:'Disabled',
 				inputValue:1,
 				uncheckedValue:0,
 				checked : me.isNew ? false : adminAuthUserRecord.get('auth_is_disabled')
+			},{
+				xtype:'checkboxfield',
+				name:'auth_is_nologin',
+				fieldLabel:'No UI Login',
+				inputValue:1,
+				uncheckedValue:0,
+				checked : me.isNew ? false : adminAuthUserRecord.get('auth_is_nologin')
 			},{
 				xtype:'fieldset',
 				title: 'Administrator',

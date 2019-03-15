@@ -26,6 +26,9 @@ if( $_POST['_action'] == 'login' )
 	if( !$login_result['done'] ) {
 		die(json_encode($login_result)) ;
 	}
+	if( $login_result['login_data']['auth_is_nologin'] ) {
+		die(json_encode(array('done' => FALSE,'errors'=>array("No UI login for <b>{$userstr}</b>"),'mysql_db'=>$GLOBALS['mysql_db']))) ;
+	}
 	
 	// **********************
 	

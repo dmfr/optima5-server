@@ -32,6 +32,7 @@ function admin_auth_users_getList($post_data) {
 		unset($arr['auth_class']) ;
 		
 		$arr['auth_is_disabled'] = ($arr['auth_is_disabled']=='O') ;
+		$arr['auth_is_nologin'] = ($arr['auth_is_nologin']=='O') ;
 		
 		if( !isset($arr_users_linkgroups[$user_id]) ) {
 			$arr_users_linkgroups[$user_id] = array() ;
@@ -420,6 +421,13 @@ function admin_auth_setUser( $post_data ) {
 	foreach( array('auth_is_disabled') as $mkey ) {
 		if( !isset($post_data[$mkey]) ) {
 			$errors_form[$mkey] = "Missing $mkey" ;
+		} else {
+			$arr_update[$mkey] = $post_data[$mkey] ? 'O' : '' ;
+		}
+	}
+	foreach( array('auth_is_nologin') as $mkey ) {
+		if( !isset($post_data[$mkey]) ) {
+			// No visible error
 		} else {
 			$arr_update[$mkey] = $post_data[$mkey] ? 'O' : '' ;
 		}

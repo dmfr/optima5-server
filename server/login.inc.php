@@ -224,6 +224,9 @@ function op5_login_test( $userstr, $password, $http_digest=FALSE, $http_digest_r
 			if( $arr['auth_is_disabled'] == 'O' ) {
 				return array('done' => FALSE,'errors'=>array("Login disabled for <b>{$userstr}</b>"),'mysql_db'=>$GLOBALS['mysql_db']) ;
 			}
+			if( $arr['auth_is_nologin'] == 'O' ) {
+				$auth_is_nologin = TRUE ;
+			}
 			$auth_class = $arr['auth_class'] ;
 			
 			$maj_password = $GLOBALS['_opDB']->escape_string($password) ;
@@ -239,6 +242,7 @@ function op5_login_test( $userstr, $password, $http_digest=FALSE, $http_digest_r
 			'login_user' => $login_user,
 			'login_password' => $password,
 			'auth_class' => $auth_class,
+			'auth_is_nologin' => $auth_is_nologin,
 			'delegate_sdomainId' => $delegate_sdomainId,
 			'delegate_userId' => $delegate_userId
 		),

@@ -107,6 +107,9 @@
 .op5-auth-panel-user-admin {
 	background-image: url("../images/modules/admin-user-red-16.png") !important;
 }
+.op5-auth-panel-user-nologin {
+	background-image: url("../images/modules/admin-user-green-16.png") !important;
+}
 .op5-auth-panel-user-disabled {
 	background-image: url("../images/modules/admin-user-disabled-16.png") !important;
 }
