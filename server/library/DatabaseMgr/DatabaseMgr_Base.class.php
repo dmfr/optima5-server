@@ -3,7 +3,7 @@ class DatabaseMgr_Base {
 	
 	private $_opDB ;
 	
-	private static $dbVersion = 2 ;
+	private static $dbVersion = 3 ;
 	
 	public function __construct () {
 		$this->_opDB = $GLOBALS['_opDB'] ;
@@ -49,6 +49,7 @@ CREATE TABLE `auth_user` (
   `password_sha1` varchar(40) NOT NULL,
   `auth_class` varchar(1) NOT NULL,
   `auth_is_disabled` varchar(1) NOT NULL,
+  `auth_is_nologin` varchar(1) NOT NULL,
   PRIMARY KEY (`user_id`)
 ) ;
 
