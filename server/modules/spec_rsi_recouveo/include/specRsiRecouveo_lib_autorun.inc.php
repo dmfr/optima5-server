@@ -161,7 +161,10 @@ function specRsiRecouveo_lib_autorun_actions() {
 		
 		if( !$file['status_is_schednone'] ) {
 			$nextaction_filerecord_id = $file['next_fileaction_filerecord_id'] ;
-			if( !$nextaction_filerecord_id || date('Y-m-d',strtotime($file['next_date'])) > date('Y-m-d') ) {
+			if( !$file['next_action_date'] ) {
+				continue ;
+			}
+			if( !$nextaction_filerecord_id || date('Y-m-d',strtotime($file['next_action_date'])) > date('Y-m-d') ) {
 				continue ;
 			}
 			$next_action = NULL ;

@@ -525,6 +525,7 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 				'next_fileaction_filerecord_id' => $next_action['fileaction_filerecord_id'],
 				'next_action' => $next_action['link_action'],
 				'next_action_suffix' => $next_action_suffix,
+				'next_action_date' => $next_action['date_sched'],
 				'next_txt' => ( ($next_action['link_action']=='BUMP'&&$next_action['link_txt']) ? $next_action['link_txt'] : $map_actionnext[$next_action_suffix]),
 				'next_date' => $next_action['date_sched'],
 				'next_eta_range' => $next_action['calc_eta_range'],
