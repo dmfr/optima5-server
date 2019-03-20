@@ -447,9 +447,6 @@ function specRsiRecouveo_lib_autorun_processInboxDoc($inpostal_filerecord_id) {
 					continue ;
 				}
 				$arrFileIds[] = $accountFile_record['file_filerecord_id'] ;
-				if( !$map_status[$accountFile_record['status']]['sched_lock'] ) {
-					$arrFileIds_noSchedlock[] = $accountFile_record['file_filerecord_id'] ;
-				}
 			}
 			$target_file_filerecord_id = NULL ;
 			if( $arrFileIds_noSchedlock ) {
