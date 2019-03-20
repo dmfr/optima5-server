@@ -568,25 +568,16 @@ function specRsiRecouveo_lib_mail_associateFile( $src_emailFilerecordId, $target
 		break ;
 	}
 	
-	if( $target_fileFilerecordId ) {
-		foreach( $account_record['files'] as $accountFile_record ) {
-			if( $accountFile_record['file_filerecord_id'] == $target_fileFilerecordId ) {
-				$target_file_record = $accountFile_record ;
-				if( $accountFile_record['status_closed_void'] || $accountFile_record['status_closed_end'] ) {
-					unset($target_fileFilerecordId) ;
-				}
-			}
-		}
-	}
 	if( !$target_fileFilerecordId ) {
 			foreach( $account_record['files'] as $accountFile_record ) {
+				if( !$accountFile_record['status_is_schedlock'] && !$accountFile_record['status_is_schednone'] ) {
+					$arrFileIds_noSchedlock[] = $accountFile_record['file_filerecord_id'] ;
+					continue ;
+				}
 				if( $accountFile_record['status_closed_void'] || $accountFile_record['status_closed_end'] ) {
 					continue ;
 				}
 				$arrFileIds[] = $accountFile_record['file_filerecord_id'] ;
-				if( !$map_status[$accountFile_record['status']]['sched_lock'] && !$accountFile_record['status_is_schednone'] ) {
-					$arrFileIds_noSchedlock[] = $accountFile_record['file_filerecord_id'] ;
-				}
 			}
 			$target_fileFilerecordId = NULL ;
 			if( $arrFileIds_noSchedlock ) {

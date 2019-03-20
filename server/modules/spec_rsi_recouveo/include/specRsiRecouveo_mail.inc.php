@@ -237,7 +237,7 @@ function specRsiRecouveo_mail_downloadEmailAttachment($post_data) {
 function specRsiRecouveo_mail_associateFile($post_data) {
 	sleep(1) ;
 	$data = json_decode($post_data['data'],true) ;
-	specRsiRecouveo_lib_mail_associateFile( $post_data['email_filerecord_id'], $data['ref_account'], ($data['adrbook_do_set'] ? $data['adrbook_entity_select'] : null), $data['file_select'] ) ;
+	specRsiRecouveo_lib_mail_associateFile( $post_data['email_filerecord_id'], $data['ref_account'], ($data['adrbook_do_set'] ? $data['adrbook_entity_select'] : null), null ) ;
 	
 	return array('success'=>true, 'error'=>'Test') ;
 }

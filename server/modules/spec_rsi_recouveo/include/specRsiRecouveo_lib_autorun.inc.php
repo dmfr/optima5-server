@@ -439,6 +439,10 @@ function specRsiRecouveo_lib_autorun_processInboxDoc($inpostal_filerecord_id) {
 			$ttmp = specRsiRecouveo_account_open(array('acc_id'=>$src['field_REF_ACCOUNT'])) ;
 			$account_record = $ttmp['data'] ;
 			foreach( $account_record['files'] as $accountFile_record ) {
+				if( !$accountFile_record['status_is_schedlock'] && !$accountFile_record['status_is_schednone'] ) {
+					$arrFileIds_noSchedlock[] = $accountFile_record['file_filerecord_id'] ;
+					continue ;
+				}
 				if( $accountFile_record['status_closed_void'] || $accountFile_record['status_closed_end'] ) {
 					continue ;
 				}

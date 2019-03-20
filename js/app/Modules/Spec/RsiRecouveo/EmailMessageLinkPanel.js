@@ -160,23 +160,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.EmailMessageLinkPanel',{
 				}]
 			},{
 				xtype:'fieldset',
-				itemId: 'cntFile',
-				title: 'Dossier cible',
-				items: [{
-					xtype: 'combobox',
-					name: 'file_select',
-					forceSelection: true,
-					editable: false,
-					store: {
-						fields: ['file_filerecord_id','file_desc'],
-						data : []
-					},
-					queryMode: 'local',
-					displayField: 'file_desc',
-					valueField: 'file_filerecord_id'
-				}]
-			},{
-				xtype:'fieldset',
 				itemId: 'cntAdrbook',
 				title: 'Enregistrement du contact',
 				checkboxToggle: true,
@@ -225,7 +208,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.EmailMessageLinkPanel',{
 		form.findField('acc_search').setVisible(true) ;
 		cntAccount.setVisible(true) ;
 		
-		formPanel.down('#cntFile').setVisible(false);
 		formPanel.down('#cntAdrbook').setVisible(false);
 		formPanel.down('#cntSubmit').setVisible(false);
 	},
@@ -283,33 +265,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.EmailMessageLinkPanel',{
 		
 		
 		
-		
-		
-		// ******** cntFile **********
-		var filesData = [] ;
-		Ext.Array.each( accountRow.files, function(fileRow) {
-			if( fileRow.status_closed_void || fileRow.status_closed_end ) {
-				return ;
-			}
-			if( fileRow.status_is_schednone ) {
-				return ;
-			}
-			if( Ext.isEmpty(fileRow.file_filerecord_id) || fileRow.file_filerecord_id == 0 ) {
-				return ;
-			}
-			var text = fileRow.status_txt + '(' + Ext.Date.format(Ext.Date.parse(fileRow.date_open,'Y-m-d H:i:s'),'d/m/Y') + ')' + ' / ' + Math.round(fileRow.inv_amount_due) + ' €' ;
-			filesData.push({
-				file_filerecord_id: fileRow.file_filerecord_id,
-				file_desc: text
-			});
-		}) ;
-		form.findField('file_select').getStore().loadData(filesData) ;
-		if( filesData.length==1 ) {
-			form.findField('file_select').setValue( filesData[0]['file_filerecord_id'] ) ;
-		}
-		form.findField('file_select').allowBlank = !(filesData.length>0) ;
-		formPanel.down('#cntFile').setVisible(true);
-		// ******************************
 		
 		
 		// ******** cntAdrbook *************
