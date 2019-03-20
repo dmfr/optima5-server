@@ -493,6 +493,7 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 	$account_record = $json['data'] ;
 	
 	
+	$is_sched_none = $file_record['status_is_schednone'] ;
 	$is_sched_lock = $map_status[$file_record['status']]['sched_lock'] ;
 	
 	
@@ -953,6 +954,9 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 	if( $post_form['next_action_save'] ) {
 		$do_clean_next_actions = FALSE ;
 	}
+	if( $is_sched_none ) {
+		$do_clean_next_actions = FALSE ;
+	}
 	if( $is_sched_lock ) {
 		$do_clean_next_actions = FALSE ;
 		switch( $post_form['schedlock_next'] ) {
@@ -1187,7 +1191,7 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 	
 	
 	$status_change = NULL ;
-	if( !$is_sched_lock && !$post_form['next_action_save'] ) {
+	if( !$is_sched_none && !$is_sched_lock && !$post_form['next_action_save'] ) {
 		if( !$post_form['next_action'] ) {
 			$post_form['next_action'] = 'BUMP' ;
 		}
