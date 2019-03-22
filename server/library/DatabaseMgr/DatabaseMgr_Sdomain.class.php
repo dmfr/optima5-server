@@ -4,7 +4,7 @@ class DatabaseMgr_Sdomain {
 	private $_opDB ;
 	private $domain_id ;
 	
-	private static $dbVersion = 40 ;
+	private static $dbVersion = 41 ;
 	
 	public function __construct( $domain_id ) {
 		$this->_opDB = $GLOBALS['_opDB'] ;
@@ -632,6 +632,8 @@ CREATE TABLE `qsql` (
   `sql_is_rw` varchar(1) NOT NULL,
   `autorun_is_on` varchar(1) NOT NULL,
   `autorun_cfg_json` varchar(200) NOT NULL,
+  `token_is_on` varchar(1) NOT NULL,
+  `token_cfg_json` text NOT NULL,
   PRIMARY KEY (`qsql_id`)
 ) ;
 
