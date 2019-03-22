@@ -57,6 +57,7 @@ function paracrm_queries_qsqlTransaction( $post_data ) {
 				paracrm_queries_organizePublish() ;
 			}
 		}
+		
 		if( $post_data['_subaction'] == 'autorun_get' )
 		{
 			$json =  paracrm_queries_qsqlTransaction_autorunGet( $post_data , $arr_saisie ) ;
@@ -64,6 +65,15 @@ function paracrm_queries_qsqlTransaction( $post_data ) {
 		if( $post_data['_subaction'] == 'autorun_set' )
 		{
 			$json =  paracrm_queries_qsqlTransaction_autorunSet( $post_data , $arr_saisie ) ;
+		}
+		
+		if( $post_data['_subaction'] == 'token_get' )
+		{
+			$json =  paracrm_queries_qsqlTransaction_tokenGet( $post_data , $arr_saisie ) ;
+		}
+		if( $post_data['_subaction'] == 'token_set' )
+		{
+			$json =  paracrm_queries_qsqlTransaction_tokenSet( $post_data , $arr_saisie ) ;
 		}
 		
 		if( $post_data['_subaction'] == 'res_get' )
@@ -299,6 +309,71 @@ function paracrm_queries_qsqlTransaction_autorunSet( $post_data , &$arr_saisie )
 	$arr_update = array() ;
 	$arr_update['autorun_is_on'] = ($data['autorun_is_on'] ? 'O':'N') ;
 	$arr_update['autorun_cfg_json'] = ($data['autorun_is_on'] ? json_encode($data) : '') ;
+	$arr_cond = array() ;
+	$arr_cond['qsql_id'] = $qsql_id ;
+	$_opDB->update('qsql',$arr_update,$arr_cond) ;
+
+	return array('success'=>true) ;
+}
+function paracrm_queries_qsqlTransaction_tokenGet( $post_data , &$arr_saisie ) {
+	global $_opDB ;
+	
+	//sleep(1) ;
+	
+	$qsql_id = $arr_saisie['qsql_id'] ;
+	
+	$query = "SELECT * FROM qsql where qsql_id='{$qsql_id}'" ;
+	$result = $_opDB->query($query) ;
+	$arr = $_opDB->fetch_assoc($result) ;
+	$sql_querystring = $arr['sql_querystring'] ;
+	$tpl_resultset = array() ;
+	$q = 0 ;
+	foreach( SqlParser::split_sql($sql_querystring) as $sql_sentence ) {
+		$q++ ;
+		$tpl_resultset[] = array('tab_title_src'=>'Q'.$q, 'tab_title_target'=>'Q'.$q) ;
+	}
+	
+	
+	$data = array() ;
+	$data['qsql_id'] = $arr['qsql_id'] ;
+	$data['qsql_name'] = $arr['qsql_name'] ;
+	$data['sql_querystring'] = $sql_querystring ;
+	$data['tpl_resultset'] = $tpl_resultset ;
+	$data['tokens'] = ($arr['token_cfg_json'] ? json_decode($arr['token_cfg_json'],true) : array()) ;
+	
+	return array('success'=>true, 'data'=>$data) ;
+}
+function paracrm_queries_qsqlTransaction_tokenSet( $post_data , &$arr_saisie ) {
+	global $_opDB ;
+	
+	//sleep(2) ;
+	
+	$json = paracrm_queries_qsqlTransaction_tokenGet(array(),$arr_saisie) ;
+	$tokens = $json['data']['tokens'] ;
+	
+	$token_cfg_row = json_decode($post_data['data'],true) ;
+	if( !$token_cfg_row['token_id'] ) {
+		$token_cfg_row['token_id'] = time() ;
+	}
+	
+	$tokens_new = array() ;
+	foreach( $tokens as $token ) {
+		if( $token['token_id']==$token_cfg_row['token_id']) {
+			continue ;
+		}
+		$tokens_new[] = $token ;
+	}
+	if( !$post_data['do_delete'] ) {
+		$tokens_new[] = $token_cfg_row ;
+	}
+	
+	
+	
+	$qsql_id = $arr_saisie['qsql_id'] ;
+	
+	$arr_update = array() ;
+	$arr_update['token_is_on'] = ((count($tokens_new)>0) ? 'O':'N') ;
+	$arr_update['token_cfg_json'] = json_encode($tokens_new) ;
 	$arr_cond = array() ;
 	$arr_cond['qsql_id'] = $qsql_id ;
 	$_opDB->update('qsql',$arr_update,$arr_cond) ;

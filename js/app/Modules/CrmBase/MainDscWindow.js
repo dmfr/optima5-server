@@ -7,11 +7,13 @@ Ext.define('Optima5.Modules.CrmBase.MainDscWindow',{
 		
 		'Optima5.Modules.CrmBase.QlogsPanel',
 		'Optima5.Modules.CrmBase.QsqlAutorunPanel',
+		'Optima5.Modules.CrmBase.QsqlTokensPanel',
 		'Optima5.Modules.CrmBase.DataImportLogsPanel'
 	],
 	
 	clsForPublished: 'op5-crmbase-published',
 	clsForAutorun:   'op5-crmbase-autorun',
+	clsForToken:     'op5-crmbase-token',
 	
 	initComponent: function() {
 		var me = this,
@@ -77,6 +79,13 @@ Ext.define('Optima5.Modules.CrmBase.MainDscWindow',{
 						icon: 'images/op5img/ico_sql_16.png' ,
 						handler: function(){
 							me.openQsqlAutorun() ;
+						},
+						scope: me
+					},{
+						text: 'SQL Tokens',
+						icon: 'images/op5img/ico_sql_16.png' ,
+						handler: function(){
+							me.openQsqlTokens() ;
 						},
 						scope: me
 					},{
@@ -288,7 +297,7 @@ Ext.define('Optima5.Modules.CrmBase.MainDscWindow',{
 							isPublished: o.isPublished,
 							text: o.text,
 							icon: 'images/op5img/ico_sql_16.png' ,
-							cls: ((o.isPublished == true)? me.clsForPublished:null) + ' ' + ((o.isAutorun == true)? me.clsForAutorun:null),
+							cls: ((o.isPublished == true)? me.clsForPublished:'') + ' ' + ((o.isAutorun == true)? me.clsForAutorun:'') + ' ' + ((o.isToken == true)? me.clsForToken:''),
 							handler: function(){
 								me.openQsql( qsqlId, o.authReadOnly ) ;
 							},
@@ -517,6 +526,44 @@ Ext.define('Optima5.Modules.CrmBase.MainDscWindow',{
 		}
 		
 		var qlogsPanel = Ext.create('Optima5.Modules.CrmBase.QsqlAutorunPanel',{
+			optimaModule: this.optimaModule
+		});
+		
+		win = this.optimaModule.createWindow({
+			_winQsqlAutorun: true,
+			title:'Sql Autoruns',
+			width:1000,
+			height:600,
+			iconCls: 'op5-crmbase-datatoolbar-file',
+			animCollapse:false,
+			border: false,
+			layout: 'fit',
+			items: [ qlogsPanel ]
+		}) ;
+		qlogsPanel.win = win ;
+		qlogsPanel.on('destroy',function(p) {
+			p.win.close() ;
+		}) ;
+	},
+	openQsqlTokens: function() {
+		var me = this ;
+		
+		// recherche d'une fenetre deja ouverte
+		var doOpen = true ;
+		me.optimaModule.eachWindow(function(win){
+			if( win._winQsqlAutorun ) {
+				win.show() ;
+				win.focus() ;
+				doOpen = false ;
+				return false ;
+			}
+		},me) ;
+		
+		if( !doOpen ) {
+			return ;
+		}
+		
+		var qlogsPanel = Ext.create('Optima5.Modules.CrmBase.QsqlTokensPanel',{
 			optimaModule: this.optimaModule
 		});
 		

@@ -3,6 +3,7 @@ Ext.define('Optima5.Modules.CrmBase.QwindowToolbar',{
 	
 	clsForPublished: 'op5-crmbase-published',
 	clsForAutorun:   'op5-crmbase-autorun',
+	clsForToken:     'op5-crmbase-token',
 	
 	initComponent: function() {
 		var me = this ;
@@ -86,6 +87,10 @@ Ext.define('Optima5.Modules.CrmBase.QwindowToolbar',{
 						handler: null,
 						checked: false,
 						checkHandler : me.onCheckItemChange,
+						scope: me
+					},{
+						itemId: 'setup-token',
+						textTpl: 'Token publish',
 						scope: me
 					},{
 						itemId: 'setup-autorun',

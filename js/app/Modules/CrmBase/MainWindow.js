@@ -13,6 +13,7 @@ Ext.define('Optima5.Modules.CrmBase.MainWindow',{
 	
 	clsForPublished: 'op5-crmbase-published',
 	clsForAutorun:   'op5-crmbase-autorun',
+	clsForToken:     'op5-crmbase-token',
 	
 	initComponent: function() {
 		var me = this,
@@ -369,7 +370,7 @@ Ext.define('Optima5.Modules.CrmBase.MainWindow',{
 				isPublished: v.isPublished,
 				text: v.text,
 				icon: 'images/op5img/ico_sql_16.png' ,
-				cls: ((v.isPublished == true)? me.clsForPublished:null) + ' ' + ((v.isAutorun == true)? me.clsForAutorun:null),
+				cls: ((v.isPublished == true)? me.clsForPublished:null) + ' ' + ((v.isAutorun == true)? me.clsForAutorun:null) + ' ' + ((v.isToken == true)? me.clsForToken:null),
 				handler: function(){
 					me.openQsql( qsqlId, v.authReadOnly ) ;
 				},

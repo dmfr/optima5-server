@@ -156,7 +156,9 @@ function paracrm_queries_getToolbarData( $post_data )
 	}
 	
 	// Qsql
-	$query = "SELECT qsql_id as qsqlId, qsql_name as text, autorun_is_on as autorun, autorun_cfg_json as autorun_cfg_json
+	$query = "SELECT qsql_id as qsqlId, qsql_name as text
+					, autorun_is_on as autorun, autorun_cfg_json as autorun_cfg_json
+					, token_is_on as token, token_cfg_json as token_cfg_json
 				FROM qsql" ;
 	$result = $_opDB->query($query) ;
 	$TAB_qsqls = array() ;
@@ -187,6 +189,10 @@ function paracrm_queries_getToolbarData( $post_data )
 		if( $arr['autorun']=='O' ) {
 			$arr['isAutorun'] = TRUE ;
 			$arr['cfgAutorun'] = json_decode($arr['autorun_cfg_json'],true);
+		}
+		if( $arr['token']=='O' ) {
+			$arr['isToken'] = TRUE ;
+			$arr['cfgToken'] = json_decode($arr['token_cfg_json'],true);
 		}
 		$TAB_qsqls[] = $arr ;
 	}

@@ -69,6 +69,16 @@
 	font-weight: bold ;
 }
 
+.op5-crmbase-token .x-menu-item-text {
+	border-bottom: 2px solid #00AE5D ;
+	color: #00AE5D ;
+	font-weight: bold ;
+}
+.op5-crmbase-token .x-btn-inner {
+	color: #00AE5D ;
+	font-weight: bold ;
+}
+
 
 
 .op5-crmbase-menuitem-boldunderline .x-menu-item-text {

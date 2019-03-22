@@ -7,7 +7,8 @@ Ext.define('Optima5.Modules.CrmBase.Qwindow' ,{
 		'Optima5.Modules.CrmBase.QbookPanel',
 		'Optima5.Modules.CrmBase.QsimplePanel',
 		'Optima5.Modules.CrmBase.QsqlPanel',
-		'Optima5.Modules.CrmBase.QwindowAutorunForm'
+		'Optima5.Modules.CrmBase.QwindowAutorunForm',
+		'Optima5.Modules.CrmBase.QwindowTokenPanel'
 	],
 	
 	optimaModule: null,
@@ -421,7 +422,7 @@ Ext.define('Optima5.Modules.CrmBase.Qwindow' ,{
 			success: function(response) {
 				var ajaxData = Ext.decode(response.responseText),
 					winTitle,
-					tbarDisableFile=false, tbarIsNew=false, tbarDisableSave=false, tbarIsPublished=false, tbarIsAutorun=false,
+					tbarDisableFile=false, tbarIsNew=false, tbarDisableSave=false, tbarIsPublished=false, tbarIsAutorun=false, tbarIsToken=false,
 					qbookArrZtemplate = null ;
 				
 				var authReadOnly=false,
@@ -490,6 +491,10 @@ Ext.define('Optima5.Modules.CrmBase.Qwindow' ,{
 									if( o.isAutorun ) {
 										tbarDisableSave = tbarIsAutorun = true ;
 										tbarCfgAutorun = o.cfgAutorun ;
+									}
+									if( o.isToken ) {
+										tbarIsToken = true ;
+										tbarCfgToken = o.cfgToken ;
 									}
 									return false ;
 								}
@@ -596,6 +601,7 @@ Ext.define('Optima5.Modules.CrmBase.Qwindow' ,{
 					tbarOptionsMenu.menu.child('#toggle-android').setChecked(false,true) ;
 					tbarOptionsMenu.menu.child('#toggle-android').removeCls(tbar.clsForPublished) ;
 				}
+				
 				tbarOptionsMenu.menu.child('#setup-autorun').setVisible(isQsql) ;
 				if( tbarIsAutorun ) {
 					tbarOptionsMenu.menu.child('#setup-autorun').addCls(tbar.clsForAutorun) ;
@@ -614,6 +620,17 @@ Ext.define('Optima5.Modules.CrmBase.Qwindow' ,{
 				} else {
 					tbarOptionsMenu.menu.child('#setup-autorun').removeCls(tbar.clsForAutorun) ;
 					tbarOptionsMenu.menu.child('#setup-autorun').setText( tbarOptionsMenu.menu.child('#setup-autorun').textTpl ) ;
+				}
+				
+				tbarOptionsMenu.menu.child('#setup-token').setVisible(isQsql) ;
+				if( tbarIsToken ) {
+					tbarOptionsMenu.menu.child('#setup-token').addCls(tbar.clsForToken) ;
+					var text = tbarOptionsMenu.menu.child('#setup-token').textTpl ;
+					text += ' ('+tbarCfgToken.length+')' ;
+					tbarOptionsMenu.menu.child('#setup-token').setText( text ) ;
+				} else {
+					tbarOptionsMenu.menu.child('#setup-token').removeCls(tbar.clsForToken) ;
+					tbarOptionsMenu.menu.child('#setup-token').setText( tbarOptionsMenu.menu.child('#setup-token').textTpl ) ;
 				}
 			},
 			scope: me
@@ -684,6 +701,8 @@ Ext.define('Optima5.Modules.CrmBase.Qwindow' ,{
 						return me.getPanel().remoteAction('toggle_publish',checked) ;
 					case 'setup-autorun' :
 						return me.getPanel().remoteAction('setup_autorun') ;
+					case 'setup-token' :
+						return me.getPanel().remoteAction('setup_token') ;
 					default : break ;
 				}
 				break ;

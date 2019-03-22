@@ -458,6 +458,9 @@ Ext.define('Optima5.Modules.CrmBase.QsqlPanel' ,{
 			case 'setup_autorun' :
 				me.openAutorunSetup() ;
 				break ;
+			case 'setup_token' :
+				me.openTokenSetup() ;
+				break ;
 				
 			case 'run' :
 				me.remoteActionSubmit( me.remoteActionRun, me ) ;
@@ -708,5 +711,63 @@ Ext.define('Optima5.Modules.CrmBase.QsqlPanel' ,{
 		
 		createPanel.show();
 		createPanel.getEl().alignTo(this.getEl(), 'c-c?');
-	}
+	},
+	openTokenSetup: function() {
+		var me = this ;
+		var ajaxParams = {} ;
+		Ext.apply( ajaxParams, {
+			_action: 'queries_qsqlTransaction',
+			_transaction_id: me.transaction_id ,
+			qsql_id: me.qsql_id
+		});
+		
+		
+		var setSizeFromParent = function( parentPanel, targetPanel ) {
+			targetPanel.setSize({
+				width: parentPanel.getSize().width - 20,
+				height: parentPanel.getSize().height - 60
+			}) ;
+		};
+		
+		
+		this.getEl().mask() ;
+		// Open panel
+		var createPanel = Ext.create('Optima5.Modules.CrmBase.QwindowTokenPanel',{
+			optimaModule: this.optimaModule,
+				_ajaxParams: ajaxParams,
+				qType:'qsql',
+				queryId: me.qsql_id,
+			width:400, // dummy initial size, for border layout to work
+			height:null, // ...
+			floating: true,
+			draggable: true,
+			resizable: true,
+			renderTo: this.getEl(),
+			constrain: true,
+			tools: [{
+				type: 'close',
+				handler: function(e, t, p) {
+					p.ownerCt.destroy();
+				},
+				scope: this
+			}]
+		});
+		
+		createPanel.mon(me,'resize', function() {
+			setSizeFromParent( me, createPanel ) ;
+		},me) ;
+		
+		// Size + position
+		setSizeFromParent(me,createPanel) ;
+		createPanel.on('destroy',function() {
+			me.getEl().unmask() ;
+			// me.fireEvent('qbookztemplatechange') ;
+		},me,{single:true}) ;
+		me.getEl().mask() ;
+		
+		createPanel.show();
+		createPanel.getEl().alignTo(this.getEl(), 'c-c?');
+	},
+	
+	dummyFn: Ext.emptyFn
 });
