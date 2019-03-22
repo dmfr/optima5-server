@@ -1,4 +1,8 @@
 <?php
+
+session_name('OP5XML') ;
+session_start() ;
+
 //ob_start() ;
 $app_root='..' ;
 $server_root='.' ;
@@ -23,11 +27,15 @@ if( $_INLINE_PW || ($_REQUEST['PHP_AUTH_USER']&&!$_SERVER['PHP_AUTH_DIGEST']) ) 
 	while(TRUE) {
 		$http_digest = TRUE ;
 		$http_digest_realm = 'OP5DIGEST';
-		if (!empty($_SERVER['PHP_AUTH_DIGEST'])) {
+		if( $_SESSION['login_result'] ) {
+			$login_result = $_SESSION['login_result'] ;
+			break ;
+		} elseif (!empty($_SERVER['PHP_AUTH_DIGEST'])) {
 			$digest_data = http_digest_parse($_SERVER['PHP_AUTH_DIGEST']) ;
 			$userstr = $digest_data['username'] ;
 			$login_result=op5_login_test( $userstr, $_SERVER['PHP_AUTH_DIGEST'], $http_digest, $http_digest_realm ) ;
 			if( $login_result && $login_result['done'] ) {
+				$_SESSION['login_result'] = $login_result ;
 				break ;
 			}
 		}
@@ -42,12 +50,10 @@ if( $_INLINE_PW || ($_REQUEST['PHP_AUTH_USER']&&!$_SERVER['PHP_AUTH_DIGEST']) ) 
 }
 
 function doExit() {
-	session_destroy() ;
+	session_write_close() ;
 	die() ;
 }
-$session_name = 'OP'.rand(101,999) ;
-session_name($session_name) ;
-session_start() ;
+
 $_SESSION['login_data'] = $login_result['login_data'] ;
 $_SESSION['login_data']['userstr'] = strtolower($login_result['login_data']['login_user'].'@'.$login_result['login_data']['login_domain']) ;
 
