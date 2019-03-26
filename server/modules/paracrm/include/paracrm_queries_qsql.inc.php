@@ -330,7 +330,7 @@ function paracrm_queries_qsqlTransaction_tokenGet( $post_data , &$arr_saisie ) {
 	$q = 0 ;
 	foreach( SqlParser::split_sql($sql_querystring) as $sql_sentence ) {
 		$q++ ;
-		$tpl_resultset[] = array('tab_title_src'=>'Q'.$q, 'tab_title_target'=>'Q'.$q) ;
+		$tpl_resultset[] = array('tab_id'=>$q, 'tab_title_src'=>'Q'.$q, 'tab_title_target'=>'Q'.$q) ;
 	}
 	
 	
@@ -356,6 +356,16 @@ function paracrm_queries_qsqlTransaction_tokenSet( $post_data , &$arr_saisie ) {
 		$token_cfg_row['token_id'] = time() ;
 	}
 	
+	$test_row = array(
+		'token_key' => $token_cfg_row['token_key'],
+		'target_sdomain_id' => DatabaseMgr_Sdomain::dbCurrent_getSdomainId(),
+		'target_qsql_id' => $arr_saisie['qsql_id'],
+		'target_token_id' => $token_cfg_row['token_id']
+	);
+	if( !$post_data['do_delete'] && !paracrm_queries_qsql_lib_tokenTest($test_row) ) {
+		return array('success'=>false, 'error'=>'Existing token KEY') ;
+	}
+	
 	$tokens_new = array() ;
 	foreach( $tokens as $token ) {
 		if( $token['token_id']==$token_cfg_row['token_id']) {
@@ -377,7 +387,9 @@ function paracrm_queries_qsqlTransaction_tokenSet( $post_data , &$arr_saisie ) {
 	$arr_cond = array() ;
 	$arr_cond['qsql_id'] = $qsql_id ;
 	$_opDB->update('qsql',$arr_update,$arr_cond) ;
-
+	
+	paracrm_queries_qsql_lib_tokenPublish() ;
+	
 	return array('success'=>true) ;
 }
 
@@ -719,6 +731,112 @@ function paracrm_queries_qsqlAutorun_getLogs( $post_data ) {
 	}
 	
 	return array('success'=>true,'data'=>$TAB ) ;
+}
+
+
+
+
+
+
+
+function paracrm_queries_qsql_lib_tokenBuildMap() {
+	global $_opDB ;
+	
+	$map_tokenKey_arrTargets = array() ;
+	
+	$t = new DatabaseMgr_Sdomain( DatabaseMgr_Base::dbCurrent_getDomainId() );
+	$sdomain_current = DatabaseMgr_Sdomain::dbCurrent_getSdomainId() ;
+	foreach( $t->sdomains_getAll() as $sdomain_id ) {
+		$sdomain_id ;
+		$sdomain_db = $t->getSdomainDb( $sdomain_id ) ;
+		$table = $sdomain_db.'.'.'qsql' ;
+		
+		$query = "SELECT qsql_id, token_cfg_json FROM {$table} WHERE token_is_on='O'" ;
+		$result = $_opDB->query($query) ;
+		while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+			$qsql_id = $arr[0] ;
+			if( !($json = json_decode($arr[1],true)) ) {
+				continue ;
+			}
+			foreach( $json as $tokenCfg_row ) {
+				$token_key = $tokenCfg_row['token_key'] ;
+				if( !isset($map_tokenKey_arrTargets[$token_key]) ) {
+					$map_tokenKey_arrTargets[$token_key] = array() ;
+				}
+				$map_tokenKey_arrTargets[$token_key][] = array(
+					'target_sdomain_id' => $sdomain_id,
+					'target_qsql_id' => $qsql_id,
+					'target_token_id' => $tokenCfg_row['token_id']
+				);
+			}
+		}
+	}
+	
+	return $map_tokenKey_arrTargets ;
+}
+function paracrm_queries_qsql_lib_tokenTest( $row_test ) {
+	global $_opDB ;
+	
+	$map_tokenKey_arrTargets = paracrm_queries_qsql_lib_tokenBuildMap() ;
+	
+	if( true ) {
+		$token_key = $row_test['token_key'] ;
+		if( !$token_key ) {
+			return FALSE ;
+		}
+		if( !$map_tokenKey_arrTargets[$token_key] ) {
+			return TRUE ;
+		}
+		if( count($map_tokenKey_arrTargets[$token_key]) > 1 ) {
+			return FALSE ;
+		}
+		$existing_target = reset($map_tokenKey_arrTargets[$token_key]) ;
+		foreach( $existing_target as $mkey => $mvalue ) {
+			if( $mvalue != $row_test[$mkey] ) {
+				return FALSE ;
+			}
+		}
+		return TRUE ;
+	}
+}
+function paracrm_queries_qsql_lib_tokenPublish() {
+	global $_opDB ;
+	
+	$map_tokenKey_arrTargets = paracrm_queries_qsql_lib_tokenBuildMap() ;
+	
+	
+	$domain_base_db = DatabaseMgr_Base::getBaseDb(DatabaseMgr_Base::dbCurrent_getDomainId()) ;
+	$domain_base_qtokenTable = $domain_base_db.'.'.'q_token' ;
+	
+	$existingKeys = array() ;
+	$query = "SELECT token_key FROM {$domain_base_qtokenTable}" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+		$existingKeys[] = $arr[0] ;
+	}
+	
+	$todeleteKeys = array_diff($existingKeys, array_keys($map_tokenKey_arrTargets)) ;
+	foreach( $todeleteKeys as $todeleteKey ) {
+		$query = "DELETE FROM {$domain_base_qtokenTable} WHERE token_key='{$todeleteKey}'" ;
+		$_opDB->query($query) ;
+	}
+	foreach( $map_tokenKey_arrTargets as $token_key => $arrTargets ) {
+		if( count($arrTargets) != 1 ) {
+			$query = "DELETE FROM {$domain_base_qtokenTable} WHERE token_key='{$token_key}'" ;
+			$_opDB->query($query) ;
+			continue ;
+		}
+		$target = reset($arrTargets) ;
+		
+		$arr_ins = array() ;
+		$arr_ins['token_key'] = $token_key ;
+		$arr_ins += $target ;
+		if( !in_array($token_key,$existingKeys) ) {
+			$_opDB->insert($domain_base_qtokenTable, $arr_ins) ;
+		} else {
+			$_opDB->update($domain_base_qtokenTable, $arr_ins, array('token_key'=>$token_key)) ;
+		}
+	}
 }
 
 ?>

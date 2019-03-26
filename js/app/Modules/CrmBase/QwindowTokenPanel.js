@@ -25,9 +25,12 @@ Ext.define('Optima5.Modules.CrmBase.QwindowTokenPanel',{
 				itemId: 'gridTokens',
 				columns: [{
 					flex: 1,
-					text: 'Scen/Description',
-					dataIndex: 'token_key',
+					text: 'Tokens',
+					dataIndex: 'token_id',
 					renderer: function(v,metaData,r) {
+						if( r.get('token_is_authbypass') ) {
+							metaData.tdCls += ' op5-crmbase-query-token-authbypass' ;
+						}
 						var txt = '' ;
 						txt += '<b>' + r.get('token_key') + '</b><br>' ;
 						txt += '&nbsp;&nbsp;' + r.get('token_txt') + '<br>' ;
@@ -38,7 +41,8 @@ Ext.define('Optima5.Modules.CrmBase.QwindowTokenPanel',{
 					fields: [
 						{name: 'token_id', type: 'int'},
 						{name: 'token_key', type: 'string'},
-						{name: 'token_txt', type: 'string'}
+						{name: 'token_txt', type: 'string'},
+						{name: 'token_is_authbypass', type: 'boolean'}
 					],
 					data: [],
 					sorters: [{
@@ -94,7 +98,7 @@ Ext.define('Optima5.Modules.CrmBase.QwindowTokenPanel',{
 					icon: 'images/op5img/ico_delete_16.gif',
 					text: 'Delete',
 					handler: function() {
-						this.doSaveEditor(true);
+						this.handleDeleteToken();
 					},
 					scope: this
 				}],
@@ -136,7 +140,8 @@ Ext.define('Optima5.Modules.CrmBase.QwindowTokenPanel',{
 						layout: 'anchor',
 						items: [{
 							xtype: 'checkboxfield',
-							boxLabel: 'Bypass Auth'
+							boxLabel: 'Bypass Auth',
+							name: 'token_is_authbypass'
 						}]
 					}]
 				},{
@@ -194,12 +199,13 @@ Ext.define('Optima5.Modules.CrmBase.QwindowTokenPanel',{
 						store: {
 							fields: [
 								{name: 'is_target', type: 'boolean'},
+								{name: 'tab_id', type: 'int'},
 								{name: 'tab_title_src', type: 'string'},
 								{name: 'tab_title_target', type: 'string'}
 							],
 							data: [],
 							sorters: [{
-								property: 'tab_title_src',
+								property: 'tab_id',
 								direction: 'ASC'
 							}],
 							proxy: { type: 'memory' }
@@ -300,7 +306,8 @@ Ext.define('Optima5.Modules.CrmBase.QwindowTokenPanel',{
 			gridTokensData.push({
 				token_id: tokenCfgIter.token_id,
 				token_key: tokenCfgIter.token_key,
-				token_txt: tokenCfgIter.token_txt
+				token_txt: tokenCfgIter.token_txt,
+				token_is_authbypass: tokenCfgIter.token_is_authbypass
 			});
 		}) ;
 		
@@ -362,11 +369,11 @@ Ext.define('Optima5.Modules.CrmBase.QwindowTokenPanel',{
 			
 			var map_qresultmap = {} ;
 			Ext.Array.each( tokenCfgRow.q_resultmap, function(qresultmapRow) {
-				map_qresultmap[qresultmapRow.tab_title_src] = qresultmapRow ;
+				map_qresultmap[qresultmapRow.tab_id] = qresultmapRow ;
 			}) ;
 			Ext.Array.each( pTokenEditorMapData, function(row) {
-				if( map_qresultmap.hasOwnProperty(row.tab_title_src) ) {
-					Ext.apply(row,map_qresultmap[row.tab_title_src]) ;
+				if( map_qresultmap.hasOwnProperty(row.tab_id) ) {
+					Ext.apply(row,map_qresultmap[row.tab_id]) ;
 				}
 			}) ;
 			
@@ -382,7 +389,14 @@ Ext.define('Optima5.Modules.CrmBase.QwindowTokenPanel',{
 	},
 	
 	
-	
+	handleDeleteToken: function() {
+		Ext.Msg.confirm('Confirm ?','Delete current token',function(btn){
+			if( btn=='yes' ) {
+				var doDelete = true ;
+				this.doSaveEditor(doDelete) ;
+			}
+		},this);
+	},
 	doSaveEditor: function(doDelete=false) {
 		var me = this ;
 		var pTokenEditor = this.down('#pTokenEditor') ;
@@ -419,7 +433,8 @@ Ext.define('Optima5.Modules.CrmBase.QwindowTokenPanel',{
 			params: ajaxParams ,
 			success: function(response) {
 				if( Ext.decode(response.responseText).success == false ) {
-					Ext.Msg.alert('Failed', 'Failed');
+					Ext.Msg.alert('Failed', Ext.decode(response.responseText).error);
+					return ;
 				}
 				
 				this.doLoad() ;

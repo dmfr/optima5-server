@@ -567,3 +567,13 @@ tbody.op5-crmbase-define-grid-join-tbody-separator tr {
 }
 .op5-crmbase-definestoretags-text-delete {
 }
+
+
+
+
+.op5-crmbase-query-token-authbypass .x-grid-cell-inner {
+	background-position: right 8px center;
+	background-repeat: no-repeat ;
+	background-image: url("../images/op5img/ico_unlock_22.png") !important;
+}
+
