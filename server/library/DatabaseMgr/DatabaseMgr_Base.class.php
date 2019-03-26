@@ -3,7 +3,7 @@ class DatabaseMgr_Base {
 	
 	private $_opDB ;
 	
-	private static $dbVersion = 3 ;
+	private static $dbVersion = 4 ;
 	
 	public function __construct () {
 		$this->_opDB = $GLOBALS['_opDB'] ;
@@ -96,6 +96,15 @@ CREATE TABLE `sdomain` (
   `icon_code` varchar(20) NOT NULL,
   `overwrite_is_locked` varchar(1) NOT NULL,
   PRIMARY KEY (`sdomain_id`)
+) ;
+
+CREATE TABLE `q_token` (
+  `token_key` varchar(50) NOT NULL,
+  `target_sdomain_id` varchar(20) NOT NULL,
+  `target_qsql_id` int(11) NOT NULL,
+  `target_token_id` int(11) NOT NULL,
+  PRIMARY KEY (`token_key`),
+  INDEX (`target_sdomain_id`,`target_qsql_id`,`target_token_id`)
 ) ;
 
 EOF;
