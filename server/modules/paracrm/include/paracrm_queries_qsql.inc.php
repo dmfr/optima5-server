@@ -745,7 +745,6 @@ function paracrm_queries_qsql_lib_tokenBuildMap() {
 	$map_tokenKey_arrTargets = array() ;
 	
 	$t = new DatabaseMgr_Sdomain( DatabaseMgr_Base::dbCurrent_getDomainId() );
-	$sdomain_current = DatabaseMgr_Sdomain::dbCurrent_getSdomainId() ;
 	foreach( $t->sdomains_getAll() as $sdomain_id ) {
 		$sdomain_id ;
 		$sdomain_db = $t->getSdomainDb( $sdomain_id ) ;
