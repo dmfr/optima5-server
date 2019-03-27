@@ -30,6 +30,7 @@ function specBpSales_inv_getRecords( $post_data ) {
 		$row['cli_link_txt'] = $paracrm_row['INV_field_CLI_LINK_entry_CLI_NAME'] ;
 		$row['cli_linktree'] = $paracrm_row['INV_field_CLI_LINK_tree_CLIGROUP_CODE'] ;
 		$row['cli_linktree_txt'] = $paracrm_row['INV_field_CLI_LINK_tree_CLIGROUP_CODE'] ;
+		$row['cli_siret'] = $paracrm_row['INV_field_CLI_LINK_entry_CLI_SIRET'] ;
 		$row['pay_bank'] = $paracrm_row['INV_field_PAY_BANK'] ;
 		$row['adr_sendto'] = $paracrm_row['INV_field_ADR_SENDTO'] ;
 		$row['adr_invoice'] = $paracrm_row['INV_field_ADR_INVOICE'] ;
@@ -277,6 +278,7 @@ function specBpSales_inv_queryCustomer( $post_data ) {
 	$arr_ins['adr_invoice'] = $customer_entry['field_ADR_INVOICE'] ;
 	$arr_ins['adr_ship'] = $customer_entry['field_ADR_SHIP'] ;
 	$arr_ins['pay_bank'] = $customer_treenode['field_ATR_PAYBANK'] ;
+	$arr_ins['cli_siret'] = $customer_entry['field_CLI_SIRET'] ;
 	
 	return array('success'=>true, 'data'=>$arr_ins) ;
 }
@@ -329,6 +331,13 @@ function specBpSales_inv_setRecord( $post_data ) {
 	
 	if( !$record_data['inv_filerecord_id'] ) {
 		return array('success'=>false) ;
+	}
+	
+	if( $record_data['cli_link'] ) {
+		$arr_update = array() ;
+		$arr_update['field_CLI_EAN'] = $record_data['cli_link'] ;
+		$arr_update['field_CLI_SIRET'] = $record_data['cli_siret'] ;
+		paracrm_lib_data_updateRecord_bibleEntry('CUSTOMER',$record_data['cli_link'],$arr_update) ;
 	}
 	
 	$arr_update = array() ;

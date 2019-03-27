@@ -312,6 +312,12 @@ Ext.define('Optima5.Modules.Spec.BpSales.InvoicePanel',{
 					xtype: 'fieldset',
 					title: 'Payment',
 					items: [{
+						xtype: 'textfield',
+						fieldLabel: 'SIRET',
+						name: 'cli_siret',
+						readOnly: false,
+						allowBlank: false
+					},{
 						xtype: 'textarea',
 						fieldLabel: 'Bank details',
 						growMin: 80,
@@ -692,7 +698,7 @@ Ext.define('Optima5.Modules.Spec.BpSales.InvoicePanel',{
 	doSave: function(doValidate) {
 		var formPanel = this.down('#pHeaderForm'),
 			form = formPanel.getForm() ;
-		if( !form.isValid() ) {
+		if( doValidate && !form.isValid() ) {
 			return ;
 		}
 		
@@ -810,6 +816,11 @@ Ext.define('Optima5.Modules.Spec.BpSales.InvoicePanel',{
 		},this);
 	},
 	handleValidate: function() {
+		var formPanel = this.down('#pHeaderForm'),
+			form = formPanel.getForm() ;
+		if( !form.isValid() ) {
+			return ;
+		}
 		Ext.Msg.confirm('Validate invoice ?','Warning : Not editable beyond this action',function(btn){
 			if( btn=='yes' ) {
 				this.doSave(true) ;
