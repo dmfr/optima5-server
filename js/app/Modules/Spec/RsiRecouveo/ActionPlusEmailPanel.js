@@ -296,11 +296,43 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusEmailPanel',{
 				enableColors: true,
 				enableAlignements: true,
 				name: 'email_body',
-				height: 250
+				height: 250,
+				listeners: {
+					initialize: function(editor) {
+						var me = this ;
+						var editorDom = editor.getEditorBody() ;
+						editorDom.addEventListener( 'paste' , function(e) {
+							me.onEditorPaste(editor,e) ;
+						}) ;
+					},
+					scope: this
+				}
 			}]
 		}) ;
 		
 		this.callParent() ;
+	},
+	onEditorPaste: function( editor, pasteEvent ) {
+		var items = (pasteEvent.clipboardData || pasteEvent.originalEvent.clipboardData).items;
+		if( items.length != 1 ) {
+			return ;
+		}
+		var blobFile = items[0].getAsFile() ;
+		if( !blobFile ) {
+			return ;
+		}
+		pasteEvent.preventDefault() ;
+		var blobFileType = blobFile.type ;
+		if( Ext.isString(blobFileType) && (blobFileType.indexOf("image")===0) ) {} else {
+			return ;
+		}
+		var reader = new FileReader();
+		reader.onload = function(event){
+			var imgDataUrl = event.target.result ;
+			var imgTag = "<img src=\""+imgDataUrl+"\" />" ;
+			editor.insertAtCursor(imgTag) ;
+		}
+		reader.readAsDataURL(blobFile);
 	},
 	
 	setFromSoc: function(socId) {
