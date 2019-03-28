@@ -332,7 +332,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusNextPanel',{
 					xtype: 'datefield',
 					format: 'Y-m-d',
 					name: 'next_date',
-					fieldLabel: 'Date prévue'
+					fieldLabel: 'Date prévue',
+					minValue: new Date()
 				}]
 			},{
 				xtype: 'box',

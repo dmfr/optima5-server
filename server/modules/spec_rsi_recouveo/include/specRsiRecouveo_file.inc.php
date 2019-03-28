@@ -1963,7 +1963,7 @@ function specRsiRecouveo_file_getScenarioLine( $post_data ) {
 		}
 		$lastdone_date = min($dates) ;
 	}
-	if( !$lastdone_date ) {
+	if( !$lastdone_date || ($lastdone_date < date('Y-m-d')) ) {
 		$lastdone_date = date('Y-m-d') ;
 	}
 	$tag_idx = -1 ;
