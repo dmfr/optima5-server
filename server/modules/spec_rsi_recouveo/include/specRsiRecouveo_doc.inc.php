@@ -373,6 +373,7 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE, $stopAsHtm
 		'header_ref_client' => $accFile_record['acc_id'],
 		'header_ref_forpayment' => $accFile_record['acc_id'].'EC',
 		'header_cr_fullname' => $cfg_user['user_fullname'],
+		'header_cr_jobtitle' => $cfg_user['user_jobtitle'],
 		'header_cr_email' => $cfg_user['user_email'],
 		'header_cr_tel' => $cfg_user['user_tel'],
 		

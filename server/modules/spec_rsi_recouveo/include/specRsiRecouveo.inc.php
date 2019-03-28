@@ -293,6 +293,7 @@ function specRsiRecouveo_cfg_getConfig($post_data=array('skip_filter'=>true)) {
 			'user_pw' => $arr['field_USER_PW'],
 			'user_short' => $arr['field_USER_SHORT'],
 			'user_fullname' => $arr['field_USER_FULLNAME'],
+			'user_jobtitle' => $arr['field_USER_JOBTITLE'],
 			'user_email' => $arr['field_USER_EMAIL'],
 			'user_tel' => $arr['field_USER_TEL'],
 			'user_signature_is_on' => !!$arr['field_USER_HTMLSIGN_IS_ON'],

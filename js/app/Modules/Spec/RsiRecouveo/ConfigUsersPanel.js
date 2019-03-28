@@ -117,6 +117,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigUsersPanel', {
 					fieldLabel: 'Nom complet'
 				},{
 					xtype: 'textfield',
+					name: 'user_jobtitle',
+					fieldLabel: 'Fonction'
+				},{
+					xtype: 'textfield',
 					name: 'user_email',
 					fieldLabel: 'Email'
 				},{

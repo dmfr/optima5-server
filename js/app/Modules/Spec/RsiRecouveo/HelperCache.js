@@ -175,6 +175,7 @@ Ext.define('RsiRecouveoConfigUserTplModel',{
 		{name: 'user_pw', type:'string'},
 		{name: 'user_short', type:'string'},
 		{name: 'user_fullname', type:'string'},
+		{name: 'user_jobtitle', type:'string'},
 		{name: 'user_email', type:'string'},
 		{name: 'user_tel', type:'string'},
 		{name: 'status_is_ext', type:'boolean'},
