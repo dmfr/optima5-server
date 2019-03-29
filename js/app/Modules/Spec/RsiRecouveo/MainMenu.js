@@ -79,8 +79,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MainMenu',{
 			];
 		}
 		
-		var menuData = [] ;
 		if( modeSaas ) {
+			var menuData = [] ;
 			if( authHasAll ) {
 				menuData = [
 					{type_header:true},
