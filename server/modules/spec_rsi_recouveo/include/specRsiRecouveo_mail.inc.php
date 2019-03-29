@@ -91,8 +91,12 @@ function specRsiRecouveo_mail_getEmailRecord($post_data) {
 		$media_id = media_bin_toolFile_getId('EMAIL_SOURCE',$emailsrc_filerecord_id) ;
 		$bin = media_bin_getBinary($media_id) ;
 		media_contextClose() ;
+		
+		$query = "SELECT field_MBOX FROM view_file_EMAIL WHERE filerecord_id='{$email_filerecord_id}'" ;
+		$mbox = $_opDB->query_uniqueValue($query) ;
 	} elseif( $post_data['tmp_media_id'] ) {
 		$tmp_media_id = $post_data['tmp_media_id'] ;
+		$mbox = 'TMP' ;
 		
 		$_domain_id = DatabaseMgr_Base::dbCurrent_getDomainId() ;
 		$_sdomain_id = DatabaseMgr_Sdomain::dbCurrent_getSdomainId() ;
@@ -166,7 +170,7 @@ function specRsiRecouveo_mail_getEmailRecord($post_data) {
 		$model += $_opDB->fetch_assoc($result) ;
 	}
 	
-	return array('success'=>true, 'data'=>$model, 'subject'=> $obj_mimeParser->getHeader('subject'), 'html'=>$html_content, 'debug'=>$obj_mimeParser->getHeaders() ) ;
+	return array('success'=>true, 'data'=>$model, 'mbox'=>$mbox ) ;
 }
 function specRsiRecouveo_mail_tool_getHtmlFromRaw($plaintext) {
 	$str = $plaintext ;

@@ -348,7 +348,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusEmailPanel',{
 		}
 	},
 	
-	loadEmailForReuse: function( origEmailFilerecordId, reuseAction='freply') {
+	loadEmailForReuse: function( origEmailFilerecordId, reuseAction='reply') {
 		if( !this.rendered ) {
 			this.on('afterrender',function() {
 				this.loadEmailForReply(origEmailFilerecordId,reuseAction) ;
@@ -367,18 +367,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusEmailPanel',{
 					Ext.MessageBox.alert('Error','Error') ;
 					return ;
 				}
-				/*
-				this.down('#pEast').removeAll();
-				this.down('#pEast').setTitle( ajaxResponse.subject ) ;
-				this.down('#pEast').add(Ext.create('Ext.ux.dams.IFrameContent',{
-					itemId: 'uxIFrame',
-					content:ajaxResponse.html
-				})) ;
-				this.down('#pEast').expand() ;
-				*/
 				
 				var emailRecord = Ext.ux.dams.ModelManager.create('RsiRecouveoEmailModel',ajaxResponse.data) ;
-				this.onLoadEmailForReuse(emailRecord,reuseAction) ;
+				this.onLoadEmailForReuse(emailRecord,reuseAction,(ajaxResponse.mbox=='OUTBOX')) ;
 			},
 			callback: function() {
 				this.getEl().unmask() ;
@@ -386,7 +377,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusEmailPanel',{
 			scope: this
 		});
 	},
-	onLoadEmailForReuse: function( origEmailRecord, reuseAction ) {
+	onLoadEmailForReuse: function( origEmailRecord, reuseAction, dontSwap=false ) {
 		var cfgEmailAdrs = [] ;
 		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getEmailAll(), function(emailAccountRow) {
 			cfgEmailAdrs.push(emailAccountRow.email_adr) ;
@@ -399,6 +390,24 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusEmailPanel',{
 			case 'reply' :
 			case 'reply_all' :
 				subjectPrefix = 'Re' ;
+				if( dontSwap ) {
+					origEmailRecord.header_adrs().each( function(rec) {
+						switch( rec.get('header') ) {
+							case 'from' :
+								setEmailFrom =rec.get('adr_address') ;
+								break ;
+							case 'to' :
+								setEmailTo = rec.get('adr_address') ;
+								break ;
+							case 'cc' :
+								setEmailCcArr.push(rec.get('adr_address')) ;
+								break ;
+							default:
+								break ;
+						}
+					}) ;
+					break ;
+				}
 				origEmailRecord.header_adrs().each( function(rec) {
 					if( !setEmailFrom && Ext.Array.contains(['to','cc'],rec.get('header')) && Ext.Array.contains(cfgEmailAdrs,rec.get('adr_address')) ) {
 						setEmailFrom = rec.get('adr_address') ;

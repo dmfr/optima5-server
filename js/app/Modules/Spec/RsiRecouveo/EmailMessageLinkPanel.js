@@ -55,15 +55,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.EmailMessageLinkPanel',{
 					Ext.MessageBox.alert('Error','Error') ;
 					return ;
 				}
-				/*
-				this.down('#pEast').removeAll();
-				this.down('#pEast').setTitle( ajaxResponse.subject ) ;
-				this.down('#pEast').add(Ext.create('Ext.ux.dams.IFrameContent',{
-					itemId: 'uxIFrame',
-					content:ajaxResponse.html
-				})) ;
-				this.down('#pEast').expand() ;
-				*/
 				
 				var emailRecord = Ext.ux.dams.ModelManager.create('RsiRecouveoEmailModel',ajaxResponse.data) ;
 				this.setEmailRecord(emailRecord) ;
