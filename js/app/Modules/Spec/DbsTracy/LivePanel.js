@@ -240,6 +240,10 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.LivePanel',{
 		formPanel.down('#cntAfter').setVisible(true);
 		formPanel.down('#btnOk').setVisible(true);
 		formPanel.down('#btnError').setVisible(false);
+			  
+		Ext.defer( function() {
+			this.onInputParams() ;
+		},800,this) ;
 	},
 	onStepError: function(error) {
 		var formPanel = this.down('form'),
