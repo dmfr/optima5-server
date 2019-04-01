@@ -708,7 +708,7 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE, $stopAsHtm
 		$dom_pages = array() ;
 		
 		//echo $records_pagetemplate_binary ;
-		$arr_tablesData = array_chunk($table_data , 40) ;
+		$arr_tablesData = array_chunk($table_data , 50) ;
 		$arr_tablesData_cnt = count($arr_tablesData) ;
 		
 		foreach( $arr_tablesData as $idx=>$table_data ) {
