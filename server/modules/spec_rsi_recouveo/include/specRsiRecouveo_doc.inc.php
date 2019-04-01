@@ -182,6 +182,25 @@ function specRsiRecouveo_doc_replaceLang( $doc, $lang_code ) {
 		}
 	}
 }
+/*
+function specRsiRecouveo_doc_replaceIfset( $doc, $map_mkey_value ) {
+	$elements = $doc->getElementsByTagName('qbook-condition');
+	$i = $elements->length - 1;
+	while ($i > -1) {
+		$domelem = $elements->item($i);
+		$i-- ;
+		if( !$domelem->attributes->getNamedItem('ifset') ) {
+			continue ;
+		}
+		
+		$prent = $domelem->parentNode;
+		$mkey = $domelem->attributes->getNamedItem('ifset')->value ;
+		if( !isset($map_mkey_value[$mkey]) ) {
+			$prent->removeChild($domelem);
+		}
+	}
+}
+*/
 
 function specRsiRecouveo_doc_populateStatic( $doc ) {
 	// Load config
@@ -401,8 +420,14 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE, $stopAsHtm
 		'payment_ref_forpayment' => $accFile_record['acc_id'].'EC'
 	);
 	$map_mkey_value += array(
-		'table_refcli' => $accFile_record['acc_id']
+		'table_refcli' => $accFile_record['acc_id'],
+		'table_txtcli' => $accFile_record['acc_txt']
 	);
+	if( !$p_recordsFilerecordIds ) {
+		$map_mkey_value += array(
+			'table_summary' => true
+		);
+	}
 	foreach( $p_inputFields as $k=>$v ) {
 		if( !(strpos($k,'input_')===0) ) {
 			continue ;
@@ -436,7 +461,7 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE, $stopAsHtm
 	}
 	$usort = function($arr1,$arr2)
 	{
-		return ($arr1['date_record'] < $arr2['date_record']) ;
+		return ($arr1['date_value'] < $arr2['date_value']) ;
 	};
 	usort($records,$usort) ;
 	
@@ -450,7 +475,16 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE, $stopAsHtm
 	if( $cfg_soc && $cfg_soc['soc_xe_currency'] ) {
 		$map_columns['xe_currency_amount'] = 'MntDevise' ;
 	}
+	foreach( $cfg_atr as $atr_record ) {
+		$atr_id = $atr_record['atr_id'] ;
+		$mkey = $atr_record['atr_field'] ;
+		if( $atr_record['atr_type'] == 'record' && $atr_record['is_doprint'] ) {
+			$map_columns[$mkey] = $atr_record['atr_desc'] ;
+			$map_columns[$mkey] = str_replace(' ','&nbsp;',$map_columns[$mkey]) ;
+		}
+	}
 	$table_data = $table_datafoot = array() ;
+	$amount_exp = $amount = 0 ;
 	foreach( $records as $record_row ) {
 		if( $record_row['letter_is_confirm'] ) {
 			continue ;
@@ -458,11 +492,18 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE, $stopAsHtm
 		if( $p_recordsFilerecordIds && !in_array($record_row['record_filerecord_id'],$p_recordsFilerecordIds) ) {
 			continue ;
 		}
+		
+		foreach( $record_row as $rkey => &$val ) {
+			if( !(strpos($rkey,'date')===0) && is_string($val) ) {
+				$val = str_replace(' ','&nbsp;',$val) ;
+			}
+		}
+		unset($val) ;
+		
 		$row_table = array(
 			'record_ref' => $record_row['record_ref'],
 			'record_txt' => trim(substr($record_row['record_txt'],0,35)),
 			'type_temprec' => $record_row['type_temprec'],
-			'txt' => $record_row['txt'],
 			'date_load' => date('d/m/Y',strtotime($record_row['date_load'])),
 			'date_record' => date('d/m/Y',strtotime($record_row['date_record'])),
 			'date_value' => date('d/m/Y',strtotime($record_row['date_value'])),
@@ -470,14 +511,44 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE, $stopAsHtm
 			'amount_due' => '<b>'.number_format($record_row['amount'],2).'</b>',
 			'xe_currency_amount' => '<div width="100%" style="text-align:right;">'.number_format($record_row['xe_currency_amount'],2).'&nbsp;'.$record_row['xe_currency_sign'].'</div>'
 		);
+		foreach( $cfg_atr as $atr_record ) {
+			$atr_id = $atr_record['atr_id'] ;
+			$mkey = $atr_record['atr_field'] ;
+			if( $atr_record['atr_type'] == 'record' ) {
+				$row_table[$mkey] = $record_row[$mkey] ;
+			}
+		}
 		$amount+= $record_row['amount'] ;
+		if( !$record_row['is_pending'] ) {
+			$amount_exp+= $record_row['amount'] ;
+		}
+		
+		
 		$table_data[] = $row_table ;
 	}
-	$table_datafoot[] = array(
-		'record_ref' => 'Total',
-		'amount_tot' => '<div width="100%" style="text-align:right;">'.number_format($amount,2).'</div>',
-		'amount_due' => '<b>'.number_format($amount,2).'</b>'
-	);
+	if( !$p_recordsFilerecordIds ) {
+		$txt_active = 'échu' ;
+		switch( $_lang_code ) {
+			case 'FR' :
+				$txt_active = 'échu' ;
+				break ;
+			case 'EN' :
+				$txt_active = 'expired' ;
+				break ;
+			default :
+				break ;
+		}
+		$table_datafoot[] = array(
+			'record_ref' => 'Total',
+			'amount_tot' => '<div width="100%" style="text-align:right;">'.number_format($amount,2).'</div>',
+			'amount_due' => '<b>'.number_format($amount,2).'</b>'
+		);
+		$table_datafoot[] = array(
+			'record_ref' => '<i>'.$txt_active.'</i>',
+			'amount_tot' => '<div width="100%" style="text-align:right;">'.number_format($amount_exp,2).'</div>',
+			'amount_due' => '<b>'.number_format($amount_exp,2).'</b>'
+		);
+	}
 	$has_recordTxt = FALSE ;
 	foreach( $table_data as $row_table ) {
 		if( trim($row_table['record_txt']) && $row_table['record_txt']!=$row_table['record_ref'] ) {
@@ -548,7 +619,9 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE, $stopAsHtm
 
 	$doc = new DOMDocument();
 	@$doc->loadHTML($inputBinary);
-
+	
+	// specRsiRecouveo_doc_replaceIfset($doc,$map_mkey_value) ;
+	
 	$elements = $doc->getElementsByTagName('qbook-value');
 	$i = $elements->length - 1;
 	while ($i > -1) {
@@ -644,7 +717,7 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE, $stopAsHtm
 			// build table tag inside document
 			$table_html = paracrm_queries_template_makeTable($table_columns,$table_data,($lastPage?$table_datafoot:null)) ;
 			$dom_table = new DOMDocument();
-			$dom_table->loadHTML( '<?xml encoding="UTF-8"><html>'.$table_html.'</html>' ) ;
+			@$dom_table->loadHTML( '<?xml encoding="UTF-8"><html>'.$table_html.'</html>' ) ;
 			$node_table = $dom_table->getElementsByTagName("table")->item(0);
 			$table_attr = $dom_table->createAttribute("class") ;
 			$table_attr->value = 'invoicewidth tabledonnees' ;

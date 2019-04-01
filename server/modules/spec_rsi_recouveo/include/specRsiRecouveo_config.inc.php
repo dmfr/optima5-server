@@ -384,7 +384,8 @@ function specRsiRecouveo_config_getSocs($post_data) {
 					'metafield_assoc' => $json_metafield['metafield_assoc'],
 					'is_filter' => $json_metafield['is_filter'],
 					'is_globalfilter' => $json_metafield['is_globalfilter'],
-					'is_editable' => $json_metafield['is_editable']
+					'is_editable' => $json_metafield['is_editable'],
+					'is_doprint' => $json_metafield['is_doprint']
 				);
 			}
 		}
@@ -420,7 +421,8 @@ function specRsiRecouveo_config_setSoc( $post_data ) {
 			'metafield_assoc' => $metafield['metafield_assoc'],
 			'is_filter' => $metafield['is_filter'],
 			'is_globalfilter' => $metafield['is_globalfilter'],
-			'is_editable' => $metafield['is_editable']
+			'is_editable' => $metafield['is_editable'],
+			'is_doprint' => $metafield['is_doprint']
 		);
 	}
 	$arr_update['field_SOC_METAFIELDS_JSON'] = json_encode($metafields) ;

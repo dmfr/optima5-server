@@ -48,9 +48,11 @@
 			padding: 2px 10px ;
 			font-weight: bold ;
 			text-align: left;
-			border-top: 1px solid black ;
 			border-left: 0px ;
 			border-right: 0px ;
+		}
+		table.tabledonnees tfoot tr:first-child td {
+			border-top: 1px solid black ;
 		}
 
 		table.tabledonnees td {
@@ -81,6 +83,9 @@
 			font-weight: bold ;
 			border-top: 1px solid black ;
 			border-bottom: 1px solid black ;
+		}
+		table.tabledonnees tbody td {
+			font-size: 12px;
 		}
 
 		.celltitle {
@@ -315,13 +320,15 @@
 		<table class='letterwidth'><tr>
 			<td width="100%" valign="top" align="center" style="font-size:24px; border:1px solid gray ; margin:10px ; padding:4px">
 			<qbook-condition lang='FR'>
-			<b>Référence client&nbsp;:&nbsp;<qbook-value src_value="table_refcli"></qbook-value>&nbsp;-&nbsp;Extrait de compte</b>
+			<b>Client&nbsp;:&nbsp;</b><qbook-value src_value="table_refcli"></qbook-value>&nbsp;-&nbsp;<qbook-value src_value="table_txtcli"></qbook-value><br>
+			<b>Extrait de compte&nbsp;<qbook-tablerecords-paging></qbook-tablerecords-paging><br>
 			</qbook-condition>
 			<qbook-condition lang='EN'>
-			<b>Customer ref&nbsp;:&nbsp;<qbook-value src_value="table_refcli"></qbook-value>&nbsp;-&nbsp;Account summary</b>
+			<b>Customer&nbsp;:&nbsp;</b><qbook-value src_value="table_refcli"></qbook-value>&nbsp;-&nbsp;<qbook-value src_value="table_txtcli"></qbook-value><br>
+			<b>Account summary</b>&nbsp;<qbook-tablerecords-paging></qbook-tablerecords-paging><br>
 			</qbook-condition>
-			&nbsp;
-			<qbook-tablerecords-paging></qbook-tablerecords-paging>
+			
+			
 			</td>
 		</tr></table>
 		

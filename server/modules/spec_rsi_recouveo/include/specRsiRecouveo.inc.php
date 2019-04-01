@@ -368,7 +368,8 @@ function specRsiRecouveo_cfg_getConfig($post_data=array('skip_filter'=>true)) {
 					'atr_type' => $metafield['metafield_assoc'],
 					'is_filter' => $metafield['is_filter'],
 					'is_globalfilter' => $metafield['is_globalfilter'],
-					'is_editable' => $metafield['is_editable']
+					'is_editable' => $metafield['is_editable'],
+					'is_doprint' => $metafield['is_doprint']
 				);
 				
 				$bible_code = 'ATR_'.$metafield['metafield_code'] ;

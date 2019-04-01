@@ -229,7 +229,8 @@ Ext.define('RsiRecouveoConfigSocMetafieldModel',{
 		{name: 'metafield_assoc', type:'string'},
 		{name: 'is_filter', type:'boolean'},
 		{name: 'is_globalfilter', type:'boolean'},
-		{name: 'is_editable', type:'boolean'}
+		{name: 'is_editable', type:'boolean'},
+		{name: 'is_doprint', type:'boolean'}
 	]
 });
 Ext.define('RsiRecouveoConfigSocPrintfieldModel',{
