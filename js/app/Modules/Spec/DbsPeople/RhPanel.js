@@ -621,8 +621,8 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhPanel',{
 		if( filterSiteBtn.getNode() != null ) {
 			addParams['filter_team_entries'] = Ext.JSON.encode( filterTeamBtn.getLeafNodesKey() ) ;
 		}
-		if( displayPeopleHidden ) {
-			addParams['filter_peopleOffDisplay'] = 1 ;
+		if( !displayPeopleHidden ) {
+			addParams['filter_peopleOff'] = 1 ;
 		}
 		options.setParams(addParams) ;
 	},

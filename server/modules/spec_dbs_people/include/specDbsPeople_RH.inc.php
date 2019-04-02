@@ -13,8 +13,8 @@ function specDbsPeople_RH_getGrid($post_data) {
 	if( isset($post_data['filter_team_entries']) ) {
 		$filter_arrTeams = json_decode($post_data['filter_team_entries'],true) ;
 	}
-	if( $post_data['filter_peopleOffDisplay'] ) {
-		$filter_peopleOffDisplay = true ;
+	if( $post_data['filter_peopleOff'] ) {
+		$filter_peopleOff = true ;
 	}
 	
 	if( !$filter_peopleCode ) {
@@ -35,7 +35,7 @@ function specDbsPeople_RH_getGrid($post_data) {
 		}
 	}
 	
-	if( !$filter_peopleCode && !$filter_peopleOffDisplay ) {
+	if( !$filter_peopleCode && $filter_peopleOff ) {
 		$arr_peopleOn = array() ;
 		
 		$query_peopleDefined = "SELECT distinct field_PPL_CODE FROM `op5_dbs_prod_people`.`view_file_RH_CONTRACT`
