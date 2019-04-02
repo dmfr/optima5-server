@@ -13,8 +13,11 @@ function specDbsPeople_RH_getGrid($post_data) {
 	if( isset($post_data['filter_team_entries']) ) {
 		$filter_arrTeams = json_decode($post_data['filter_team_entries'],true) ;
 	}
+	if( $post_data['filter_peopleOffDisplay'] ) {
+		$filter_peopleOffDisplay = true ;
+	}
 	
-	if( !$people_code ) {
+	if( !$filter_peopleCode ) {
 		paracrm_lib_file_joinPrivate_buildCache('PEOPLEDAY') ;
 		
 		$arr_type_definedPeople = array() ;
@@ -32,11 +35,42 @@ function specDbsPeople_RH_getGrid($post_data) {
 		}
 	}
 	
+	if( !$filter_peopleCode && !$filter_peopleOffDisplay ) {
+		$arr_peopleOn = array() ;
+		
+		$query_peopleDefined = "SELECT distinct field_PPL_CODE FROM `op5_dbs_prod_people`.`view_file_RH_CONTRACT`
+											WHERE DATE(field_DATE_APPLY)<=DATE(NOW())" ;
+		
+		$query_peopleOff = "SELECT field_PPL_CODE FROM (
+							SELECT a.field_PPL_CODE, b.max_date, a.field_CONTRACT_CODE FROM 
+							`op5_dbs_prod_people`.view_file_RH_CONTRACT a
+							JOIN (
+								select field_PPL_CODE, max(field_DATE_APPLY) as max_date 
+								FROM `op5_dbs_prod_people`.view_file_RH_CONTRACT GROUP BY field_PPL_CODE
+							) b
+							ON b.field_PPL_CODE = a.field_PPL_CODE AND b.max_date = a.field_DATE_APPLY
+						) tab_contract_max
+						WHERE tab_contract_max.field_CONTRACT_CODE IN ('','OUT') AND DATE(tab_contract_max.max_date)<DATE(NOW())" ;
+						
+		$query = "SELECT entry_key FROM view_bible_RH_PEOPLE_entry 
+						WHERE entry_key NOT IN ({$query_peopleOff})
+						AND entry_key IN ({$query_peopleDefined})" ;
+		$result = $_opDB->query($query) ;
+		while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+			$arr_peopleOn[] = $arr[0] ;
+		}
+		$sqlList_peopleOn = $_opDB->makeSQLlist($arr_peopleOn) ;
+	}
+	
+	
+	
 	$TAB = array() ;
 	$query = "SELECT * FROM view_bible_RH_PEOPLE_tree t, view_bible_RH_PEOPLE_entry e
 					WHERE t.treenode_key=e.treenode_key" ;
 	if( $filter_peopleCode ) {
 		$query.= " AND e.entry_key='{$filter_peopleCode}'" ;
+	} elseif( $sqlList_peopleOn ) {
+		$query.= " AND e.entry_key IN {$sqlList_peopleOn}" ;
 	}
 	$query.= " ORDER BY e.field_PPL_FULLNAME" ;
 	

@@ -212,7 +212,8 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhPanel',{
 								this.up().down('textfield').suspendEvents(false) ;
 								this.up().down('textfield').reset() ;
 								this.up().down('textfield').resumeEvents() ;
-								this.applyFilters() ;
+								//this.applyFilters() ; // Reload instead
+								this.reload() ;
 							},
 							scope: this
 						}
@@ -610,6 +611,8 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhPanel',{
 		
 		var filterSiteBtn = this.down('#btnSite'),
 			filterTeamBtn = this.down('#btnTeam') ;
+		var chkPeopleHidden = this.down('#btnFilters').down('#chkPeopleHidden'),
+			displayPeopleHidden = chkPeopleHidden.getValue() ;
 		
 		var addParams = {} ;
 		if( filterSiteBtn.getNode() != null ) {
@@ -617,6 +620,9 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhPanel',{
 		}
 		if( filterSiteBtn.getNode() != null ) {
 			addParams['filter_team_entries'] = Ext.JSON.encode( filterTeamBtn.getLeafNodesKey() ) ;
+		}
+		if( displayPeopleHidden ) {
+			addParams['filter_peopleOffDisplay'] = 1 ;
 		}
 		options.setParams(addParams) ;
 	},
