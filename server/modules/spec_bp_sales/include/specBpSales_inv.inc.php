@@ -31,7 +31,9 @@ function specBpSales_inv_getRecords( $post_data ) {
 		$row['cli_linktree'] = $paracrm_row['INV_field_CLI_LINK_tree_CLIGROUP_CODE'] ;
 		$row['cli_linktree_txt'] = $paracrm_row['INV_field_CLI_LINK_tree_CLIGROUP_CODE'] ;
 		$row['cli_siret'] = $paracrm_row['INV_field_CLI_LINK_entry_CLI_SIRET'] ;
-		$row['pay_bank'] = $paracrm_row['INV_field_PAY_BANK'] ;
+		$row['factor_link'] = $paracrm_row['INV_field_FACTOR_LINK'] ;
+		$row['factor_paybank'] = $paracrm_row['INV_field_FACTOR_LINK_entry_ATR_PAYBANK'] ;
+		$row['factor_invtxt'] = $paracrm_row['INV_field_FACTOR_LINK_entry_ATR_INVTXT'] ;
 		$row['adr_sendto'] = $paracrm_row['INV_field_ADR_SENDTO'] ;
 		$row['adr_invoice'] = $paracrm_row['INV_field_ADR_INVOICE'] ;
 		$row['adr_ship'] = $paracrm_row['INV_field_ADR_SHIP'] ;
@@ -198,7 +200,7 @@ function specBpSales_inv_createFromOrder( $post_data ) {
 	$arr_ins['field_ADR_SENDTO'] = $customer_entry['field_ADR_SENDTO'] ;
 	$arr_ins['field_ADR_INVOICE'] = $customer_entry['field_ADR_INVOICE'] ;
 	$arr_ins['field_ADR_SHIP'] = $customer_entry['field_ADR_SHIP'] ;
-	$arr_ins['field_PAY_BANK'] = $customer_treenode['field_ATR_PAYBANK'] ;
+	$arr_ins['field_FACTOR_LINK'] = $customer_treenode['field_LINK_FACTOR'] ;
 	$arr_ins['field_DATE_CREATE'] = date('Y-m-d H:i:s') ;
 	$arr_ins['field_DATE_INVOICE'] = $row_cde['date_ship'] ;
 	$arr_ins['field_STATUS'] = '70_INVCREATE' ;
@@ -249,7 +251,7 @@ function specBpSales_inv_createFromInvoiceRefund( $post_data ) {
 	$arr_ins['field_ADR_SENDTO'] = $row_inv['adr_sendto'] ;
 	$arr_ins['field_ADR_INVOICE'] = $row_inv['adr_invoice'] ;
 	$arr_ins['field_ADR_SHIP'] = $row_inv['adr_ship'] ;
-	$arr_ins['field_PAY_BANK'] = $row_inv['pay_bank'] ;
+	$arr_ins['field_FACTOR_LINK'] = $row_inv['factor_link'] ;
 	$arr_ins['field_DATE_CREATE'] = date('Y-m-d H:i:s') ;
 	$arr_ins['field_DATE_INVOICE'] = $row_inv['date_invoice'] ;
 	$inv_filerecord_id = paracrm_lib_data_insertRecord_file( 'INV', 0, $arr_ins );
@@ -274,10 +276,12 @@ function specBpSales_inv_queryCustomer( $post_data ) {
 	$customer_entry = paracrm_lib_data_getRecord_bibleEntry('CUSTOMER',$post_data['cli_link']) ;
 	$customer_treenode = paracrm_lib_data_getRecord_bibleTreenode('CUSTOMER',$customer_entry['treenode_key'],$ascend_on_empty=TRUE) ;
 	
+	
+	
 	$arr_ins['adr_sendto'] = $customer_entry['field_ADR_SENDTO'] ;
 	$arr_ins['adr_invoice'] = $customer_entry['field_ADR_INVOICE'] ;
 	$arr_ins['adr_ship'] = $customer_entry['field_ADR_SHIP'] ;
-	$arr_ins['pay_bank'] = $customer_treenode['field_ATR_PAYBANK'] ;
+	$arr_ins['factor_link'] = $customer_treenode['field_LINK_FACTOR'] ;
 	$arr_ins['cli_siret'] = $customer_entry['field_CLI_SIRET'] ;
 	
 	return array('success'=>true, 'data'=>$arr_ins) ;
@@ -345,7 +349,7 @@ function specBpSales_inv_setRecord( $post_data ) {
 	$arr_update['field_CLI_LINK'] = $record_data['cli_link'] ;
 	$arr_update['field_DATE_INVOICE'] = $record_data['date_invoice'] ;
 	$arr_update['field_DATE_INVOICE'] = $record_data['date_invoice'] ;
-	$arr_update['field_PAY_BANK'] = $record_data['pay_bank'] ;
+	$arr_update['field_FACTOR_LINK'] = $record_data['factor_link'] ;
 	$arr_update['field_ADR_SENDTO'] = $record_data['adr_sendto'] ;
 	$arr_update['field_ADR_INVOICE'] = $record_data['adr_invoice'] ;
 	$arr_update['field_ADR_SHIP'] = $record_data['adr_ship'] ;
@@ -657,7 +661,8 @@ function specBpSales_inv_printDoc( $post_data ) {
 			'adr_invoice' => nl2br($inv_record['adr_invoice']),
 			'adr_ship' => nl2br($inv_record['adr_ship']),
 			
-			'pay_bank' => nl2br($inv_record['pay_bank']),
+			'factor_paybank' => nl2br($inv_record['factor_paybank']),
+			'factor_invtxt' => nl2br($inv_record['factor_invtxt']),
 			
 			'calc_amount_novat' => number_format($inv_record['calc_amount_novat'],2),
 			'calc_amount_final' => number_format($inv_record['calc_amount_final'],2),
@@ -679,7 +684,8 @@ function specBpSales_inv_printDoc( $post_data ) {
 			'adr_invoice' => nl2br($inv_record['adr_invoice']),
 			'adr_ship' => nl2br($inv_record['adr_ship']),
 			
-			'pay_bank' => nl2br($inv_record['pay_bank']),
+			'factor_paybank' => nl2br($inv_record['factor_paybank']),
+			'factor_invtxt' => nl2br($inv_record['factor_invtxt']),
 			
 			'calc_amount_novat' => number_format($inv_record['calc_amount_novat'],2),
 			'calc_amount_final' => number_format($inv_record['calc_amount_final'],2),

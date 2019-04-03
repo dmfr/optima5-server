@@ -318,11 +318,11 @@ Ext.define('Optima5.Modules.Spec.BpSales.InvoicePanel',{
 						readOnly: false,
 						allowBlank: false
 					},{
-						xtype: 'textarea',
-						fieldLabel: 'Bank details',
-						growMin: 80,
-						name: 'pay_bank',
-						readOnly: false
+						xtype: 'op5crmbasebiblepicker',
+						bibleId: 'CFG_FACTOR',
+						optimaModule: this.optimaModule,
+						fieldLabel: 'Factor mode',
+						name: 'factor_link'
 					}]
 				},{
 					xtype: 'fieldset',
