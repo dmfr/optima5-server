@@ -329,6 +329,9 @@ function paracrm_queries_qsqlTransaction_tokenGet( $post_data , &$arr_saisie ) {
 	$tpl_resultset = array() ;
 	$q = 0 ;
 	foreach( SqlParser::split_sql($sql_querystring) as $sql_sentence ) {
+		if( !trim($sql_sentence) ) {
+			continue ;
+		}
 		$q++ ;
 		$tpl_resultset[] = array('tab_id'=>$q, 'tab_title_src'=>'Q'.$q, 'tab_title_target'=>'Q'.$q) ;
 	}
