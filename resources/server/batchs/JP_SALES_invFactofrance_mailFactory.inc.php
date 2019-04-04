@@ -120,7 +120,7 @@ function mail_getBinary_remiseTxt( $arr_invFilerecordIds ) { // return String (b
 				$lig = substr_mklig($lig,'101',0,3) ;
 				break ;
 			case '-' :
-				$lig = substr_mklig($lig,'101',0,3) ;
+				$lig = substr_mklig($lig,'102',0,3) ;
 				break ;
 			default :
 				break ;
