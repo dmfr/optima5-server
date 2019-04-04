@@ -16,7 +16,125 @@ include( "$server_root/include/database/mysql_DB.inc.php" ) ;
 
 include("$server_root/login.inc.php") ;
 
-if( $_INLINE_PW || ($_REQUEST['PHP_AUTH_USER']&&!$_SERVER['PHP_AUTH_DIGEST']) ) {
+
+if( $_REQUEST['__token'] ) {
+	$_opDB = new mysql_DB( );
+	$_opDB->connect_mysql( $mysql_host, '', $mysql_user, $mysql_pass );
+	$_opDB->query("SET NAMES UTF8") ;
+	
+	// parse TOKEN_KEY / TOKEN_DOMAIN
+	$ttmp = explode('@',trim($_REQUEST['__token'])) ;
+	if( count($ttmp)!=2 ) {
+		header("HTTP/1.0 500 Internal Server Error");
+		exit ;
+	}
+	$_TOKEN_DOMAIN = strtolower($ttmp[1]) ;
+	$_TOKEN_KEY = strtoupper($ttmp[0]) ;
+	
+	
+	// *** Domain selectDB ***
+	$domain_base_db = DatabaseMgr_Base::getBaseDb($_TOKEN_DOMAIN) ;
+	$result = $_opDB->query("SHOW DATABASES") ;
+	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+		if( $arr[0] == $domain_base_db ) {
+			$_opDB->select_db($domain_base_db) ;
+			$GLOBALS['mysql_db'] = $domain_base_db ;
+			$do_select = TRUE ;
+			break ;
+		}
+	}
+	if( !$do_select ) {
+		header("HTTP/1.0 404 Not Found");
+		exit ;
+	}
+	
+	
+	// ****
+	$query = "SELECT * FROM q_token WHERE token_key='{$_TOKEN_KEY}'" ;
+	$result = $_opDB->query($query) ;
+	$token_target = $_opDB->fetch_assoc($result) ;
+	if( !$token_target ) {
+		header("HTTP/1.0 404 Not Found");
+		exit ;
+	}
+	
+	$_REQUEST['_sdomainId'] = $token_target['target_sdomain_id'] ;
+	
+	$t = new DatabaseMgr_Sdomain( DatabaseMgr_Base::dbCurrent_getDomainId() );
+	$sdomain_db = $t->getSdomainDb( $_REQUEST['_sdomainId'] ) ;
+	$qsql_table = $sdomain_db.'.'.'qsql' ;
+	$query = "SELECT token_cfg_json FROM {$qsql_table} WHERE qsql_id='{$token_target['target_qsql_id']}'" ;
+	$result = $_opDB->query($query) ;
+	$arr = $_opDB->fetch_row($result) ;
+	if( !$arr ) {
+		header("HTTP/1.0 500 Internal Server Error");
+		exit ;
+	}
+	$token_cfg_json = json_decode($arr[0],true) ;
+	if( !is_array($token_cfg_json) ) {
+		header("HTTP/1.0 500 Internal Server Error");
+		exit ;
+	}
+	$token_cfg_row = NULL ;
+	foreach( $token_cfg_json as $token_cfg_iter ) {
+		if( $token_cfg_iter['token_id'] == $token_target['target_token_id'] ) {
+			$token_cfg_row = $token_cfg_iter ;
+			break ;
+		}
+	}
+	if( !$token_cfg_row ) {
+		header("HTTP/1.0 500 Internal Server Error");
+		exit ;
+	}
+	$_REQUEST['_action'] = 'queries_direct' ;
+	$_REQUEST['q_type'] = 'qsql' ;
+	$_REQUEST['q_id'] = $token_target['target_qsql_id'] ;
+	if( $token_cfg_row['token_is_authbypass'] ) {
+		$_AUTH_BYPASS = TRUE ;
+	}
+	if( $token_cfg_row['q_resultmap'] ) {
+		$_TOKEN_QRESULTMAP = $token_cfg_row['q_resultmap'] ;
+	}
+	if( $token_cfg_row['q_vars'] ) {
+		foreach( $token_cfg_row['q_vars'] as $qvar_row ) {
+			$mkey = 'q_vars'.':'.$qvar_row['qvar_key'] ;
+			$_REQUEST[$mkey] = $qvar_row['qvar_value'] ;
+		}
+	}
+	
+	$_opDB->disconnect() ;
+	//unset($GLOBALS['mysql_db']) ;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+if( $_AUTH_BYPASS && $_TOKEN_DOMAIN ) {
+	// build login result
+	$login_result = array(
+		'done' => TRUE,
+		'login_data' => array(
+			'login_domain' => $_TOKEN_DOMAIN,
+			'login_user' => '__token',
+			'login_password' => '__token',
+			'auth_class' => 'A',
+			'auth_is_nologin' => true
+		),
+		'mysql_db' => $GLOBALS['mysql_db']
+	) ;
+	
+} elseif( $_INLINE_PW || ($_REQUEST['PHP_AUTH_USER']&&!$_SERVER['PHP_AUTH_DIGEST']) ) {
 	if( ($login_result=op5_login_test( $_REQUEST['PHP_AUTH_USER'], $_REQUEST['PHP_AUTH_PW'] )) && $login_result['done'] ) {
 		// OK !
 	} else {
@@ -78,6 +196,9 @@ if( !$my_module ) {
 	header("HTTP/1.0 404 Not Found");
 	doExit() ;
 }
+if( $my_module == 'crmbase_dsc' ) {
+	$my_module = 'crmbase' ;
+}
 if( $my_module == 'crmbase' ) {
 	$my_module = 'paracrm' ;
 }
@@ -124,6 +245,37 @@ if( $TAB['tabs'] ) {
 } else {
 	header("HTTP/1.0 202 Accepted");
 	doExit() ;
+}
+
+if( $_TOKEN_QRESULTMAP ) {
+	$new_tabs = array() ;
+	foreach( $_TOKEN_QRESULTMAP as $tab_idx => $tab_params ) {
+		if( !$tab_params['is_target'] ) {
+			continue ;
+		}
+		$orig_title = $tab_params['tab_title_src'] ;
+		$tab_cur = NULL ;
+		foreach( $tabs as $tab_iter ) {
+			if( $tab_iter['tab_title'] == $orig_title ) {
+				$tab_cur = $tab_iter ;
+				break ;
+			}
+		}
+		if( !$tab_cur ) {
+			continue ;
+		}
+		$title = $tab_params['tab_title_target'] ;
+		$title = preg_replace("/[^a-zA-Z0-9]/", "", $title) ;
+		if( !$title ) {
+			continue ;
+		}
+		if( is_numeric($title[0]) ) {
+			continue ;
+		}
+		$tab_cur['tab_title'] = $title ;
+		$new_tabs[] = $tab_cur ;
+	}
+	$tabs = $new_tabs ;
 }
 
 switch( strtolower($_SERVER['PATH_INFO']) ) {
