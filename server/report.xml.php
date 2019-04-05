@@ -106,15 +106,22 @@ if( $_REQUEST['__token'] ) {
 	//unset($GLOBALS['mysql_db']) ;
 }
 
+elseif( $_REQUEST['__qsql'] ) {
 
+	// parse TOKEN_KEY / TOKEN_DOMAIN
+	$ttmp = explode('@',trim($_REQUEST['__qsql'])) ;
+	if( count($ttmp)!=2 ) {
+		header("HTTP/1.0 500 Internal Server Error");
+		exit ;
+	}
+	$_QSQL_SDOMAIN = strtolower($ttmp[1]) ;
+	$_QSQL_ID = strtoupper($ttmp[0]) ;
 
-
-
-
-
-
-
-
+	$_REQUEST['_sdomainId'] = $_QSQL_SDOMAIN;
+	$_REQUEST['_action'] = 'queries_direct' ;
+	$_REQUEST['q_type'] = 'qsql' ;
+	$_REQUEST['q_id'] = $_QSQL_ID ;
+}
 
 
 
