@@ -518,11 +518,18 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE, $stopAsHtm
 				$row_table[$mkey] = $record_row[$mkey] ;
 			}
 		}
+		
+		if( $record_row['is_pending'] ) {
+			foreach( $row_table as &$mvalue ) {
+				$mvalue = '<i>'.$mvalue.'</i>' ;
+			}
+			unset($mvalue) ;
+		}
+		
 		$amount+= $record_row['amount'] ;
 		if( !$record_row['is_pending'] ) {
 			$amount_exp+= $record_row['amount'] ;
 		}
-		
 		
 		$table_data[] = $row_table ;
 	}
