@@ -134,7 +134,7 @@ if( $_AUTH_BYPASS && $_TOKEN_DOMAIN ) {
 		'mysql_db' => $GLOBALS['mysql_db']
 	) ;
 	
-} elseif( $_INLINE_PW || ($_REQUEST['PHP_AUTH_USER']&&!$_SERVER['PHP_AUTH_DIGEST']) ) {
+} elseif( $_INLINE_PW || ($_REQUEST['PHP_AUTH_USER'] && (!$_SERVER['PHP_AUTH_DIGEST']&&!$_SERVER['PHP_AUTH_USER'])) ) {
 	if( ($login_result=op5_login_test( $_REQUEST['PHP_AUTH_USER'], $_REQUEST['PHP_AUTH_PW'] )) && $login_result['done'] ) {
 		// OK !
 	} else {
@@ -142,28 +142,61 @@ if( $_AUTH_BYPASS && $_TOKEN_DOMAIN ) {
 		exit ;
 	}
 } else {
-	while(TRUE) {
-		$http_digest = TRUE ;
-		$http_digest_realm = 'OP5DIGEST';
-		if( $_SESSION['login_result'] ) {
-			$login_result = $_SESSION['login_result'] ;
-			break ;
-		} elseif (!empty($_SERVER['PHP_AUTH_DIGEST'])) {
-			$digest_data = http_digest_parse($_SERVER['PHP_AUTH_DIGEST']) ;
-			$userstr = $digest_data['username'] ;
-			$login_result=op5_login_test( $userstr, $_SERVER['PHP_AUTH_DIGEST'], $http_digest, $http_digest_realm ) ;
-			if( $login_result && $login_result['done'] ) {
-				$_SESSION['login_result'] = $login_result ;
+	$scheme = 'http' ;
+	if( $_SERVER['HTTPS'] || isset($_SERVER['HTTP_X_FORWARDED_FOR']) ) {
+		$scheme = 'https' ;
+	}
+	switch( $scheme ) {
+		case 'http' :
+			while(TRUE) {
+				$http_digest = TRUE ;
+				$http_digest_realm = 'OP5DIGEST';
+				if( $_SESSION['login_result'] ) {
+					$login_result = $_SESSION['login_result'] ;
+					break ;
+				} elseif (!empty($_SERVER['PHP_AUTH_DIGEST'])) {
+					$digest_data = http_digest_parse($_SERVER['PHP_AUTH_DIGEST']) ;
+					$userstr = $digest_data['username'] ;
+					$login_result=op5_login_test( $userstr, $_SERVER['PHP_AUTH_DIGEST'], $http_digest, $http_digest_realm ) ;
+					if( $login_result && $login_result['done'] ) {
+						$_SESSION['login_result'] = $login_result ;
+						break ;
+					}
+				}
+				
+				header('HTTP/1.1 401 Unauthorized');
+				header('WWW-Authenticate: Digest realm="'.$http_digest_realm.
+						'",qop="auth",nonce="'.uniqid().'",opaque="'.md5($http_digest_realm).'"');
+
+				die('HTTP Digest Auth required');
 				break ;
 			}
-		}
+			break ;
 		
-		header('HTTP/1.1 401 Unauthorized');
-		header('WWW-Authenticate: Digest realm="'.$http_digest_realm.
-				'",qop="auth",nonce="'.uniqid().'",opaque="'.md5($http_digest_realm).'"');
-
-		die('HTTP Digest Auth required');
-		break ;
+		case 'https' :
+			while( TRUE ) {
+				if( $_SESSION['login_result'] ) {
+					$login_result = $_SESSION['login_result'] ;
+					break ;
+				} elseif( $_SERVER['PHP_AUTH_USER'] && $_SERVER['PHP_AUTH_PW'] ) {
+					$userstr = $_SERVER['PHP_AUTH_USER'] ;
+					$login_result=op5_login_test( $_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW'] ) ;
+					if( $login_result && $login_result['done'] ) {
+						$_SESSION['login_result'] = $login_result ;
+						break ;
+					}
+				}
+				
+				header('WWW-Authenticate: Basic realm="OP5"');
+				header('HTTP/1.0 401 Unauthorized');
+				exit;
+				break ;
+			}
+			break ;
+			
+		default :
+			header('HTTP/1.0 403 Forbidden');
+			exit ;
 	}
 }
 
@@ -174,9 +207,10 @@ function doExit() {
 
 $_SESSION['login_data'] = $login_result['login_data'] ;
 $_SESSION['login_data']['userstr'] = strtolower($login_result['login_data']['login_user'].'@'.$login_result['login_data']['login_domain']) ;
+$GLOBALS['mysql_db'] = $login_result['mysql_db'] ;
 
 $_opDB = new mysql_DB( );
-$_opDB->connect_mysql( $mysql_host, $login_result['mysql_db'], $mysql_user, $mysql_pass );
+$_opDB->connect_mysql( $mysql_host, $GLOBALS['mysql_db'], $mysql_user, $mysql_pass );
 $_opDB->query("SET NAMES UTF8") ;
 
 // ************************
@@ -206,7 +240,7 @@ include("$server_root/modules/$my_module/backend_$my_module.inc.php");
 
 $my_sdomain = $_REQUEST['_sdomainId'] ;
 if( $my_sdomain ) {
-	$_opDB->select_db( $login_result['mysql_db'].'_'.$my_sdomain) ;
+	$_opDB->select_db( $GLOBALS['mysql_db'].'_'.$my_sdomain) ;
 }
 
 // ******** Rewrite inner-JSON *************
@@ -225,7 +259,7 @@ foreach( $pseudo_json as $form_name => $inner_json ) {
 $TAB = backend_specific( $_REQUEST ) ;
 
 if( $my_sdomain ) {
-	$_opDB->select_db( $login_result['mysql_db'] ) ;
+	$_opDB->select_db( $GLOBALS['mysql_db'] ) ;
 }
 
 if( !$TAB ) {
