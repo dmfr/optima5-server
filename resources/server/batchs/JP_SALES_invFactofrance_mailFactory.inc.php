@@ -2,7 +2,7 @@
 function lookup_factorSiret( $customer_entryKey ) {
 	//Query customer
 	$customer_entry = paracrm_lib_data_getRecord_bibleEntry('CUSTOMER',$customer_entryKey) ;
-	return $customer_entry['field_CLI_SIRET'] ;
+	return iconv( 'UTF-8', 'ASCII//TRANSLIT//IGNORE', $customer_entry['field_CLI_SIRET'] );
 }
 
 function parseAdr( $adr_string ) {
