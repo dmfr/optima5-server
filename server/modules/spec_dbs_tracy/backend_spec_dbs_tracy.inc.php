@@ -98,6 +98,7 @@ switch( $post_data['_action'] )
 	return specDbsTracy_report($post_data) ;
 	
 	case 'orderTree_getData' :
+	session_write_close() ;
 	return specDbsTracy_orderTree_getData($post_data) ;
 	
 	default :

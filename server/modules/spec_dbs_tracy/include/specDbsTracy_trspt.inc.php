@@ -121,7 +121,8 @@ function specDbsTracy_trspt_getRecords( $post_data ) {
 	$ttmp = specDbsTracy_order_getRecords( array(
 		'filter_socCode' => $filter_socCode,
 		'filter_orderFilerecordId_arr'=> json_encode($filter_orderFilerecordId_arr),
-		'filter_archiveIsOn' => ( $filter_archiveIsOn ? 1 : 0 )
+		'filter_archiveIsOn' => ( $filter_archiveIsOn ? 1 : 0 ),
+		'skip_details' => 1
 	) ) ;
 	$TAB_order = array() ;
 	foreach( $ttmp['data'] as $row_order ) {

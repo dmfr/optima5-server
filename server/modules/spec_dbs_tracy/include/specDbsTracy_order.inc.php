@@ -74,24 +74,26 @@ function specDbsTracy_order_getRecords( $post_data ) {
 		);
 	}
 	
-	// ************ 2017-08 : Adr JSON *********************
-	$query = "SELECT * FROM view_file_CDE_ADR cadr" ;
-	$query.= " WHERE 1" ;
-	if( isset($filter_orderFilerecordId_list) ) {
-		$query.= " AND cadr.filerecord_parent_id IN {$filter_orderFilerecordId_list}" ;
-	} elseif( !$filter_archiveIsOn ) {
-		$query.= " AND cadr.filerecord_parent_id IN (SELECT filerecord_id FROM view_file_CDE WHERE field_ARCHIVE_IS_ON='0')" ;
-	}
-	$result = $_opDB->query($query) ;
-	$map_order_keyValue = array() ;
-	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
-		if( !isset($TAB_order[$arr['filerecord_parent_id']]) ) {
-			continue ;
+	if( !$post_data['skip_details'] ) {
+		// ************ 2017-08 : Adr JSON *********************
+		$query = "SELECT * FROM view_file_CDE_ADR cadr" ;
+		$query.= " WHERE 1" ;
+		if( isset($filter_orderFilerecordId_list) ) {
+			$query.= " AND cadr.filerecord_parent_id IN {$filter_orderFilerecordId_list}" ;
+		} elseif( !$filter_archiveIsOn ) {
+			$query.= " AND cadr.filerecord_parent_id IN (SELECT filerecord_id FROM view_file_CDE WHERE field_ARCHIVE_IS_ON='0')" ;
 		}
-		$map_order_keyValue[$arr['filerecord_parent_id']][$arr['field_ADR_KEY']] = $arr['field_ADR_VALUE'] ;
-	}
-	foreach( $map_order_keyValue as $filerecord_id => $map ) {
-		$TAB_order[$filerecord_id]['adr_json'] = json_encode($map) ;
+		$result = $_opDB->query($query) ;
+		$map_order_keyValue = array() ;
+		while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+			if( !isset($TAB_order[$arr['filerecord_parent_id']]) ) {
+				continue ;
+			}
+			$map_order_keyValue[$arr['filerecord_parent_id']][$arr['field_ADR_KEY']] = $arr['field_ADR_VALUE'] ;
+		}
+		foreach( $map_order_keyValue as $filerecord_id => $map ) {
+			$TAB_order[$filerecord_id]['adr_json'] = json_encode($map) ;
+		}
 	}
 	
 	$query = "SELECT c.filerecord_id, tc.filerecord_parent_id, t.field_ID_DOC, t.field_SWORD_EDI_1_WARN FROM view_file_CDE c" ;
@@ -141,26 +143,27 @@ function specDbsTracy_order_getRecords( $post_data ) {
 		$TAB_order[$filerecord_id]['calc_hat_txt'] = $arr[2] ;
 	}
 	
-	
-	$query = "SELECT * FROM view_file_CDE_ATTACH ca" ;
-	$query.= " WHERE 1" ;
-	if( isset($filter_orderFilerecordId_list) ) {
-		$query.= " AND ca.filerecord_parent_id IN {$filter_orderFilerecordId_list}" ;
-	} elseif( !$filter_archiveIsOn ) {
-		$query.= " AND ca.filerecord_parent_id IN (SELECT filerecord_id FROM view_file_CDE WHERE field_ARCHIVE_IS_ON='0')" ;
-	}
-	$result = $_opDB->query($query) ;
-	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
-		if( !isset($TAB_order[$arr['filerecord_parent_id']]) ) {
-			continue ;
+	if( !$post_data['skip_details'] ) {
+		$query = "SELECT * FROM view_file_CDE_ATTACH ca" ;
+		$query.= " WHERE 1" ;
+		if( isset($filter_orderFilerecordId_list) ) {
+			$query.= " AND ca.filerecord_parent_id IN {$filter_orderFilerecordId_list}" ;
+		} elseif( !$filter_archiveIsOn ) {
+			$query.= " AND ca.filerecord_parent_id IN (SELECT filerecord_id FROM view_file_CDE WHERE field_ARCHIVE_IS_ON='0')" ;
 		}
-		$TAB_order[$arr['filerecord_parent_id']]['attachments'][] = array(
-			'attachment_media_id' => media_img_toolFile_getId('CDE_ATTACH',$arr['filerecord_id']),
-			'attachment_filerecord_id' => $arr['filerecord_id'],
-			'parent_file' => 'order',
-			'attachment_date' => substr($arr['field_ATTACHMENT_DATE'],0,10),
-			'attachment_txt' => $arr['field_ATTACHMENT_TXT']
-		);
+		$result = $_opDB->query($query) ;
+		while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+			if( !isset($TAB_order[$arr['filerecord_parent_id']]) ) {
+				continue ;
+			}
+			$TAB_order[$arr['filerecord_parent_id']]['attachments'][] = array(
+				'attachment_media_id' => media_img_toolFile_getId('CDE_ATTACH',$arr['filerecord_id']),
+				'attachment_filerecord_id' => $arr['filerecord_id'],
+				'parent_file' => 'order',
+				'attachment_date' => substr($arr['field_ATTACHMENT_DATE'],0,10),
+				'attachment_txt' => $arr['field_ATTACHMENT_TXT']
+			);
+		}
 	}
 	
 	$query = "SELECT * FROM view_file_CDE_STEP cs" ;
@@ -183,30 +186,6 @@ function specDbsTracy_order_getRecords( $post_data ) {
 			'log_user' => $arr['field_LOG_USER']
 		);
 	}
-	
-	$query = "SELECT * FROM view_file_CDE_EVENT ce" ;
-	$query.= " WHERE 1" ;
-	if( isset($filter_orderFilerecordId_list) ) {
-		$query.= " AND ce.filerecord_parent_id IN {$filter_orderFilerecordId_list}" ;
-	} elseif( !$filter_archiveIsOn ) {
-		$query.= " AND ce.filerecord_parent_id IN (SELECT filerecord_id FROM view_file_CDE WHERE field_ARCHIVE_IS_ON='0')" ;
-	}
-	$query.= " ORDER BY filerecord_id";
-	$result = $_opDB->query($query) ;
-	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
-		if( !isset($TAB_order[$arr['filerecord_parent_id']]) ) {
-			continue ;
-		}
-		$TAB_order[$arr['filerecord_parent_id']]['events'][] = array(
-			'orderevent_filerecord_id' => $arr['filerecord_id'],
-			'event_date' => $arr['field_EVENT_DATE'],
-			'event_user' => $arr['field_EVENT_USER'],
-			'event_is_warning' => $arr['field_EVENT_IS_WARNING'],
-			'event_code' => $arr['field_EVENT_CODE'],
-			'event_txt' => $arr['field_EVENT_TXT'],
-		);
-	}
-	
 	foreach( $TAB_order as &$row_order ) {
 		$max_stepCode = array() ;
 		foreach( $row_order['steps'] as $row_order_step ) {
@@ -217,88 +196,117 @@ function specDbsTracy_order_getRecords( $post_data ) {
 		if( $max_stepCode ) {
 			$row_order['calc_step'] = max($max_stepCode) ;
 		}
-		
-		
-		$last_warning = end($row_order['events']) ;
-		if( $last_warning ) {
-			$row_order += array(
-				'warning_is_on' => $last_warning['event_is_warning'],
-				'warning_code' => $last_warning['event_code'],
-				'warning_txt' => $last_warning['event_txt']
-			);
-		} else {
-			$row_order += array(
-				'warning_is_on' => false
-			);
-		}
 	}
 	unset($row_order) ;
 	
 	
-	$query = "SELECT ck.*, lkc.treenode_key as lkc_node FROM view_file_CDE_KPI ck" ;
-	$query.= " LEFT OUTER JOIN view_bible_LIST_KPICODE_entry lkc ON lkc.entry_key = ck.field_KPI_CODE" ;
-	$query.= " WHERE 1 AND ck.field_CALC_CODE='CALC'" ;
-	if( isset($filter_orderFilerecordId_list) ) {
-		$query.= " AND ck.filerecord_parent_id IN {$filter_orderFilerecordId_list}" ;
-	} elseif( !$filter_archiveIsOn ) {
-		$query.= " AND ck.filerecord_parent_id IN (SELECT filerecord_id FROM view_file_CDE WHERE field_ARCHIVE_IS_ON='0')" ;
-	}
-	$query.= " ORDER BY filerecord_id";
-	$result = $_opDB->query($query) ;
-	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
-		if( !isset($TAB_order[$arr['filerecord_parent_id']]) ) {
-			continue ;
+	if( !$post_data['skip_details'] ) {
+		$query = "SELECT * FROM view_file_CDE_EVENT ce" ;
+		$query.= " WHERE 1" ;
+		if( isset($filter_orderFilerecordId_list) ) {
+			$query.= " AND ce.filerecord_parent_id IN {$filter_orderFilerecordId_list}" ;
+		} elseif( !$filter_archiveIsOn ) {
+			$query.= " AND ce.filerecord_parent_id IN (SELECT filerecord_id FROM view_file_CDE WHERE field_ARCHIVE_IS_ON='0')" ;
 		}
-		$TAB_order[$arr['filerecord_parent_id']] += array(
-			'kpi_is_on' => true,
-			'kpi_is_ok_raw' => $arr['field_KPI_IS_OK_RAW'],
-			'kpi_is_ok' => $arr['field_KPI_IS_OK'],
-			'kpi_code' => $arr['field_KPI_CODE'],
-			'kpi_txt' => $arr['field_KPI_TXT'],
-			'kpi_calc_step' => $arr['field_KPI_CALC_STEP'],
-			'kpi_calc_date_target' => $arr['field_KPI_CALC_DATE_TARGET'],
-			'kpi_calc_date_actual' => $arr['field_KPI_CALC_DATE_ACTUAL']
-		);
-	}
-	
-	
-	$query = "SELECT ck.* FROM view_file_CDE_KPI ck" ;
-	$query.= " JOIN view_file_CDE c ON c.filerecord_id = ck.filerecord_parent_id" ;
-	$query.= " JOIN view_bible_CFG_SOC_entry soc ON soc.entry_key = c.field_ID_SOC" ;
-	$query.= " WHERE 1 AND ck.field_CALC_CODE=soc.field_KPI_CODE" ;
-	if( isset($filter_orderFilerecordId_list) ) {
-		$query.= " AND ck.filerecord_parent_id IN {$filter_orderFilerecordId_list}" ;
-	} elseif( !$filter_archiveIsOn ) {
-		$query.= " AND ck.filerecord_parent_id IN (SELECT filerecord_id FROM view_file_CDE WHERE field_ARCHIVE_IS_ON='0')" ;
-	}
-	$query.= " ORDER BY filerecord_id";
-	$result = $_opDB->query($query) ;
-	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
-		if( !isset($TAB_order[$arr['filerecord_parent_id']]) ) {
-			continue ;
-		}
-		$TAB_order[$arr['filerecord_parent_id']]['kpi_is_ok_raw'] = $arr['field_KPI_IS_OK_RAW'] ;
-	}
-	
-	
-	$query = "SELECT * FROM view_file_CDE_KPI ck" ;
-	$query.= " WHERE 1" ;
-	if( isset($filter_orderFilerecordId_list) ) {
-		$query.= " AND ck.filerecord_parent_id IN {$filter_orderFilerecordId_list}" ;
-	} elseif( !$filter_archiveIsOn ) {
-		$query.= " AND ck.filerecord_parent_id IN (SELECT filerecord_id FROM view_file_CDE WHERE field_ARCHIVE_IS_ON='0')" ;
-	}
-	$query.= " ORDER BY filerecord_id";
-	$result = $_opDB->query($query) ;
-	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
-		if( !isset($TAB_order[$arr['filerecord_parent_id']]) ) {
-			continue ;
+		$query.= " ORDER BY filerecord_id";
+		$result = $_opDB->query($query) ;
+		while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+			if( !isset($TAB_order[$arr['filerecord_parent_id']]) ) {
+				continue ;
+			}
+			$TAB_order[$arr['filerecord_parent_id']]['events'][] = array(
+				'orderevent_filerecord_id' => $arr['filerecord_id'],
+				'event_date' => $arr['field_EVENT_DATE'],
+				'event_user' => $arr['field_EVENT_USER'],
+				'event_is_warning' => $arr['field_EVENT_IS_WARNING'],
+				'event_code' => $arr['field_EVENT_CODE'],
+				'event_txt' => $arr['field_EVENT_TXT'],
+			);
 		}
 		
-		$mkey = 'kpidata_'.$arr['field_CALC_CODE'] ;
-		$TAB_order[$arr['filerecord_parent_id']] += array(
-			$mkey => $arr['field_KPI_IS_OK_RAW']
-		);
+		foreach( $TAB_order as &$row_order ) {
+			$last_warning = end($row_order['events']) ;
+			if( $last_warning ) {
+				$row_order += array(
+					'warning_is_on' => $last_warning['event_is_warning'],
+					'warning_code' => $last_warning['event_code'],
+					'warning_txt' => $last_warning['event_txt']
+				);
+			} else {
+				$row_order += array(
+					'warning_is_on' => false
+				);
+			}
+		}
+		unset($row_order) ;
+	}
+	
+	
+	if( !$post_data['skip_details'] ) {
+		$query = "SELECT ck.*, lkc.treenode_key as lkc_node FROM view_file_CDE_KPI ck" ;
+		$query.= " LEFT OUTER JOIN view_bible_LIST_KPICODE_entry lkc ON lkc.entry_key = ck.field_KPI_CODE" ;
+		$query.= " WHERE 1 AND ck.field_CALC_CODE='CALC'" ;
+		if( isset($filter_orderFilerecordId_list) ) {
+			$query.= " AND ck.filerecord_parent_id IN {$filter_orderFilerecordId_list}" ;
+		} elseif( !$filter_archiveIsOn ) {
+			$query.= " AND ck.filerecord_parent_id IN (SELECT filerecord_id FROM view_file_CDE WHERE field_ARCHIVE_IS_ON='0')" ;
+		}
+		$query.= " ORDER BY filerecord_id";
+		$result = $_opDB->query($query) ;
+		while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+			if( !isset($TAB_order[$arr['filerecord_parent_id']]) ) {
+				continue ;
+			}
+			$TAB_order[$arr['filerecord_parent_id']] += array(
+				'kpi_is_on' => true,
+				'kpi_is_ok_raw' => $arr['field_KPI_IS_OK_RAW'],
+				'kpi_is_ok' => $arr['field_KPI_IS_OK'],
+				'kpi_code' => $arr['field_KPI_CODE'],
+				'kpi_txt' => $arr['field_KPI_TXT'],
+				'kpi_calc_step' => $arr['field_KPI_CALC_STEP'],
+				'kpi_calc_date_target' => $arr['field_KPI_CALC_DATE_TARGET'],
+				'kpi_calc_date_actual' => $arr['field_KPI_CALC_DATE_ACTUAL']
+			);
+		}
+		
+		$query = "SELECT ck.* FROM view_file_CDE_KPI ck" ;
+		$query.= " JOIN view_file_CDE c ON c.filerecord_id = ck.filerecord_parent_id" ;
+		$query.= " JOIN view_bible_CFG_SOC_entry soc ON soc.entry_key = c.field_ID_SOC" ;
+		$query.= " WHERE 1 AND ck.field_CALC_CODE=soc.field_KPI_CODE" ;
+		if( isset($filter_orderFilerecordId_list) ) {
+			$query.= " AND ck.filerecord_parent_id IN {$filter_orderFilerecordId_list}" ;
+		} elseif( !$filter_archiveIsOn ) {
+			$query.= " AND ck.filerecord_parent_id IN (SELECT filerecord_id FROM view_file_CDE WHERE field_ARCHIVE_IS_ON='0')" ;
+		}
+		$query.= " ORDER BY filerecord_id";
+		$result = $_opDB->query($query) ;
+		while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+			if( !isset($TAB_order[$arr['filerecord_parent_id']]) ) {
+				continue ;
+			}
+			$TAB_order[$arr['filerecord_parent_id']]['kpi_is_ok_raw'] = $arr['field_KPI_IS_OK_RAW'] ;
+		}
+		
+		
+		$query = "SELECT * FROM view_file_CDE_KPI ck" ;
+		$query.= " WHERE 1" ;
+		if( isset($filter_orderFilerecordId_list) ) {
+			$query.= " AND ck.filerecord_parent_id IN {$filter_orderFilerecordId_list}" ;
+		} elseif( !$filter_archiveIsOn ) {
+			$query.= " AND ck.filerecord_parent_id IN (SELECT filerecord_id FROM view_file_CDE WHERE field_ARCHIVE_IS_ON='0')" ;
+		}
+		$query.= " ORDER BY filerecord_id";
+		$result = $_opDB->query($query) ;
+		while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+			if( !isset($TAB_order[$arr['filerecord_parent_id']]) ) {
+				continue ;
+			}
+			
+			$mkey = 'kpidata_'.$arr['field_CALC_CODE'] ;
+			$TAB_order[$arr['filerecord_parent_id']] += array(
+				$mkey => $arr['field_KPI_IS_OK_RAW']
+			);
+		}
 	}
 	
 	

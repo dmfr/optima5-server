@@ -175,6 +175,16 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 						xtype: 'menuseparator',
 						handler: function() {}
 					},{
+						itemId: 'tbKpiIsOn',
+						text: 'Show KPI data',
+						handler: function() {},
+						checked: false,
+						checkHandler : function() { this.doLoad(true) },
+						scope: this
+					},{
+						xtype: 'menuseparator',
+						handler: function() {}
+					},{
 						itemId: 'tbArchiveIsOn',
 						text: 'Show archived',
 						handler: function() {},
@@ -1113,6 +1123,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 			columns: stepColumns
 		});
 		columns.push({
+			_kpiIsOn: true,
 			text: '<b><i>KPI data</i></b>',
 			align: 'center',
 			hidden: this._readonlyMode,
@@ -1575,6 +1586,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 	
 	
 		var filterParams = {
+			skip_details: (this.down('#tbKpiIsOn').checked ? 0 : 1 ),
 			filter_socCode: this.down('#btnSoc').getValue(),
 			filter_archiveIsOn: (this.down('#tbArchiveIsOn').checked ? 1 : 0 )
 		};
@@ -1609,6 +1621,16 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 		// Setup autoRefresh task
 		this.autoRefreshTask.delay( this.autoRefreshDelay ) ;
 		
+		// tbKpiIsOn
+		Ext.Array.each( this.down('#pCenter').down('#pGrid').headerCt.query('[_kpiIsOn]'), function(col) {
+			var setVisible = this.down('#tbKpiIsOn').checked ;
+			if( setVisible ) {
+				col.setVisible( !this._readonlyMode ) ;
+			} else {
+				col.setVisible( false ) ;
+			}
+		},this) ;
+		
 		if( doClearFilters ) {
 			this.down('#pCenter').down('#pGrid').getStore().clearFilter() ;
 			this.down('#pCenter').down('#pGrid').filters.clearFilters() ;
@@ -1636,6 +1658,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 		delete this.ajaxDataHat ;
 		
 		var filterParams = {
+			skip_details: (this.down('#tbKpiIsOn').checked ? 0 : 1 ),
 			filter_socCode: this.down('#btnSoc').getValue(),
 			filter_archiveIsOn: (this.down('#tbArchiveIsOn').checked ? 1 : 0 )
 		};
@@ -1650,7 +1673,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: Ext.apply({
 				_moduleId: 'spec_dbs_tracy',
-				_action: 'order_getRecords'
+				_action: 'order_getRecords',
 			},filterParams),
 			success: function(response) {
 				var ajaxResponse = Ext.decode(response.responseText) ;
@@ -1670,7 +1693,8 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 			params: Ext.apply({
 				_moduleId: 'spec_dbs_tracy',
 				_action: 'hat_getRecords',
-				skip_details : 1
+				skip_details : 1,
+				skip_dimensions : 1
 			},filterParams),
 			success: function(response) {
 				var ajaxResponse = Ext.decode(response.responseText) ;
@@ -1860,6 +1884,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 			params: {
 				_moduleId: 'spec_dbs_tracy',
 				_action: 'trspt_getRecords',
+				skip_details: (this.down('#tbKpiIsOn').checked ? 0 : 1 ),
 				filter_socCode: this.down('#btnSoc').getValue(),
 				filter_archiveIsOn: (this.down('#tbArchiveIsOn').checked ? 1 : 0 )
 			},

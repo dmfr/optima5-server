@@ -163,26 +163,28 @@ function specDbsTracy_hat_getRecords( $post_data ) {
 		$filter_orderFilerecordId_arr[] = $arr['field_FILE_CDE_ID'] ;
 	}
 	
-	$query = "SELECT * FROM view_file_HAT_PARCEL hp" ;
-	$query.= " WHERE 1" ;
-	if( isset($filter_orderFilerecordId_list) ) {
-		$query.= " AND hp.filerecord_parent_id IN (select filerecord_parent_id FROM view_file_HAT_CDE WHERE field_FILE_CDE_ID IN {$filter_orderFilerecordId_list})" ;
-	} elseif( isset($filter_hatFilerecordId_list) ) {
-		$query.= " AND hp.filerecord_parent_id IN {$filter_hatFilerecordId_list}" ;
-	} elseif( !$filter_archiveIsOn ) {
-		$query.= " AND hp.filerecord_parent_id IN (SELECT filerecord_id FROM view_file_HAT WHERE field_ARCHIVE_IS_ON='0')" ;
-	}
-	$result = $_opDB->query($query) ;
-	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
-		if( !isset($TAB_hat[$arr['filerecord_parent_id']]) ) {
-			continue ;
+	if( !$post_data['skip_dimensions'] ) { // 08/04/19 : Don't load dimensions on FilesGrid
+		$query = "SELECT * FROM view_file_HAT_PARCEL hp" ;
+		$query.= " WHERE 1" ;
+		if( isset($filter_orderFilerecordId_list) ) {
+			$query.= " AND hp.filerecord_parent_id IN (select filerecord_parent_id FROM view_file_HAT_CDE WHERE field_FILE_CDE_ID IN {$filter_orderFilerecordId_list})" ;
+		} elseif( isset($filter_hatFilerecordId_list) ) {
+			$query.= " AND hp.filerecord_parent_id IN {$filter_hatFilerecordId_list}" ;
+		} elseif( !$filter_archiveIsOn ) {
+			$query.= " AND hp.filerecord_parent_id IN (SELECT filerecord_id FROM view_file_HAT WHERE field_ARCHIVE_IS_ON='0')" ;
 		}
-		$TAB_hat[$arr['filerecord_parent_id']]['parcels'][] = array(
-			'hatparcel_filerecord_id' => $arr['filerecord_id'],
-			'vol_count' => (int)$arr['field_VOL_COUNT'],
-			'vol_kg' => (float)$arr['field_VOL_KG'],
-			'vol_dims' => explode('x',$arr['field_VOL_DIMS'])
-		);
+		$result = $_opDB->query($query) ;
+		while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+			if( !isset($TAB_hat[$arr['filerecord_parent_id']]) ) {
+				continue ;
+			}
+			$TAB_hat[$arr['filerecord_parent_id']]['parcels'][] = array(
+				'hatparcel_filerecord_id' => $arr['filerecord_id'],
+				'vol_count' => (int)$arr['field_VOL_COUNT'],
+				'vol_kg' => (float)$arr['field_VOL_KG'],
+				'vol_dims' => explode('x',$arr['field_VOL_DIMS'])
+			);
+		}
 	}
 	
 	if( !$post_data['skip_details'] ) { // 15/11 : Don't (double)load on FilesGrid

@@ -5,8 +5,9 @@ function specDbsTracy_orderTree_getData( $post_data ) {
 	$ttmp = specDbsTracy_cfg_getConfig() ;
 	$cfg_orderflow = $ttmp['data']['cfg_orderflow'] ;
 	
-	$json_order = specDbsTracy_order_getRecords($post_data) ;
-	$post_data_hat = array('skip_details'=>1) + $post_data ;
+	$post_data_order = $post_data ;
+	$json_order = specDbsTracy_order_getRecords($post_data_order) ;
+	$post_data_hat = array('skip_details'=>1, 'skip_dimensions'=>1) + $post_data ;
 	$json_hat = specDbsTracy_hat_getRecords($post_data_hat) ;
 	
 	$map_stepCode_descCode = array() ;
