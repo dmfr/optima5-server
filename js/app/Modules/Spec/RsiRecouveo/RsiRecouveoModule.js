@@ -231,6 +231,26 @@ Ext.define('RsiRecouveoAdrbookModel',{
 	}]
 }) ;
 
+Ext.define('RsiRecouveoAccountAttachmentModel',{
+	extend: 'Ext.data.Model',
+	idProperty: 'accbin_filerecord_id',
+	fields: [
+		{name: 'accbin_filerecord_id', type:'int'},
+		{name: 'bin_filename', type:'string'},
+		{name: 'bin_desc', type:'string'}
+	]
+}) ;
+
+Ext.define('RsiRecouveoAccountNotepadModel',{
+	extend: 'Ext.data.Model',
+	idProperty: 'accnotepad_filerecord_id',
+	fields: [
+		{name: 'accnotepad_filerecord_id', type:'int'},
+		{name: 'notepad_dateupdate', type:'date', dateFormat:'Y-m-d H:i:s'},
+		{name: 'notepad_txt', type:'string'}
+	]
+}) ;
+
 Ext.define('RsiRecouveoAccountTplModel',{
 	extend: 'Ext.data.Model',
 	idProperty: 'acc_id',

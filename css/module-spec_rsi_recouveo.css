@@ -994,3 +994,20 @@
 .op5-spec-rsiveo-button-red .x-btn-inner {
     color: red !important;
 }
+
+
+
+
+.op5-spec-rsiveo-account-notepad {
+	font-family: 'Sans' ;
+	padding: 10px ;
+}
+
+.op5-spec-rsiveo-account-attachement .x-grid-cell-inner {
+	background-position: left 8px center;
+	background-repeat: no-repeat ;
+	background-image: url("../images/modules/rsiveo-file-16.gif") !important;
+	padding-left: 40px
+}
+
+

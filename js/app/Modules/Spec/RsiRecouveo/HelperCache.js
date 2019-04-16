@@ -538,12 +538,18 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 			idProperty: 'acc_id',
 			fields: pushModelFieldsAccount,
 			hasMany: [{
+				model: 'RsiRecouveoAccountNotepadModel',
+				name: 'notepad',
+				associationKey: 'notepad'
+			},{
+				model: 'RsiRecouveoAccountAttachmentModel',
+				name: 'attachments',
+				associationKey: 'attachments'
+			},{
 				model: 'RsiRecouveoAdrbookModel',
 				name: 'adrbook',
 				associationKey: 'adrbook'
-			},
-			
-			{
+			},{
 				model: 'RsiRecouveoAccountTplModel',
 				name: 'similar',
 				associationKey: 'similar'

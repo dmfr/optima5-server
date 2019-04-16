@@ -56,6 +56,14 @@ switch( $post_data['_action'] )
 	return specRsiRecouveo_account_setAdrbookPriority( $post_data ) ;
 	case 'account_clearNotifications' :
 	return specRsiRecouveo_account_clearNotifications( $post_data ) ;
+	case 'account_uploadAttachment' :
+	return specRsiRecouveo_account_uploadAttachment( $post_data ) ;
+	case 'account_downloadAttachment' :
+	return specRsiRecouveo_account_downloadAttachment( $post_data ) ;
+	case 'account_deleteAttachment' :
+	return specRsiRecouveo_account_deleteAttachment( $post_data ) ;
+	case 'account_saveNotepad' :
+	return specRsiRecouveo_account_saveNotepad( $post_data ) ;
 	
 	case 'doc_cfg_getTpl' :
 	return specRsiRecouveo_doc_cfg_getTpl($post_data) ;

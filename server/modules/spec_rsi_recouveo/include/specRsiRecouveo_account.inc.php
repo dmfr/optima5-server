@@ -50,12 +50,39 @@ function specRsiRecouveo_account_open( $post_data ) {
 		'adr_postal' => $arr['field_ADR_POSTAL'],
 		'link_user' => $arr['field_LINK_USER_LOCAL'],
 		
-		'similar' => array()
+		'similar' => array(),
+		'notepad' => array(),
+		'attachments' => array()
 	);
 	foreach( $cfg_atr as $atr_record ) {
 		if( $atr_record['atr_type'] == 'account' ) {
 			$mkey = $atr_record['atr_field'] ;
 			$account_record[$mkey] = $arr['field_'.$mkey] ;
+		}
+	}
+	
+	if( TRUE ) {
+		$query = "SELECT * FROM view_file_ACC_NOTEPAD WHERE field_ACC_ID='{$p_accId}'" ;
+		$result = $_opDB->query($query) ;
+		$arr = $_opDB->fetch_assoc($result) ;
+		if( $arr ) {
+			$accnotepad_filerecord_id = $arr['filerecord_id'] ;
+			$account_record['notepad'][] = array(
+				'accnotepad_filerecord_id' => $accnotepad_filerecord_id,
+				'notepad_dateupdate' => $arr['field_NOTEPAD_DATEUPDATE'],
+				'notepad_txt' => $arr['field_NOTEPAD_TXT']
+			);
+		}
+		if( $accnotepad_filerecord_id ) {
+			$query = "SELECT * FROM view_file_ACC_NOTEPAD_BIN WHERE filerecord_parent_id='{$accnotepad_filerecord_id}'" ;
+			$result = $_opDB->query($query) ;
+			while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+				$account_record['attachments'][] = array(
+					'accbin_filerecord_id' => $arr['filerecord_id'],
+					'bin_desc' => $arr['field_BIN_DESC'],
+					'bin_filename' => $arr['field_BIN_FILENAME']
+				);
+			}
 		}
 	}
 	
@@ -637,6 +664,86 @@ function specRsiRecouveo_account_pushNotificationFileaction( $post_data ) {
 	$arr_ins['field_LINK_FILEACTION_ID'] = $p_fileactionFilerecordId ;
 	paracrm_lib_data_insertRecord_file( 'NOTIFICATION_FILEACTION', $notification_filerecord_id, $arr_ins );
 
+	return array('success'=>true) ;
+}
+
+
+
+
+function specRsiRecouveo_account_saveNotepad( $post_data ) {
+	sleep(1) ;
+	
+	$arr_ins = array() ;
+	$arr_ins['field_ACC_ID'] = $post_data['acc_id'] ;
+	$arr_ins['field_NOTEPAD_DATEUPDATE'] = date('Y-m-d H:i:s') ;
+	$arr_ins['field_NOTEPAD_TXT'] = $post_data['notepad_txt'] ;
+	$accnotepad_filerecord_id = paracrm_lib_data_insertRecord_file( 'ACC_NOTEPAD', 0, $arr_ins );
+	
+	return array('success'=>true) ;
+}
+function specRsiRecouveo_account_uploadAttachment( $post_data ) {
+	sleep(1) ;
+	
+	$_domain_id = DatabaseMgr_Base::dbCurrent_getDomainId() ;
+	$_sdomain_id = DatabaseMgr_Sdomain::dbCurrent_getSdomainId() ;
+	media_contextOpen( $_sdomain_id ) ;
+	
+	$src_path = $_FILES['bin_file']['tmp_name'] ;
+	$src_filename = $_FILES['bin_file']['name'] ;
+	$media_id = media_bin_processUploaded( $src_path ) ;
+	if( !$media_id ) {
+		media_contextClose() ;
+		return array('success'=>false) ;
+	}
+	
+	$arr_ins = array() ;
+	$arr_ins['field_ACC_ID'] = $post_data['acc_id'] ;
+	$accnotepad_filerecord_id = paracrm_lib_data_insertRecord_file( 'ACC_NOTEPAD', 0, $arr_ins );
+	
+	$arr_ins = array() ;
+	$arr_ins['field_BIN_DESC'] = $post_data['bin_desc'] ;
+	$arr_ins['field_BIN_FILENAME'] = $src_filename ;
+	$accbin_filerecord_id = paracrm_lib_data_insertRecord_file( 'ACC_NOTEPAD_BIN', $accnotepad_filerecord_id, $arr_ins );
+	
+	media_bin_move( $media_id,  media_pdf_toolFile_getId('ACC_NOTEPAD_BIN',$accbin_filerecord_id) ) ;
+
+	media_contextClose() ;
+	return array('success'=>true) ;
+}
+function specRsiRecouveo_account_downloadAttachment( $post_data ) {
+	$_domain_id = DatabaseMgr_Base::dbCurrent_getDomainId() ;
+	$_sdomain_id = DatabaseMgr_Sdomain::dbCurrent_getSdomainId() ;
+	
+	global $_opDB ;
+	$query = "SELECT field_BIN_FILENAME FROM view_file_ACC_NOTEPAD_BIN WHERE filerecord_id='{$post_data['accbin_filerecord_id']}'" ;
+	$filename = $_opDB->query_uniqueValue($query) ;
+	
+	
+	media_contextOpen( $_sdomain_id ) ;
+	$media_id = media_bin_toolFile_getId('ACC_NOTEPAD_BIN',$post_data['accbin_filerecord_id']) ;
+	$bin = media_bin_getBinary($media_id) ;
+	media_contextClose() ;
+	
+	header("Content-Type: {$desc['filetype']}; name=\"$filename\""); 
+	header("Content-Disposition: attachment; filename=\"$filename\""); 
+	echo $bin ;
+	//unlink($tmpfilename) ;
+	die() ;
+}
+function specRsiRecouveo_account_deleteAttachment( $post_data ) {
+	$_domain_id = DatabaseMgr_Base::dbCurrent_getDomainId() ;
+	$_sdomain_id = DatabaseMgr_Sdomain::dbCurrent_getSdomainId() ;
+	
+	global $_opDB ;
+	$query = "DELETE FROM view_file_ACC_NOTEPAD_BIN WHERE filerecord_id='{$post_data['accbin_filerecord_id']}'" ;
+	$_opDB->query($query) ;
+	
+	
+	media_contextOpen( $_sdomain_id ) ;
+	$media_id = media_bin_toolFile_getId('ACC_NOTEPAD_BIN',$post_data['accbin_filerecord_id']) ;
+	$bin = media_bin_delete($media_id) ;
+	media_contextClose() ;
+	
 	return array('success'=>true) ;
 }
 

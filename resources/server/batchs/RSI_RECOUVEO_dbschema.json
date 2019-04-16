@@ -1623,6 +1623,24 @@
     ],
     "define_file": [
         {
+            "file_code": "ACC_NOTEPAD",
+            "file_parent_code": "",
+            "file_iconfile": "ico_showref_listall.gif",
+            "file_lib": "Compte \/ Bloc-notes",
+            "file_type": "file_primarykey",
+            "file_specdata": "",
+            "gmap_is_on": "N"
+        },
+        {
+            "file_code": "ACC_NOTEPAD_BIN",
+            "file_parent_code": "ACC_NOTEPAD",
+            "file_iconfile": "ico_filechild_16.gif",
+            "file_lib": "Pi\u00e8ces jointes",
+            "file_type": "media_img",
+            "file_specdata": "",
+            "gmap_is_on": "N"
+        },
+        {
             "file_code": "ADRBOOK",
             "file_parent_code": "",
             "file_iconfile": "ico_showref_listall.gif",
@@ -1831,6 +1849,71 @@
         }
     ],
     "define_file_entry": [
+        {
+            "file_code": "ACC_NOTEPAD",
+            "entry_field_code": "ACC_ID",
+            "entry_field_index": "1",
+            "entry_field_lib": "ACC_ID",
+            "entry_field_type": "string",
+            "entry_field_linktype": "",
+            "entry_field_linkbible": "",
+            "entry_field_is_header": "O",
+            "entry_field_is_highlight": "O",
+            "entry_field_is_mandatory": "",
+            "entry_field_is_primarykey": "O"
+        },
+        {
+            "file_code": "ACC_NOTEPAD",
+            "entry_field_code": "NOTEPAD_DATEUPDATE",
+            "entry_field_index": "2",
+            "entry_field_lib": "Date update",
+            "entry_field_type": "date",
+            "entry_field_linktype": "",
+            "entry_field_linkbible": "",
+            "entry_field_is_header": "O",
+            "entry_field_is_highlight": "O",
+            "entry_field_is_mandatory": "",
+            "entry_field_is_primarykey": ""
+        },
+        {
+            "file_code": "ACC_NOTEPAD",
+            "entry_field_code": "NOTEPAD_TXT",
+            "entry_field_index": "3",
+            "entry_field_lib": "Texte",
+            "entry_field_type": "stringplus",
+            "entry_field_linktype": "",
+            "entry_field_linkbible": "",
+            "entry_field_is_header": "O",
+            "entry_field_is_highlight": "O",
+            "entry_field_is_mandatory": "",
+            "entry_field_is_primarykey": ""
+        },
+        {
+            "file_code": "ACC_NOTEPAD_BIN",
+            "entry_field_code": "BIN_DESC",
+            "entry_field_index": "1",
+            "entry_field_lib": "Description",
+            "entry_field_type": "string",
+            "entry_field_linktype": "",
+            "entry_field_linkbible": "",
+            "entry_field_is_header": "O",
+            "entry_field_is_highlight": "O",
+            "entry_field_is_mandatory": "",
+            "entry_field_is_primarykey": ""
+        },
+        {
+            "file_code": "ACC_NOTEPAD_BIN",
+            "entry_field_code": "BIN_FILENAME",
+            "entry_field_index": "2",
+            "entry_field_lib": "Filename",
+            "entry_field_type": "string",
+            "entry_field_linktype": "",
+            "entry_field_linkbible": "",
+            "entry_field_is_header": "O",
+            "entry_field_is_highlight": "O",
+            "entry_field_is_mandatory": "",
+            "entry_field_is_primarykey": ""
+        },
         {
             "file_code": "ADRBOOK",
             "entry_field_code": "ACC_ID",

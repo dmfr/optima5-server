@@ -515,7 +515,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 				},
 				border: false,
 				items: [{
-					flex: 1,
+					flex: 2,
 					scrollable: 'vertical',
 					xtype: 'form',
 					itemId: 'pHeaderForm',
@@ -528,287 +528,379 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 					},
 					items: formItems
 				},{
-					flex: 1,
-					itemId: 'pAdrbookTree',
-					xtype: 'treepanel',
-					tbar: [{
-						itemId: 'tbNew',
-						icon: 'images/modules/rsiveo-useradd-16.gif',
-						text: 'Ajouter contact',
-						handler: function() {
-							this.handleNewAdrbook();
-						},
-						scope: this
-					},'->',{
-						xtype: 'checkbox',
-						boxLabel: 'Afficher contacts invalides',
-						itemId: 'chkShowInvalid',
-						hideLabel: true,
-						margin: '0 10 0 10',
-						inputValue: 'true',
-						value: 'false',
-						listeners: {
-							change: function (cb, newValue, oldValue) {
-								this.applyAdrbookFilter();
+					xtype: 'splitter'
+				},{
+					flex: 3,
+					xtype: 'tabpanel',
+					items:[{
+						title: 'Contacts',
+						itemId: 'pAdrbookTree',
+						xtype: 'treepanel',
+						tbar: [{
+							itemId: 'tbNew',
+							icon: 'images/modules/rsiveo-useradd-16.gif',
+							text: 'Ajouter contact',
+							handler: function() {
+								this.handleNewAdrbook();
 							},
 							scope: this
-						}
-					}],
-					store: {
-						model: 'RsiRecouveoAdrbookTreeModel',
-						root: {children:[]},
-						filters: [{
-							property: 'filterHide',
-							value: 0
+						},'->',{
+							xtype: 'checkbox',
+							boxLabel: 'Afficher contacts invalides',
+							itemId: 'chkShowInvalid',
+							hideLabel: true,
+							margin: '0 10 0 10',
+							inputValue: 'true',
+							value: 'false',
+							listeners: {
+								change: function (cb, newValue, oldValue) {
+									this.applyAdrbookFilter();
+								},
+								scope: this
+							}
 						}],
-						proxy: {
-							type: 'memory' ,
-							reader: {
-								type: 'json'
-							}
-						}
-					},
-					displayField: 'nodeText',
-					rootVisible: false,
-					useArrows: true,
-					features: [{
-						ftype: 'rowbody',
-						getAdditionalData: function (data, idx, record, orig) {
-							if( record.get('adr_entity_group') ) {
-								return {
-									rowBody: '<div style="">' + Ext.util.Format.nl2br(record.get("adr_entity_obs")) + '</div>',
-									rowBodyCls: "op5-spec-rsiveo-actionstree-rowbody"
-								};
-							}
-							return {
-								rowBody: '<div style="">' + '' + '</div>',
-								rowBodyCls: ""
-							}
-						}
-					}],
-					hideHeaders: true,
-					columns: {
-						defaults: {
-							menuDisabled: true,
-							draggable: false,
-							sortable: false,
-							hideable: false,
-							resizable: false,
-							groupable: false,
-							lockable: false /*,
-							renderer: function(value, metaData, record, rowIndex, colIndex, store, view) {
-								var column = view.ownerCt.columns[colIndex] ;
-								if( column instanceof Ext.tree.Column ) {
-									metaData.tdAttr='style="width:300px;"' ;
-								} else {
-									metaData.tdAttr='style="width:0px; display:none ;"' ;
+						store: {
+							model: 'RsiRecouveoAdrbookTreeModel',
+							root: {children:[]},
+							filters: [{
+								property: 'filterHide',
+								value: 0
+							}],
+							proxy: {
+								type: 'memory' ,
+								reader: {
+									type: 'json'
 								}
-								return value ;
-							}*/
+							}
 						},
-						items: [{
-							hidden: true,
-							text: 'adrtel_filerecord_id',
-							dataIndex: 'adrtel_filerecord_id'
-						},{
-							xtype: 'treecolumn',
-							tdCls: 'op5-spec-rsiveo-adrbooktree-firstcol',
-							text: 'Coordonnées',
-							flex: 1,
-							dataIndex: 'adr_txt',
-							renderer: function(value, metaData, record) {
+						displayField: 'nodeText',
+						rootVisible: false,
+						useArrows: true,
+						features: [{
+							ftype: 'rowbody',
+							getAdditionalData: function (data, idx, record, orig) {
 								if( record.get('adr_entity_group') ) {
-									metaData.tdAttr='style="font-weight: bold;"' ;
-									value = record.get('adr_entity') ;
-									return value ;
+									return {
+										rowBody: '<div style="">' + Ext.util.Format.nl2br(record.get("adr_entity_obs")) + '</div>',
+										rowBodyCls: "op5-spec-rsiveo-actionstree-rowbody"
+									};
 								}
-								if( record.get('status_is_invalid') ) {
-									metaData.tdAttr='style="color: red; font-style: italic"' ;
+								return {
+									rowBody: '<div style="">' + '' + '</div>',
+									rowBodyCls: ""
 								}
-								return Ext.util.Format.nl2br( Ext.String.htmlEncode( value ) ) ;
 							}
-						},{
-							dataIndex: 'status_is_priority',
-							width: 32,
-							renderer: function(value, metaData, record) {
-								if( record.get('adr_entity_group') ) {
-									
+						}],
+						hideHeaders: true,
+						columns: {
+							defaults: {
+								menuDisabled: true,
+								draggable: false,
+								sortable: false,
+								hideable: false,
+								resizable: false,
+								groupable: false,
+								lockable: false /*,
+								renderer: function(value, metaData, record, rowIndex, colIndex, store, view) {
+									var column = view.ownerCt.columns[colIndex] ;
+									if( column instanceof Ext.tree.Column ) {
+										metaData.tdAttr='style="width:300px;"' ;
+									} else {
+										metaData.tdAttr='style="width:0px; display:none ;"' ;
+									}
+									return value ;
+								}*/
+							},
+							items: [{
+								hidden: true,
+								text: 'adrtel_filerecord_id',
+								dataIndex: 'adrtel_filerecord_id'
+							},{
+								xtype: 'treecolumn',
+								tdCls: 'op5-spec-rsiveo-adrbooktree-firstcol',
+								text: 'Coordonnées',
+								flex: 1,
+								dataIndex: 'adr_txt',
+								renderer: function(value, metaData, record) {
+									if( record.get('adr_entity_group') ) {
+										metaData.tdAttr='style="font-weight: bold;"' ;
+										value = record.get('adr_entity') ;
+										return value ;
+									}
+									if( record.get('status_is_invalid') ) {
+										metaData.tdAttr='style="color: red; font-style: italic"' ;
+									}
+									return Ext.util.Format.nl2br( Ext.String.htmlEncode( value ) ) ;
+								}
+							},{
+								dataIndex: 'status_is_priority',
+								width: 32,
+								renderer: function(value, metaData, record) {
+									if( record.get('adr_entity_group') ) {
+										
+										return ;
+									}
+									if( record.get('status_is_priority') ) {
+										metaData.tdCls += ' op5-spec-rsiveo-icon-priority-on' ;
+									} else if( record.get('status_is_invalid') || !record.get('status_is_confirm') ) {
+										// empty
+									} else {
+										metaData.tdCls += ' op5-spec-rsiveo-icon-priority-off' ;
+									}
 									return ;
 								}
-								if( record.get('status_is_priority') ) {
-									metaData.tdCls += ' op5-spec-rsiveo-icon-priority-on' ;
-								} else if( record.get('status_is_invalid') || !record.get('status_is_confirm') ) {
-									// empty
-								} else {
-									metaData.tdCls += ' op5-spec-rsiveo-icon-priority-off' ;
+							},{
+								align: 'center',
+								xtype: 'actioncolumn',
+								width: 90,
+								tdCls: 'op5-spec-rsiveo-actioncol-spacer',
+								disabledCls: 'x-item-invisible',
+								items: [{
+									iconCls: ' op5-spec-rsiveo-mail-postal-std',
+									tooltip: 'Courrier',
+									handler: function(grid, rowIndex, colIndex) {
+										var record = grid.getStore().getAt(rowIndex);
+										var formParams = {} ;
+										if( record.get('adr_entity_group') ) {
+											formParams['adrpost_entity'] = record.get('adr_entity') ;
+										} else {
+											formParams['adrpost_filerecord_id'] = record.get('adrbookentry_filerecord_id') ;
+										}
+										this.handleNewAction('MAIL_OUT',formParams) ;
+									},
+									scope: this,
+									disabledCls: 'x-item-invisible',
+									isDisabled: function(view,rowIndex,colIndex,item,record ) {
+										if( record.get('expanded') ) {
+											return true ;
+										}
+										if( record.get('status_is_invalid') ) {
+											return true ;
+										}
+										if( record.get('adr_entity_group') || record.get('adr_type')=='POSTAL' ) {
+											return false ;
+										}
+										return true ;
+									}
+								},{
+									iconCls: ' op5-spec-rsiveo-action-callout',
+									tooltip: 'Appel',
+									handler: function(grid, rowIndex, colIndex) {
+										var record = grid.getStore().getAt(rowIndex);
+										var formParams = {} ;
+										if( record.get('adr_entity_group') ) {
+											formParams['adrtel_entity'] = record.get('adr_entity') ;
+										} else {
+											formParams['adrtel_filerecord_id'] = record.get('adrbookentry_filerecord_id') ;
+										}
+										this.handleNewAction('CALL_OUT',formParams) ;
+									},
+									scope: this,
+									disabledCls: 'x-item-invisible',
+									isDisabled: function(view,rowIndex,colIndex,item,record ) {
+										if( record.get('expanded') ) {
+											return true ;
+										}
+										if( record.get('status_is_invalid') ) {
+											return true ;
+										}
+										if( record.get('adr_entity_group') || record.get('adr_type')=='TEL' ) {
+											return false ;
+										}
+										return true ;
+									}
+								},{
+									iconCls: ' op5-spec-rsiveo-mail-email',
+									tooltip: 'Email',
+									handler: function(grid, rowIndex, colIndex) {
+										var record = grid.getStore().getAt(rowIndex);
+										var formParams = {} ;
+										if( record.get('adr_entity_group') ) {
+											formParams['adrmail_entity'] = record.get('adr_entity') ;
+										} else {
+											formParams['adrmail_filerecord_id'] = record.get('adrbookentry_filerecord_id') ;
+										}
+										this.handleNewAction('MAIL_OUT',formParams) ;
+									},
+									scope: this,
+									disabledCls: 'x-item-invisible',
+									isDisabled: function(view,rowIndex,colIndex,item,record ) {
+										if( record.get('expanded') ) {
+											return true ;
+										}
+										if( record.get('status_is_invalid') ) {
+											return true ;
+										}
+										if( record.get('adr_entity_group') || record.get('adr_type')=='EMAIL' ) {
+											return false ;
+										}
+										return true ;
+									}
+								},{
+									iconCls: ' op5-spec-rsiveo-mail-sms',
+									tooltip: 'SMS',
+									handler: function(grid, rowIndex, colIndex) {
+										var record = grid.getStore().getAt(rowIndex);
+										var formParams = {} ;
+										if( record.get('adr_entity_group') ) {
+											formParams['adrtel_entity'] = record.get('adr_entity') ;
+										} else {
+											formParams['adrtel_filerecord_id'] = record.get('adrbookentry_filerecord_id') ;
+										}
+										this.handleNewAction('SMS_OUT',formParams) ;
+									},
+									scope: this,
+									disabledCls: 'x-item-invisible',
+									isDisabled: function(view,rowIndex,colIndex,item,record ) {
+										if( record.get('expanded') ) {
+											return true ;
+										}
+										if( record.get('status_is_invalid') ) {
+											return true ;
+										}
+										if( record.get('adr_entity_group') || record.get('adr_type')=='TEL' ) {
+											return false ;
+										}
+										return true ;
+									}
+								}]
+							},{
+								align: 'center',
+								xtype:'actioncolumn',
+								width:35,
+								disabledCls: 'x-item-invisible',
+								items: [{
+									icon: 'images/modules/rsiveo-edit-16.gif', 
+									tooltip: 'Modifier',
+									handler: function(grid, rowIndex, colIndex) {
+										var rec = grid.getStore().getAt(rowIndex);
+										this.handleEditAdrbook( rec.get('adr_entity') ) ;
+									},
+									scope: this,
+									isDisabled: function(view,rowIndex,colIndex,item,record ) {
+										if( record.get('adr_entity_group') ) {
+											return false ;
+										}
+										return true ;
+									}
+								}]
+							}]
+						},
+						listeners: {
+							afteritemexpand: function( treepanel ) {
+								this.down('#pAdrbookTree').getView().refresh() ;
+							},
+							itemclick: function( view, record, itemNode, index, e ) {
+								var cellNode = e.getTarget( view.getCellSelector() ),
+									cellColumn = view.getHeaderByCell( cellNode ) ;
+								switch( cellColumn.dataIndex ) {
+									case 'status_is_priority' :
+										if( !record.get('status_is_invalid') &&  record.get('status_is_confirm') && !record.get('status_is_priority') ) {
+											Ext.MessageBox.confirm('Contact','Définir contact par défaut ?',function(btn){
+												if( btn=='yes' ) {
+													this.handleAdrbookPriority(record.get('adr_type'),record.get('adrbookentry_filerecord_id'));
+												}
+											},this) ;
+										}
+										break ;
 								}
-								return ;
+							},
+							scope: this
+						},
+						viewConfig: {
+							getRowClass: function(record) {
+								if( record.getDepth() == 2 ) {
+									return 'op5-spec-rsiveo-adrbooktree-depth2' ;
+								}
+							}
+						}
+					},{
+						xtype: 'panel',
+						itemId: 'pNotepad',
+						title: 'Bloc-notes',
+						layout: 'fit',
+						bodyCls: 'ux-noframe-bg',
+						bodyPadding: 10,
+						items: [{
+							xtype: 'textareafield',
+							itemId: 'pNotepadTxt',
+							fieldCls: 'op5-spec-rsiveo-account-notepad',
+							readOnly: this._readonlyMode,
+							listeners: {
+								change: {
+									fn: function() {
+										this.accountNotepadSave() ;
+									},
+									buffer: 2000,
+									scope: this
+								}
+							}
+						}]
+					},{
+						xtype: 'grid',
+						title: 'Pièces',
+						width: 190,
+						itemId: 'pAttachments',
+						store: {
+							model: 'RsiRecouveoAccountAttachmentModel',
+							data: [],
+							proxy: {
+								type: 'memory',
+								reader: {
+									type: 'json'
+								}
+							}
+						},
+						tbar: [{
+							icon: 'images/modules/rsiveo-fetch-16.gif', 
+							text: 'Ajouter...',
+							handler: function() {
+								this.accountAttachPopup() ;
+							},
+							scope: this
+						}],
+						hideHeaders: true,
+						columns: [{
+							flex: 1,
+							text: 'Attachment',
+							dataIndex: 'accbin_filerecord_id',
+							renderer: function(v,metaData,r) {
+								if( true ) {
+									metaData.tdCls += ' op5-spec-rsiveo-account-attachement' ;
+								}
+								var txt = '' ;
+								txt += '<b>' + r.get('bin_filename') + '</b><br>' ;
+								txt += '&nbsp;&nbsp;' + r.get('bin_desc') + '<br>' ;
+								return txt ;
 							}
 						},{
 							align: 'center',
-							xtype: 'actioncolumn',
-							width: 90,
-							tdCls: 'op5-spec-rsiveo-actioncol-spacer',
-							disabledCls: 'x-item-invisible',
+							xtype:'actioncolumn',
+							width:30,
 							items: [{
-								iconCls: ' op5-spec-rsiveo-mail-postal-std',
-								tooltip: 'Courrier',
+								icon: 'images/modules/rsiveo-fetch-16.gif', 
+								tooltip: 'Télécharger',
 								handler: function(grid, rowIndex, colIndex) {
-									var record = grid.getStore().getAt(rowIndex);
-									var formParams = {} ;
-									if( record.get('adr_entity_group') ) {
-										formParams['adrpost_entity'] = record.get('adr_entity') ;
-									} else {
-										formParams['adrpost_filerecord_id'] = record.get('adrbookentry_filerecord_id') ;
-									}
-									this.handleNewAction('MAIL_OUT',formParams) ;
+									var rec = grid.getStore().getAt(rowIndex);
+									this.accountAttachDownload( rec.get('accbin_filerecord_id') ) ;
 								},
-								scope: this,
-								disabledCls: 'x-item-invisible',
-								isDisabled: function(view,rowIndex,colIndex,item,record ) {
-									if( record.get('expanded') ) {
-										return true ;
-									}
-									if( record.get('status_is_invalid') ) {
-										return true ;
-									}
-									if( record.get('adr_entity_group') || record.get('adr_type')=='POSTAL' ) {
-										return false ;
-									}
-									return true ;
-								}
-							},{
-								iconCls: ' op5-spec-rsiveo-action-callout',
-								tooltip: 'Appel',
-								handler: function(grid, rowIndex, colIndex) {
-									var record = grid.getStore().getAt(rowIndex);
-									var formParams = {} ;
-									if( record.get('adr_entity_group') ) {
-										formParams['adrtel_entity'] = record.get('adr_entity') ;
-									} else {
-										formParams['adrtel_filerecord_id'] = record.get('adrbookentry_filerecord_id') ;
-									}
-									this.handleNewAction('CALL_OUT',formParams) ;
-								},
-								scope: this,
-								disabledCls: 'x-item-invisible',
-								isDisabled: function(view,rowIndex,colIndex,item,record ) {
-									if( record.get('expanded') ) {
-										return true ;
-									}
-									if( record.get('status_is_invalid') ) {
-										return true ;
-									}
-									if( record.get('adr_entity_group') || record.get('adr_type')=='TEL' ) {
-										return false ;
-									}
-									return true ;
-								}
-							},{
-								iconCls: ' op5-spec-rsiveo-mail-email',
-								tooltip: 'Email',
-								handler: function(grid, rowIndex, colIndex) {
-									var record = grid.getStore().getAt(rowIndex);
-									var formParams = {} ;
-									if( record.get('adr_entity_group') ) {
-										formParams['adrmail_entity'] = record.get('adr_entity') ;
-									} else {
-										formParams['adrmail_filerecord_id'] = record.get('adrbookentry_filerecord_id') ;
-									}
-									this.handleNewAction('MAIL_OUT',formParams) ;
-								},
-								scope: this,
-								disabledCls: 'x-item-invisible',
-								isDisabled: function(view,rowIndex,colIndex,item,record ) {
-									if( record.get('expanded') ) {
-										return true ;
-									}
-									if( record.get('status_is_invalid') ) {
-										return true ;
-									}
-									if( record.get('adr_entity_group') || record.get('adr_type')=='EMAIL' ) {
-										return false ;
-									}
-									return true ;
-								}
-							},{
-								iconCls: ' op5-spec-rsiveo-mail-sms',
-								tooltip: 'SMS',
-								handler: function(grid, rowIndex, colIndex) {
-									var record = grid.getStore().getAt(rowIndex);
-									var formParams = {} ;
-									if( record.get('adr_entity_group') ) {
-										formParams['adrtel_entity'] = record.get('adr_entity') ;
-									} else {
-										formParams['adrtel_filerecord_id'] = record.get('adrbookentry_filerecord_id') ;
-									}
-									this.handleNewAction('SMS_OUT',formParams) ;
-								},
-								scope: this,
-								disabledCls: 'x-item-invisible',
-								isDisabled: function(view,rowIndex,colIndex,item,record ) {
-									if( record.get('expanded') ) {
-										return true ;
-									}
-									if( record.get('status_is_invalid') ) {
-										return true ;
-									}
-									if( record.get('adr_entity_group') || record.get('adr_type')=='TEL' ) {
-										return false ;
-									}
-									return true ;
-								}
+								scope: this
 							}]
 						},{
 							align: 'center',
 							xtype:'actioncolumn',
-							width:35,
-							disabledCls: 'x-item-invisible',
+							width:30,
 							items: [{
-								icon: 'images/modules/rsiveo-edit-16.gif', 
-								tooltip: 'Modifier',
+								icon: 'images/modules/rsiveo-close-16.png', 
+								tooltip: 'Supprimer',
 								handler: function(grid, rowIndex, colIndex) {
 									var rec = grid.getStore().getAt(rowIndex);
-									this.handleEditAdrbook( rec.get('adr_entity') ) ;
+									this.accountAttachDelete( rec.get('accbin_filerecord_id') ) ;
 								},
-								scope: this,
-								isDisabled: function(view,rowIndex,colIndex,item,record ) {
-									if( record.get('adr_entity_group') ) {
-										return false ;
-									}
-									return true ;
-								}
+								scope: this
 							}]
-						}]
-					},
-					listeners: {
-						afteritemexpand: function( treepanel ) {
-							this.down('#pAdrbookTree').getView().refresh() ;
-						},
-						itemclick: function( view, record, itemNode, index, e ) {
-							var cellNode = e.getTarget( view.getCellSelector() ),
-								cellColumn = view.getHeaderByCell( cellNode ) ;
-							switch( cellColumn.dataIndex ) {
-								case 'status_is_priority' :
-									if( !record.get('status_is_invalid') &&  record.get('status_is_confirm') && !record.get('status_is_priority') ) {
-										Ext.MessageBox.confirm('Contact','Définir contact par défaut ?',function(btn){
-											if( btn=='yes' ) {
-												this.handleAdrbookPriority(record.get('adr_type'),record.get('adrbookentry_filerecord_id'));
-											}
-										},this) ;
-									}
-									break ;
-							}
-						},
-						scope: this
-					},
-					viewConfig: {
-						getRowClass: function(record) {
-							if( record.getDepth() == 2 ) {
-								return 'op5-spec-rsiveo-adrbooktree-depth2' ;
-							}
-						}
-					}
+						}],
+					}]
 				}]
 			},{xtype: 'splitter', cls: 'op5-spec-rsiveo-splitter'},{
 				itemId: 'pRecordsPanel',
@@ -1193,9 +1285,21 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			});
 		}
 		
-		
+		//adrbook
 		this.onLoadAccountBuildAdrbookTree(accountRecord) ;
 		
+		//notepad
+		accountRecord.notepad().each( function(accnotepadRecord) {
+			this.down('#pNotepadTxt').setValue( accnotepadRecord.get('notepad_txt') ) ;
+			return false ;
+		},this) ;
+		
+		// attachments
+		var attachmentsData = [] ;
+		accountRecord.attachments().each( function(accbinRecord) {
+			attachmentsData.push( accbinRecord.getData() ) ;
+		}) ;
+		this.down('#pAttachments').getStore().loadData(attachmentsData) ;
 		
 		//btnSimilar
 		var btnSimilar = this.down('#pHeaderForm').down('#btnSimilar'),
@@ -2772,6 +2876,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		if( this.notificationsPanel ) {
 			this.notificationsPanel.destroy() ;
 		}
+		if( this.attachmentsUploadPanel ) {
+			this.attachmentsUploadPanel.destroy() ;
+		}
 		this.down('#pRecordsPanel').down('#windowsBar').items.each( function(btn) {
 			if( btn.win && !btn.win.isClosed ) {
 				btn.win.close() ;
@@ -3291,5 +3398,175 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 				showClosed: false
 			}) ;
 		},this) ;
+	},
+	
+	accountNotepadSave: function() {
+		var notepadTxt = this.down('#pNotepadTxt').getValue() ;
+		
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_rsi_recouveo',
+				_action: 'account_saveNotepad',
+				acc_id: this._accId,
+				notepad_txt: notepadTxt
+			},
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					return ;
+				}
+				return ;
+			},
+			callback: function() {
+			},
+			scope: this
+		}) ;
+	},
+	accountAttachPopup: function() {
+		var pAttachments = this.down('#pAttachments') ;
+		
+		this.getEl().mask() ;
+		// Open panel
+		var createPanel = Ext.create('Ext.form.Panel',{
+			itemId: 'pAttachmentsUpload',
+			_accId: this._accountRecord.get('acc_id'),
+			optimaModule: this.optimaModule,
+			width:400, // dummy initial size, for border layout to work
+			height:null, // ...
+			floating: true,
+			draggable: true,
+			resizable: true,
+			renderTo: this.getEl(),
+			tools: [{
+				type: 'close',
+				handler: function(e, t, p) {
+					p.ownerCt.destroy();
+				},
+				scope: this
+			}],
+			title: 'Charger une pièce',
+			cls: 'ux-noframe-bg',
+			bodyCls: 'ux-noframe-bg',
+			bodyPadding: '10px 10px',
+			frame: true,
+			layout: 'anchor',
+			fieldDefaults: {
+				labelAlign: 'left',
+				labelWidth: 100,
+				anchor: '100%'
+			},
+			items:[{
+				xtype: 'filefield',
+				width: 450,
+				emptyText: 'Select a file',
+				fieldLabel: 'Source',
+				name: 'bin_file',
+				buttonText: '',
+				allowBlank: false,
+				buttonConfig: {
+					iconCls: 'upload-icon'
+				}
+			},{
+				xtype: 'textfield',
+				name: 'bin_desc',
+				allowBlank: false,
+				fieldLabel: 'Description'
+			}],
+			buttons: [{
+				xtype: 'button',
+				text: 'OK',
+				handler: function( btn ) {
+					var thisForm = this.up('#pAttachmentsUpload') ;
+					thisForm.doUpload() ;
+				}
+			}],
+			doUpload: function() {
+				var uploadform = this ;
+				
+				var baseForm = uploadform.getForm() ;
+				if(baseForm.isValid()){
+					var ajaxParams = this.optimaModule.getConfiguredAjaxParams() ;
+					Ext.apply( ajaxParams, {
+						_moduleId: 'spec_rsi_recouveo',
+						_action: 'account_uploadAttachment',
+						acc_id: uploadform._accId
+					}) ;
+					
+					var msgbox = Ext.Msg.wait('Syncing...');
+					baseForm.submit({
+						timeout: (10 * 60 * 1000),
+						url: Optima5.Helper.getApplication().desktopGetBackendUrl(),
+						params: ajaxParams,
+						success : function(form,action){
+							msgbox.close() ;
+							this.fireEvent('uploaddone',this) ;
+						},
+						failure: function(fp, o) {
+							msgbox.close() ;
+							Ext.Msg.alert('Error','Error during upload') ;	
+						},
+						scope: uploadform
+					});
+				}
+			}
+		});
+		createPanel.on('uploaddone', function(p) {
+			p.destroy() ;
+			this.doReload() ;
+		},this,{single:true}) ;
+		createPanel.on('destroy',function(p) {
+			this.getEl().unmask() ;
+			this.attachmentsUploadPanel = null ;
+		},this,{single:true}) ;
+		
+		createPanel.show();
+		createPanel.getEl().alignTo(pAttachments.getEl(), 'c-c?');
+		this.attachmentsUploadPanel = createPanel ;
+	},
+	accountAttachDownload: function( accbinFilerecordId ) {
+		var fileID = this._accountRecord.get('acc_id');
+
+		var exportParams = this.optimaModule.getConfiguredAjaxParams() ;
+			Ext.apply(exportParams,{
+				_moduleId: 'spec_rsi_recouveo',
+				_action: 'account_downloadAttachment',
+				acc_id: this._accountRecord.get('acc_id'),
+				accbin_filerecord_id: accbinFilerecordId
+			}) ;
+		Ext.create('Ext.ux.dams.FileDownloader',{
+				renderTo: Ext.getBody(),
+				requestParams: exportParams,
+				requestAction: Optima5.Helper.getApplication().desktopGetBackendUrl(),
+				requestMethod: 'POST'
+			}) ;
+	},
+	accountAttachDelete: function( accbinFilerecordId, confirm=false ) {
+		if( !confirm ) {
+			Ext.MessageBox.confirm('Confirmation','Supprimer pièce jointe ?',function(btn){
+				if( btn=='yes' ) {
+					this.accountAttachDelete(accbinFilerecordId,true);
+				}
+			},this) ;
+			return ;
+		}
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_rsi_recouveo',
+				_action: 'account_deleteAttachment',
+				acc_id: this._accountRecord.get('acc_id'),
+				accbin_filerecord_id: accbinFilerecordId
+			},
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					return ;
+				}
+				this.doReload() ;
+				return ;
+			},
+			callback: function() {
+			},
+			scope: this
+		}) ;
 	}
 }) ; 
