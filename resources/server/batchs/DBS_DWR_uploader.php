@@ -4,7 +4,7 @@ $URL = "http://127.0.0.1/paracrm/server/report.xml.php" ;
 
 $PARAMS_BASE = array(
 'PHP_AUTH_USER' => 'uploader@dbs',
-'PHP_AUTH_PW'   => 'uploadtest',
+'PHP_AUTH_PW'   => 'Schenker2016',
 '_moduleId'     => 'crmbase',
 '_sdomainId'    => 'dwr',
 '_action'       => 'data_importDirect',
@@ -15,9 +15,12 @@ $PARAMS_BASE = array(
 ) ;
 
 $MAP_PREFIX_TO_TABLECODE = array(
-'ZCSSTOCK_DCD' => 'SLS_LX03_UPL',
+'ZCSSTOCK_DCD' => 'SLS_LX03_UPLAUTO',
 'SLS_ZCS_TRANSFER' => 'SLS_ZCS_TRANSFER_UPL',
-'SLS_ZDELIVERY_WH' => 'SLS_ZDELIVERY_WH_UPL'
+'SLS_ZDELIVERY_WH' => 'SLS_ZDELIVERY_WH_UPL',
+'SLS_VL06F_IN' => 'SLS_VL06IF_UPL',
+'SLS_MB51' => 'SLS_MB51_UPL',
+'SLS_PACK' => 'SLS_Z_PACK_REPORT_UPL'
 );
 
 
