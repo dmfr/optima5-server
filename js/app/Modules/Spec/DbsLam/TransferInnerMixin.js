@@ -3,7 +3,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferInnerMixin',{
 	_actionTransferStepIdx: null,
 	
 	initInner: function() {
-		
+		this.cleanSocColumns() ;
 	},
 	getActiveTransferRecord: function() {
 		return this._activeTransferRecord ;
@@ -166,6 +166,49 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferInnerMixin',{
 			return true ;
 		}
 		return false ;
+	},
+	
+	cleanSocColumns: function() {
+		var activeTransferRecord = this.getActiveTransferRecord() ;
+		if( !activeTransferRecord ) {
+			return ;
+		}
+		var socCode = (activeTransferRecord.get('soc_is_multi') ? null : activeTransferRecord.get('soc_code'));
+		if( Ext.isEmpty(socCode) ) {
+			return ;
+		}
+		
+		// hasBatch, hasDlc ....
+		var socData = Optima5.Modules.Spec.DbsLam.HelperCache.getSoc(socCode) ;
+		if( !socData ) {
+			return ;
+		}
+		console.dir(socData) ;
+		var hasBatch = socData.prodspec_is_batch,
+			hasDlc = socData.prodspec_is_dlc,
+			hasSn = socData.prodspec_is_sn ;
+		
+		// grid or tree ? headerCt
+		var myHeaderCt = this.down('headercontainer') ;
+		if( !myHeaderCt ) {
+			return ;
+		}
+		
+		var toRemomeColumns = [] ;
+		Ext.Array.each( myHeaderCt.getGridColumns(), function(col) {
+			if( col.dataIndex=='stk_batch' && !hasBatch ) {
+				toRemomeColumns.push(col) ;
+			}
+			if( col.dataIndex=='stk_datelc' && !hasDlc ) {
+				toRemomeColumns.push(col) ;
+			}
+			if( col.dataIndex=='stk_sn' && !hasSn ) {
+				toRemomeColumns.push(col) ;
+			}
+		}) ;
+		Ext.Array.each(toRemomeColumns, function(col) {
+			col.destroy() ;
+		});
 	},
 	
 	dummyFn: function() {

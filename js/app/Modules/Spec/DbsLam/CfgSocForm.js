@@ -59,6 +59,23 @@ Ext.define('Optima5.Modules.Spec.DbsLam.CfgSocForm',{
 						{ boxLabel: 'Same P/N', inputValue: 'PN'},
 						{ boxLabel: 'Same P/N + batch', inputValue: 'PN_BATCH' }
  					]
+				},{
+					xtype: 'fieldset',
+					cls: 'op5-spec-dbslam-fieldset',
+					title: 'P/N attributes',
+					items: [{
+						xtype: 'checkboxfield',
+						name: 'prodspec_is_batch',
+						boxLabel: 'Spec. Batch'
+					},{
+						xtype: 'checkboxfield',
+						name: 'prodspec_is_dlc',
+						boxLabel: 'Date expire / DLUO'
+					},{
+						xtype: 'checkboxfield',
+						name: 'prodspec_is_sn',
+						boxLabel: 'Serial number'
+					}]
 				}]
 			}]
 		}) ;
@@ -83,6 +100,9 @@ Ext.define('Optima5.Modules.Spec.DbsLam.CfgSocForm',{
 		var formValues = {
 			soc_code: !socRecord.phantom ? socRecord.get('soc_code') : '',
 			soc_txt: socRecord.get('soc_txt'),
+			prodspec_is_batch: socRecord.get('prodspec_is_batch'),
+			prodspec_is_dlc: socRecord.get('prodspec_is_dlc'),
+			prodspec_is_sn: socRecord.get('prodspec_is_sn'),
 			location_policy_ifexists: socRecord.get('location_policy_ifexists')
 		} ;
 		form.setValues(formValues) ;
@@ -112,6 +132,9 @@ Ext.define('Optima5.Modules.Spec.DbsLam.CfgSocForm',{
 		var recordData = {
 			soc_code: formValues.soc_code.replace(' ','').toUpperCase(),
 			soc_txt: formValues.soc_txt,
+			prodspec_is_batch: formValues.prodspec_is_batch,
+			prodspec_is_dlc: formValues.prodspec_is_dlc,
+			prodspec_is_sn: formValues.prodspec_is_sn,
 			location_policy_ifexists: formValues.location_policy_ifexists
 		} ;
 		this.socRecord.set(recordData) ;

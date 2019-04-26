@@ -90,6 +90,10 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferInnerCdePackingPanel',{
 					text: 'BatchCode',
 					width: 100
 				},{
+					dataIndex: 'stk_datelc',
+					text: 'DLUO',
+					width: 100
+				},{
 					dataIndex: 'mvt_qty',
 					text: 'Qty disp',
 					align: 'right',

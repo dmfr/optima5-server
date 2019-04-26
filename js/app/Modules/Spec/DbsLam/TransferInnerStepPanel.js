@@ -215,21 +215,35 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferInnerStepPanel',{
 				},{
 					dataIndex: 'stk_batch',
 					text: 'BatchCode',
-					width: 100
+					width: 100,
+					editorTplNew: {
+						xtype: 'textfield'
+					}
+				},{
+					dataIndex: 'stk_datelc',
+					text: 'DLUO',
+					width: 100,
+					editorTplNew: {
+						xtype: 'datefield',
+						format: 'Y-m-d'
+					}
 				},{
 					dataIndex: 'mvt_qty',
 					text: 'Qty disp',
 					align: 'right',
 					width: 75,
 					editorTplNew: {
-								xtype: 'numberfield',
-								allowBlank: false,
-								minValue: 1
+						xtype: 'numberfield',
+						allowBlank: false,
+						minValue: 1
 					}
 				},{
 					dataIndex: 'stk_sn',
 					text: 'Serial',
-					width: 100
+					width: 100,
+					editorTplNew: {
+						xtype: 'textfield'
+					}
 				}]
 			},{
 				text: '<b>Dest Location</b>',

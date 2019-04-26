@@ -100,6 +100,9 @@ Ext.define('DbsLamCfgSocModel',{
 	fields: [
 		{name: 'soc_code', type:'string', useNull:true},
 		{name: 'soc_txt', type:'string'},
+		{name: 'prodspec_is_batch', type:'boolean'},
+		{name: 'prodspec_is_dlc', type:'boolean'},
+		{name: 'prodspec_is_sn', type:'boolean'},
 		{name: 'location_policy_ifexists', type:'string'}
 	],
 	hasMany: [{
