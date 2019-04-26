@@ -331,7 +331,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 				},
 				viewConfig: {
 					//enableTextSelection: true,
-					//preserveScrollOnRefresh: true,
+					preserveScrollOnRefresh: true,
 					getRowClass: function(record) {
 						if( record.get('type')=='transfer' && ( record.get('status_is_on') || !record.get('status_is_ok') ) ) {
 							return 'op5-spec-dbslam-transfer-active' ;
