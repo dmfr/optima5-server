@@ -20,6 +20,8 @@ include("$server_root/modules/spec_dbs_lam/include/specDbsLam_transferInputPo.in
 
 include("$server_root/modules/spec_dbs_lam/include/specDbsLam_print.inc.php") ;
 
+include("$server_root/modules/spec_dbs_lam/include/specDbsLam_xls.inc.php") ;
+
 
 
 function specDbsLam_util_htmlToPdf( $post_data ) {

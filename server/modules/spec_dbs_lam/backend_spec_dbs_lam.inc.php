@@ -14,6 +14,9 @@ switch( $post_data['_action'] )
 	case 'cfg_applySoc' :
 	return specDbsLam_cfg_applySoc( $post_data ) ;
 
+	case 'xls_qsqlExec' :
+	return specDbsLam_xls_qsqlExec( $post_data ) ;
+
 	case 'stock_getGrid' :
 	return specDbsLam_stock_getGrid( $post_data ) ;
 	case 'stock_getStkMvts' :
