@@ -465,13 +465,27 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE, $stopAsHtm
 	};
 	usort($records,$usort) ;
 	
-	$map_columns = array(
-		'record_ref' => 'Réf.Pièce',
-		'record_txt' => 'Libellé',
-		'date_record' => 'Date.Pièce',
-		'date_value' => 'Date.Echéa.',
-		'amount_tot' => 'Montant'
-	);
+	switch( $_lang_code ) {
+		case 'FR' :
+			$map_columns = array(
+				'record_ref' => 'Réf.Pièce',
+				'record_txt' => 'Libellé',
+				'date_record' => 'Date.Pièce',
+				'date_value' => 'Date.Echéa.',
+				'amount_tot' => 'Montant (€ TTC)'
+			);
+			break ;
+		case 'EN' :
+		default :
+			$map_columns = array(
+				'record_ref' => 'Ref.Document',
+				'record_txt' => 'Desc',
+				'date_record' => 'Doc.Date',
+				'date_value' => 'Exp.Date',
+				'amount_tot' => 'Amount (€ VAT)'
+			);
+			break ;
+	}
 	if( $cfg_soc && $cfg_soc['soc_xe_currency'] ) {
 		$map_columns['xe_currency_amount'] = 'MntDevise' ;
 	}
