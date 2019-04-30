@@ -519,7 +519,7 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE, $stopAsHtm
 			}
 		}
 		
-		if( $record_row['is_pending'] ) {
+		if( !$p_recordsFilerecordIds && $record_row['is_pending'] ) {
 			foreach( $row_table as &$mvalue ) {
 				$mvalue = '<i>'.$mvalue.'</i>' ;
 			}
