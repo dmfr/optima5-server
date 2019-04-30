@@ -1176,6 +1176,7 @@ function specDbsLam_lib_TMS_UPS_doRequest( $rowExtended_transferCdePack ) {
 	$shipper['adr2'] = specDbsLam_lib_TMS_getValueStatic( 'WHSE_NOM' );
 	$shipper['cp'] = substr(specDbsLam_lib_TMS_getValueStatic( 'WHSE_VILLE' ),0,5) ;
 	$shipper['ville'] = substr(specDbsLam_lib_TMS_getValueStatic( 'WHSE_VILLE' ),6);
+	$shipper['tel'] = specDbsLam_lib_TMS_getValueStatic( 'WHSE_TEL' );
 	foreach( $shipper as &$str ) {
 		$str=iconv('UTF-8','ASCII//TRANSLIT',$str);
 	}
@@ -1221,6 +1222,9 @@ function specDbsLam_lib_TMS_UPS_doRequest( $rowExtended_transferCdePack ) {
 				"Shipper" => array(
 					"Name" => $shipper['nom'],
 					"ShipperNumber" => specDbsLam_lib_TMS_getValueStatic($key_upsAccount),
+                                        "Phone" => array(
+                                                "Number" => $shipper['tel']
+                                        ),
 					"Address" => array(
 						"AddressLine" => array($shipper['adr1'],$shipper['adr2']),
 						"City" => $shipper['ville'],
@@ -1299,6 +1303,11 @@ function specDbsLam_lib_TMS_UPS_doRequest( $rowExtended_transferCdePack ) {
 			)
 		)
 	);
+	//HACK
+	if( $json_request['ShipmentRequest']['Shipment']['ShipTo']['Address']['CountryCode']!='FR' ) {
+		$json_request['ShipmentRequest']['Shipment']['ShipTo']['AttentionName'] = $json_request['ShipmentRequest']['Shipment']['ShipTo']['Name'] ;
+		$json_request['ShipmentRequest']['Shipment']['Shipper']['AttentionName'] = $json_request['ShipmentRequest']['Shipment']['Shipper']['Name'] ;
+	}
 	
 	
 	
