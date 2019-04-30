@@ -83,7 +83,7 @@ function oscario_interface_do( $_OSCARIO_DOMAIN, $_OSCARIO_MAG, $_OPTIMA_SOC ) {
 		$arr_ins = array() ;
 		$arr_ins['field_PROD_ID'] = $entry_key ;
 		$arr_ins['field_PROD_TXT'] = $prod_lib ;
-		$arr_ins['field_PROD_GENCOD'] = $prod_gencod ;
+		//$arr_ins['field_PROD_GENCOD'] = $prod_gencod ;
 		$arr_ins['field_UC_QTY'] = $uc_qte ;
 		
 		$query = "SELECT count(*) FROM view_bible_PROD_entry WHERE entry_key='$entry_key'" ;
@@ -380,7 +380,7 @@ function oscario_interface_do( $_OSCARIO_DOMAIN, $_OSCARIO_MAG, $_OPTIMA_SOC ) {
 	
 	//echo "pouet\n" ;
 	$arr_cdeFilerecordIds = array() ;
-	$query = "SELECT filerecord_id FROM view_file_CDE WHERE field_STATUS='90' AND field_ATR_CDECLASS='HY'" ;
+	$query = "SELECT filerecord_id FROM view_file_CDE WHERE field_STATUS='90' AND field_ATR_CDECLASS<>'' AND field_ATR_CDECLASS NOT IN ('2MAN')" ;
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
 		$arr_cdeFilerecordIds[] = $arr[0] ;
@@ -433,6 +433,10 @@ function oscario_interface_do( $_OSCARIO_DOMAIN, $_OSCARIO_MAG, $_OPTIMA_SOC ) {
 				$lig = substr_mklig( $lig, $cdeligpack_row['pack_id_trspt_id'], 20, 30 ) ;
 				$lig = substr_mklig( $lig, $cdeligpack_row['pack_id_trspt_id'], 50, 30 ) ;
 				$lig = substr_mklig( $lig, int_to_strX($cdeligpack_row['mvt_qty']*100,10), 80, 10 ) ;
+				$lig = substr_mklig( $lig, '', 90, 10 ) ;
+				$lig = substr_mklig( $lig, $cdeligpack_row['pack_id_sscc'], 100, 50 ) ;
+				$lig = substr_mklig( $lig, $cdeligpack_row['pack_id_trspt_code'], 150, 50 ) ;
+				$lig = substr_mklig( $lig, $cdeligpack_row['pack_id_trspt_id'], 200, 50 ) ;
 				$lig.= "\r\n" ;
 				$buffer.= $lig ;
 			}
@@ -533,9 +537,9 @@ function oscario_interface_do( $_OSCARIO_DOMAIN, $_OSCARIO_MAG, $_OPTIMA_SOC ) {
 		$arr_ecde = array() ;
 		$arr_ecde['field_SOC_CODE'] = $_OPTIMA_SOC ;
 		$arr_ecde['field_CDE_NR'] = $noscde ;
-		$arr_ecde['field_STATUS'] = '10' ;
+		$arr_ecde['field_STATUS'] = '5' ;
 		$arr_ecde['field_TRSPT_CODE'] = $map_idata_ivalue['TRSPT_CODE'] ;
-		$arr_ecde['field_ATR_CDECLASS'] = $map_idata_ivalue['SERVICE_CODE'] ;
+		$arr_ecde['field_ATR_CDECLASS'] = $map_idata_ivalue['CDE_CLASS'] ;
 		$arr_ecde['field_ATR_CDE_D_EMAIL'] = $map_idata_ivalue['CONTACT_EMAIL'] ;
 		$arr_ecde['field_ATR_CDE_D_TEL'] = $map_idata_ivalue['CONTACT_GSM'] ;
 		$arr_ecde['field_CDE_REF'] = trim(substr($lig,22,20)) ;
