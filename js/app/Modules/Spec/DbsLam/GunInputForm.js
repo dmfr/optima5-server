@@ -62,6 +62,9 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunInputForm',{
 			return ;
 		}
 		formPanel.items.each(function(field) {
+			if( field.getXType()=='hiddenfield' ) {
+				return ;
+			}
 			if( field.getValue && (Ext.isEmpty(field.getValue())||field.getValue()==0) ) {
 				//console.dir(field) ;
 				field.reset() ;
@@ -132,7 +135,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunInputForm',{
 			return ;
 		}
 		if( !transferstepRow.pdaspec_is_on ) {
-			this.buildFormStandard( {} ) ;
+			this.buildFormStandard( null ) ;
 		} else {
 			var inputObj = Ext.JSON.decode(transferstepRow.pdaspec_input_json) ;
 			this.buildFormSpec(inputObj) ;
@@ -175,6 +178,9 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunInputForm',{
 					anchor: '100%'
 				},
 				items: [{
+					xtype: 'hiddenfield',
+					name: 'inputstack_level'
+				},{
 					xtype: 'combobox',
 					name: 'stk_prod',
 					fieldLabel: 'Product P/N',
@@ -263,6 +269,19 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunInputForm',{
 					fieldLabel: 'Container Ref',
 					anchor: '100%',
 				},{
+					xtype: 'textfield',
+					name: 'stk_batch',
+					fieldLabel: 'Batch',
+					anchor: '100%',
+					allowBlank:false,
+				},{
+					xtype: 'datefield',
+					format: 'Y-m-d',
+					name: 'stk_datelc',
+					fieldLabel: 'DLUO',
+					anchor: '100%',
+					allowBlank:false,
+				},{
 					xtype: 'numberfield',
 					name: 'mvt_qty',
 					fieldLabel: 'Pallet/Bulk Quantity',
@@ -305,6 +324,28 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunInputForm',{
 		};
 		this.addCenter(tpanel) ;
 		
+		if(true) {
+			var transferstepRow = this._transferstepRow ;
+			var tabPanel = this.down('#tpStandard') ;
+			tabPanel.items.each( function(formPanel) {
+				var form = formPanel.getForm() ;
+				
+				var formField ;
+				if( (formField=form.findField('inputstack_level')) && !transferstepRow.stacking_is_on ) {
+					formField.destroy() ;
+				}
+				if( (formField=form.findField('stk_batch')) && !transferstepRow.prodspec_is_batch ) {
+					formField.destroy() ;
+				}
+				if( (formField=form.findField('stk_datelc')) && !transferstepRow.prodspec_is_dlc ) {
+					formField.destroy() ;
+				}
+				if( (formField=form.findField('stk_sn')) && !transferstepRow.prodspec_is_sn ) {
+					formField.destroy() ;
+				}
+			}) ;
+		}
+		
 		if(arrFormValues) {
 			var tabPanel = this.down('#tpStandard') ;
 			var idx = 0 ;
@@ -322,19 +363,24 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunInputForm',{
 	handleSubmitFormStandard() {
 		var tabPanel = this.down('#tpStandard') ;
 		
+		var doAbort = false ;
 		tabPanel.items.each( function(formPanel) {
 			var form = formPanel.getForm() ;
 			if( !form.isValid() ) {
 				tabPanel.setActiveTab( formPanel ) ;
-				this.fieldfocusBegin() ;
-				return ;
+				doAbort = true ;
+				return false ;
 			}
 		}) ;
+		if( doAbort ) {
+			this.fieldfocusBegin() ;
+			return ;
+		}
 		
 		var stkData_arrObjs = [] ;
 		tabPanel.items.each( function(formPanel) {
 			var form = formPanel.getForm() ;
-			var formValues = form.getFieldValues() ;
+			var formValues = form.getValues() ;
 			stkData_arrObjs.push(formValues) ;
 		}) ;
 		this.buildFormSummary(stkData_arrObjs) ;
@@ -565,8 +611,16 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunInputForm',{
 						fieldLabel: 'P/N'
 					},{
 						xtype: 'displayfield',
+						name: 'stk_batch',
+						fieldLabel: 'Batch'
+					},{
+						xtype: 'displayfield',
+						name: 'stk_datelc',
+						fieldLabel: 'DLUO'
+					},{
+						xtype: 'displayfield',
 						name: 'mvt_qty',
-						fieldLabel: 'P/N'
+						fieldLabel: 'Qty'
 					}]
 				}]
 			});
@@ -612,6 +666,25 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunInputForm',{
 		} ;
 		
 		this.addCenter(tpanel) ;
+		
+		if(true) {
+			var transferstepRow = this._transferstepRow ;
+			var tabPanel = this.down('#tpSummary') ;
+			tabPanel.items.each( function(formPanel) {
+				var form = formPanel.getForm() ;
+				
+				var formField ;
+				if( (formField=form.findField('stk_batch')) && !transferstepRow.prodspec_is_batch ) {
+					formField.destroy() ;
+				}
+				if( (formField=form.findField('stk_datelc')) && !transferstepRow.prodspec_is_dlc ) {
+					formField.destroy() ;
+				}
+				if( (formField=form.findField('stk_sn')) && !transferstepRow.prodspec_is_sn ) {
+					formField.destroy() ;
+				}
+			}) ;
+		}
 		
 		if(true) {
 			var tabPanel = this.down('#tpSummary') ;
