@@ -234,6 +234,14 @@ function specDbsLam_lib_procMvt_delMvt($mvt_filerecordId) {
 function specDbsLam_lib_procMvt_setDstAdr($mvt_filerecordId, $adr_dest, $whse_work=NULL) {
 	global $_opDB ;
 	
+	if( is_array($mvt_filerecordId) ) {
+		$mvts_filerecordIds = $mvt_filerecordId ;
+		foreach($mvts_filerecordIds as $mvt_filerecordId) {
+			specDbsLam_lib_procMvt_setDstAdr($mvt_filerecordId, $adr_dest, $whse_work) ;
+		}
+		return ;
+	}
+	
 	// verifs mvt non commit
 	$query = "SELECT * FROM view_file_MVT
 		WHERE filerecord_id='{$mvt_filerecordId}' AND field_COMMIT_IS_OK='0'" ;
@@ -278,6 +286,21 @@ function specDbsLam_lib_procMvt_setDstAdr($mvt_filerecordId, $adr_dest, $whse_wo
 }
 function specDbsLam_lib_procMvt_commit($mvt_filerecordId) {
 	global $_opDB ;
+	
+	if( is_array($mvt_filerecordId) ) {
+		$done = false ;
+		if( count($mvt_filerecordId) > 0 ) {
+			$done = true ;
+		}
+		$mvts_filerecordIds = $mvt_filerecordId ;
+		foreach($mvts_filerecordIds as $mvt_filerecordId) {
+			$ret = specDbsLam_lib_procMvt_commit($mvt_filerecordId) ;
+			if( !$ret ) {
+				$done = false ;
+			}
+		}
+		return $done ;
+	}
 	
 	// verifs mvt non commit
 	$query = "SELECT * FROM view_file_MVT

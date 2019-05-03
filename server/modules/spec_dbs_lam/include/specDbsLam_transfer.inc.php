@@ -1814,6 +1814,15 @@ function specDbsLam_transfer_setAdr( $post_data ) {
 		}
 		
 		$mvt_filerecordId = $transferlig_row['mvt_filerecord_id'] ;
+		if( $transferstep_row['stacking_is_on'] && $transferlig_row['inputstack_ref'] ) {
+			$mvts_filerecordIds = array() ;
+			foreach( $transferstep_row['ligs'] as $transferlig_iter ) {
+				if( $transferlig_iter['inputstack_ref'] == $transferlig_row['inputstack_ref'] ) {
+					$mvts_filerecordIds[] = $transferlig_iter['mvt_filerecord_id'] ;
+				}
+			}
+			$mvt_filerecordId = $mvts_filerecordIds ;
+		}
 		/*
 		$query = "SELECT * FROM view_file_MVT WHERE filerecord_id='{$mvt_filerecordId}'" ;
 		$result = $_opDB->query($query) ;
@@ -1891,6 +1900,15 @@ function specDbsLam_transfer_setCommit( $post_data ) {
 		}
 		
 		$mvt_filerecordId = $transferlig_row['mvt_filerecord_id'] ;
+		if( $transferstep_row['stacking_is_on'] && $transferlig_row['inputstack_ref'] ) {
+			$mvts_filerecordIds = array() ;
+			foreach( $transferstep_row['ligs'] as $transferlig_iter ) {
+				if( $transferlig_iter['inputstack_ref'] == $transferlig_row['inputstack_ref'] ) {
+					$mvts_filerecordIds[] = $transferlig_iter['mvt_filerecord_id'] ;
+				}
+			}
+			$mvt_filerecordId = $mvts_filerecordIds ;
+		}
 		/*
 		$query = "SELECT * FROM view_file_MVT WHERE filerecord_id='{$mvt_filerecordId}'" ;
 		$result = $_opDB->query($query) ;
