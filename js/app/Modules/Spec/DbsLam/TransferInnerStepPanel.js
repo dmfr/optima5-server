@@ -133,7 +133,12 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferInnerStepPanel',{
 				},{
 					dataIndex: 'inputstack_level',
 					text: 'Level',
-					width: 75
+					width: 75,
+					renderer: function(v) {
+						if( v>0 ) {
+							return v ;
+						}
+					}
 				}]
 			},{
 				text: '<b>Container</b>',
