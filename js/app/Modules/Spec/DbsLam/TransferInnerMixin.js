@@ -183,7 +183,6 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferInnerMixin',{
 		if( !socData ) {
 			return ;
 		}
-		console.dir(socData) ;
 		var hasBatch = socData.prodspec_is_batch,
 			hasDlc = socData.prodspec_is_dlc,
 			hasSn = socData.prodspec_is_sn ;
