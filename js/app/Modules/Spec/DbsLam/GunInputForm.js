@@ -49,8 +49,15 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunInputForm',{
 				//Ext.Msg.alert('Other Key Pressed!', key );
 		}
 	},
+	getActiveForm: function() {
+		if( this.down('tabpanel') ) {
+			return this.down('tabpanel').getActiveTab() ;
+		} else {
+			return this.down('form') ;
+		}
+	},
 	fieldfocusBegin: function() {
-		var formPanel = this.down('form') ;
+		var formPanel = this.getActiveForm() ;
 		if( !formPanel ) {
 			return ;
 		}
@@ -65,7 +72,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunInputForm',{
 		
 	},
 	fieldfocusNext: function(field) {
-		var formPanel = this.down('form') ;
+		var formPanel = this.getActiveForm() ;
 		if( !formPanel ) {
 			return ;
 		}
@@ -148,128 +155,142 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunInputForm',{
 		this.add(pnl) ;
 	},
 	
-	buildFormStandard: function(formValues) {
-		var form = {
-			itemId: 'fpStandard',
-			xtype: 'form',
-			bodyCls: 'ux-noframe-bg',
-			bodyPadding: 10,
-			border: false,
-			layout: 'anchor',
-			fieldDefaults: {
-				labelAlign: 'top',
-				labelWidth: 100,
-				anchor: '100%'
-			},
-			items: [{
-				xtype: 'combobox',
-				name: 'stk_prod',
-				fieldLabel: 'Product P/N',
-				forceSelection:true,
-				allowBlank:false,
-				editable:true,
-				typeAhead:false,
-				selectOnFocus: false,
-				selectOnTab: true,
-				queryMode: 'remote',
-				displayField: 'id',
-				valueField: 'id',
-				queryParam: 'filter',
-				minChars: 2,
-				fieldStyle: 'text-transform:uppercase',
-				store: {
-					autoLoad: true,
-					fields: ['id','target_containertype'],
-					proxy: this.optimaModule.getConfiguredAjaxProxy({
-						extraParams : {
-							_moduleId: 'spec_dbs_lam',
-							_action: 'transferInput_getProdIds'
-						},
-						reader: {
-							type: 'json',
-							rootProperty: 'data'
-						}
-					}),
-					listeners: {
-						beforeload: function(store,options) {
-							var transferstepRow = this._transferstepRow ;
-							
-							var params = options.getParams() ;
-							Ext.apply(params,{
-								transfer_filerecordId: transferstepRow.transfer_filerecord_id,
-								transferStep_filerecordId: transferstepRow.transferstep_filerecord_id,
-							}) ;
-							options.setParams(params) ;
-						},
-						scope: this
-					}
+	buildFormStandard: function(arrFormValues) {
+		var cnt = 1 ;
+		if( arrFormValues ) {
+			cnt = arrFormValues.length ;
+		}
+		
+		var forms = [] ;
+		for( var i=0 ; i<cnt ; i++ ) {
+			forms.push({
+				xtype: 'form',
+				bodyCls: 'ux-noframe-bg',
+				bodyPadding: 10,
+				border: false,
+				layout: 'anchor',
+				fieldDefaults: {
+					labelAlign: 'top',
+					labelWidth: 100,
+					anchor: '100%'
 				},
-				listeners: {
-					select: function(cmb,selRecord) {
-						if( selRecord && !Ext.isEmpty(selRecord.get('target_containertype')) ) {
-							var targetContainerType = selRecord.get('target_containertype') ;
-							var fieldContainerType = this.down('#fpStandard').getForm().findField('container_type') ;
-							if( fieldContainerType ) {
-								fieldContainerType.setValue(targetContainerType) ;
+				items: [{
+					xtype: 'combobox',
+					name: 'stk_prod',
+					fieldLabel: 'Product P/N',
+					forceSelection:true,
+					allowBlank:false,
+					editable:true,
+					typeAhead:false,
+					selectOnFocus: false,
+					selectOnTab: true,
+					queryMode: 'remote',
+					displayField: 'id',
+					valueField: 'id',
+					queryParam: 'filter',
+					minChars: 2,
+					fieldStyle: 'text-transform:uppercase',
+					store: {
+						autoLoad: true,
+						fields: ['id','target_containertype'],
+						proxy: this.optimaModule.getConfiguredAjaxProxy({
+							extraParams : {
+								_moduleId: 'spec_dbs_lam',
+								_action: 'transferInput_getProdIds'
+							},
+							reader: {
+								type: 'json',
+								rootProperty: 'data'
 							}
+						}),
+						listeners: {
+							beforeload: function(store,options) {
+								var transferstepRow = this._transferstepRow ;
+								
+								var params = options.getParams() ;
+								Ext.apply(params,{
+									transfer_filerecordId: transferstepRow.transfer_filerecord_id,
+									transferStep_filerecordId: transferstepRow.transferstep_filerecord_id,
+								}) ;
+								options.setParams(params) ;
+							},
+							scope: this
 						}
 					},
-					scope: this
-				}
-			},{
-				xtype: 'combobox',
-				name: 'container_type',
-				fieldLabel: 'Container type',
-				anchor: '100%',
-				forceSelection:true,
-				allowBlank:false,
-				editable:false,
-				queryMode: 'local',
-				displayField: 'container_type_txt',
-				valueField: 'container_type',
-				fieldStyle: 'text-transform:uppercase',
-				store: {
-					model: 'DbsLamCfgContainerTypeModel',
-					data: Ext.Array.merge([{
-						container_type:'',
-						container_type_txt: '- Aucun -'
-					}],Optima5.Modules.Spec.DbsLam.HelperCache.getContainerTypeAll()),
-					proxy: {
-						type: 'memory'
+					listeners: {
+						select: function(cmb,selRecord) {
+							if( selRecord && !Ext.isEmpty(selRecord.get('target_containertype')) ) {
+								var targetContainerType = selRecord.get('target_containertype') ;
+								var fieldContainerType = cmb.up('form').getForm().findField('container_type') ;
+								if( fieldContainerType ) {
+									fieldContainerType.setValue(targetContainerType) ;
+								}
+							}
+						},
+						scope: this
+					}
+				},{
+					xtype: 'combobox',
+					name: 'container_type',
+					fieldLabel: 'Container type',
+					anchor: '100%',
+					forceSelection:true,
+					allowBlank:false,
+					editable:false,
+					queryMode: 'local',
+					displayField: 'container_type_txt',
+					valueField: 'container_type',
+					fieldStyle: 'text-transform:uppercase',
+					store: {
+						model: 'DbsLamCfgContainerTypeModel',
+						data: Ext.Array.merge([{
+							container_type:'',
+							container_type_txt: '- Aucun -'
+						}],Optima5.Modules.Spec.DbsLam.HelperCache.getContainerTypeAll()),
+						proxy: {
+							type: 'memory'
+						},
+						listeners: {
+							scope: this
+						}
 					},
 					listeners: {
 						scope: this
 					}
-				},
-				listeners: {
-					scope: this
-				}
-			},{
-				xtype: 'textfield',
-				name: 'container_ref',
-				fieldLabel: 'Container Ref',
-				anchor: '100%',
-			},{
-				xtype: 'numberfield',
-				name: 'mvt_qty',
-				fieldLabel: 'Pallet/Bulk Quantity',
-				allowNegative: false,
-				allowBlank: false,
-				minValue: 1,
-				allowDecimals: false,
-				anchor: '',
-				width: 120
-			},{
-				_fieldFocusSkip: true,
-				xtype: 'box',
-				height: 16
-			},{
-				xtype: 'container',
-				itemId: 'fsSubmit',
-				layout: {
-					type: 'hbox',
-					pack: 'center'
-				},
+				},{
+					xtype: 'textfield',
+					name: 'container_ref',
+					fieldLabel: 'Container Ref',
+					anchor: '100%',
+				},{
+					xtype: 'numberfield',
+					name: 'mvt_qty',
+					fieldLabel: 'Pallet/Bulk Quantity',
+					allowNegative: false,
+					allowBlank: false,
+					minValue: 1,
+					allowDecimals: false,
+					anchor: '',
+					width: 120
+				}]
+			});
+		}
+		
+		var c = 0 ;
+		Ext.Array.each(forms, function(form) {
+			c++ ;
+			Ext.apply(form,{
+				title: 'Obj-'+c
+			});
+		}) ;
+		
+		var tpanel = {
+			xtype: 'tabpanel',
+			itemId: 'tpStandard',
+			items: forms,
+			dockedItems: [{
+				xtype: 'toolbar',
+				dock: 'bottom',
 				items: [{
 					xtype: 'button',
 					scale: 'large',
@@ -282,27 +303,41 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunInputForm',{
 				}]
 			}]
 		};
+		this.addCenter(tpanel) ;
 		
-		this.addCenter(form) ;
-		if(formValues) {
-			var formPanel = this.down('#fpStandard'),
-				form = formPanel.getForm() ;
-			form.setValues(formValues) ;
+		if(arrFormValues) {
+			var tabPanel = this.down('#tpStandard') ;
+			var idx = 0 ;
+			tabPanel.items.each( function(formPanel) {
+				var form = formPanel.getForm() ;
+				form.setValues(arrFormValues[idx]) ;
+				
+				idx++ ;
+			}) ;
 		}
 		//console.dir('std form') ;
+		this.down('#tpStandard').setActiveTab(0) ;
 		this.fieldfocusBegin() ;
 	},
 	handleSubmitFormStandard() {
-		var formPanel = this.down('#fpStandard'),
-			form = formPanel.getForm() ;
-		if( !form.isValid() ) {
-			this.fieldfocusBegin() ;
-			return ;
-		}
-		var formValues = form.getFieldValues() ;
+		var tabPanel = this.down('#tpStandard') ;
 		
-		var stkData_obj = formValues ;
-		this.buildFormSummary(stkData_obj) ;
+		tabPanel.items.each( function(formPanel) {
+			var form = formPanel.getForm() ;
+			if( !form.isValid() ) {
+				tabPanel.setActiveTab( formPanel ) ;
+				this.fieldfocusBegin() ;
+				return ;
+			}
+		}) ;
+		
+		var stkData_arrObjs = [] ;
+		tabPanel.items.each( function(formPanel) {
+			var form = formPanel.getForm() ;
+			var formValues = form.getFieldValues() ;
+			stkData_arrObjs.push(formValues) ;
+		}) ;
+		this.buildFormSummary(stkData_arrObjs) ;
 	},
 	
 	
@@ -397,12 +432,11 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunInputForm',{
 		}) ;
 	},
 	doForwardSpecResult: function(objs) {
-		if( objs.length != 1 ) {
+		if( objs.length < 1 ) {
 			Ext.MessageBox.alert('Error / NA','Unexpected SQL return',function(){this.handleReset();},this) ;
 			return ;
 		}
-		var mvtObj = objs[0] ;
-		this.buildFormStandard(mvtObj) ;
+		this.buildFormStandard(objs) ;
 	},
 	
 	
@@ -499,47 +533,60 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunInputForm',{
 	},
 	
 	
-	buildFormSummary: function(stkData_obj) {
-		var form = {
-			_stkData_obj: stkData_obj,
-			itemId: 'fpSummary',
-			xtype: 'form',
-			bodyCls: 'ux-noframe-bg',
-			bodyPadding: 10,
-			border: false,
-			layout: 'anchor',
-			fieldDefaults: {
-				labelAlign: 'left',
-				labelWidth: 100,
-				anchor: '100%'
-			},
-			items: [{
-				xtype: 'fieldset',
-				title: 'Summary',
-				items: [{
-					xtype: 'displayfield',
-					name: 'container_type',
-					fieldLabel: 'Container Ref'
-				},{
-					xtype: 'displayfield',
-					name: 'container_ref',
-					fieldLabel: 'Container Type'
-				},{
-					xtype: 'displayfield',
-					name: 'stk_prod',
-					fieldLabel: 'P/N'
-				},{
-					xtype: 'displayfield',
-					name: 'mvt_qty',
-					fieldLabel: 'P/N'
-				}]
-			},{
-				xtype: 'container',
-				itemId: 'fsSubmit',
-				layout: {
-					type: 'hbox',
-					pack: 'center'
+	buildFormSummary: function(stkData_arrObjs) {
+		var forms = [] ;
+		Ext.Array.each( stkData_arrObjs, function(stkData_obj) {
+			forms.push({
+				_stkData_obj: stkData_obj,
+				xtype: 'form',
+				bodyCls: 'ux-noframe-bg',
+				bodyPadding: 10,
+				border: false,
+				layout: 'anchor',
+				fieldDefaults: {
+					labelAlign: 'left',
+					labelWidth: 100,
+					anchor: '100%'
 				},
+				items: [{
+					xtype: 'fieldset',
+					title: 'Summary',
+					items: [{
+						xtype: 'displayfield',
+						name: 'container_type',
+						fieldLabel: 'Container Ref'
+					},{
+						xtype: 'displayfield',
+						name: 'container_ref',
+						fieldLabel: 'Container Type'
+					},{
+						xtype: 'displayfield',
+						name: 'stk_prod',
+						fieldLabel: 'P/N'
+					},{
+						xtype: 'displayfield',
+						name: 'mvt_qty',
+						fieldLabel: 'P/N'
+					}]
+				}]
+			});
+		}) ;
+		
+		var c = 0 ;
+		Ext.Array.each(forms, function(form) {
+			c++ ;
+			Ext.apply(form,{
+				title: 'Obj-'+c
+			});
+		}) ;
+		
+		var tpanel = {
+			xtype: 'tabpanel',
+			itemId: 'tpSummary',
+			items: forms,
+			dockedItems: [{
+				xtype: 'toolbar',
+				dock: 'bottom',
 				items: [{
 					margin: '0px 10px',
 					xtype: 'button',
@@ -562,22 +609,29 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunInputForm',{
 					scope: this
 				}]
 			}]
-		};
+		} ;
 		
-		this.addCenter(form) ;
+		this.addCenter(tpanel) ;
 		
 		if(true) {
-			var formPanel = this.down('#fpSummary'),
-				form = formPanel.getForm() ;
-			form.setValues(formPanel._stkData_obj) ;
+			var tabPanel = this.down('#tpSummary') ;
+			tabPanel.items.each( function(formPanel) {
+				var form = formPanel.getForm() ;
+				form.setValues(formPanel._stkData_obj) ;
+			}) ;
 		}
+		this.down('#tpSummary').setActiveTab(0) ;
 	},
 	handleSubmitFormSummary: function(torf) {
-		var formPanel = this.down('#fpSummary') ;
-			stkData_obj = formPanel._stkData_obj ;
+		var tabPanel = this.down('#tpSummary') ;
+		
+		var stkData_arrObjs = [] ;
+		tabPanel.items.each( function(formPanel) {
+			stkData_arrObjs.push( formPanel._stkData_obj );
+		}) ;
 		if( !torf ) {
 			// cancel
-			return this.buildFormStandard(stkData_obj) ;
+			return this.buildFormStandard(stkData_arrObjs) ;
 		}
 		
 		var transferstepRow = this._transferstepRow ;
@@ -589,7 +643,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunInputForm',{
 				_action: 'transferInput_submit',
 				transfer_filerecordId: transferstepRow.transfer_filerecord_id,
 				transferStep_filerecordId: transferstepRow.transferstep_filerecord_id,
-				stkData_obj: Ext.JSON.encode(stkData_obj)
+				stkData_arrObjs: Ext.JSON.encode(stkData_arrObjs)
 			},
 			success: function(response) {
 				var ajaxResponse = Ext.decode(response.responseText) ;
@@ -609,133 +663,6 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunInputForm',{
 			},
 			scope: this
 		}) ;
-	},
-	onSubmitResult: function() {
-		
-	},
-	
-	
-	getCurValidationStep: function() {
-		var val = this.getForm().findField('ask_currentStep').getValue() ;
-		if( Ext.isEmpty(val) ) {
-			return null ;
-		}
-		return val ;
-	},
-	getNextValidationStep: function( validStep ) {
-		var steps = ['prod','qty'],
-			stepIdx = Ext.Array.indexOf(steps,validStep) ;
-		if( !validStep || stepIdx<0 ) {
-			return steps[0] ;
-		}
-		if( stepIdx + 1 >= steps.length ) {
-			return null ;
-		}
-		return steps[stepIdx+1] ;
-	},
-	startValidation: function() {
-		this.setValidationStep(this.getNextValidationStep(null)) ;
-	},
-	setValidationStep: function( validStep ) {
-		// hide All
-		this.getForm().findField('ask_prod').setVisible(false) ;
-		this.getForm().findField('ask_qty').setVisible(false) ;
-		this.getForm().findField('display_error').setVisible(false) ;
-		this.down('#fsScanner').setVisible(false) ;
-		this.down('#fsQty').setVisible(false) ;
-		
-		switch( validStep ) {
-			case 'prod' :
-				this.getForm().findField('ask_prod').setVisible(true) ;
-				this.down('#txtScan').reset(true) ;
-				this.down('#fsScanner').setVisible(true) ;
-				this.down('#txtScan').focus() ;
-				break ;
-			case 'qty' :
-				this.getForm().findField('ask_qty').setVisible(true) ;
-				this.down('#txtQty').reset(true) ;
-				this.down('#fsQty').setVisible(true) ;
-				this.down('#txtQty').focus() ;
-				break ;
-			default :
-				return ;
-		}
-		this.getForm().findField('ask_currentStep').setValue(validStep) ;
-	},
-	handleSubmit: function() {
-		var transferligRecord = this._transferligRecord ;
-		var txtError = null ;
-		switch( this.getCurValidationStep() ) {
-			case 'prod' :
-				var value = this.down('#txtScan').getValue() ;
-				value = value.trim().toUpperCase() ;
-				if( transferligRecord.get('stk_prod')==value ) {
-					break ;
-				}
-				txtError = 'Invalid P/N' ;
-				break ;
-			case 'qty' :
-				var value = this.down('#txtQty').getValue() ;
-				value = parseFloat(value) ;
-				if( transferligRecord.get('mvt_qty')==value ) {
-					break ;
-				}
-				txtError = 'Invalid quantity' ;
-				break ;
-			default :
-				txtError = 'Error ?' ;
-				break ;
-		}
-		if( !txtError ) {
-			// next
-			// - if null => on Success
-			// - else => setNext
-			var nextValidationStep = this.getNextValidationStep( this.getCurValidationStep() ) ;
-			if( !nextValidationStep ) {
-				this.setValidationStep( null ) ;
-				this.handleEnd() ;
-			} else {
-				this.setValidationStep(nextValidationStep) ;
-			}
-			return ;
-		}
-		
-		// showError + delay setStep(same)
-		this.setValidationStep(null) ;
-		this.getForm().findField('display_error').setValue(txtError);
-		this.getForm().findField('display_error').setVisible(true);
-		Ext.defer( function() {
-			this.setValidationStep(this.getCurValidationStep()) ;
-		},3000,this) ;
-	},
-	
-	
-	
-	handleEnd: function() {
-		var transferligRecord = this._transferligRecord ;
-		
-		this.showLoadmask() ;
-		this.optimaModule.getConfiguredAjaxConnection().request({
-			params: {
-				_moduleId: 'spec_dbs_lam',
-				_action: 'transfer_setCommit',
-				transfer_filerecordId: transferligRecord.get('transfer_filerecord_id'),
-				transferStep_filerecordId: transferligRecord.get('transferstep_filerecord_id'),
-				transferLig_filerecordIds: Ext.JSON.encode([transferligRecord.get('transferlig_filerecord_id')]),
-			},
-			success: function(response) {
-				var jsonResponse = Ext.JSON.decode(response.responseText) ;
-				this.onSuccess() ;
-			},
-			scope: this
-		}) ;
-	},
-	onSuccess: function() {
-		this.down('#fsScanner').setVisible(false);
-		this.down('#fsSuccess').setVisible(true);
-		Ext.defer( function() {
-			this.fireEvent('quit') ;
-		},1000,this) ;
 	},
 	
 	

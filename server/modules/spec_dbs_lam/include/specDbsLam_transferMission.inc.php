@@ -386,81 +386,86 @@ function specDbsLam_transferInput_submit($post_data) {
 	
 	$p_transferFilerecordId = $post_data['transfer_filerecordId'] ;
 	$p_transferStepFilerecordId = $post_data['transferStep_filerecordId'] ;
-	$p_stkDataObj = json_decode($post_data['stkData_obj'],true) ;
+	$p_stkData_arrObjs = json_decode($post_data['stkData_arrObjs'],true) ;
 	
-	// TODO : retrieve SOC
-	if( $p_stkDataObj['stk_prod'] ) {
-		$json = specDbsLam_prods_getGrid( array('entry_key'=>$p_stkDataObj['stk_prod']) ) ;
-		$row_prod = $json['data'][0] ;
+	foreach( $p_stkData_arrObjs as $p_stkDataObj ) {
 		
-		$p_stkDataObj['soc_code'] = $row_prod['prod_soc'] ;
-		$p_stkDataObj['stk_prod'] = $row_prod['id'] ;
-	}
-	
-	// TODO : retrieve WHSE+DEST
-	if( TRUE ) {
-		$formard_post = array(
-			'filter_transferFilerecordId' => $p_transferFilerecordId,
-			'filter_fast' => true
-		) ;
-		$json = specDbsLam_transfer_getTransfer($formard_post) ;
-		$transfer_row = reset($json['data']) ;
-		$transferstep_row = NULL ;
-		if( !$transfer_row ) {
-			return array('success'=>false) ;
+		// TODO : retrieve SOC
+		if( $p_stkDataObj['stk_prod'] ) {
+			$json = specDbsLam_prods_getGrid( array('entry_key'=>$p_stkDataObj['stk_prod']) ) ;
+			$row_prod = $json['data'][0] ;
+			
+			$p_stkDataObj['soc_code'] = $row_prod['prod_soc'] ;
+			$p_stkDataObj['stk_prod'] = $row_prod['id'] ;
 		}
-		foreach( $transfer_row['steps'] as $transferstep_iter ) {
-			if( $transferstep_iter['transferstep_filerecord_id'] == $p_transferStepFilerecordId ) {
-				$transferstep_row = $transferstep_iter ;
+		
+		// TODO : retrieve WHSE+DEST
+		if( TRUE ) {
+			$formard_post = array(
+				'filter_transferFilerecordId' => $p_transferFilerecordId,
+				'filter_fast' => true
+			) ;
+			$json = specDbsLam_transfer_getTransfer($formard_post) ;
+			$transfer_row = reset($json['data']) ;
+			$transferstep_row = NULL ;
+			if( !$transfer_row ) {
+				return array('success'=>false) ;
+			}
+			foreach( $transfer_row['steps'] as $transferstep_iter ) {
+				if( $transferstep_iter['transferstep_filerecord_id'] == $p_transferStepFilerecordId ) {
+					$transferstep_row = $transferstep_iter ;
+				}
+			}
+			if( !$transferstep_row ) {
+				return array('success'=>false) ;
+			}
+			
+			$dst_whse = $transferstep_row['whse_dst'] ;
+			$dst_adr = $dst_whse.'_'.'PDA' ;
+		}
+		
+		//HACK !!!
+		if( $p_stkDataObj['container_ref'] ) {
+			$query = "SELECT count(*) FROM view_file_STOCK WHERE field_CONTAINER_REF='{$p_stkDataObj['container_ref']}'" ;
+			if( $_opDB->query_uniqueValue($query) > 0 ) {
+				return array('success'=>false,'error'=>'Existing ContainerRef/SSCC') ;
 			}
 		}
-		if( !$transferstep_row ) {
+		
+		$stk_obj = array(
+			'dst_whse' => $dst_whse,
+			'dst_adr' => $dst_adr,
+			'commit' => true,
+			'stkData_obj' => $p_stkDataObj
+		) ;
+		
+		$forward_post = array(
+			'stock_objs' => json_encode(array($stk_obj)),
+			'transfer_filerecordId' => $p_transferFilerecordId,
+			'transferStep_filerecordId' => $p_transferStepFilerecordId
+		);
+		$json = specDbsLam_transfer_addStock($forward_post) ;
+		if( !$json['success'] ) {
 			return array('success'=>false) ;
 		}
 		
-		$dst_whse = $transferstep_row['whse_dst'] ;
-		$dst_adr = $dst_whse.'_'.'PDA' ;
+		$transferlig_filerecord_id = reset($json['ids']) ;
 	}
 	
-	//HACK !!!
-	if( $p_stkDataObj['container_ref'] ) {
-		$query = "SELECT count(*) FROM view_file_STOCK WHERE field_CONTAINER_REF='{$p_stkDataObj['container_ref']}'" ;
-		if( $_opDB->query_uniqueValue($query) > 0 ) {
-			return array('success'=>false,'error'=>'Existing ContainerRef/SSCC') ;
-		}
-	}
 	
-	$stk_obj = array(
-		'dst_whse' => $dst_whse,
-		'dst_adr' => $dst_adr,
-		'commit' => true,
-		'stkData_obj' => $p_stkDataObj
-	) ;
-	
-	$forward_post = array(
-		'stock_objs' => json_encode(array($stk_obj)),
-		'transfer_filerecordId' => $p_transferFilerecordId,
-		'transferStep_filerecordId' => $p_transferStepFilerecordId
-	);
-	$json = specDbsLam_transfer_addStock($forward_post) ;
-	if( !$json['success'] ) {
-		return array('success'=>false) ;
-	}
-	
-	$transferlig_filerecord_id = reset($json['ids']) ;
-	
-	
-	// TODO: has been forwarded ???
-	$query = "SELECT filerecord_id FROM view_file_TRANSFER_LIG
-				WHERE filerecord_parent_id='{$p_transferFilerecordId}'
-				AND field_FILE_MVT_ID IN (
-					SELECT filerecord_id FROM view_file_MVT WHERE field_SRC_FILE_STOCK_ID IN (
-						SELECT field_DST_FILE_STOCK_ID FROM view_file_MVT WHERE filerecord_id IN (
-							SELECT field_FILE_MVT_ID FROM view_file_TRANSFER_LIG WHERE filerecord_id='{$transferlig_filerecord_id}'
+	if( count($p_stkData_arrObjs) == 1 ) {
+		// TODO: has been forwarded ???
+		$query = "SELECT filerecord_id FROM view_file_TRANSFER_LIG
+					WHERE filerecord_parent_id='{$p_transferFilerecordId}'
+					AND field_FILE_MVT_ID IN (
+						SELECT filerecord_id FROM view_file_MVT WHERE field_SRC_FILE_STOCK_ID IN (
+							SELECT field_DST_FILE_STOCK_ID FROM view_file_MVT WHERE filerecord_id IN (
+								SELECT field_FILE_MVT_ID FROM view_file_TRANSFER_LIG WHERE filerecord_id='{$transferlig_filerecord_id}'
+							)
 						)
-					)
-				)" ;
-	$forward_transferlig_filerecord_id = $_opDB->query_uniqueValue($query) ;
+					)" ;
+		$forward_transferlig_filerecord_id = $_opDB->query_uniqueValue($query) ;
+	}
 	
 	return array('success'=>true, 'forward_transferlig_filerecord_id'=>0) ;
 }
