@@ -217,5 +217,29 @@ function specDbsLam_spec_get_CONTAINER_REF($soc_code) {
 
 	return  $prefix.str_pad((float)$value, 6, "0", STR_PAD_LEFT) ;
 }
+function specDbsLam_spec_get_INPUTSTACK_REF() {
+	global $_opDB ;
+
+	$arr_ins = array() ;
+	$arr_ins['field_NAME'] = 'INPUTSTACK_REF' ;
+	paracrm_lib_data_insertRecord_file('Z_ATTRIB',0,$arr_ins) ;
+	
+	$query = "LOCK TABLES view_file_Z_ATTRIB WRITE" ;
+	$_opDB->query($query) ;
+	
+	$query = "UPDATE view_file_Z_ATTRIB SET field_VALUE=field_VALUE+1 WHERE field_NAME='INPUTSTACK_REF'" ;
+	$_opDB->query($query) ;
+	
+	$query = "SELECT field_VALUE FROM view_file_Z_ATTRIB WHERE field_NAME='INPUTSTACK_REF'" ;
+	$value = $_opDB->query_uniqueValue($query) ;
+	
+	$query = "UNLOCK TABLES" ;
+	$_opDB->query($query) ;
+	
+	
+	$prefix = 'ST' ;
+
+	return  $prefix.str_pad((float)$value, 6, "0", STR_PAD_LEFT) ;
+}
 
 ?>

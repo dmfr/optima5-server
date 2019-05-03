@@ -28,6 +28,10 @@ function specDbsLam_lib_procMvt_createNewStk($stkData_obj) {
 		}
 		$arr_ins['field_CONTAINER_REF'] = $stkData_obj['container_ref'] ;
 	}
+	if( $stkData_obj['inputstack_ref'] && ($stkData_obj['inputstack_level']>0) ) {
+		$arr_ins['field_INPUTSTACK_REF'] = $stkData_obj['inputstack_ref'] ;
+		$arr_ins['field_INPUTSTACK_LEVEL'] = $stkData_obj['inputstack_level'] ;
+	}
 	$arr_ins['field_PROD_ID'] = $stkData_obj['stk_prod'] ;
 	$arr_ins['field_SPEC_BATCH'] = $stkData_obj['stk_batch'] ;
 	$arr_ins['field_SPEC_DATELC'] = $stkData_obj['stk_datelc'] ;
@@ -78,6 +82,8 @@ function specDbsLam_lib_procMvt_addStock($src_whse, $dst_whse, $stock_filerecord
 	
 	$row_mvt = array(
 		'field_SOC_CODE' => $row_stock['field_SOC_CODE'],
+		'field_INPUTSTACK_REF' => $row_stock['field_INPUTSTACK_REF'],
+		'field_INPUTSTACK_LEVEL' => $row_stock['field_INPUTSTACK_LEVEL'],
 		'field_CONTAINER_TYPE' => ($qte_mvt ? NULL : $row_stock['field_CONTAINER_TYPE']),
 		'field_CONTAINER_REF' => ($qte_mvt ? NULL : $row_stock['field_CONTAINER_REF']),
 		'field_CONTAINER_DISPLAY' => $row_stock['field_CONTAINER_REF'],
@@ -122,6 +128,8 @@ function specDbsLam_lib_procMvt_addStock($src_whse, $dst_whse, $stock_filerecord
 			'field_WHSE' => $dst_whse,
 			'field_ADR_ID' => '',
 			'field_SOC_CODE' => $row_stock['field_SOC_CODE'],
+			'field_INPUTSTACK_REF' => $row_stock['field_INPUTSTACK_REF'],
+			'field_INPUTSTACK_LEVEL' => $row_stock['field_INPUTSTACK_LEVEL'],
 			'field_CONTAINER_TYPE' => ($qte_mvt ? NULL : $row_stock['field_CONTAINER_TYPE']),
 			'field_CONTAINER_REF' => ($qte_mvt ? NULL : $row_stock['field_CONTAINER_REF']),
 			'field_PROD_ID' => $row_stock['field_PROD_ID'],
@@ -504,6 +512,8 @@ function specDbsLam_lib_procMvt_rawMvt($stock_filerecordId, $adjust_qty, $adjust
 	
 	$row_mvt = array(
 		'field_SOC_CODE' => $row_stock['field_SOC_CODE'],
+		'field_INPUTSTACK_REF' => $row_stock['field_INPUTSTACK_REF'],
+		'field_INPUTSTACK_LEVEL' => $row_stock['field_INPUTSTACK_LEVEL'],
 		'field_CONTAINER_TYPE' => ($qte_mvt ? NULL : $row_stock['field_CONTAINER_TYPE']),
 		'field_CONTAINER_REF' => ($qte_mvt ? NULL : $row_stock['field_CONTAINER_REF']),
 		'field_CONTAINER_DISPLAY' => $row_stock['field_CONTAINER_REF'],

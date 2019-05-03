@@ -276,7 +276,12 @@ function specDbsLam_transferInput_getDocuments($post_data) {
 	$query = "SELECT ts.filerecord_id as transferstep_filerecord_id
 				, t.filerecord_id as transfer_filerecord_id
 				, t.field_TRANSFER_TXT as transfer_txt
+				, s.entry_key as soc_code
+				, s.field_PRODSPEC_IS_BATCH as prodspec_is_batch
+				, s.field_PRODSPEC_IS_DLC   as prodspec_is_dlc
+				, s.field_PRODSPEC_IS_SN    as prodspec_is_sn
 				, ts.field_INPUTLIST_IS_ON as inputlist_is_on
+				, ts.field_STACKING_IS_ON as stacking_is_on
 				, ts.field_PDA_IS_ON as pda_is_on
 				, ts.field_PDASPEC_IS_ON as pdaspec_is_on
 				, IF(ts.field_PDASPEC_IS_ON='1',ts.field_PDASPEC_CODE,'') as pdaspec_code
@@ -285,6 +290,7 @@ function specDbsLam_transferInput_getDocuments($post_data) {
 				, b.field_SQL_PROCESS as pdaspec_sql_process
 				FROM view_file_TRANSFER_STEP ts
 				JOIN view_file_TRANSFER t ON t.filerecord_id=ts.filerecord_parent_id
+				LEFT OUTER JOIN view_bible_CFG_SOC_entry s ON s.entry_key=t.field_SOC_CODE
 				LEFT OUTER JOIN view_bible_CFG_PDASPEC_entry b ON b.entry_key=IF(ts.field_PDASPEC_IS_ON='1',ts.field_PDASPEC_CODE,'')
 				WHERE ts.field_PDA_IS_ON='1'
 				AND ( (t.field_STATUS_IS_OK='0') OR (DATE(t.field_DATE_TOUCH) > '$closed_dateTouch') )
@@ -430,6 +436,14 @@ function specDbsLam_transferInput_submit($post_data) {
 			if( $_opDB->query_uniqueValue($query) > 0 ) {
 				return array('success'=>false,'error'=>'Existing ContainerRef/SSCC') ;
 			}
+		}
+		
+		if( $transferstep_row['stacking_is_on'] && ($p_stkDataObj['inputstack_level']>0) ) {
+			if( !$c_inputstackRef ) {
+				$c_inputstackRef = specDbsLam_spec_get_INPUTSTACK_REF() ;
+			}
+			$p_stkDataObj['inputstack_ref'] = $c_inputstackRef ;
+			$p_stkDataObj['inputstack_level'] = $p_stkDataObj['inputstack_level'] ;
 		}
 		
 		$stk_obj = array(
