@@ -92,6 +92,8 @@ Ext.define('DbsLamTransferLigModel',{
 		{name: 'dst_stk_filerecord_id', type:'string'},
 		{name: 'dst_whse', type:'string'},
 		{name: 'dst_adr', type:'string'},
+		{name: 'inputstack_ref', type:'string'},
+		{name: 'inputstack_level', type:'int'},
 		{name: 'container_ref', type:'string'},
 		{name: 'container_ref_display', type:'string'},
 		{name: 'stk_prod', type:'string'},
@@ -136,6 +138,8 @@ Ext.define('DbsLamTransferStepModel',{
 		{name: 'whse_dst', type:'string'},
 		{name: 'forward_is_on', type:'boolean'},
 		{name: 'forward_to_idx', type:'int'},
+		
+		{name: 'stacking_is_on', type:'boolean'},
 		
 		{name: 'pda_is_on', type:'boolean'},
 		{name: 'pdaspec_is_on', type:'boolean'},
@@ -484,6 +488,14 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 							this.handleSelectInputPo() ;
 						},
 						scope: this
+					},{
+						itemId: 'toggle-inputstacking',
+						itemIdInputStacking: true,
+						xtype: 'menucheckitem',
+						text: 'Stacking options',
+						checked: false,
+						checkHandler : this.handleChangeInputStacking,
+						scope: this
 					}]
 				},{
 					itemId: 'tbShipping',
@@ -642,6 +654,12 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 				pCenterTb.down('#tbPdaSpec').setText( selMenuItem.text ) ;
 			}
 		}
+		if( hasInput ) { // Toggle stacking
+			var stepData = activeTransferStepRecord.getData() ;
+			
+			var chkInputStacking = pCenterTb.down('#tbActions').down('#toggle-inputstacking') ;
+			chkInputStacking.setChecked(stepData.stacking_is_on) ;
+		}
 		
 			if( true ) { // options
 				pCenterTb.down('#tbActions').setVisible( Ext.isEmpty(activeTab.getSpecTab()) ) ;
@@ -654,7 +672,8 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 					optionsPrintLabels = activeTab.optionsHasPrintLabels(),
 					optionsPrintList = activeTab.optionsHasPrintList(),
 					optionsShipping = activeTab.optionsHasShipping(),
-					optionsInputPo = activeTab.hasInputNew() ;
+					optionsInputPo = activeTab.hasInputNew(),
+					optionsInputStacking = activeTab.hasInputNew() ;
 				pCenterTb.down('#tbShipping').setVisible(optionsShipping) ;
 				Ext.Array.each( pCenterTb.down('#tbActions').menu.query('[itemIdCdeDocs]'), function(menuitem) {
 					menuitem.setVisible( optionsCdeDocs ) ;
@@ -679,6 +698,9 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 				}) ;
 				Ext.Array.each( pCenterTb.down('#tbActions').menu.query('[itemIdInputPo]'), function(menuitem) {
 					menuitem.setVisible( optionsInputPo ) ;
+				}) ;
+				Ext.Array.each( pCenterTb.down('#tbActions').menu.query('[itemIdInputStacking]'), function(menuitem) {
+					menuitem.setVisible( optionsInputStacking ) ;
 				}) ;
 				
 			}
@@ -2017,6 +2039,50 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 			},
 			callback: function() {
 				this.hideLoadmask() ;
+			},
+			scope: this
+		}) ;
+	},
+	
+	handleChangeInputStacking: function() {
+		var pCenter = this.down('#pCenter'),
+			pCenterTb = pCenter.down('toolbar'),
+			tabPanel = pCenter.down('tabpanel') ;
+		var activeTab = tabPanel.getActiveTab();
+		if( !activeTab ) {
+			return ;
+		}
+		var activeTransferStepRecord = activeTab.getActiveTransferStepRecord() ;
+		if( !activeTransferStepRecord ) {
+			return ;
+		}
+		
+		var chkInputStacking = pCenterTb.down('#tbActions').down('#toggle-inputstacking'),
+			checked = chkInputStacking.checked ;
+		
+		if( activeTransferStepRecord.get('stacking_is_on') == checked ) {
+			return ;
+		}
+		this.showLoadmask() ;
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_dbs_lam',
+				_action: 'transfer_setStackingState',
+				transfer_filerecordId: this._activeTransferRecord.get('transfer_filerecord_id'),
+				transferStep_filerecordId: activeTransferStepRecord.get('transferstep_filerecord_id'),
+				stacking_is_on: (checked ? 1 : 0)
+			},
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					Ext.MessageBox.alert('Error',ajaxResponse.error) ;
+					return ;
+				}
+				//this.optimaModule.postCrmEvent('datachange') ;
+				this.doTransferLoad(null,true) ;
+			},
+			callback: function() {
+				//this.hideLoadmask() ;
 			},
 			scope: this
 		}) ;

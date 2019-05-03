@@ -71,6 +71,8 @@ switch( $post_data['_action'] )
 	return specDbsLam_transfer_renameDoc( $post_data ) ;
 	case 'transfer_deleteDoc' :
 	return specDbsLam_transfer_deleteDoc( $post_data ) ;
+	case 'transfer_setStackingState' :
+	return specDbsLam_transfer_setStackingState( $post_data ) ;
 	
 	case 'transfer_addCdeLink' :
 	return specDbsLam_transfer_addCdeLink( $post_data ) ;

@@ -93,41 +93,53 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferInnerStepPanel',{
 					return '<b>'+v+'</b>' ;
 				},
 			},{
-				text: 'Stock Attributes',
-				columns: atrStockColumns
-			},{
-				text: '<b>SKU details</b>',
-				columns: [{
-					dataIndex: 'soc_code',
-					text: 'Soc',
-					resizable: false,
-					editorTplNew: {
-								xtype: 'combobox',
-								anchor: '100%',
-								forceSelection:true,
-								allowBlank:false,
-								editable:false,
-								queryMode: 'local',
-								displayField: 'soc_txt',
-								valueField: 'soc_code',
-								fieldStyle: 'text-transform:uppercase',
-								store: {
-									model: 'DbsLamCfgContainerTypeModel',
-									data: Ext.Array.merge(Optima5.Modules.Spec.DbsLam.HelperCache.getSocAll()),
-									proxy: {
-										type: 'memory'
-									},
-									listeners: {
-										scope: this
-									}
+				dataIndex: 'soc_code',
+				text: '<b>Soc</b>',
+				resizable: false,
+				editorTplNew: {
+							xtype: 'combobox',
+							anchor: '100%',
+							forceSelection:true,
+							allowBlank:false,
+							editable:false,
+							queryMode: 'local',
+							displayField: 'soc_txt',
+							valueField: 'soc_code',
+							fieldStyle: 'text-transform:uppercase',
+							store: {
+								model: 'DbsLamCfgContainerTypeModel',
+								data: Ext.Array.merge(Optima5.Modules.Spec.DbsLam.HelperCache.getSocAll()),
+								proxy: {
+									type: 'memory'
 								},
 								listeners: {
 									scope: this
 								}
-					}
+							},
+							listeners: {
+								scope: this
+							}
+				}
+			},{
+				text: 'Stock Attributes',
+				columns: atrStockColumns
+			},{
+				text: '<b>Stacking</b>',
+				itemId: 'hdrStacking',
+				columns: [{
+					dataIndex: 'inputstack_ref',
+					text: 'Group',
+					width: 90
 				},{
+					dataIndex: 'inputstack_level',
+					text: 'Level',
+					width: 75
+				}]
+			},{
+				text: '<b>Container</b>',
+				columns: [{
 					dataIndex: 'container_type',
-					text: 'Cont/Ref',
+					text: 'Cont/Type',
 					width: 100,
 					editorTplNew: {
 								xtype: 'combobox',
@@ -158,9 +170,12 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferInnerStepPanel',{
 					}
 				},{
 					dataIndex: 'container_ref',
-					text: 'Cont/Ref',
+					text: 'Cont/ID.',
 					width: 100
-				},{
+				}]
+			},{
+				text: '<b>SKU details</b>',
+				columns: [{
 					dataIndex: 'stk_prod',
 					text: 'P/N',
 					width: 150,
@@ -372,6 +387,10 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferInnerStepPanel',{
 			//HACK
 			this.headerCt.down('[dataIndex="soc_code"]').setWidth(0) ;
 			//this.headerCt.down('[dataIndex="soc_code"]').hide() ;
+		}
+		var activeTransferStepRecord = this.getActiveTransferStepRecord() ;
+		if( activeTransferStepRecord && !activeTransferStepRecord.get('stacking_is_on') ) {
+			this.headerCt.down('#hdrStacking').destroy() ;
 		}
 	},
 	

@@ -82,6 +82,8 @@ function specDbsLam_transfer_getTransfer($post_data) {
 			'forward_is_on' => $arr['field_FORWARD_IS_ON'],
 			'forward_to_idx' => $arr['field_FORWARD_TO_IDX'],
 			
+			'stacking_is_on' => !!$arr['field_STACKING_IS_ON'],
+			
 			'pda_is_on' => !!$arr['field_PDA_IS_ON'],
 			'pdaspec_is_on' => !!$arr['field_PDASPEC_IS_ON'],
 			'pdaspec_code' => (!!$arr['field_PDASPEC_IS_ON'] ? $arr['field_PDASPEC_CODE'] : null),
@@ -199,6 +201,8 @@ function specDbsLam_transfer_getTransferLig($post_data) {
 				'cdepack_transfercdepack_filerecord_id' => $arr['field_PACK_TRSFRCDEPACK_ID'],
 				'mvt_filerecord_id' => $arr['mvt_filerecord_id'],
 				'soc_code' => $arr['field_SOC_CODE'],
+				'inputstack_ref' => $arr['field_INPUTSTACK_REF'],
+				'inputstack_level' => $arr['field_INPUTSTACK_LEVEL'],
 				'container_type' => $arr['field_CONTAINER_TYPE'],
 				'container_ref' => $arr['field_CONTAINER_REF'],
 				'container_ref_display' => $arr['field_CONTAINER_DISPLAY'],
@@ -998,6 +1002,26 @@ function specDbsLam_transfer_renameDoc($post_data) {
 	$arr_update = array() ;
 	$arr_update['field_TRANSFER_TXT'] = $post_data['transfer_txt'] ;
 	paracrm_lib_data_updateRecord_file('TRANSFER',$arr_update,$transfer_filerecordId) ;
+	
+	return array('success'=>true) ;
+}
+function specDbsLam_transfer_setStackingState($post_data) {
+	global $_opDB ;
+	
+	$transfer_filerecordId = $post_data['transfer_filerecordId'] ;
+	
+	$arr_transferstepFilerecordIds = array() ;
+	$query = "SELECT filerecord_id FROM view_file_TRANSFER_STEP WHERE filerecord_parent_id='{$transfer_filerecordId}'" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+		$arr_transferstepFilerecordIds[] = $arr[0] ;
+	}
+	
+	foreach( $arr_transferstepFilerecordIds as $transferstep_filerecordId ) {
+	$arr_update = array() ;
+	$arr_update['field_STACKING_IS_ON'] = $post_data['stacking_is_on'] ;
+	paracrm_lib_data_updateRecord_file('TRANSFER_STEP',$arr_update,$transferstep_filerecordId) ;
+	}
 	
 	return array('success'=>true) ;
 }
