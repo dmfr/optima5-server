@@ -89,6 +89,12 @@ function xmlUtil_parseAdr( $adr_string ) {
 function xml_getContents( $env_id, $track_email ) {
 	global $_opDB ;
 	
+	$track_id = $env_id ;
+	$prefix = '' ;
+	if( $prefix ) {
+		$track_id = $prefix.'-'.$env_id ;
+	}
+	
 	$auth_user = '' ;
 	$auth_pass = '' ;
 
@@ -148,7 +154,7 @@ function xml_getContents( $env_id, $track_email ) {
 	*/
 	
 	$xml.= '<pjs:Requests>' ;
-	$xml.= "<pjs:Request MediaType=\"PAPER\" TrackId=\"{$env_id}\">" ;
+	$xml.= "<pjs:Request MediaType=\"PAPER\" TrackId=\"{$track_id}\">" ;
 	
 	$xml.= '<pjs:Recipients>' ;
 	$xml.= '<pjs:Internal>' ;
