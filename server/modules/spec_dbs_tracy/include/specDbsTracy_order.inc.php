@@ -200,7 +200,7 @@ function specDbsTracy_order_getRecords( $post_data ) {
 	unset($row_order) ;
 	
 	
-	if( !$post_data['skip_details'] ) {
+	if( !$post_data['skip_details'] || true ) {
 		$query = "SELECT * FROM view_file_CDE_EVENT ce" ;
 		$query.= " WHERE 1" ;
 		if( isset($filter_orderFilerecordId_list) ) {
