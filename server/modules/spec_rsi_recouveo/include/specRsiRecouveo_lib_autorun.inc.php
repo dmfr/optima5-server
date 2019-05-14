@@ -22,6 +22,7 @@ function specRsiRecouveo_lib_autorun_open() {
 		$account_record = $ttmp['data'] ;
 		$accountFileBlank_record = NULL ;
 		$accountFileOff_filerecordId = NULL ;
+		$accountFileOn_filerecordId = NULL ;
 		$_is_new = TRUE ;
 		foreach( $account_record['files'] as $accountFile_record ) {
 			if( $accountFile_record['file_filerecord_id'] === 0 ) {
