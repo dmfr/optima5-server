@@ -1757,7 +1757,7 @@ function specRsiRecouveo_file_lib_manageActivate( $acc_id, $is_new=FALSE ) {
 				'arr_recordFilerecordIds' => json_encode($toEnable_recordFilerecordIds)
 			));
 		}
-		if( !$targetFile_openHasNext ) {
+		if( !$targetFile_openHasNext && ($toBalance_sum>0) ) {
 			// DONE 18/02/19 : lancement
 			$forward_post = array(
 				'file_filerecord_id' => $targetFile_openFilerecordId,
