@@ -102,18 +102,28 @@ if( FALSE ) {
 $arr_invFilerecordIds = array() ;
 
 // ************ Chargement INV **************
-$query = "SELECT i.filerecord_id, i.field_CLI_LINK FROM view_file_INV i
+$query = "SELECT i.filerecord_id, i.field_CLI_LINK, i.field_FACTOR_LINK
+	FROM view_file_INV i
 	INNER JOIN view_bible_CUSTOMER_entry c ON c.entry_key = i.field_CLI_LINK
 	LEFT OUTER JOIN view_file_INV_PEER ip ON ip.filerecord_parent_id=i.filerecord_id
 		AND ip.field_PEER_CODE='{$GLOBALS['_cfg_peer_code']}'
 	WHERE i.field_STATUS_IS_FINAL='1' and (ip.field_SEND_IS_OK IS NULL OR ip.field_SEND_IS_OK<>'1')
-	AND i.field_FACTOR_LINK='FACTOFR'
 	AND ABS(i.field_CALC_AMOUNT_FINAL) > '0'" ;
 $result = $_opDB->query($query) ;
 while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
 	$filerecord_id = $arr[0] ;
 	$field_CLI_LINK = $arr[1] ;
+	$field_FACTOR_LINK = $arr[2] ;
 	if( !lookup_factorSiret($field_CLI_LINK) ) {
+		continue ;
+	}
+	if( $field_FACTOR_LINK != 'FACTOFR' ) {
+		$arr_ins = array() ;
+		$arr_ins['field_PEER_CODE'] = $GLOBALS['_cfg_peer_code'] ;
+		$arr_ins['field_SEND_IS_OK'] = 1 ;
+		$arr_ins['field_SEND_REF'] = 'ZERO' ;
+		$arr_ins['field_SEND_DATE'] = date('Y-m-d H:i:s') ;
+		paracrm_lib_data_insertRecord_file( 'INV_PEER' , $filerecord_id , $arr_ins ) ;
 		continue ;
 	}
 	$arr_invFilerecordIds[] = $filerecord_id ;
