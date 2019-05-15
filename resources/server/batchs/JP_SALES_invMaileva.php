@@ -22,7 +22,6 @@ include("$server_root/modules/spec_bp_sales/backend_spec_bp_sales.inc.php");
 
 
 include('JP_SALES_invMaileva_mailFactory.inc.php') ;
-include('JP_SALES_invEurofactor_mailFactory.inc.php') ;
 
 
 
@@ -30,7 +29,6 @@ include('JP_SALES_invEurofactor_mailFactory.inc.php') ;
 $GLOBALS['factor_ref'] = date('ymdHis') ;
 
 $GLOBALS['_cfg_peer_code'] = 'INV_MAILEVA' ;
-$GLOBALS['_cfg_peer_code_parent'] = 'INV_EUROFACTOR' ;
 
 $query = "SELECT field_MAIL_SENDTO, field_PARAMS FROM view_bible_CFG_PEER_entry
 	WHERE entry_key='{$GLOBALS['_cfg_peer_code']}'" ;
@@ -78,35 +76,29 @@ if( $GLOBALS['__OPTIMA_TEST'] ) {
 
 
 
-$map_factorRef_invFilerecordIds = array() ;
+$arr_invFilerecordIds = array() ;
 
 // ************ Chargement INV **************
-$query = "SELECT ipp.field_SEND_REF, i.filerecord_id FROM view_file_INV i
+$query = "SELECT i.filerecord_id FROM view_file_INV i
 	LEFT OUTER JOIN view_file_INV_PEER ip ON ip.filerecord_parent_id=i.filerecord_id
 		AND ip.field_PEER_CODE='{$GLOBALS['_cfg_peer_code']}'
-	LEFT OUTER JOIN view_file_INV_PEER ipp ON ipp.filerecord_parent_id=i.filerecord_id
-		AND ipp.field_PEER_CODE='{$GLOBALS['_cfg_peer_code_parent']}'
-	WHERE i.field_STATUS_IS_FINAL='1'
+	WHERE i.field_STATUS_IS_FINAL='1' AND DATE(i.field_DATE_CREATE)>='2019-05-04'
 	AND (ip.field_SEND_IS_OK IS NULL OR ip.field_SEND_IS_OK<>'1')
-	AND (ipp.field_SEND_IS_OK='1')
 	AND ABS(i.field_CALC_AMOUNT_FINAL) > '0'" ;
 $result = $_opDB->query($query) ;
 while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
-	$factor_SEND_REF = $arr[0] ;
-	$filerecord_id = $arr[1] ;
-	if( !$map_factorRef_invFilerecordIds ) {
-		$map_factorRef_invFilerecordIds[$factor_SEND_REF] = array() ;
-	}
-	$map_factorRef_invFilerecordIds[$factor_SEND_REF][] = $filerecord_id ;
+	$filerecord_id = $arr[0] ;
+	$arr_invFilerecordIds[] = $filerecord_id ;
 }
-if( !$map_factorRef_invFilerecordIds ) {
+if( !$arr_invFilerecordIds ) {
 	exit ;
 }
 
-foreach( $map_factorRef_invFilerecordIds as $factor_SEND_REF => $arr_invFilerecordIds ) {
-	foreach( $arr_invFilerecordIds as $inv_filerecord_id ) {
+foreach( $arr_invFilerecordIds as $inv_filerecord_id ) {
 		$xml = xml_getContents($inv_filerecord_id, $track_email=$field_sendto) ;
-		//echo $xml ;
+		if( $xml==NULL ) {
+			continue ;
+		}
 		
 		$url = $GLOBALS['maileva_URL'] ;
 		$params = array(
@@ -145,7 +137,6 @@ foreach( $map_factorRef_invFilerecordIds as $factor_SEND_REF => $arr_invFilereco
 			$arr_ins['field_SEND_DATE'] = date('Y-m-d H:i:s') ;
 			paracrm_lib_data_insertRecord_file( 'INV_PEER' , $inv_filerecord_id , $arr_ins ) ;
 		}
-	}
 }
 
 exit ;

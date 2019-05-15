@@ -135,11 +135,14 @@ function xml_getContents( $inv_filerecord_id, $track_email ) {
 	
 	$xml.= '<pjs:Notifications>' ;
 	$xml.= '<pjs:Notification Type="GENERAL">' ;
-	$xml.= '<spec:Format>TXT</spec:Format>' ;
+	$xml.= '<spec:Format>XML</spec:Format>' ;
 	$xml.= '<spec:Protocols>' ;
-	$xml.= '<spec:Protocol>' ;
-	$xml.= "<spec:Email>{$track_email}</spec:Email>" ;
-	$xml.= '</spec:Protocol>' ;
+		$xml.= '<spec:Protocol>' ;
+			$xml.= "<spec:Ws />" ;
+		$xml.= '</spec:Protocol>' ;
+		$xml.= '<spec:Protocol>' ;
+			$xml.= "<spec:Email>{$track_email}</spec:Email>" ;
+		$xml.= '</spec:Protocol>' ;
 	$xml.= '</spec:Protocols>' ;
 	$xml.= '</pjs:Notification>' ;
 	$xml.= '</pjs:Notifications>' ;
