@@ -272,6 +272,18 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 							}
 						}
 					},{
+						text: 'Void',
+						width: 50,
+						dataIndex: 'status_is_void',
+						editor:{ xtype:'checkboxfield' },
+						renderer: function(v, metaData) {
+							if( v ) {
+								metaData.tdCls += ' op5-spec-dbslam-stock-ok' ;
+							} else {
+								return ;
+							}
+						}
+					},{
 						text: 'Date OK',
 						width: 190,
 						dataIndex: 'date_actual',

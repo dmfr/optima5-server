@@ -57,9 +57,11 @@ function specDbsTracy_trspt_getRecords( $post_data ) {
 			'flight_awb' => $arr['field_FLIGHT_AWB'],
 			'flight_date' => substr($arr['field_FLIGHT_DATE'],0,10),
 			'flight_code' => $arr['field_FLIGHT_CODE'],
-			'customs_mode' => ($arr['field_CUSTOMS_IS_ON'] ?  'ON' : 'OFF'),
-			'customs_date_request' => $arr['field_CUSTOMS_DATE_REQUEST'],
-			'customs_date_cleared' => $arr['field_CUSTOMS_DATE_CLEARED'],
+			'customs_mode' => $arr['field_CUSTOMS_MODE'],
+			'customs_edi_ready' => ($arr['field_CUSTOMS_EDI_READY'] ? true:false),
+			'customs_edi_sent' => ($arr['field_CUSTOMS_EDI_SENT'] ? true:false),
+			'customs_date_request' => (specDbsTracy_trspt_tool_isDateValid($arr['field_CUSTOMS_DATE_REQUEST']) ? $arr['field_CUSTOMS_DATE_REQUEST'] : null),
+			'customs_date_cleared' => (specDbsTracy_trspt_tool_isDateValid($arr['field_CUSTOMS_DATE_CLEARED']) ? $arr['field_CUSTOMS_DATE_CLEARED'] : null),
 			'sword_edi_1_warn' => ($arr['field_SWORD_EDI_1_WARN']?true:false),
 			'sword_edi_1_ready' => ($arr['field_SWORD_EDI_1_READY']?true:false),
 			'sword_edi_1_sent' => ($arr['field_SWORD_EDI_1_SENT']?true:false),
@@ -230,8 +232,11 @@ function specDbsTracy_trspt_setHeader( $post_data ) {
 	$arr_ins['field_FLIGHT_DATE'] = $form_data['flight_date'] ;
 	$arr_ins['field_FLIGHT_CODE'] = $form_data['flight_code'] ;
 	$arr_ins['field_CUSTOMS_IS_ON'] = ($form_data['customs_mode']=='ON') ;
-	$arr_ins['field_CUSTOMS_DATE_REQUEST'] = ($form_data['customs_date_request'] ? $form_data['customs_date_request'] : '') ;
-	$arr_ins['field_CUSTOMS_DATE_CLEARED'] = ($form_data['customs_date_cleared'] ? $form_data['customs_date_cleared'] : '') ;
+	$arr_ins['field_CUSTOMS_MODE'] = $form_data['customs_mode'] ;
+	if( $form_data['customs_mode']=='MAN' ) {
+		$arr_ins['field_CUSTOMS_DATE_REQUEST'] = ($form_data['customs_date_request'] ? $form_data['customs_date_request'] : '') ;
+		$arr_ins['field_CUSTOMS_DATE_CLEARED'] = ($form_data['customs_date_cleared'] ? $form_data['customs_date_cleared'] : '') ;
+	}
 	$arr_ins['field_POD_DOC'] = $form_data['pod_doc'] ;
 	
 	if( $post_data['_is_new'] ) {
@@ -249,6 +254,8 @@ function specDbsTracy_trspt_setHeader( $post_data ) {
 	} else {
 		return array('success'=>false) ;
 	}
+	
+	specDbsTracy_trspt_ackCustomsStatus( array('trspt_filerecord_id'=>$filerecord_id) ) ;
 	
 	if( $post_data['validateStepCode'] ) {
 		$params = array(
@@ -390,6 +397,81 @@ function specDbsTracy_trspt_eventAdd( $post_data ) {
 
 
 
+
+function specDbsTracy_trspt_ackCustomsStatus( $post_data ) {
+	global $_opDB ;
+	$file_code = 'TRSPT' ;
+	
+	$p_trsptFilerecordId = $post_data['trspt_filerecord_id'] ;
+	$ttmp = specDbsTracy_trspt_getRecords(array('filter_trsptFilerecordId_arr'=>json_encode(array($p_trsptFilerecordId)))) ;
+	$trspt_record = $ttmp['data'][0] ;
+	if( !$trspt_record ) {
+		return array('success'=>false) ;
+	}
+	
+	$target_void = false ;
+	$target_51CREQ = NULL ;
+	$target_52CACK = NULL ;
+	if( $trspt_record['customs_mode']=='OFF' ) {
+		$target_void = TRUE ;
+	}
+	if( in_array($trspt_record['customs_mode'],array('MAN','AUTO')) ) {
+		if( $trspt_record['customs_date_request'] ) {
+			$target_51CREQ = $trspt_record['customs_date_request'] ;
+		}
+		if( $trspt_record['customs_date_cleared'] ) {
+			$target_52CACK = $trspt_record['customs_date_cleared'] ;
+		}
+	}
+	
+	//print_r( $trspt_record ) ;
+	foreach( $trspt_record['orders'] as $order_row ) {
+		foreach( $order_row['steps'] as $orderStep_row ) {
+			if( $orderStep_row['step_code']=='51_CREQ' ) {
+				$arr_ins = array() ;
+				if( $target_void ) {
+					$arr_ins['field_STATUS_IS_OK'] = 1 ;
+					$arr_ins['field_STATUS_IS_VOID'] = 1 ;
+					$arr_ins['field_DATE_ACTUAL'] = date('Y-m-d H:i:s') ;
+				} elseif( $target_51CREQ ) {
+					$arr_ins['field_STATUS_IS_OK'] = 1 ;
+					$arr_ins['field_STATUS_IS_VOID'] = 0 ;
+					$arr_ins['field_DATE_ACTUAL'] = $target_51CREQ ;
+				} else {
+					$arr_ins['field_STATUS_IS_OK'] = 0 ;
+					$arr_ins['field_STATUS_IS_VOID'] = 0 ;
+					$arr_ins['field_DATE_ACTUAL'] = '0000-00-00 00:00:00' ;
+				}
+				paracrm_lib_data_updateRecord_file( 'CDE_STEP', $arr_ins, $orderStep_row['orderstep_filerecord_id'] );
+			}
+			if( $orderStep_row['step_code']=='52_CACK' ) {
+				$arr_ins = array() ;
+				if( $target_void ) {
+					$arr_ins['field_STATUS_IS_OK'] = 1 ;
+					$arr_ins['field_STATUS_IS_VOID'] = 1 ;
+					$arr_ins['field_DATE_ACTUAL'] = date('Y-m-d H:i:s') ;
+				} elseif( $target_52CACK ) {
+					$arr_ins['field_STATUS_IS_OK'] = 1 ;
+					$arr_ins['field_STATUS_IS_VOID'] = 0 ;
+					$arr_ins['field_DATE_ACTUAL'] = $target_52CACK ;
+				} else {
+					$arr_ins['field_STATUS_IS_OK'] = 0 ;
+					$arr_ins['field_STATUS_IS_VOID'] = 0 ;
+					$arr_ins['field_DATE_ACTUAL'] = '0000-00-00 00:00:00' ;
+				}
+				paracrm_lib_data_updateRecord_file( 'CDE_STEP', $arr_ins, $orderStep_row['orderstep_filerecord_id'] );
+			}
+		}
+	}
+	
+	
+	
+
+}
+
+
+
+
 function specDbsTracy_trspt_stepValidate( $post_data ) {
 	global $_opDB ;
 	
@@ -424,6 +506,17 @@ function specDbsTracy_trspt_stepValidate( $post_data ) {
 	if( !$p_stepDoForce ) {
 		$steps = array() ;
 		foreach( $trspt_record['orders'] as $row_order ) {
+			unset($row_order['calc_step']) ;
+			$max_stepCode = array() ;
+			foreach( $row_order['steps'] as $row_order_step ) {
+				if( $row_order_step['status_is_ok'] ) {
+					$max_stepCode[] = $row_order_step['step_code'] ;
+				}
+			}
+			if( $max_stepCode ) {
+				$row_order['calc_step'] = max($max_stepCode) ;
+			}
+		
 			if( $row_order['calc_step'] && !in_array($row_order['calc_step'],$steps) ) {
 				$steps[] = $row_order['calc_step'] ;
 			}

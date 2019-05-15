@@ -242,6 +242,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 					}]
 				},{
 					xtype: 'fieldset',
+					itemId: 'fsCustoms',
 					title: 'Customs',
 					fieldDefaults: {
 						labelWidth: 40,
@@ -258,9 +259,10 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 						store: {
 							fields: ['id','text'],
 							data: [
-								{id: '', text: ''},
+								{id: '', text: ' '},
 								{id: 'OFF', text: 'No customs (EU)'},
-								{id: 'ON', text: 'Customs REQ/CLR'}
+								{id: 'MAN', text: 'Manual Customs (CEQ/REQ)'},
+								{id: 'AUTO', text: 'EDI Broker'}
 							]
 						},
 						valueField: 'id',
@@ -269,8 +271,10 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 							change: function(cmb) {
 								var formPanel = cmb.up('panel'),
 									form = formPanel.getForm() ;
-								form.findField('customs_date_request').setVisible(cmb.getValue()=='ON') ;
-								form.findField('customs_date_cleared').setVisible(cmb.getValue()=='ON') ;
+								form.findField('customs_date_request').setVisible(cmb.getValue()=='MAN') ;
+								form.findField('customs_date_cleared').setVisible(cmb.getValue()=='MAN') ;
+								form.findField('customs_date_request_ro').setVisible(cmb.getValue()=='AUTO') ;
+								form.findField('customs_date_cleared_ro').setVisible(cmb.getValue()=='AUTO') ;
 							}
 						}
 					},{
@@ -283,6 +287,16 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 						xtype: 'datetimefield',
 						fieldLabel: 'CLR',
 						name: 'customs_date_cleared'
+					},{
+						hidden: true,
+						xtype: 'displayfield',
+						fieldLabel: 'REQ',
+						name: 'customs_date_request_ro'
+					},{
+						hidden: true,
+						xtype: 'displayfield',
+						fieldLabel: 'CLR',
+						name: 'customs_date_cleared_ro'
 					}]
 				},{
 					xtype: 'fieldset',
@@ -814,7 +828,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 		this.down('#pHeaderForm').getForm().findField('flow_code').setReadOnly(true) ;
 		this.down('#pHeaderForm').getForm().findField('atr_type').setReadOnly(true) ;
 		this.down('#pHeaderForm').getForm().findField('id_doc').setReadOnly(true) ;
-		this.down('#pHeaderForm').getForm().loadRecord(trsptRecord) ;
+		this.down('#pHeaderForm').getForm().setValues(trsptRecord.getData()) ;
 		if( this._readonlyMode ) {
 			this.down('#pHeaderForm').getForm().getFields().each( function(field) {
 				if( field.setReadOnly ) {
@@ -822,6 +836,15 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 				}
 			});
 		}
+		
+		
+		Ext.Array.each( this.down('#pHeaderForm').down('#fsCustoms').query('field'), function(field) {
+			if( field.setReadOnly ) {
+				field.setReadOnly(true) ;
+			}
+		}) ;
+		
+		
 		
 		//fHeader compute EDI status Sword 1
 		var ediStatus = '-',

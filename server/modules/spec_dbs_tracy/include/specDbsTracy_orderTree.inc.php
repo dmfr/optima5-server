@@ -36,6 +36,12 @@ function specDbsTracy_orderTree_getData( $post_data ) {
 				'color' => 'green',
 				'ACTUAL_dateSql' => $orderstep_row['date_actual']
 			) ;
+			if( $orderstep_row['status_is_void'] ) {
+				$order_row[$row_key] = array(
+					'color' => 'paleblue',
+					'VOID_dateSql' => $orderstep_row['date_actual']
+				) ;
+			}
 		}
 		
 		if( !$order_row['calc_link_is_active'] ) {

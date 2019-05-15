@@ -182,6 +182,7 @@ function specDbsTracy_order_getRecords( $post_data ) {
 			'orderstep_filerecord_id' => $arr['filerecord_id'],
 			'step_code' => $arr['field_STEP_CODE'],
 			'status_is_ok' => $arr['field_STATUS_IS_OK'],
+			'status_is_void' => $arr['field_STATUS_IS_VOID'],
 			'date_actual' => $arr['field_DATE_ACTUAL'],
 			'log_user' => $arr['field_LOG_USER']
 		);
@@ -189,7 +190,7 @@ function specDbsTracy_order_getRecords( $post_data ) {
 	foreach( $TAB_order as &$row_order ) {
 		$max_stepCode = array() ;
 		foreach( $row_order['steps'] as $row_order_step ) {
-			if( $row_order_step['status_is_ok'] ) {
+			if( $row_order_step['status_is_ok'] && !$row_order_step['status_is_void'] ) {
 				$max_stepCode[] = $row_order_step['step_code'] ;
 			}
 		}
@@ -472,6 +473,7 @@ function specDbsTracy_order_setStep( $post_data ) {
 	}
 	$arr_update = array() ;
 	$arr_update['field_STATUS_IS_OK'] = ( $form_data['status_is_ok'] ? 1 : 0 ) ;
+	$arr_update['field_STATUS_IS_VOID'] = ( $form_data['status_is_void'] ? 1 : 0 ) ;
 	$arr_update['field_DATE_ACTUAL'] = ( $form_data['date_actual'] ? $form_data['date_actual'] : '0000-00-00 00:00:00' ) ;
 	paracrm_lib_data_updateRecord_file( $file_code, $arr_update, $post_data['orderstep_filerecord_id'] );
 	
@@ -485,7 +487,9 @@ function specDbsTracy_order_stepValidate( $post_data ) {
 	
 	$p_orderFilerecordId = $post_data['order_filerecord_id'] ;
 	$p_stepCode = $post_data['step_code'] ;
-	if( isset($post_data['date_actual']) ) {
+	if( $post_date['status_is_void'] ) {
+		$p_statusVoid = true ;
+	} elseif( isset($post_data['date_actual']) ) {
 		$p_dateActual = $post_data['date_actual'] ;
 	}
 	
@@ -494,6 +498,7 @@ function specDbsTracy_order_stepValidate( $post_data ) {
 	
 	$arr_update = array() ;
 	$arr_update['field_STATUS_IS_OK'] = 1 ;
+	$arr_update['field_STATUS_IS_VOID'] = ($p_statusVoid ? '1' : '0') ;
 	$arr_update['field_DATE_ACTUAL'] = ($p_dateActual ? $p_dateActual : date('Y-m-d H:i:s')) ;
 	$arr_update['field_LOG_USER'] = strtoupper($_SESSION['login_data']['delegate_userId']) ;
 	paracrm_lib_data_updateRecord_file( $file_code, $arr_update, $p_orderstepFilerecordId );

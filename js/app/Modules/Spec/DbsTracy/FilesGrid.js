@@ -691,7 +691,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 				//metaData.tdCls += ' '+'op5-spec-dbstracy-gridcell-gray' ;
 				return '&#160;' ;
 			}
-			if( !vObj.pending && !vObj.ACTUAL_dateSql ) {
+			if( !vObj.pending && !vObj.ACTUAL_dateSql && !vObj.VOID_dateSql ) {
 				return '&#160;' ;
 			}
 			var dateSql ;
@@ -704,13 +704,17 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 				case 'red' :
 				case 'orange' :
 				case 'green' :
+				case 'paleblue' :
 					metaData.tdCls += ' '+'op5-spec-dbstracy-gridcell-'+vObj.color ;
 					break ;
 			}
-			if( !Ext.isEmpty(dateSql) ) {
+			if( !Ext.isEmpty(dateSql) || !Ext.isEmpty(vObj.VOID_dateSql) ) {
 				metaData.tdCls += ' '+'op5-spec-dbstracy-gridcell-bold' ;
 			} else {
 				metaData.tdCls += ' '+'op5-spec-dbstracy-gridcell-nobold' ;
+			}
+			if( !Ext.isEmpty(vObj.VOID_dateSql) ) {
+				return 'N/A<br>&#160;' ;
 			}
 			if( Ext.isEmpty(dateSql) ) {
 				return '&#160;' ;
