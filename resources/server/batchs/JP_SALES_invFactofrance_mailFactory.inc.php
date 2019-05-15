@@ -86,6 +86,9 @@ function mail_getBinary_remiseTxt( $arr_invFilerecordIds ) { // return String (b
 			INNER JOIN view_bible_CUSTOMER_entry c ON c.entry_key = i.field_CLI_LINK
 			WHERE filerecord_id='{$inv_filerecord_id}'" ;
 		$result = $_opDB->query($query) ;
+		if( $_opDB->num_rows($result) != 1 ) {
+			continue ;
+		}
 		$arr = $_opDB->fetch_assoc($result) ;
 		
 		if( $arr['field_ID_COEF'] > 0 ) {
@@ -129,7 +132,7 @@ function mail_getBinary_remiseTxt( $arr_invFilerecordIds ) { // return String (b
 		$lig = substr_mklig($lig,$GLOBALS['factor_vendeur'],11,6) ;
 		$lig = substr_mklig($lig,lookup_factorSiret($arr['field_CLI_LINK']),17,14) ;
 		$lig = substr_mklig($lig,$map_adr['nom'],31,40) ;
-		$lig = substr_mklig($lig,$arr['field_CLI_NAME'],71,40) ;
+		$lig = substr_mklig($lig,iconv( 'UTF-8', 'ASCII//TRANSLIT//IGNORE', $arr['field_CLI_NAME'] ),71,40) ;
 		$lig = substr_mklig($lig,$map_adr['adr1'],111,40) ;
 		$lig = substr_mklig($lig,$map_adr['adr2'],151,40) ;
 		$lig = substr_mklig($lig,$map_adr['cp'],191,6) ;
@@ -169,7 +172,7 @@ function mail_getBinary_remiseTxt( $arr_invFilerecordIds ) { // return String (b
 	}
 	
 	$lig = '' ;
-	$lig = substr_mklig($lig,'101',0,3) ;
+	$lig = substr_mklig($lig,'199',0,3) ;
 	$lig = substr_mklig($lig,$GLOBALS['factor_vendeur'],3,6) ;
 	$lig = substr_mklig($lig,'JUSTE PRESSE',9,40) ;
 	$lig = substr_mklig($lig,$date8,49,8) ;
