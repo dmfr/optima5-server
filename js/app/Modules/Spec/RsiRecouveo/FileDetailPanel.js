@@ -1,10 +1,6 @@
 Ext.define('RsiRecouveoFileDetailRecordsTreeModel', {
     extend: 'Ext.data.Model',
     fields: [
-        {name: 'new_is_on',  type: 'boolean'},
-		  {name: 'new_action', type: 'string'},
- 		  {name: 'new_text', type: 'string'},
-		  
 		  {name: 'file_filerecord_id', type: 'int'},
 		  {name: 'file_focus', type: 'boolean'},
         {name: 'file_id_ref',  type: 'string'},
@@ -99,6 +95,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 	],
 	
 	_readonlyMode: false,
+	
+	createFileMode: false,
+	createFileMode_actionCode: null,
 	
 	initComponent: function() {
 		
@@ -298,9 +297,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			dataIndex: 'id',
 			width: 250,
 			renderer: function( v, meta, r ) {
-				if( r.get('new_is_on') ) {
-					return '<b>'+r.get('new_text')+'</b>' ;
-				}
 				if( !Ext.isEmpty(r.get('file_id_ref')) ) {
 					return '<b>'+r.get('file_id_ref')+'</b>' ;
 				}
@@ -982,6 +978,43 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 						}
 					]
 				},{
+					height: 65,
+					itemId: 'pRecordsHeaderCreateFile',
+					xtype:'component',
+					hidden: true,
+					tpl: [
+						'<div class="op5-spec-dbspeople-realvalidhdr">',
+							'<div class="op5-spec-dbspeople-realvalidhdr-inline-tbl">',
+								'<div class="op5-spec-dbspeople-realvalidhdr-inline-elem op5-spec-rsiveo-factureheader-icon">',
+								'</div>',
+								'<div class="op5-spec-dbspeople-realvalidhdr-inline-elem">',
+									'<table class="op5-spec-dbspeople-realvalidhdr-tbl">',
+									'<tr>',
+										'<td class="op5-spec-dbspeople-realvalidhdr-tdlabel">Action de traitement :</td>',
+										'<td class="op5-spec-dbspeople-realvalidhdr-tdvalue">',
+										'<div style="position:relative;padding-left:24px">',
+										'<div style="position:absolute;margin:auto;top:0;bottom:0;left:0;width:16px;height:16px;background-color:{action_color}"></div>',
+										'{action_txt}',
+										'<div style="position:relative;padding-left:24px">',
+										'</td>',
+									'</tr>',
+									'<tr>',
+										'<td class="op5-spec-dbspeople-realvalidhdr-tdlabel">Nb pièces :</td>',
+										'<td class="op5-spec-dbspeople-realvalidhdr-tdvalue">{inv_nb}</td>',
+									'</tr>',
+									'<tr>',
+										'<td class="op5-spec-dbspeople-realvalidhdr-tdlabel">Montant total:</td>',
+										'<td class="op5-spec-dbspeople-realvalidhdr-tdvalue">{inv_amount}&#160;€</td>',
+									'</tr>',
+									'</table>',
+								'</div>',
+							'</div>',
+						'</div>',
+						{
+							disableFormats: true
+						}
+					]
+				},{
 					height: 55,
 					itemId: 'pRecordsBalage',
 					hidden: true,
@@ -1029,9 +1062,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 					useArrows: true,
 					columns: treeColumns,
 					selModel: {
-						mode: 'MULTI'
+						mode: 'SINGLE'
 					},
 					listeners: {
+						checkchange: this.createFileOnCheckChange,
 						itemclick: this.onRecordsTreeItemClick,
 						itemcontextmenu: this.onRecordsTreeContextMenu,
 						scope: this
@@ -1044,9 +1078,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 							var parentNode = r ;
 							while( parentNode.parentNode && !parentNode.parentNode.isRoot() ) {
 								parentNode = parentNode.parentNode ;
-							}
-							if( parentNode.get('new_is_on') ) {
-								return 'op5-spec-rsiveo-pom' ;
 							}
 							if( parentNode.get('file_focus') ) {
 								return 'op5-spec-rsiveo-pis' ;
@@ -1065,6 +1096,24 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 						}
 					},
 					tbar:[{
+						hidden: true,
+						itemId: 'tbNewSubmit',
+						icon: 'images/modules/rsiveo-ok-16.gif',
+						text: '<b>Valider</b>',
+						handler: function() {
+							this.createFileSubmit() ;
+						},
+						scope: this
+					},{
+						hidden: true,
+						itemId: 'tbNewAbort',
+						icon: 'images/modules/rsiveo-cancel-16.gif',
+						text: '<b>Annuler</b>',
+						handler: function() {
+							this.createFileAbort() ;
+						},
+						scope: this
+					},{
 						itemId: 'tbNew',
 						icon: 'images/modules/rsiveo-bookmark-16.png',
 						text: '<b>Action de traitement</b>',
@@ -1072,7 +1121,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 							iconCls: 'icon-bible-new',
 							text: 'Ouverture dossier',
 							handler: function() {
-								this.doCreateFile('BUMP') ;
+								this.createFileSetMode('BUMP') ;
 							},
 							scope: this
 						},{
@@ -1080,7 +1129,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 							iconCls: 'op5-spec-rsiveo-action-agree',
 							text: 'Promesse règlement',
 							handler: function() {
-								this.doCreateFile('AGREE_START') ;
+								this.createFileSetMode('AGREE_START') ;
 							},
 							scope: this
 						},{
@@ -1088,7 +1137,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 							iconCls: 'op5-spec-rsiveo-action-litig',
 							text: 'Demande d\'action externe',
 							handler: function() {
-								this.doCreateFile('LITIG_START') ;
+								this.createFileSetMode('LITIG_START') ;
 							},
 							scope: this
 						},{
@@ -1096,7 +1145,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 							iconCls: 'op5-spec-rsiveo-action-litig',
 							text: 'Action judiciaire',
 							handler: function() {
-								this.doCreateFile('JUDIC_START') ;
+								this.createFileSetMode('JUDIC_START') ;
 							},
 							scope: this
 						},{
@@ -1104,7 +1153,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 							iconCls: 'op5-spec-rsiveo-action-litig',
 							text: 'Transmission Recouveo',
 							handler: function() {
-								this.doCreateFile('TRSFR_START') ;
+								this.createFileSetMode('TRSFR_START') ;
 							},
 							scope: this
 						},{
@@ -1112,7 +1161,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 							iconCls: 'op5-spec-rsiveo-action-close',
 							text: 'Demande de clôture',
 							handler: function() {
-								this.doCreateFile('CLOSE_ASK') ;
+								this.createFileSetMode('CLOSE_ASK') ;
 							},
 							scope: this
 						}]
@@ -1275,6 +1324,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		this._showClosed = showClosed ;
 		
 		this._accountRecord = accountRecord ;
+		
+		this.createFileSetMode(null) ;
 		
 		//fHeader
 		this.down('#pHeaderForm').getForm().reset() ;
@@ -1529,6 +1580,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 				statusColor, statusColorNodash ;
 			if( statusMap.hasOwnProperty(statusCode) ) {
 				statusColor = statusMap[statusCode]['status_color'] ;
+				statusIsSchedLock = statusMap[statusCode]['sched_lock'] ;
 				statusColorNodash = statusColor.substring(1) ;
 			}
 			pRecordsTreeChildren.push({
@@ -1539,6 +1591,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 				file_id_ref: fileRecord.get('id_ref'),
 				file_status: statusCode,
 				file_status_color: statusColor,
+				file_status_schedlock: statusIsSchedLock,
 				record_amount: totAmountDue,
 				
 				expanded: true,
@@ -2528,7 +2581,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			}
 		});
 		
-		recordsTree.down('toolbar').down('#tbNew').setDisabled( fileRec.statusIsSchedNone() )  ;
+		recordsTree.down('toolbar').down('#tbNew').setDisabled( false )  ;
 		this.down('toolbar').down('#tbBump').setDisabled( fileRec.statusIsSchedNone() )  ;
 		this.down('toolbar').down('#tbNew').setDisabled( fileRec.statusIsSchedNone() )  ;
 	},
@@ -2640,25 +2693,113 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		this.addFloatingPanel(actionPanel) ;
 	},
 	
-	doCreateFile: function( actionCode ) {
-		var actionRow = Optima5.Modules.Spec.RsiRecouveo.HelperCache.getActionRowId(actionCode) ;
+	
+	
+	createFileSetMode: function( actionCode ) {
+		this.createFileMode = !!actionCode ;
+		this.createFileMode_actionCode = actionCode ;
+		
+		this.down('#pRecordsPanel').down('toolbar').setVisible( !this.createFileMode ) ;
+		this.down('#pRecordsPanel').down('#pRecordsBalage').setVisible( !this.createFileMode ) ;
+		this.down('#pRecordsPanel').down('#pRecordsHeader').setVisible( !this.createFileMode ) ;
+		
+		this.down('#pRecordsPanel').down('#pRecordsHeaderCreateFile').setVisible( this.createFileMode ) ;
 		
 		var recordsPanel = this.down('#pRecordsPanel'),
 			recordsTree = this.down('#pRecordsTree') ;
-		recordsTree.down('toolbar').down('#tbNew').setDisabled(true) ;
-		recordsTree.down('toolbar').down('#tbRecordTemp').setDisabled(true) ;
+		recordsTree.down('toolbar').down('#tbRecordTemp').setDisabled(this.createFileMode) ;
+		recordsTree.down('toolbar').down('#tbNew').setVisible(!this.createFileMode) ;
+		recordsTree.down('toolbar').down('#tbNewSubmit').setVisible(this.createFileMode) ;
+		recordsTree.down('toolbar').down('#tbNewAbort').setVisible(this.createFileMode) ;
 		
-		var recordsTree = this.down('#pRecordsTree'),
-			recordsTreeRoot = this.down('#pRecordsTree').getRootNode() ;
-		recordsTreeRoot.insertChild(0,{
-			new_is_on: true,
-			new_text: actionRow.action_txt,
-			new_action: actionCode,
-			expanded: true,
-			children: []
-		});
-		recordsTree.scrollTo(0) ;
+		if( actionCode ) {
+			recordsTree.getRootNode().cascadeBy( function(node) {
+				if( node.isLeaf() ) {
+					var pnode = node,
+						filenode = null ;
+					while(pnode) {
+						pnode = pnode.parentNode ;
+						if( pnode.get('file_filerecord_id')>0 ) {
+							filenode = pnode ;
+							break ;
+						}
+					}
+					if( !filenode.get('file_status_schedlock') ) {
+						node.set('checked',false) ;
+					}
+				}
+			}) ;
+			var actionRow = Optima5.Modules.Spec.RsiRecouveo.HelperCache.getActionRowId(actionCode),
+				statusNext = null,
+				statusRow = null,
+				actionTxt = '',
+				actionColor = '' ;
+			if( actionRow ) {
+				statusNext = actionRow.status_next ;
+				actionTxt = actionRow.action_txt ;
+			}
+			if( statusNext ) {
+				statusRow = Optima5.Modules.Spec.RsiRecouveo.HelperCache.getStatusRowId(statusNext) ;
+			}
+			if( statusRow ) {
+				actionColor = statusRow.status_color ;
+			}
+			var dataObj = {
+				action_txt: actionRow.action_txt,
+				action_color: statusRow.status_color,
+				inv_nb: 0,
+				inv_amount: 0
+			} ;
+			this.createFileUpdateHeader(dataObj) ;
+		}
 	},
+	createFileOnCheckChange: function() {
+		var recordsPanel = this.down('#pRecordsPanel'),
+			recordsTree = this.down('#pRecordsTree') ;
+		var invNb = 0,
+			invAmount = 0 ;
+		recordsTree.getRootNode().cascadeBy( function(node) {
+			if( node.isLeaf() && node.get('checked') ) {
+				invNb++ ;
+				invAmount += node.get('record_amount') ;
+			}
+		}) ;
+		this.createFileUpdateHeader({
+			inv_nb: invNb,
+			inv_amount: Ext.util.Format.number(invAmount,'0,000.00')
+		}) ;
+	},
+	createFileUpdateHeader: function(mobj) {
+		var cmp = this.down('#pRecordsPanel').down('#pRecordsHeaderCreateFile') ;
+		var existingData = cmp.getData() || {} ;
+		Ext.apply(existingData,mobj) ;
+		cmp.setData(existingData) ;
+	},
+	createFileSubmit: function() {
+		var accId = this._accountRecord.get('acc_id'),
+			arr_recordIds = [],
+			newActionCode = this.createFileMode_actionCode ;
+		var recordsPanel = this.down('#pRecordsPanel'),
+			recordsTree = this.down('#pRecordsTree') ;
+		recordsTree.getRootNode().cascadeBy( function(node) {
+			if( node.isLeaf() && node.get('checked') ) {
+				arr_recordIds.push(node.get('record_filerecord_id')) ;
+			}
+		}) ;
+		this.openCreatePanel(accId,arr_recordIds,newActionCode) ;
+	},
+	createFileAbort: function() {
+		this.down('#pRecordsPanel').down('#windowsBar').items.each( function(btn) {
+			btn.win.close() ;
+		});
+		this.doReload() ;
+	},
+	
+	
+	
+	
+	
+	
 	onRecordsTreeDrop: function(node, data, overModel, dropPosition, dropHandlers) {
 		// assocation directe TEMPREC
 		var tempRec = true, tempRecIds=[] ;
@@ -2673,13 +2814,13 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 				tempRecIds.push(dragRecord.get('record_filerecord_id')) ;
 			}
 		},this) ;
-		if( tempRec && tempRecIds.length>0 && !overModel.get('new_is_on') && (overModel.get('file_filerecord_id')>0) && dropPosition == 'append' ) {
+		if( tempRec && tempRecIds.length>0 && (overModel.get('file_filerecord_id')>0) && dropPosition == 'append' ) {
 			this.associateTempRecords(tempRecIds,overModel.get('file_filerecord_id')) ;
 			return ;
 		}
 		// ***************************
 		
-		if( !(overModel.get('new_is_on') && dropPosition == 'append') ) {
+		if( dropPosition == 'append') {
 			return false ;
 		}
 		var valid = true ;
@@ -2692,24 +2833,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 	},
 	onRecordsTreeContextMenu: function(view, record, item, index, event) {
 		var treeContextMenuItems = new Array() ;
-		if( record.get('new_is_on') ) {
-			treeContextMenuItems.push({
-				iconCls: 'icon-bible-delete',
-				text: 'Abandonner nouvelle action',
-				handler : function() {
-					this.doCancelCreate() ;
-				},
-				scope : this
-			});
-			treeContextMenuItems.push({
-				iconCls: 'icon-bible-new',
-				text: 'Confimer sélection & Paramétrer',
-				handler : function() {
-					this.doCreateFileSelection(record) ;
-				},
-				scope : this
-			});
-		}
 		if( !Ext.isEmpty(record.get('record_type')) ) {
 			if( record.parentNode.get('file_filerecord_id')==0 ) {
 				if( !record.get('record_readonly') ) {
@@ -2749,23 +2872,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		
 		treeContextMenu.showAt(event.getXY());
 		
-	},
-	doCreateFileSelection: function(treeRecordNew) {
-		var accId = this._accountRecord.get('acc_id'),
-			arr_recordIds = [],
-			newActionCode = treeRecordNew.get('new_action') ;
-		treeRecordNew.cascadeBy(function(treeRecord) {
-			if( !Ext.isEmpty(treeRecord.get('record_filerecord_id')) ) {
-				arr_recordIds.push(treeRecord.get('record_filerecord_id')) ;
-			}
-		}) ;
-		this.openCreatePanel(accId,arr_recordIds,newActionCode) ;
-	},
-	doCancelCreate: function() {
-		this.down('#pRecordsPanel').down('#windowsBar').items.each( function(btn) {
-			btn.win.close() ;
-		});
-		this.onLoadAccountBuildRecordsTree(this._accountRecord) ;
 	},
 	openCreatePanel: function( accId, arr_recordIds, newActionCode ) {
 		if( this._readonlyMode ) {
