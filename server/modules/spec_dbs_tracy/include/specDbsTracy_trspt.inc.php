@@ -237,6 +237,14 @@ function specDbsTracy_trspt_setHeader( $post_data ) {
 		$arr_ins['field_CUSTOMS_DATE_REQUEST'] = ($form_data['customs_date_request'] ? $form_data['customs_date_request'] : '') ;
 		$arr_ins['field_CUSTOMS_DATE_CLEARED'] = ($form_data['customs_date_cleared'] ? $form_data['customs_date_cleared'] : '') ;
 	}
+	if( $form_data['customs_mode']=='AUTO' ) {
+		if( $form_data['customs_date_request_do'] ) {
+			$arr_ins['field_CUSTOMS_DATE_REQUEST'] = date('Y-m-d H:i:s') ;
+		}
+		if( $form_data['customs_date_cleared_do'] ) {
+			$arr_ins['field_CUSTOMS_DATE_CLEARED'] = date('Y-m-d H:i:s') ;
+		}
+	}
 	$arr_ins['field_POD_DOC'] = $form_data['pod_doc'] ;
 	
 	if( $post_data['_is_new'] ) {

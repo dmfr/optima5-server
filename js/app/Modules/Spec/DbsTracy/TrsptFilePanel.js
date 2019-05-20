@@ -273,6 +273,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 									form = formPanel.getForm() ;
 								form.findField('customs_date_request').setVisible(cmb.getValue()=='MAN') ;
 								form.findField('customs_date_cleared').setVisible(cmb.getValue()=='MAN') ;
+								formPanel.down('#cntCustomsTransaction').setVisible(cmb.getValue()=='AUTO') ;
 								form.findField('customs_date_request_ro').setVisible(cmb.getValue()=='AUTO') ;
 								form.findField('customs_date_cleared_ro').setVisible(cmb.getValue()=='AUTO') ;
 							}
@@ -287,6 +288,38 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 						xtype: 'datetimefield',
 						fieldLabel: 'CLR',
 						name: 'customs_date_cleared'
+					},{
+						hidden: true,
+						xtype: 'fieldcontainer',
+						fieldLabel: 'EDI',
+						itemId: 'cntCustomsTransaction',
+						items: [{
+							xtype: 'button',
+							text: 'Generate XML',
+							menu: [{
+								iconCls:'op5-sdomains-menu-updateschema',
+								text: 'Send/Resend REQ',
+								handler: function() {
+									this.handleSaveHeader(null,{
+										customs_date_request_do: true
+									});
+								},
+								scope: this
+							},{
+								iconCls:'op5-sdomains-menu-updateschema',
+								text: 'Acknowledge CLR',
+								handler: function() {
+									this.handleSaveHeader(null,{
+										customs_date_cleared_do: true
+									});
+								},
+								scope: this
+							}],
+							handler: function() {
+								this.handleCustomsREQ() ;
+							},
+							scope: this
+						}]
 					},{
 						hidden: true,
 						xtype: 'displayfield',
@@ -828,7 +861,12 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 		this.down('#pHeaderForm').getForm().findField('flow_code').setReadOnly(true) ;
 		this.down('#pHeaderForm').getForm().findField('atr_type').setReadOnly(true) ;
 		this.down('#pHeaderForm').getForm().findField('id_doc').setReadOnly(true) ;
-		this.down('#pHeaderForm').getForm().setValues(trsptRecord.getData()) ;
+		var headerFormValues = trsptRecord.getData() ;
+		Ext.apply(headerFormValues, {
+			customs_date_request_ro: Ext.util.Format.date(headerFormValues.customs_date_request, 'd/m/Y H:i'),
+			customs_date_cleared_ro: Ext.util.Format.date(headerFormValues.customs_date_cleared, 'd/m/Y H:i')
+		}) ;
+		this.down('#pHeaderForm').getForm().setValues(headerFormValues) ;
 		if( this._readonlyMode ) {
 			this.down('#pHeaderForm').getForm().getFields().each( function(field) {
 				if( field.setReadOnly ) {
@@ -838,9 +876,11 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 		}
 		
 		
+		console.dir( trsptRecord.get('sword_edi_1_sent') ) ;
 		Ext.Array.each( this.down('#pHeaderForm').down('#fsCustoms').query('field'), function(field) {
 			if( field.setReadOnly ) {
-				field.setReadOnly(true) ;
+				// TODO : set Readonly
+				//field.setReadOnly(true) ;
 			}
 		}) ;
 		
@@ -936,7 +976,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 		}
 	},
 	
-	handleSaveHeader: function(validateStepCode) {
+	handleSaveHeader: function(validateStepCode, additionalData=null) {
 		if( this._readonlyMode ) {
 			return ;
 		}
@@ -961,6 +1001,9 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 		}
 		
 		var recordData = form.getValues(false,false,false,true) ;
+		if(additionalData) {
+			Ext.apply(recordData,additionalData) ;
+		}
 		
 		var gridOrders = this.down('#pOrdersGrid'),
 			orderFilerecordIds = [] ;
@@ -988,7 +1031,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 					Ext.MessageBox.alert('Error',error) ;
 					return ;
 				}
-				this.onSaveHeader(ajaxResponse.id, !Ext.isEmpty(validateStepCode)) ;
+				this.onSaveHeader(ajaxResponse.id, (!Ext.isEmpty(validateStepCode)||!Ext.isEmpty(additionalData))) ;
 			},
 			callback: function() {
 				this.hideLoadmask() ;

@@ -51,7 +51,24 @@ function specDbsTracy_orderTree_getData( $post_data ) {
 				$order_row['_color'] = 'green' ;
 			}
 		} else {
-			$order_row['_color'] = 'blue' ;
+			switch( $order_row['calc_link_customs_mode'] ) {
+				case 'AUTO' :
+					if( $order_row['calc_link_customs_CLR'] ) {
+						$order_row['_color'] = 'blue' ;
+					} elseif( $order_row['calc_link_customs_REQ'] ) {
+						$order_row['_color'] = 'green' ;
+					} else {
+						$order_row['_color'] = 'red' ;
+					}
+					break ;
+				case 'MAN' :
+				case 'OFF' :
+					$order_row['_color'] = 'blue' ;
+					break ;
+				default :
+					$order_row['_color'] = 'red' ;
+					break ;
+			}
 		}
 		
 		$curStepCode = $order_row['calc_step'] ;
