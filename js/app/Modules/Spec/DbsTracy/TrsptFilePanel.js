@@ -314,11 +314,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 									});
 								},
 								scope: this
-							}],
-							handler: function() {
-								this.handleCustomsREQ() ;
-							},
-							scope: this
+							}]
 						}]
 					},{
 						hidden: true,
