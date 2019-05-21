@@ -10,10 +10,6 @@ include("$server_root/modules/spec_dbs_lam/include/specDbsLam_stock.inc.php") ;
 include("$server_root/modules/spec_dbs_lam/include/specDbsLam_prods.inc.php") ;
 include("$server_root/modules/spec_dbs_lam/include/specDbsLam_cde.inc.php") ;
 
-include("$server_root/modules/spec_dbs_lam/include/specDbsLam_upload.inc.php") ;
-
-include("$server_root/modules/spec_dbs_lam/include/specDbsLam_queryspec.inc.php") ;
-
 include("$server_root/modules/spec_dbs_lam/include/specDbsLam_transfer.inc.php") ;
 include("$server_root/modules/spec_dbs_lam/include/specDbsLam_transferMission.inc.php") ;
 include("$server_root/modules/spec_dbs_lam/include/specDbsLam_transferInputPo.inc.php") ;

@@ -6,10 +6,8 @@ Ext.define('Optima5.Modules.Spec.DbsLam.MainPanel',{
 		'Optima5.Modules.Spec.DbsLam.MainMenu',
 		'Optima5.Modules.Spec.DbsLam.StockPanel',
 		'Optima5.Modules.Spec.DbsLam.ProductsPanel',
-		'Optima5.Modules.Spec.DbsLam.QueryspecPanel',
 		'Optima5.Modules.Spec.DbsLam.CfgPanel',
 		'Optima5.Modules.Spec.DbsLam.TransferPanel',
-		'Optima5.Modules.Spec.DbsLam.UploadForm',
 		
 		'Optima5.Modules.Spec.DbsLam.GunPanel',
 		
@@ -72,16 +70,12 @@ Ext.define('Optima5.Modules.Spec.DbsLam.MainPanel',{
 				return me.switchToAppPanel('Optima5.Modules.Spec.DbsLam.StockPanel',{}) ;
 			case 'panel_products' :
 				return me.switchToAppPanel('Optima5.Modules.Spec.DbsLam.ProductsPanel',{}) ;
-			case 'panel_queryspec' :
-				return me.switchToAppPanel('Optima5.Modules.Spec.DbsLam.QueryspecPanel',{}) ;
 			case 'panel_cfg' :
 				return me.switchToAppPanel('Optima5.Modules.Spec.DbsLam.CfgPanel',{}) ;
 			case 'panel_transfer' :
 				return me.switchToAppPanel('Optima5.Modules.Spec.DbsLam.TransferPanel',{}) ;
 			case 'panel_cde' :
 				return me.openCdeWindow() ;
-			case 'form_upload' :
-				return me.openUploadPopup() ;
 			case 'window_gun' :
 				return me.openGunWindow() ;
 			default :

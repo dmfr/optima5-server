@@ -39,12 +39,6 @@ switch( $post_data['_action'] )
 	case 'prods_doRelocate' :
 	return array('success'=>false) ;
 	
-	case 'queryspec' :
-	session_write_close() ;
-	return specDbsLam_queryspec( $post_data ) ;
-	case 'queryspec_sync' :
-	return specDbsLam_queryspecSync( $post_data ) ;
-	
 	case 'transfer_getTransfer' :
 	return specDbsLam_transfer_getTransfer( $post_data ) ;
 	case 'transfer_getTransferLig' :
