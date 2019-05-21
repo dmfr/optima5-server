@@ -8,7 +8,7 @@ Ext.define('Optima5.Modules.Spec.BpSales.OrdersGrid',{
 	
 	defaultViewMode: 'cde',
 	viewMode: null,
-	autoRefreshDelay: (5*60*1000),
+	autoRefreshDelay: (10*60*1000),
 	
 	initComponent: function() {
 		Ext.apply(this, {
@@ -143,6 +143,7 @@ Ext.define('Optima5.Modules.Spec.BpSales.OrdersGrid',{
 			this.doLoad() ;
 		},this);
 		
+		this.doConfigureNull() ;
 		switch( this.viewMode ) {
 			case 'cde' :
 				this.down('#tbCreate').setVisible(false);
@@ -153,7 +154,7 @@ Ext.define('Optima5.Modules.Spec.BpSales.OrdersGrid',{
 				return this.doConfigureInvoice() ;
 				
 			default:
-				return this.doConfigureNull() ;
+				return ;
 		}
 	},
 	doConfigureNull: function() {
@@ -165,6 +166,9 @@ Ext.define('Optima5.Modules.Spec.BpSales.OrdersGrid',{
 		});
 	},
 	doConfigureOrder: function() {
+		this.onConfigureOrder({}) ;
+	},
+	onConfigureOrder: function(cfgData) {
 		var pushModelfields = [{
 			name: '_color',
 			type: 'string'
@@ -178,6 +182,16 @@ Ext.define('Optima5.Modules.Spec.BpSales.OrdersGrid',{
 		var buttonMarkup = Ext.DomHelper.markup(validBtn.getRenderTree());
 		validBtn.destroy() ;
 		var columns = [{
+			hidden: true,
+			text: '<b>ID</b>',
+			dataIndex: 'cde_filerecord_id',
+			width:120,
+			resizable: true,
+			align: 'center',
+			filter: {
+				type: 'number'
+			}
+		},{
 			text: '<b>Order</b>',
 			dataIndex: 'cde_ref',
 			width:120,
@@ -381,7 +395,8 @@ Ext.define('Optima5.Modules.Spec.BpSales.OrdersGrid',{
 				proxy: this.optimaModule.getConfiguredAjaxProxy({
 					extraParams : {
 						_moduleId: 'spec_bp_sales',
-						_action: 'cde_getRecords'
+						_action: 'cde_getRecords',
+						filter_fastMode: 1
 					},
 					reader: {
 						type: 'json',
@@ -420,7 +435,29 @@ Ext.define('Optima5.Modules.Spec.BpSales.OrdersGrid',{
 		},this);
 		this.doLoad() ;
 	},
+	
+	
 	doConfigureInvoice: function() {
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_bp_sales',
+				_action: 'inv_getCfg'
+			},
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					Ext.MessageBox.alert('Error','Error') ;
+					return ;
+				}
+				this.onConfigureInvoice(ajaxResponse.data) ;
+			},
+			callback: function() {
+				//this.hideLoadmask() ;
+			},
+			scope: this
+		}) ;
+	},
+	onConfigureInvoice: function(cfgData) {
 		var pushModelfields = [{
 			name: '_color',
 			type: 'string'
@@ -434,6 +471,16 @@ Ext.define('Optima5.Modules.Spec.BpSales.OrdersGrid',{
 		var buttonMarkup = Ext.DomHelper.markup(validBtn.getRenderTree());
 		validBtn.destroy() ;
 		var columns = [{
+			hidden: true,
+			text: '<b>ID</b>',
+			dataIndex: 'inv_filerecord_id',
+			width:120,
+			resizable: true,
+			align: 'center',
+			filter: {
+				type: 'number'
+			}
+		},{
 			text: '<b>Invoice</b>',
 			dataIndex: 'id_inv',
 			width:120,
@@ -572,6 +619,40 @@ Ext.define('Optima5.Modules.Spec.BpSales.OrdersGrid',{
 				return v ;
 			}
 		}] ;
+		if( Ext.isArray(cfgData.peers) && cfgData.peers.length > 0 ) {
+			var sCols = [] ;
+			Ext.Array.each( cfgData.peers, function(peerRow) {
+				pushModelfields.push({
+					
+				});
+				sCols.push({
+					text: peerRow.peer_short,
+					dataIndex: peerRow.peer_mkey,
+					width:60,
+					resizable: true,
+					align: 'center',
+					filter: {
+						type: 'boolean'
+					},
+					renderer: function(v,metaData) {
+						if( v == null ) {
+							return ;
+						}
+						if( v ) {
+							metaData.tdCls += ' op5-spec-bpsales-true' ;
+						} else {
+							metaData.tdCls += ' op5-spec-bpsales-false' ;
+						}
+						return '&#160;' ;
+					}
+				}) ;
+			}) ;
+			columns.push({
+				text: 'Peers/Forward',
+				align: 'center',
+				columns: sCols
+			});
+		}
 		
 		
 		this.tmpModelName = 'BpSalesInvRowModel-' + this.getId() + (++this.tmpModelCnt) ;

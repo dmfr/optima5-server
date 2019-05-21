@@ -10,6 +10,8 @@ switch( $post_data['_action'] )
 	case 'cde_getRecords' :
 		return specBpSales_cde_getRecords($post_data) ;
 		
+	case 'inv_getCfg' :
+		return specBpSales_inv_getCfg($post_data) ;
 	case 'inv_getRecords' :
 		return specBpSales_inv_getRecords($post_data) ;
 	case 'inv_createFromBlank' :

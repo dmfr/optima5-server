@@ -57,60 +57,80 @@ function specBpSales_cde_getRecords( $post_data ) {
 	$debug = $paracrm_TAB ;
 	
 	
-	
-	$forward_post = array() ;
-	$forward_post['start'] ;
-	$forward_post['limit'] ;
-	$forward_post['file_code'] = 'CDE_LIG' ;
-	if( isset($post_data['filter_cdeFilerecordId_arr']) ) {
-		$forward_post['filter'] = json_encode(array(
-			array(
-				'operator' => 'in',
-				'property' => 'CDE_id',
-				'value' => json_decode($post_data['filter_cdeFilerecordId_arr'],true)
-			)
-		)) ;
+	if( !$post_data['filter_fastMode'] ) {
+		$forward_post = array() ;
+		$forward_post['start'] ;
+		$forward_post['limit'] ;
+		$forward_post['file_code'] = 'CDE_LIG' ;
+		if( isset($post_data['filter_cdeFilerecordId_arr']) ) {
+			$forward_post['filter'] = json_encode(array(
+				array(
+					'operator' => 'in',
+					'property' => 'CDE_id',
+					'value' => json_decode($post_data['filter_cdeFilerecordId_arr'],true)
+				)
+			)) ;
+		}
+		$ttmp = paracrm_data_getFileGrid_data( $forward_post, $auth_bypass=TRUE ) ;
+		$paracrm_TAB = $ttmp['data'] ;
+		foreach( $paracrm_TAB as $paracrm_row ) {
+			$filerecord_parent_id = $paracrm_row['CDE_id'] ;
+			
+			$row = array() ;
+			$row['cdelig_filerecord_id'] = $paracrm_row['CDE_LIG_id'] ;
+			$row['status_is_ship'] = $paracrm_row['CDE_field_STATUS_IS_SHIP'] ;
+			$row['prod_ref'] = $paracrm_row['CDE_LIG_field_PROD_REF'] ;
+			$row['prod_ref_ean'] = $paracrm_row['CDE_LIG_field_PROD_REF_entry_PROD_SKU_EAN'] ;
+			$row['prod_ref_txt'] = $paracrm_row['CDE_LIG_field_PROD_REF_entry_PROD_TXT'] ;
+			$row['prod_ref_pcb'] = $paracrm_row['CDE_LIG_field_PROD_REF_entry_QTE_SKU'] ;
+			$row['spec_batch'] = $paracrm_row['CDE_LIG_field_BATCH_CODE'] ;
+			$row['spec_dlc'] = $paracrm_row['CDE_LIG_field_DLC_DATE'] ;
+			$row['qty_order'] = $paracrm_row['CDE_LIG_field_QTE_ORDER'] ;
+			$row['qty_ship'] = $paracrm_row['CDE_LIG_field_QTE_SHIP'] ;
+			$row['obs_txt'] = $paracrm_row['CDE_LIG_field_OBS_TXT'] ;
+			$row['inv_mode'] = $paracrm_row['CDE_LIG_field_INV_MODE'] ;
+			
+			$qte = ( $row['status_is_ship'] ? $row['qty_ship'] : $row['qty_order'] );
+			$pcb_pack = $paracrm_row['CDE_LIG_field_PROD_REF_entry_QTE_SKU'] ;
+			$eq_ut = $paracrm_row['CDE_LIG_field_PROD_REF_entry_EQ_UT'] ;
+			$eq_kg = $paracrm_row['CDE_LIG_field_PROD_REF_entry_EQ_KG'] ;
+			$row['calc_count_ut'] = $eq_ut * $qte ;
+			$row['calc_count_pack'] = ($pcb_pack > 0 ? $qte / $pcb_pack : 0) ;
+			$row['calc_weight_kg'] = $eq_kg * $qte ;
+			
+			$TAB[$filerecord_parent_id]['ligs'][] = $row ;
+		}
+		
+		foreach( $TAB as $cde_filerecord_id => &$row ) {
+			$row['calc_count_ut'] = $row['calc_count_pack'] = $row['calc_weight_kg'] = 0 ;
+			foreach( $row['ligs'] as $row_lig ) {
+				$row['calc_count_ut'] += $row_lig['calc_count_ut'] ;
+				$row['calc_count_pack'] += $row_lig['calc_count_pack'] ;
+				$row['calc_weight_kg'] += $row_lig['calc_weight_kg'] ;
+			}
+		}
+		unset($row) ;
 	}
-	$ttmp = paracrm_data_getFileGrid_data( $forward_post, $auth_bypass=TRUE ) ;
-	$paracrm_TAB = $ttmp['data'] ;
-	foreach( $paracrm_TAB as $paracrm_row ) {
-		$filerecord_parent_id = $paracrm_row['CDE_id'] ;
-		
-		$row = array() ;
-		$row['cdelig_filerecord_id'] = $paracrm_row['CDE_LIG_id'] ;
-		$row['status_is_ship'] = $paracrm_row['CDE_field_STATUS_IS_SHIP'] ;
-		$row['prod_ref'] = $paracrm_row['CDE_LIG_field_PROD_REF'] ;
-		$row['prod_ref_ean'] = $paracrm_row['CDE_LIG_field_PROD_REF_entry_PROD_SKU_EAN'] ;
-		$row['prod_ref_txt'] = $paracrm_row['CDE_LIG_field_PROD_REF_entry_PROD_TXT'] ;
-		$row['prod_ref_pcb'] = $paracrm_row['CDE_LIG_field_PROD_REF_entry_QTE_SKU'] ;
-		$row['spec_batch'] = $paracrm_row['CDE_LIG_field_BATCH_CODE'] ;
-		$row['spec_dlc'] = $paracrm_row['CDE_LIG_field_DLC_DATE'] ;
-		$row['qty_order'] = $paracrm_row['CDE_LIG_field_QTE_ORDER'] ;
-		$row['qty_ship'] = $paracrm_row['CDE_LIG_field_QTE_SHIP'] ;
-		$row['obs_txt'] = $paracrm_row['CDE_LIG_field_OBS_TXT'] ;
-		$row['inv_mode'] = $paracrm_row['CDE_LIG_field_INV_MODE'] ;
-		
-		$qte = ( $row['status_is_ship'] ? $row['qty_ship'] : $row['qty_order'] );
-		$pcb_pack = $paracrm_row['CDE_LIG_field_PROD_REF_entry_QTE_SKU'] ;
-		$eq_ut = $paracrm_row['CDE_LIG_field_PROD_REF_entry_EQ_UT'] ;
-		$eq_kg = $paracrm_row['CDE_LIG_field_PROD_REF_entry_EQ_KG'] ;
-		$row['calc_count_ut'] = $eq_ut * $qte ;
-		$row['calc_count_pack'] = ($pcb_pack > 0 ? $qte / $pcb_pack : 0) ;
-		$row['calc_weight_kg'] = $eq_kg * $qte ;
-		
-		$TAB[$filerecord_parent_id]['ligs'][] = $row ;
-	}
-	
-	foreach( $TAB as $cde_filerecord_id => &$row ) {
-		$row['calc_count_ut'] = $row['calc_count_pack'] = $row['calc_weight_kg'] = 0 ;
-		foreach( $row['ligs'] as $row_lig ) {
-			$row['calc_count_ut'] += $row_lig['calc_count_ut'] ;
-			$row['calc_count_pack'] += $row_lig['calc_count_pack'] ;
-			$row['calc_weight_kg'] += $row_lig['calc_weight_kg'] ;
+	if( $post_data['filter_fastMode'] ) {
+		$query = "SELECT c.filerecord_id as cde_filerecord_id
+						, sum( p.field_EQ_UT * IF( c.field_STATUS_IS_SHIP='1', cl.field_QTE_SHIP, cl.field_QTE_ORDER ) ) as calc_count_ut
+						, sum( IF(p.field_QTE_SKU>0, ( IF( c.field_STATUS_IS_SHIP='1', cl.field_QTE_SHIP, cl.field_QTE_ORDER ) / p.field_QTE_SKU ), '0' ) ) as calc_count_pack
+						, sum( p.field_EQ_UT * IF( c.field_STATUS_IS_SHIP='1', cl.field_QTE_SHIP, cl.field_QTE_ORDER ) ) as calc_weight_kg
+					FROM view_file_CDE_LIG cl
+					JOIN view_file_CDE c ON c.filerecord_id=cl.filerecord_parent_id
+					JOIN view_bible_PRODUCT_entry p ON p.entry_key=cl.field_PROD_REF
+					GROUP BY c.filerecord_id" ;
+		$result = $_opDB->query($query) ;
+		while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+			$cde_filerecord_id = $arr['cde_filerecord_id'] ;
+			unset($arr['cde_filerecord_id']) ;
+			
+			if( !isset($TAB[$cde_filerecord_id]) ) {
+				continue ;
+			}
+			$TAB[$cde_filerecord_id] += $arr ;
 		}
 	}
-	unset($row) ;
-	
 	
 	if( isset($post_data['filter_cdeFilerecordId_arr']) ) {
 		$filter_cdeFilerecordId_arr = json_decode($post_data['filter_cdeFilerecordId_arr']) ;

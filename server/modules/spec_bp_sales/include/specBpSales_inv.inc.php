@@ -1,5 +1,26 @@
 <?php
-
+function specBpSales_inv_getCfg( $post_data ) {
+	global $_opDB ;
+	
+	usleep(500*1000);
+	$TAB = array() ;
+	
+	$TAB['peers'] = array() ;
+	$query = "SELECT entry_key FROM view_bible_CFG_PEER_entry WHERE treenode_key='INV'" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+		$peer_code = $arr[0] ;
+		$ttmp = explode('_',$peer_code,2) ;
+		$peer_short = $ttmp[1] ;
+		$TAB['peers'][] = array(
+			'peer_code' => $peer_code,
+			'peer_short' => $peer_short,
+			'peer_mkey' => 'invpeer_'.$peer_code
+		);
+	}
+	
+	return array('success'=>true,'data'=>$TAB) ;
+}
 function specBpSales_inv_getRecords( $post_data ) {
 	global $_opDB ;
 	
@@ -56,8 +77,30 @@ function specBpSales_inv_getRecords( $post_data ) {
 		}
 		
 		$row['ligs'] = array() ;
+		//$row['peers'] = array() ;
 		
 		$TAB[$paracrm_row['filerecord_id']] = $row ;
+	}
+	
+	if( TRUE ) {
+		$query = "SELECT ip.* FROM view_file_INV_PEER ip WHERE 1" ;
+		if( isset($post_data['filter_invFilerecordId_arr']) ) {
+			$arr_invFilerecordIds = json_decode($post_data['filter_invFilerecordId_arr'],true) ;
+			if( $arr_invFilerecordIds ) {
+				$sqlList_invFilerecordIds = $_opDB->makeSQLlist($arr_invFilerecordIds) ;
+				$query.= " AND ip.filerecord_parent_id IN {$sqlList_invFilerecordIds}" ;
+			}
+		}
+		$result = $_opDB->query($query) ;
+		while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+			$inv_filerecord_id = $arr['filerecord_parent_id'] ;
+			if( !isset($TAB[$inv_filerecord_id]) ) {
+				continue ;
+			}
+			$mkey = 'invpeer_'.$arr['field_PEER_CODE'] ;
+			$value = ($arr['field_SEND_IS_OK'] && ($arr['field_SEND_REF']!='ZERO')) ;
+			$TAB[$inv_filerecord_id][$mkey] = $value ;
+		}
 	}
 	
 	
