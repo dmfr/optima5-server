@@ -98,7 +98,7 @@ if( FALSE ) {
 
 // ******************************************
 
-
+$date_now = date('Y-m-d H:i:s') ;
 $arr_invFilerecordIds = array() ;
 
 // ************ Chargement INV **************
@@ -122,7 +122,7 @@ while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
 		$arr_ins['field_PEER_CODE'] = $GLOBALS['_cfg_peer_code'] ;
 		$arr_ins['field_SEND_IS_OK'] = 1 ;
 		$arr_ins['field_SEND_REF'] = 'ZERO' ;
-		$arr_ins['field_SEND_DATE'] = date('Y-m-d H:i:s') ;
+		$arr_ins['field_SEND_DATE'] = $date_now ;
 		paracrm_lib_data_insertRecord_file( 'INV_PEER' , $filerecord_id , $arr_ins ) ;
 		continue ;
 	}
@@ -160,7 +160,7 @@ foreach( $arr_invFilerecordIds as $inv_filerecord_id ) {
 	$arr_ins['field_PEER_CODE'] = $GLOBALS['_cfg_peer_code'] ;
 	$arr_ins['field_SEND_IS_OK'] = 1 ;
 	$arr_ins['field_SEND_REF'] = $GLOBALS['factor_ref'] ;
-	$arr_ins['field_SEND_DATE'] = date('Y-m-d H:i:s') ;
+	$arr_ins['field_SEND_DATE'] = $date_now ;
 	paracrm_lib_data_insertRecord_file( 'INV_PEER' , $inv_filerecord_id , $arr_ins ) ;
 }
 

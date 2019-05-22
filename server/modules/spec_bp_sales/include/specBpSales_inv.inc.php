@@ -383,7 +383,7 @@ function specBpSales_inv_setRecord( $post_data ) {
 	if( $record_data['cli_link'] ) {
 		$arr_update = array() ;
 		$arr_update['field_CLI_EAN'] = $record_data['cli_link'] ;
-		$arr_update['field_CLI_SIRET'] = $record_data['cli_siret'] ;
+		$arr_update['field_CLI_SIRET'] = trim($record_data['cli_siret']) ;
 		paracrm_lib_data_updateRecord_bibleEntry('CUSTOMER',$record_data['cli_link'],$arr_update) ;
 	}
 	
