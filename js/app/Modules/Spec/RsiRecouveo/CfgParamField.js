@@ -184,6 +184,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.CfgParamField',{
 				if( Ext.isArray(selectedValue) ) {
 					selectedValue = selectedValue[0] ;
 				}
+				if( cfgParamTree.getStore().getNodeById(selectedValue)==null ) {
+					return ;
+				}
 				this.divtext.dom.innerHTML = cfgParamTree.getStore().getNodeById(selectedValue).get('nodeText') ;
 				if( this.cfgParam_id.indexOf('ADR_')===0 && cfgParamTree.getStore().getNodeById(selectedValue).getDepth()==2 ) {
 					this.divtext.dom.innerHTML = cfgParamTree.getStore().getNodeById(selectedValue).parentNode.get('nodeText') ;
