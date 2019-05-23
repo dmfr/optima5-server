@@ -251,6 +251,31 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 							})
 						}
 					});
+				} else if( atrRecord.atr_id.split('@')[1].indexOf('BOOL_')===0 ) {
+					formItems.push({
+						cfgParam_id: 'ATR:'+atrRecord.atr_id,
+						readOnly: !atrRecord.is_editable,
+						xtype: 'combobox',
+						fieldLabel: atrRecord.atr_desc,
+						name: atrRecord.atr_field,
+						forceSelection:true,
+						allowBlank:true,
+						editable:false,
+						typeAhead:false,
+						queryMode: 'local',
+						displayField: 'atr_value',
+						valueField: 'atr_value',
+						checkValueOnChange: function() {}, //HACK
+						store: {
+							fields: [
+								{name: 'atr_value', type:'string'}
+							],
+							data: [
+								{atr_value: 'Yes'},
+								{atr_value: 'No'}
+							]
+						}
+					});
 				} else {
 					formItems.push({
 						cfgParam_id: 'ATR:'+atrRecord.atr_id,

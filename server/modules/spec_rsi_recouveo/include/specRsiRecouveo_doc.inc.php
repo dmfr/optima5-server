@@ -482,7 +482,7 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE, $stopAsHtm
 				'record_txt' => 'Desc',
 				'date_record' => 'Doc.Date',
 				'date_value' => 'Exp.Date',
-				'amount_tot' => 'Amount (€ VAT)'
+				'amount_tot' => 'Amount (€)'
 			);
 			break ;
 	}
