@@ -232,7 +232,7 @@ function specDbsTracy_trspt_setHeader( $post_data ) {
 	$arr_ins['field_FLIGHT_DATE'] = $form_data['flight_date'] ;
 	$arr_ins['field_FLIGHT_CODE'] = $form_data['flight_code'] ;
 	$arr_ins['field_CUSTOMS_IS_ON'] = ($form_data['customs_mode']=='ON') ;
-	$arr_ins['field_CUSTOMS_MODE'] = $form_data['customs_mode'] ;
+	$arr_ins['field_CUSTOMS_MODE'] = trim($form_data['customs_mode']) ;
 	if( $form_data['customs_mode']=='MAN' ) {
 		$arr_ins['field_CUSTOMS_DATE_REQUEST'] = ($form_data['customs_date_request'] ? $form_data['customs_date_request'] : '') ;
 		$arr_ins['field_CUSTOMS_DATE_CLEARED'] = ($form_data['customs_date_cleared'] ? $form_data['customs_date_cleared'] : '') ;
@@ -263,7 +263,10 @@ function specDbsTracy_trspt_setHeader( $post_data ) {
 		return array('success'=>false) ;
 	}
 	
-	specDbsTracy_trspt_ackCustomsStatus( array('trspt_filerecord_id'=>$filerecord_id) ) ;
+	$err = specDbsTracy_trspt_ackCustomsStatus( array('trspt_filerecord_id'=>$filerecord_id) ) ;
+	if( $err ) {
+		return array('success'=>false, 'error'=>$err) ;
+	}
 	
 	if( $post_data['validateStepCode'] ) {
 		$params = array(
@@ -431,6 +434,47 @@ function specDbsTracy_trspt_ackCustomsStatus( $post_data ) {
 			$target_52CACK = $trspt_record['customs_date_cleared'] ;
 		}
 	}
+	if( in_array($trspt_record['customs_mode'],array('MAN','AUTO')) ) {
+		if( !$trspt_record['customs_date_request'] ) {
+			$target_51CREQ = '0000-00-00 00:00:00' ;
+		}
+	}
+	
+	$errors = array() ;
+	$ttmp = specDbsTracy_cfg_getConfig() ;
+	if( in_array($trspt_record['customs_mode'],array('AUTO')) ) {
+		foreach( $ttmp['data']['cfg_soc'] as $soc_row ) {
+			if( $soc_row['soc_code'] == $trspt_record['id_soc'] ) {
+				if( !$soc_row['cfg_customs'] ) {
+					$errors[] = 'EDI Broker not enabled for BU' ;
+				}
+			}
+		}
+		if( count($trspt_record['hats'])>1 ) {
+			$errors[] = 'Multiple shipments not allowed' ;
+		}
+		if( count($trspt_record['hats'][0]['parcels'])==0 ) {
+			$errors[] = 'No parcel(s) information' ;
+		}
+		$val = 0 ;
+		foreach( $trspt_record['orders'] as $order_row ) {
+			if( $order_row['desc_value_currency'] ) {
+				$val += $order_row['desc_value'] ;
+			}
+		}
+		if( $val <= 0 ) {
+			$errors[] = 'Total value/currency required' ;
+		}
+	}
+	if( $errors ) {
+		$arr_update['field_CUSTOMS_MODE'] = '' ;
+		$arr_update['field_CUSTOMS_DATE_REQUEST'] = '' ;
+		$arr_update['field_CUSTOMS_DATE_CLEARED'] = '' ;
+		paracrm_lib_data_updateRecord_file( 'TRSPT', $arr_update, $p_trsptFilerecordId );
+		unset($target_51CREQ) ;
+		unset($target_52CACK) ;
+	}
+	
 	
 	//print_r( $trspt_record ) ;
 	foreach( $trspt_record['orders'] as $order_row ) {
@@ -474,7 +518,7 @@ function specDbsTracy_trspt_ackCustomsStatus( $post_data ) {
 	
 	
 	
-
+	return $errors ;
 }
 
 

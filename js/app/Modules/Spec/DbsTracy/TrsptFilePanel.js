@@ -254,12 +254,12 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 						fieldLabel: 'Flow',
 						queryMode: 'local',
 						forceSelection: true,
-						allowBlank: false,
+						allowBlank: true,
 						editable: false,
 						store: {
 							fields: ['id','text'],
 							data: [
-								{id: '', text: ' '},
+								{id: ' ', text: ' '},
 								{id: 'OFF', text: 'No customs (EU)'},
 								{id: 'MAN', text: 'Manual Customs (CEQ/REQ)'},
 								{id: 'AUTO', text: 'EDI Broker'}
@@ -1023,8 +1023,13 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 			success: function(response) {
 				var ajaxResponse = Ext.decode(response.responseText) ;
 				if( ajaxResponse.success == false ) {
-					var error = ajaxResponse.error || 'File not saved !' ;
-					Ext.MessageBox.alert('Error',error) ;
+						var error ;
+						if( Ext.isArray(ajaxResponse.error) ) {
+							var error = '* Errors / missing data :'+'<br>'+ajaxResponse.error.join("<br>") ;
+						} else {
+							var error = ajaxResponse.error || 'File not saved !' ;
+						}
+						Ext.MessageBox.alert('Error',error) ;
 					return ;
 				}
 				this.onSaveHeader(ajaxResponse.id, (!Ext.isEmpty(validateStepCode)||!Ext.isEmpty(additionalData))) ;

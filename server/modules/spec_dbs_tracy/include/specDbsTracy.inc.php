@@ -81,7 +81,8 @@ function specDbsTracy_cfg_getConfig() {
 		$record = array(
 			'soc_code' => $arr['field_SOC_CODE'],
 			'soc_txt' => $arr['field_SOC_TXT'],
-			'cfg_adr' => explode(',',$arr['field_CFG_ADR'])
+			'cfg_adr' => explode(',',$arr['field_CFG_ADR']),
+			'cfg_customs' => json_decode($arr['field_CFG_CUSTOMS_JSON'],true)
 		) ;
 		
 		$TAB_soc[] = $record ;

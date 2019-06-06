@@ -716,6 +716,9 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 			if( !Ext.isEmpty(vObj.VOID_dateSql) ) {
 				return 'N/A<br>&#160;' ;
 			}
+			if( dateSql=='0000-00-00 00:00:00' && vObj.color=='red' ) {
+				return '&#160;<br>&#160;' ;
+			}
 			if( Ext.isEmpty(dateSql) ) {
 				return '&#160;' ;
 			}
