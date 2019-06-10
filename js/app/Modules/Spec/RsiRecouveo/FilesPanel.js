@@ -818,7 +818,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 		}) ;
 		
 		var columns = [] ;
-
+		var columnsKeys = [] ;
 		Ext.Array.each( this.down('#pCenter').down('#pGrid').headerCt.getGridColumns(), function(column) {
 			if( !column.isVisible(true) ) {
 				return ;
@@ -828,15 +828,18 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				dataIndexString: mapFieldString[column.dataIndex],
 				text: column.text
 			});
+			columnsKeys.push( column.dataIndex ) ;
 		});
 		
 		var data = [] ;
 		this.down('#pCenter').down('#pGrid').getStore().each( function(record) {
 			var recData = record.getData(true) ;
-			delete recData['actions'] ;
-			delete recData['inv_balage'] ;
-			delete recData['records'] ;
-			data.push( recData ) ;
+			
+			var exportData = {} ;
+			Ext.Array.each( columnsKeys, function(k){
+				exportData[k] = recData[k] ;
+			}) ;
+			data.push( exportData ) ;
 		}) ;
 		
 		var exportParams = this.optimaModule.getConfiguredAjaxParams() ;
