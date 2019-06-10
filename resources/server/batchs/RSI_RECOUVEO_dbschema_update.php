@@ -37,12 +37,32 @@ if( !$json ) {
 $t = new DatabaseMgr_Sdomain( DatabaseMgr_Base::dbCurrent_getDomainId() );
 $t->sdomainDb_updateSchema( DatabaseMgr_Sdomain::dbCurrent_getSdomainId() ) ;
 
+$arr_bibleCodes = $arr_fileCodes = array() ;
+foreach( $json['define_bible'] as $row ) {
+	$arr_bibleCodes[] = $row['bible_code'] ;
+}
+foreach( $json['define_file'] as $row ) {
+	$arr_fileCodes[] = $row['file_code'] ;
+}
+
 // restore define tables
 foreach( $json as $table => $rows ) {
-	$query = "TRUNCATE TABLE {$table}" ;
-	$_opDB->query($query) ;
+	if( strpos($table,'define_bible') === 0 ) {
+		$query = "DELETE FROM {$table} WHERE bible_code IN ".$_opDB->makeSQLlist($arr_bibleCodes) ;
+		$_opDB->query($query) ;
+	}
+	if( strpos($table,'define_file') === 0 ) {
+		$query = "DELETE FROM {$table} WHERE file_code IN ".$_opDB->makeSQLlist($arr_fileCodes) ;
+		$_opDB->query($query) ;
+	}
 	
 	foreach( $rows as $row ) {
+		if( (strpos($table,'define_bible') === 0) && !in_array($row['bible_code'],$arr_bibleCodes) ) {
+			continue ;
+		}
+		if( (strpos($table,'define_file') === 0) && !in_array($row['file_code'],$arr_fileCodes) ) {
+			continue ;
+		}
 		$_opDB->insert($table,$row) ;
 	}
 }
