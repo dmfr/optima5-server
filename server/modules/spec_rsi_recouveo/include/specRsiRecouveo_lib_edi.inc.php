@@ -570,7 +570,9 @@ function specRsiRecouveo_lib_edi_post_record( $json_rows) {
 			}
 		}
 
-		$query = "SELECT filerecord_id FROM view_file_RECORD WHERE field_RECORD_ID = '{$arr_ins["field_RECORD_ID"]}' AND field_LINK_ACCOUNT = '{$arr_ins["field_LINK_ACCOUNT"]}'" ;
+		$query_accId = $_opDB->escape_string($arr_ins["field_LINK_ACCOUNT"]) ;
+		$query_recordId = $_opDB->escape_string($arr_ins["field_RECORD_ID"]) ;
+		$query = "SELECT filerecord_id FROM view_file_RECORD WHERE field_RECORD_ID = '{$query_recordId}' AND field_LINK_ACCOUNT = '{$query_accId}'" ;
 		$result = $_opDB->query($query) ;
 		if ($_opDB->num_rows($result) < 1 ){
 			paracrm_lib_data_insertRecord_file( 'RECORD' , 0, $arr_ins ) ;
