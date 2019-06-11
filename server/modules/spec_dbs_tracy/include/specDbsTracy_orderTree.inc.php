@@ -68,14 +68,6 @@ function specDbsTracy_orderTree_getData( $post_data ) {
 					}
 					break ;
 				case 'MAN' :
-					if( $order_row['calc_link_customs_CLR'] ) {
-						$order_row['_color'] = 'blue' ;
-					} elseif( $order_row['calc_link_customs_REQ'] ) {
-						$order_row['_color'] = 'red' ;
-					} else {
-						$order_row['_color'] = 'red' ;
-					}
-					break ;
 				case 'OFF' :
 					$order_row['_color'] = 'blue' ;
 					break ;

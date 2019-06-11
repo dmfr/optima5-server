@@ -274,7 +274,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 								form.findField('customs_date_request').setVisible(cmb.getValue()=='MAN') ;
 								form.findField('customs_date_cleared').setVisible(cmb.getValue()=='MAN') ;
 								formPanel.down('#cntCustomsTransaction').setVisible(cmb.getValue()=='AUTO') ;
-								form.findField('customs_date_request_ro').setVisible(cmb.getValue()=='AUTO') ;
+								formPanel.down('#customs_date_request_cnt').setVisible(cmb.getValue()=='AUTO') ;
 								form.findField('customs_date_cleared_ro').setVisible(cmb.getValue()=='AUTO') ;
 							}
 						}
@@ -318,9 +318,25 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 						}]
 					},{
 						hidden: true,
-						xtype: 'displayfield',
+						xtype: 'fieldcontainer',
 						fieldLabel: 'REQ',
-						name: 'customs_date_request_ro'
+						itemId: 'customs_date_request_cnt',
+						layout: {
+							type: 'hbox'
+						},
+						items: [{
+							xtype: 'displayfield',
+							name: 'customs_date_request_ro',
+						},{
+							itemId: 'customs_date_request_btn',
+							margin: '0px 10px',
+							xtype: 'button',
+							text: 'Download XML',
+							handler: function() {
+								this.handle190304BrokerXMLDownload() ;
+							},
+							scope: this
+						}]
 					},{
 						hidden: true,
 						xtype: 'displayfield',
@@ -852,17 +868,19 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 		this._trsptRecordCopy = trsptRecord ;
 		
 		//fHeader
+		var headerFormValues = trsptRecord.getData() ;
 		this.down('#pHeaderForm').getForm().reset() ;
 		this.down('#pHeaderForm').getForm().findField('id_soc').setReadOnly(true) ;
 		this.down('#pHeaderForm').getForm().findField('flow_code').setReadOnly(true) ;
 		this.down('#pHeaderForm').getForm().findField('atr_type').setReadOnly(true) ;
 		this.down('#pHeaderForm').getForm().findField('id_doc').setReadOnly(true) ;
-		var headerFormValues = trsptRecord.getData() ;
+		this.down('#pHeaderForm').down('#customs_date_request_btn').setVisible( !Ext.isEmpty(headerFormValues.customs_date_request) ) ;
 		Ext.apply(headerFormValues, {
 			customs_date_request_ro: Ext.util.Format.date(headerFormValues.customs_date_request, 'd/m/Y H:i'),
 			customs_date_cleared_ro: Ext.util.Format.date(headerFormValues.customs_date_cleared, 'd/m/Y H:i')
 		}) ;
 		this.down('#pHeaderForm').getForm().setValues(headerFormValues) ;
+		
 		if( this._readonlyMode ) {
 			this.down('#pHeaderForm').getForm().getFields().each( function(field) {
 				if( field.setReadOnly ) {
@@ -1497,5 +1515,25 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 		
 		popupPanel.show();
 		popupPanel.getEl().alignTo(this.getEl(), 'c-c?');
+	},
+	
+	
+	handle190304BrokerXMLDownload: function() {
+		var exportParams = this.optimaModule.getConfiguredAjaxParams() ;
+		Ext.apply(exportParams,{
+			_moduleId: 'spec_dbs_tracy',
+			_action: 'report',
+			data: Ext.JSON.encode({
+				file_model: '190304BrokerXML',
+				trspt_filerecord_id: this._trsptFilerecordId
+			})
+		}) ;
+		Ext.create('Ext.ux.dams.FileDownloader',{
+			renderTo: Ext.getBody(),
+			requestParams: exportParams,
+			requestAction: Optima5.Helper.getApplication().desktopGetBackendUrl(),
+			requestMethod: 'POST'
+		}) ;
+		
 	}
 });

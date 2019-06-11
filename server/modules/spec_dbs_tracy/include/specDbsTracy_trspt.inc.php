@@ -16,6 +16,7 @@ function specDbsTracy_trspt_getRecords( $post_data ) {
 	// filter ?
 	if( isset($post_data['filter_trsptFilerecordId_arr']) ) {
 		$filter_trsptFilerecordId_list = $_opDB->makeSQLlist( json_decode($post_data['filter_trsptFilerecordId_arr'],true) ) ;
+		$load_details = TRUE ;
 	}
 	if( $post_data['filter_socCode'] ) {
 		$filter_socCode = $post_data['filter_socCode'] ;
@@ -124,7 +125,7 @@ function specDbsTracy_trspt_getRecords( $post_data ) {
 		'filter_socCode' => $filter_socCode,
 		'filter_orderFilerecordId_arr'=> json_encode($filter_orderFilerecordId_arr),
 		'filter_archiveIsOn' => ( $filter_archiveIsOn ? 1 : 0 ),
-		'skip_details' => 1
+		'skip_details' => ($load_details ? 0 : 1)
 	) ) ;
 	$TAB_order = array() ;
 	foreach( $ttmp['data'] as $row_order ) {
@@ -135,7 +136,7 @@ function specDbsTracy_trspt_getRecords( $post_data ) {
 		'filter_socCode' => $filter_socCode,
 		'filter_orderFilerecordId_arr'=> json_encode($filter_orderFilerecordId_arr),
 		'filter_archiveIsOn' => ( $filter_archiveIsOn ? 1 : 0 ),
-		'skip_details' => 1
+		'skip_details' => ($load_details ? 0 : 1)
 	) ) ;
 	$TAB_hats = array() ;
 	foreach( $ttmp['data'] as $row_hat ) {

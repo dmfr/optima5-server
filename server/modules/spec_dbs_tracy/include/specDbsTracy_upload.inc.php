@@ -30,6 +30,10 @@ function specDbsTracy_report( $post_data ) {
 		case 'RCL_VL02NAWB' :
 			$csv_buffer = specDbsTracy_report_RCL_VL02NAWB_tmp($form_data) ;
 			break ;
+		case '190304BrokerXML' :
+			$csv_buffer = specDbsTracy_report_190304BrokerXML($form_data['trspt_filerecord_id']) ;
+			$xml_filename = 'Broker190304_'.$form_data['trspt_filerecord_id'].'_'.time().'.xml' ;
+			break ;
 		default :
 			if( strpos($form_data['file_model'],'QSQL::')===0 ) {
 				$ttmp = explode('::',$form_data['file_model']) ;
@@ -41,6 +45,9 @@ function specDbsTracy_report( $post_data ) {
 	}
 	
 	$filename = 'OP5report_TRACY_.'.$form_data['file_model'].'_'.time().'.'.'csv' ;
+	if( $xml_filename ) {
+		$filename = $xml_filename ;
+	}
 	header("Content-Type: application/force-download; name=\"$filename\""); 
 	header("Content-Disposition: attachment; filename=\"$filename\""); 
 	echo $csv_buffer ;
@@ -144,7 +151,81 @@ function specDbsTracy_report_RCL_VL02NAWB_tmp( $form_data, $use_log=FALSE ) {
 	
 	return $csv_buffer ;
 }
+function specDbsTracy_report_190304BrokerXML( $trspt_filerecord_id ) {
+	global $_opDB ;
+	
+	$ttmp = specDbsTracy_trspt_getRecords(array('filter_trsptFilerecordId_arr'=>json_encode(array($trspt_filerecord_id)))) ;
+	$trspt_record = $ttmp['data'][0] ;
+	if( !$trspt_record ) {
+		return array('success'=>false) ;
+	}
+	
+	
+	//print_r($trspt_record) ;
+	$hat_record = reset($trspt_record['hats']) ;
+	$order_record = reset($trspt_record['orders']) ;
+	
+	
+	$xml_buffer = '' ;
+	$xml_buffer.= '<?xml version="1.0" encoding="utf-8"?>' ;
+	$xml_buffer.= '<RequestToBroker>' ;
+	$xml_buffer.= '<RequestDate>'.date('Ymd').'</RequestDate>' ;
+	
+	$inv_no = $order_record['ref_invoice'] ;
+	$xml_buffer.= "<InvoiceNo>{$inv_no}</InvoiceNo>" ;
+	
+	$xml_buffer.= "<Deliveries>" ;
+	foreach( $trspt_record['orders'] as $order_iter ) {
+		$xml_buffer.= "<DeliveryNo>{$order_iter['id_dn']}</DeliveryNo>" ;
+	}
+	$xml_buffer.= "</Deliveries>" ;
+	
+	$value_currency = '' ;
+	$value_amount = 0 ;
+	foreach( $trspt_record['orders'] as $order_iter ) {
+		if( $order_iter['desc_value'] && $order_iter['desc_value_currency'] ) {
+			$value_currency = $order_iter['desc_value_currency'] ;
+			$value_amount += $order_iter['desc_value'] ;
+			break ;
+		}
+	}
+	$xml_buffer.= "<Value>" ;
+		$xml_buffer.= "<ValueAmount>{$value_amount}</ValueAmount>" ;
+		$xml_buffer.= "<ValueCurrency>{$value_currency}</ValueCurrency>" ;
+	$xml_buffer.= "</Value>" ;
+	
+	$xml_buffer.= "<Packagings>" ;
+	foreach( $hat_record['parcels'] as $parcel ) {
+		$xml_buffer.= "<Packaging>" ;
+		$xml_buffer.= "<Count>{$parcel['vol_count']}</Count>" ;
+		$xml_buffer.= "<Weight>{$parcel['vol_kg']}</Weight>" ;
+		
+		$xml_buffer.= "<Dimensions>" ;
+			$xml_buffer.= "<Length>{$parcel['vol_dims'][0]}</Length>" ;
+			$xml_buffer.= "<Width>{$parcel['vol_dims'][1]}</Width>" ;
+			$xml_buffer.= "<Height>{$parcel['vol_dims'][2]}</Height>" ;
+		$xml_buffer.= "</Dimensions>" ;
+		
+		$xml_buffer.= "</Packaging>" ;
+	}
+	$xml_buffer.= "</Packagings>" ;
+	
+	$attachment = NULL ;
+	foreach( $order_record['attachments'] as $attachment_iter ) {
+		if( !(strpos($attachment['attachment_txt'],'INVOICE')===FALSE) ) {
+			$attachment = $attachment_iter ;
+			break ;
+		}
+	}
+	if( $attachment ) {
+		
+	}
+	
+	
+	$xml_buffer.= '</RequestToBroker>' ;
 
+	return $xml_buffer ;
+}
 
 
 
