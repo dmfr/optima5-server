@@ -210,15 +210,35 @@ function specDbsTracy_report_190304BrokerXML( $trspt_filerecord_id ) {
 	}
 	$xml_buffer.= "</Packagings>" ;
 	
-	$attachment = NULL ;
+	$attachments = array() ;
 	foreach( $order_record['attachments'] as $attachment_iter ) {
-		if( !(strpos($attachment['attachment_txt'],'INVOICE')===FALSE) ) {
-			$attachment = $attachment_iter ;
-			break ;
+		if( !(strpos($attachment_iter['attachment_txt'],'INVOICE')===FALSE) ) {
+			$attachments[] = $attachment_iter ;
 		}
 	}
-	if( $attachment ) {
+	if( $attachments ) {
+		$arr_ids = array() ;
+		foreach($attachments as $attachment_iter) {
+			$arr_ids[] = $attachment_iter['attachment_media_id'] ;
+		}
 		
+		
+		media_contextOpen( $_POST['_sdomainId'] ) ;
+		
+		$jpegs = array() ;
+		foreach( $arr_ids as $media_id ) {
+			$src_filepath = media_img_getPath( $media_id ) ;
+			$jpegs[] = file_get_contents($src_filepath) ;
+		}
+		
+		$pdf = media_pdf_jpgs2pdf($jpegs,$page_format='A4') ;
+		media_contextClose() ;
+		
+		$xml_buffer.= "<DocumentExport>" ;
+		$xml_buffer.= "<BinaryFormat>".'PDF'."</BinaryFormat>" ;
+		$xml_buffer.= "<BinarySize>".strlen($pdf)."</BinarySize>" ;
+		$xml_buffer.= "<BinaryBase64>".base64_encode($pdf)."</BinaryBase64>" ;
+		$xml_buffer.= "</DocumentExport>" ;
 	}
 	
 	
