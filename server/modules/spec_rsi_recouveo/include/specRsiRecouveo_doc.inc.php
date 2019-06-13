@@ -758,11 +758,10 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE, $stopAsHtm
 			$node_qbookTable = $dom_page->getElementsByTagName('qbook-table')->item(0);
 			$node_table = $dom_page->importNode($node_table,true) ;
 			$node_qbookTable->parentNode->replaceChild($node_table,$node_qbookTable) ;
+			
 			//paging
-			if( $dom_page->getElementsByTagName('qbook-tablerecords-paging') ) {
-				$paging_node = $dom_page->getElementsByTagName('qbook-tablerecords-paging')->item(0) ;
-				//var_dump(
-				
+			$paging_node = $dom_page->getElementsByTagName('qbook-tablerecords-paging')->item(0) ;
+			if( $paging_node ) {
 				$currentPage = $idx+1 ;
 				$totalPage = $arr_tablesData_cnt ;
 				$text = '('.$currentPage.'/'.$totalPage.')' ;
