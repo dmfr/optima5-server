@@ -171,6 +171,25 @@ function specDbsTracy_report_190304BrokerXML( $trspt_filerecord_id ) {
 	$xml_buffer.= '<RequestToBroker>' ;
 	$xml_buffer.= '<RequestDate>'.date('Ymd').'</RequestDate>' ;
 	
+	$static_office = 'FR00677A' ;
+	$xml_buffer.= "<ShippingOffice>{$static_office}</ShippingOffice>" ;
+	
+	$static_location = 'MITRY MORY' ;
+	$xml_buffer.= "<ShippingLocation>{$static_location}</ShippingLocation>" ;
+	
+	$wid = $trspt_record['id_doc'] ;
+	$xml_buffer.= "<WID>{$wid}</WID>" ;
+	
+	$prio_code = $trspt_record['atr_priority'] ;
+	$ttmp = paracrm_lib_data_getRecord('bible_entry','LIST_SERVICE',$prio_code) ;
+	$prio_txt = $ttmp['field_TEXT'] ;
+	$xml_buffer.= "<Priority>{$prio_txt}</Priority>" ;
+	
+	$carrier_code = $trspt_record['mvt_carrier'] ;
+	$ttmp = paracrm_lib_data_getRecord('bible_entry','LIST_CARRIER',$carrier_code) ;
+	$carrier_txt = $ttmp['field_NAME'] ;
+	$xml_buffer.= "<Carrier>{$carrier_txt}</Carrier>" ;
+	
 	$inv_no = $order_record['ref_invoice'] ;
 	$xml_buffer.= "<InvoiceNo>{$inv_no}</InvoiceNo>" ;
 	
