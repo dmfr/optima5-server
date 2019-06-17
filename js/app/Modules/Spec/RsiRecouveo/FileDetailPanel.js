@@ -2127,6 +2127,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 					var childFileRecord = this._accountRecord.files().getById(rec.get('link_newfile_filerecord_id')),
 						childrenActions = [],
 						childrenFirst = true ;
+					if( !childFileRecord ) {
+								return ;
+					}
 					if( !childFileRecord.get('status_closed_void') && !childFileRecord.get('status_closed_end') ) {
 						// on ne parcourt en parent<>child que les fichiers fermés
 						return ;

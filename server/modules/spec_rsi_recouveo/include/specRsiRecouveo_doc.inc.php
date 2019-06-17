@@ -523,8 +523,8 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE, $stopAsHtm
 		unset($val) ;
 		
 		$row_table = array(
-			'record_ref' => $record_row['record_ref'],
-			'record_txt' => trim(substr($record_row['record_txt'],0,35)),
+			'record_ref' => htmlspecialchars($record_row['record_ref']),
+			'record_txt' => trim(substr(htmlspecialchars($record_row['record_txt']),0,35)),
 			'type_temprec' => $record_row['type_temprec'],
 			'date_load' => date('d/m/Y',strtotime($record_row['date_load'])),
 			'date_record' => date('d/m/Y',strtotime($record_row['date_record'])),
