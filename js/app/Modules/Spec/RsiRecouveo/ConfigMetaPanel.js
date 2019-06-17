@@ -89,9 +89,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigMetaPanel', {
 						columns: 1,
 						vertical: true,
 						items: [
-								{ boxLabel: 'Ne pas imprimer', name: 'rb', inputValue: '0' },
-								{ boxLabel: 'Dossier en cours', name: 'rb', inputValue: '1' },
-								{ boxLabel: 'Intégralité du compte', name: 'rb', inputValue: '2', checked: true}
+								{ boxLabel: 'Ne pas imprimer', name: 'print_records', inputValue: 'none' },
+								{ boxLabel: 'Dossier en cours', name: 'print_records', inputValue: 'current' },
+								{ boxLabel: 'Intégralité du compte', name: 'print_records', inputValue: 'all'}
 						]
 					},{
 						xtype: 'radiogroup',
@@ -100,8 +100,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigMetaPanel', {
 						columns: 1,
 						vertical: true,
 						items: [
-								{ boxLabel: 'Noir/blanc', name: 'cl', inputValue: '1', checked: true },
-								{ boxLabel: 'Couleur', name: 'cl', inputValue: '2'}
+								{ boxLabel: 'Noir/blanc', name: 'print_color', inputValue: 'bw'},
+								{ boxLabel: 'Couleur', name: 'print_color', inputValue: 'color'}
 						]
 					}]
 				},{

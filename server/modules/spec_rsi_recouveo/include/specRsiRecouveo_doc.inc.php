@@ -205,17 +205,17 @@ function specRsiRecouveo_doc_replaceIfset( $doc, $map_mkey_value ) {
 function specRsiRecouveo_doc_populateStatic( $doc ) {
 	// Load config
 	$json = specRsiRecouveo_config_loadMeta(array()) ;
-	$config_map = $json['data'] ;
+	$config_meta = $json['data'] ;
 
 	// Apply static parameters
 	$map_mkey_value = array(
-		'static_entity_name' => nl2br($config_map['gen_entity_name']),
-		'static_entity_adr' => nl2br($config_map['gen_entity_adr']),
+		'static_entity_name' => nl2br($config_meta['gen_entity_name']),
+		'static_entity_adr' => nl2br($config_meta['gen_entity_adr']),
 
-		'static_ext_recouv' => $config_map['gen_ext_recouv'],
-		'static_ext_avocat' => $config_map['gen_ext_avocat'],
+		'static_ext_recouv' => $config_meta['gen_ext_recouv'],
+		'static_ext_avocat' => $config_meta['gen_ext_avocat'],
 
-		'static_mail_footer' => $config_map['gen_mail_footer']
+		'static_mail_footer' => $config_meta['gen_mail_footer']
 	);
 
 	// Replace
@@ -241,13 +241,13 @@ function specRsiRecouveo_doc_populateStatic( $doc ) {
 }
 function specRsiRecouveo_doc_getHtmlPayment( $paymentBinary ) {
 	$json = specRsiRecouveo_config_loadMeta(array()) ;
-	$config_map = $json['data'] ;
+	$config_meta = $json['data'] ;
 	
 	$doc = new DOMDocument();
 	@$doc->loadHTML('<?xml encoding="UTF-8"><html>'."\r\n".'<div>'.$paymentBinary.'</div></html>');
-	foreach( $config_map as $mkey => $mvalue ) {
+	foreach( $config_meta as $mkey => $mvalue ) {
 		if( !(strpos($mkey,'pay_')===0) ) {
-			unset($config_map[$mkey]) ;
+			unset($config_meta[$mkey]) ;
 			continue ;
 		}
 		if( substr($mkey,-3)=='_on' ) {
@@ -266,8 +266,8 @@ function specRsiRecouveo_doc_getHtmlPayment( $paymentBinary ) {
 		
 		$val = '' ;
 		$src_value = $node_qbookValue->attributes->getNamedItem('src_value')->value ;
-		if( $config_map[$src_value] ) {
-			$val = nl2br($config_map[$src_value]) ;
+		if( $config_meta[$src_value] ) {
+			$val = nl2br($config_meta[$src_value]) ;
 		} else {
 			continue ;
 		}
@@ -282,6 +282,9 @@ function specRsiRecouveo_doc_getHtmlPayment( $paymentBinary ) {
 	return $doc->saveHTML() ; ;
 }
 function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE, $stopAsHtml=FALSE ) {
+	$json = specRsiRecouveo_config_loadMeta(array()) ;
+	$config_meta = $json['data'] ;
+	
 	global $_opDB ;
 	$p_tplId = $post_data['tpl_id'] ;
 	$p_fileFilerecordId = $post_data['file_filerecord_id'] ;
@@ -455,6 +458,11 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE, $stopAsHtm
 	// ************ DONNEES Tableau ***********************
 	$records = array();
 	foreach( $account_record['files'] as $accountFile_record ) {
+		if( $config_meta['print_records']=='current' ) {
+			if( $accountFile_record['file_filerecord_id'] != $p_fileFilerecordId ) {
+				continue ;
+			}
+		}
 		foreach( $accountFile_record['records'] as $accountFileRecord_record ) {
 			$records[] = $accountFileRecord_record ;
 		}
@@ -773,6 +781,9 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE, $stopAsHtm
 			$dom_pages[] = $dom_page ;
 		}
 	}
+	if( $config_meta['print_records']=='none' ) {
+		unset($records_div) ;
+	}
 	
 	
 	if( $records_div && $_appendToMainDoc=($p_adrType=='POSTAL') ) {
@@ -848,8 +859,6 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE, $stopAsHtm
 	unlink($pdf_path) ;
 
 
-	$json = specRsiRecouveo_config_loadMeta(array()) ;
-	$config_map = $json['data'] ;
 	//media_pdf_delete($media_id) ;
 	$json = array(
 		'success'=>true,
@@ -862,7 +871,7 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE, $stopAsHtm
 			'env_ref' => $new_ref_mail,
 			'env_title' => $inputTitle,
 			'sender_ref' => 'ENTITY',
-			'sender_adr' => $config_map['gen_entity_name']."\n".$config_map['gen_entity_adr'],
+			'sender_adr' => $config_meta['gen_entity_name']."\n".$config_meta['gen_entity_adr'],
 			'recep_ref' => $accFile_record['acc_id'],
 			'recep_adr' => $p_adrName."\n".$p_adrPostal
 		)
