@@ -193,11 +193,13 @@ function specDbsTracy_report_190304BrokerXML( $trspt_filerecord_id ) {
 	$inv_no = $order_record['ref_invoice'] ;
 	$xml_buffer.= "<InvoiceNo>{$inv_no}</InvoiceNo>" ;
 	
+	/*
 	$xml_buffer.= "<Deliveries>" ;
 	foreach( $trspt_record['orders'] as $order_iter ) {
 		$xml_buffer.= "<DeliveryNo>{$order_iter['id_dn']}</DeliveryNo>" ;
 	}
 	$xml_buffer.= "</Deliveries>" ;
+	*/
 	
 	$value_currency = '' ;
 	$value_amount = 0 ;
@@ -213,6 +215,7 @@ function specDbsTracy_report_190304BrokerXML( $trspt_filerecord_id ) {
 		$xml_buffer.= "<ValueCurrency>{$value_currency}</ValueCurrency>" ;
 	$xml_buffer.= "</Value>" ;
 	
+	/*
 	$xml_buffer.= "<Packagings>" ;
 	foreach( $hat_record['parcels'] as $parcel ) {
 		$xml_buffer.= "<Packaging>" ;
@@ -228,6 +231,16 @@ function specDbsTracy_report_190304BrokerXML( $trspt_filerecord_id ) {
 		$xml_buffer.= "</Packaging>" ;
 	}
 	$xml_buffer.= "</Packagings>" ;
+	*/
+	$tot_count = 0 ;
+	$tot_kg = 0 ;
+	foreach( $hat_record['parcels'] as $parcel ) {
+		$tot_count += $parcel['vol_count'] ;
+		$tot_kg += $parcel['vol_kg'] ;
+	}
+	$tot_kg = round($tot_kg,3) ;
+	$xml_buffer.= "<ParcelCount>{$tot_count}</ParcelCount>" ;
+	$xml_buffer.= "<Weight>{$tot_kg}</Weight>" ;
 	
 	$attachments = array() ;
 	foreach( $order_record['attachments'] as $attachment_iter ) {
