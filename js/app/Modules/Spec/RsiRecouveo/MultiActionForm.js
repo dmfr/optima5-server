@@ -179,7 +179,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MultiActionForm',{
 					{ boxLabel: 'Alignement scénario', name: 'multi_action', inputValue: 'scenstep'},
 					{ boxLabel: 'Action externe / Litige', name: 'multi_action', inputValue: 'lock_litig' },
 					{ boxLabel: 'Demande clôture', name: 'multi_action', inputValue: 'lock_close' },
-					{ boxLabel: 'Assigner collaborateur', name: 'multi_action', inputValue: 'user' }
+					{ boxLabel: 'Assigner collaborateur', name: 'multi_action', inputValue: 'user' },
+					{ boxLabel: 'Exporter la sélection', name: 'multi_action', inputValue: 'export_grp'}
 				],
 				listeners: {
 					change: function(rg,newValue,oldValue) {

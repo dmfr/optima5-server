@@ -129,12 +129,28 @@ function specRsiRecouveo_xls_create($post_data) {
 }
 
 function specRsiRecouveo_xls_createDetailPanel($post_data){
-	global $_opDB ;
+	$acc_id = $post_data["acc_id"] ;
+	$workbook = specRsiRecouveo_xls_create_writer($acc_id) ;
+	$tmpfilename = tempnam( sys_get_temp_dir(), "FOO");
 
+	$objWriter = PHPExcel_IOFactory::createWriter($workbook, 'Excel2007');
+	$objWriter->save($tmpfilename);
+	$workbook->disconnectWorksheets();
+	unset($workbook) ;
+	$filename = 'RsiRecouveo_Export'.'_'.$acc_id.'.xlsx' ;
+	header("Content-Type: application/force-download; name=\"$filename\"");
+	header("Content-Disposition: attachment; filename=\"$filename\"");
+	readfile($tmpfilename) ;
+	//unlink($tmpfilename) ;
+	die() ;
+
+}
+
+function specRsiRecouveo_xls_create_writer($accId){
+	global $_opDB ;
 	if( !class_exists('PHPExcel') )
 		return FALSE ;
-
-	$accId = json_decode($post_data['_fileID']) ;
+	
 	$request = "SELECT field_ACC_ID, field_ACC_NAME, field_LINK_USER_LOCAL, treenode_key FROM view_bible_LIB_ACCOUNT_entry WHERE field_ACC_ID ='{$accId}'" ;
 	$result = $_opDB->query($request) ;
 	$contact = $_opDB->fetch_assoc($result) ;
@@ -353,8 +369,8 @@ function specRsiRecouveo_xls_createDetailPanel($post_data){
 		$sheet2->mergeCells($cellValue.":".$cellValue2);
 
 		$style =array(
-		         'alignment'=>array(
-		            'horizontal'=>PHPExcel_Style_Alignment::HORIZONTAL_CENTER));
+			'alignment'=>array(
+				'horizontal'=>PHPExcel_Style_Alignment::HORIZONTAL_CENTER));
 		$sheet2->getStyle($cellValue)->applyFromArray($style) ;
 		$sheet2->getStyle($cellValue)->getFont()->setBold(true) ;
 		$cellCount += 1;
@@ -375,20 +391,20 @@ function specRsiRecouveo_xls_createDetailPanel($post_data){
 		}
 
 	}
-/*
-	for ($i = 0; $i <= $count; $i++){
-		$cellValue = $cellValueA.$i ;
-		$sheet2->setCellValue($cellValue, $adr_entity ) ;
-		$sheet2->setCellValue($cellValue, $coord[$i]['Type'] ) ;
-		$styleA = $sheet2->getStyle($cellValue) ;
-		$styleFont = $styleA->getFont() ;
-		$styleFont->setBold(true) ;
-		$str = explode("\n", $coord[$i]['Valeur']) ;
-		$str = implode("\r", $str) ;
-		$cellValue2 = $cellValueB.$i ;
-		$sheet2->getStyle($cellValue2)->getAlignment()->setWrapText(true) ;
-		$sheet2->setCellValue($cellValue2,$str) ;
-	}*/
+	/*
+		for ($i = 0; $i <= $count; $i++){
+			$cellValue = $cellValueA.$i ;
+			$sheet2->setCellValue($cellValue, $adr_entity ) ;
+			$sheet2->setCellValue($cellValue, $coord[$i]['Type'] ) ;
+			$styleA = $sheet2->getStyle($cellValue) ;
+			$styleFont = $styleA->getFont() ;
+			$styleFont->setBold(true) ;
+			$str = explode("\n", $coord[$i]['Valeur']) ;
+			$str = implode("\r", $str) ;
+			$cellValue2 = $cellValueB.$i ;
+			$sheet2->getStyle($cellValue2)->getAlignment()->setWrapText(true) ;
+			$sheet2->setCellValue($cellValue2,$str) ;
+		}*/
 
 	$sheet2->getColumnDimension('A')->setAutoSize(true);
 	$sheet2->getColumnDimension('B')->setAutoSize(true);
@@ -412,64 +428,64 @@ function specRsiRecouveo_xls_createDetailPanel($post_data){
 	}
 
 	foreach($factures as $key => $facture){
-	  $newKey = $key+2;
-		  $sheet3->setCellValue('A'.$newKey, $facture['Dossier']) ;
-		  $sheet3->setCellValue('B'.$newKey, $facture['Statut']) ;
-		  $sheet3->setCellValue('C'.$newKey, $facture['Date d\'ouverture']) ;
-		  $sheet3->setCellValue('D'.$newKey, $facture['Référence Facture']) ;
-		  $sheet3->setCellValue('E'.$newKey, $facture['ID Facture']) ;
-		  $sheet3->setCellValue('F'.$newKey, $facture['Libelle Facture']) ;
-		  $sheet3->setCellValue('G'.$newKey, $facture['Date Facture']) ;
-		  $sheet3->setCellValue('H'.$newKey, $facture['Date Echeance']) ;
-		  $sheet3->setCellValue('I'.$newKey, $facture['Montant']) ;
-		  $sheet3->setCellValue('J'.$newKey, $facture['Integr']) ;
-		  if( $metaXeCurrency ) {
+		$newKey = $key+2;
+		$sheet3->setCellValue('A'.$newKey, $facture['Dossier']) ;
+		$sheet3->setCellValue('B'.$newKey, $facture['Statut']) ;
+		$sheet3->setCellValue('C'.$newKey, $facture['Date d\'ouverture']) ;
+		$sheet3->setCellValue('D'.$newKey, $facture['Référence Facture']) ;
+		$sheet3->setCellValue('E'.$newKey, $facture['ID Facture']) ;
+		$sheet3->setCellValue('F'.$newKey, $facture['Libelle Facture']) ;
+		$sheet3->setCellValue('G'.$newKey, $facture['Date Facture']) ;
+		$sheet3->setCellValue('H'.$newKey, $facture['Date Echeance']) ;
+		$sheet3->setCellValue('I'.$newKey, $facture['Montant']) ;
+		$sheet3->setCellValue('J'.$newKey, $facture['Integr']) ;
+		if( $metaXeCurrency ) {
 			$sheet3->setCellValue('K'.$newKey, $facture['MntDevise']) ;
 			$sheet3->setCellValue('L'.$newKey, $facture['CodDevise']) ;
-		  }
 		}
-		$columnValue = ( $metaXeCurrency ? 'M' : 'K' ) ;
-		foreach($metaDesc as $meta){
-		  $col = $columnValue.'1' ;
-		  $sheet3->setCellValue($col, $meta['Desc']) ;
-		  foreach($factures as $key => $facture){
-		    $newKey = $key+2;
-		    $sheet3->setCellValue($columnValue.$newKey, $facture[$meta['Desc']]) ;
-		  }
-
-		  $columnValue++ ;
+	}
+	$columnValue = ( $metaXeCurrency ? 'M' : 'K' ) ;
+	foreach($metaDesc as $meta){
+		$col = $columnValue.'1' ;
+		$sheet3->setCellValue($col, $meta['Desc']) ;
+		foreach($factures as $key => $facture){
+			$newKey = $key+2;
+			$sheet3->setCellValue($columnValue.$newKey, $facture[$meta['Desc']]) ;
 		}
-		$columnValue = 'A' ;
-		for ($i=0;$i<$countFact;$i++){
-			$sheet3->getColumnDimension($columnValue)->setAutoSize(true);
-			$columnValue++ ;
-		}
-		$sheet3->getStyle('A1:Z1')->getFont()->setBold(true) ;
 
-		$sheet4 =$workbook->createSheet() ;
-		$sheet4->setTitle('Actions') ;
-		$sheet4->setCellValue('A1','Dossier: ');
-		$sheet4->setCellValue('B1','Statut: ');
-		$sheet4->setCellValue('C1','Date: ');
-		$sheet4->setCellValue('D1','Affectation: ');
-		$sheet4->setCellValue('E1','Action: ');
-		$sheet4->setCellValue('F1','Résumé: ');
-		$sheet4->setCellValue('G1','Compte-Rendu: ');
+		$columnValue++ ;
+	}
+	$columnValue = 'A' ;
+	for ($i=0;$i<$countFact;$i++){
+		$sheet3->getColumnDimension($columnValue)->setAutoSize(true);
+		$columnValue++ ;
+	}
+	$sheet3->getStyle('A1:Z1')->getFont()->setBold(true) ;
+
+	$sheet4 =$workbook->createSheet() ;
+	$sheet4->setTitle('Actions') ;
+	$sheet4->setCellValue('A1','Dossier: ');
+	$sheet4->setCellValue('B1','Statut: ');
+	$sheet4->setCellValue('C1','Date: ');
+	$sheet4->setCellValue('D1','Affectation: ');
+	$sheet4->setCellValue('E1','Action: ');
+	$sheet4->setCellValue('F1','Résumé: ');
+	$sheet4->setCellValue('G1','Compte-Rendu: ');
 
 
-		foreach($actions as $key => $action){
-		  $newKey = $key+2;
-		  $sheet4->setCellValue('A'.$newKey, $action['Dossier']) ;
-			$sheet4->setCellValue('B'.$newKey, $action['Statut']) ;
-		  $sheet4->setCellValue('C'.$newKey, $action['Date']) ;
-		  $sheet4->setCellValue('D'.$newKey, $action['Affectation']) ;
-		  $sheet4->setCellValue('E'.$newKey, $action['Action']) ;
-		  $sheet4->setCellValue('F'.$newKey, $action['Résumé']) ;
-			$str = explode("\n", $action['Compte-Rendu']) ;
-			$str = implode("\r", $str) ;
-			$sheet4->getStyle('G'.$newKey)->getAlignment()->setWrapText(true) ;
-			$sheet4->setCellValue('G'.$newKey, $str) ;
-		}
+	foreach($actions as $key => $action){
+		$newKey = $key+2;
+		$sheet4->setCellValue('A'.$newKey, $action['Dossier']) ;
+		$sheet4->setCellValue('B'.$newKey, $action['Statut']) ;
+		$sheet4->setCellValue('C'.$newKey, $action['Date']) ;
+		$sheet4->setCellValue('D'.$newKey, $action['Affectation']) ;
+		$sheet4->setCellValue('E'.$newKey, $action['Action']) ;
+		$sheet4->setCellValue('F'.$newKey, $action['Résumé']) ;
+		$str = explode("\n", $action['Compte-Rendu']) ;
+		$str = implode("\r", $str) ;
+		$sheet4->getStyle('G'.$newKey)->getAlignment()->setWrapText(true) ;
+		$sheet4->setCellValue('G'.$newKey, $str) ;
+	}
 	$columnValue = 'A' ;
 	for ($i=0;$i<8;$i++){
 		$sheet4->getColumnDimension($columnValue)->setAutoSize(true);
@@ -477,18 +493,44 @@ function specRsiRecouveo_xls_createDetailPanel($post_data){
 	}
 	$sheet4->getStyle('A1:Z1')->getFont()->setBold(true) ;
 
-	$tmpfilename = tempnam( sys_get_temp_dir(), "FOO");
-	$objWriter = PHPExcel_IOFactory::createWriter($workbook, 'Excel2007');
-	$objWriter->save($tmpfilename);
-	$workbook->disconnectWorksheets();
-	unset($workbook) ;
 
-	$filename = 'RsiRecouveo_Export'.'_'.time().'.xlsx' ;
-	header("Content-Type: application/force-download; name=\"$filename\"");
-	header("Content-Disposition: attachment; filename=\"$filename\"");
-	readfile($tmpfilename) ;
-	unlink($tmpfilename) ;
+	return $workbook ;
+}
+
+function specRsiRecouveo_xls_grp_export($post_data){
+	$p_fileFilerecordIds = json_decode($post_data['select_fileFilerecordIds']) ;
+	$json = specRsiRecouveo_file_getRecords( array(
+		'filter_fileFilerecordId_arr' => json_encode($p_fileFilerecordIds)
+	)) ;
+	$zip = new ZipArchive();
+	$filename = tempnam( sys_get_temp_dir(), "FOO").'zip';
+	if ($zip->open($filename, ZipArchive::CREATE)!==TRUE) {
+		exit("Impossible d'ouvrir le fichier <$filename>\n");
+	}
+	$arr_fileRecords = $json['data'] ;
+	$arr_accIds = array() ;
+	foreach( $arr_fileRecords as $file_record ) {
+		$acc_id = $file_record['acc_id'] ;
+		if( !in_array($acc_id,$arr_accIds) ) {
+			$arr_accIds[] = $acc_id ;
+		}
+	}
+  	foreach( $arr_accIds as $acc_id ) {
+ 		$workbook = specRsiRecouveo_xls_create_writer($acc_id) ;
+		$tmpfilename = tempnam( sys_get_temp_dir(), "FOO");
+		$objWriter = PHPExcel_IOFactory::createWriter($workbook, 'Excel2007');
+		$objWriter->save($tmpfilename);
+		$zip->addFile($tmpfilename, 'RsiRecouveo_Export'.'_'.$acc_id.'.xlsx') ;
+		$workbook->disconnectWorksheets();
+		unset($workbook) ;
+	}
+	$zip->close();
+
+ 	$name = 'RsiRecouveo_Group_Export'.'_'.time().'.zip' ;
+	header("Content-Type: application/force-download; name=\"$name\"");
+	header("Content-Disposition: attachment; filename=\"$name\"");
+	readfile("$filename");
+
 	die() ;
-
 }
 ?>

@@ -682,7 +682,12 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				ids.push( r.get('file_filerecord_id') ) ;
 			}
 		}) ;
-		
+		if (formValues["multi_action"] == "export_grp"){
+			if( this.multiActionForm ) {
+				this.multiActionForm.destroy() ;
+			}
+			return this.handleMultiExport(ids) ;
+		}
 		
 		if( this.multiActionForm ) {
 			this.multiActionForm.mask('Modifications en cours...') ;
@@ -711,7 +716,27 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			scope: this
 		}) ;
 	},
-	
+
+	handleMultiExport: function(arr_fileFilerecordIds){
+		var ids = arr_fileFilerecordIds ;
+		if( Ext.isEmpty(ids) ) {
+			return ;
+		}
+		
+		var exportParams = this.optimaModule.getConfiguredAjaxParams() ;
+		Ext.apply(exportParams,{
+			_moduleId: 'spec_rsi_recouveo',
+			_action: 'xls_createGroupExport',
+			select_fileFilerecordIds: Ext.JSON.encode(ids)
+		}) ;
+		Ext.create('Ext.ux.dams.FileDownloader',{
+			renderTo: Ext.getBody(),
+			requestParams: exportParams,
+			requestAction: Optima5.Helper.getApplication().desktopGetBackendUrl(),
+			requestMethod: 'POST'
+		}) ;
+	},
+
 	handleOpenAccount: function(accId,fileFilerecordId) {
 		var objAtrFilter = {} ;
 		Ext.Array.each( this.query('toolbar > [cfgParam_id]'), function(cfgParamBtn) {

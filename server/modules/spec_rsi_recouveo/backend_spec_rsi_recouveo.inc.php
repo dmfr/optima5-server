@@ -112,7 +112,8 @@ switch( $post_data['_action'] )
 
 	case 'xls_create' :
 		return specRsiRecouveo_xls_create( $post_data ) ;
-
+	case 'xls_createGroupExport':
+		return specRsiRecouveo_xls_grp_export($post_data) ;
 	case 'xls_createDetailPanel':
 		return specRsiRecouveo_xls_createDetailPanel($post_data) ;
 	case 'recordgroup_list' :
