@@ -438,7 +438,31 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusEmailPanel',{
 				}) ;
 				break ;
 		}
+		
+		var replyHead = "" ;
+		var tmp = false;
+		origEmailRecord.header_adrs().each( function(rec) {
+			if(Ext.Array.contains(['to'],rec.get('header'))) {
+				if (tmp){
+					replyHead += " ; " + rec.get('adr_address') ;
+				} else{
+					replyHead += "<b>A: </b	>" + rec.get('adr_address') ;
+				}
 
+				tmp = true ;
+			}
+			if( Ext.Array.contains(['from'],rec.get('header')) ) {
+				if(!Ext.Array.contains(['De: '], replyHead)){
+					replyHead += "<b>De: </b>" + rec.get('adr_address') + "\n" ;
+				}
+
+			}
+		}) ;
+		replyHead += "\n" ;
+		replyHead += "<b>Envoyé: </b>" + origEmailRecord.get("date_raw") + "\n" ;
+		replyHead += "<b>Objet: </b>" + origEmailRecord.get("subject") + "\n" ;
+		replyHtml = Ext.util.Format.nl2br(replyHead) ;
+		
 		var bodyHtml = origEmailRecord.get('body_html') ;
 		if( Ext.isEmpty(bodyHtml) ) {
 			bodyHtml = origEmailRecord.get('body_text') ;
@@ -446,6 +470,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusEmailPanel',{
 			bodyHtml = Ext.util.Format.nl2br(bodyHtml) ;
 			bodyHtml = '<font face="Monospace">'+bodyHtml+'</font>' ;
 		}
+		bodyHtml = replyHtml + '<br>' + origEmailRecord.get('body_html') ;
 		bodyHtml = '<blockquote style="margin-left: 8px; border-left: 4px solid #00C; padding-left: 4px">' + bodyHtml + '</blockquote>' ;
 		bodyHtml = '<br><br>' + bodyHtml ;
 		// Fill form fields 
