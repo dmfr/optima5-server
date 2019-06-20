@@ -374,6 +374,7 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE, $stopAsHtm
 	}
 	if( $probe_lang_atrField && $account_record ) {
 		$_lang_code = $account_record[$probe_lang_atrField] ;
+		$_lang_code = strtoupper(substr($_lang_code,0,2)) ;
 	}
 	
 	
