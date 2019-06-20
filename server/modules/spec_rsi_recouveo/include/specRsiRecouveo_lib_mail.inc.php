@@ -238,8 +238,6 @@ function specRsiRecouveo_lib_mail_sync() {
 	$result = $_opDB->query( $query ) ;
 	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
 		$arr_emailFilerecordIds[] = $arr[0] ;
-		$query = "UPDATE view_file_EMAIL SET field_SRV_IS_SENT='1' WHERE filerecord_id='{$arr[0]}'" ;
-		$_opDB->query( $query ) ;
 	}
 	$query = "UNLOCK TABLES" ;
 	$_opDB->query($query) ;
