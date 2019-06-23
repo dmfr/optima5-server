@@ -260,10 +260,13 @@ function specDbsTracy_report_190304BrokerXML( $trspt_filerecord_id ) {
 		$jpegs = array() ;
 		foreach( $arr_ids as $media_id ) {
 			$src_filepath = media_img_getPath( $media_id ) ;
-			$jpegs[] = file_get_contents($src_filepath) ;
+			if( $src_filepath && ($bin=file_get_contents($src_filepath)) ) {
+				$jpegs[] = $bin ;
+			}
 		}
-		
-		$pdf = media_pdf_jpgs2pdf($jpegs,$page_format='A4') ;
+		if( count($jpegs)>0 ) {
+			$pdf = media_pdf_jpgs2pdf($jpegs,$page_format='A4') ;
+		}
 		media_contextClose() ;
 		
 		$xml_buffer.= "<DocumentExport>" ;
