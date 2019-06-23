@@ -34,6 +34,10 @@ function specDbsTracy_report( $post_data ) {
 			$csv_buffer = specDbsTracy_report_190304BrokerXML($form_data['trspt_filerecord_id']) ;
 			$xml_filename = 'Broker190304_'.$form_data['trspt_filerecord_id'].'_'.time().'.xml' ;
 			break ;
+		case '190304BrokerEmail' :
+			$csv_buffer = specDbsTracy_report_190304BrokerEmail($form_data['trspt_filerecord_id']) ;
+			$xml_filename = 'Broker190304_'.$form_data['trspt_filerecord_id'].'_'.time().'.eml' ;
+			break ;
 		default :
 			if( strpos($form_data['file_model'],'QSQL::')===0 ) {
 				$ttmp = explode('::',$form_data['file_model']) ;
@@ -280,6 +284,115 @@ function specDbsTracy_report_190304BrokerXML( $trspt_filerecord_id ) {
 	$xml_buffer.= '</RequestToBroker>' ;
 
 	return $xml_buffer ;
+}
+function specDbsTracy_report_190304BrokerEmail( $trspt_filerecord_id ) {
+	global $_opDB ;
+	
+	$ttmp = specDbsTracy_trspt_getRecords(array('filter_trsptFilerecordId_arr'=>json_encode(array($trspt_filerecord_id)))) ;
+	$trspt_record = $ttmp['data'][0] ;
+	if( !$trspt_record ) {
+		return array('success'=>false) ;
+	}
+	
+	
+	//print_r($trspt_record) ;
+	$hat_record = reset($trspt_record['hats']) ;
+	$order_record = reset($trspt_record['orders']) ;
+	
+	
+	$txt_buffer = "\r\n" ;
+	$txt_buffer.= '---- Request to Broker ----'."\r\n" ;
+	$txt_buffer.= ''."\r\n" ;
+	$txt_buffer.= 'RequestDate : '.date('Ymd')."\r\n" ;
+	
+	$static_office = 'FR00677A' ;
+	$txt_buffer.= "ShippingOffice : {$static_office}\r\n" ;
+	
+	$static_location = 'MITRY MORY' ;
+	$txt_buffer.= "ShippingLocation : {$static_location}\r\n" ;
+	
+	$wid = $trspt_record['id_doc'] ;
+	$txt_buffer.= "WID : {$wid}\r\n" ;
+	
+	$prio_code = $trspt_record['atr_priority'] ;
+	$ttmp = paracrm_lib_data_getRecord('bible_entry','LIST_SERVICE',$prio_code) ;
+	$prio_txt = $ttmp['field_TEXT'] ;
+	$txt_buffer.= "Priority : {$prio_txt}\r\n" ;
+	
+	$carrier_code = $trspt_record['mvt_carrier'] ;
+	$ttmp = paracrm_lib_data_getRecord('bible_entry','LIST_CARRIER',$carrier_code) ;
+	$carrier_txt = $ttmp['field_NAME'] ;
+	$txt_buffer.= "Carrier : {$carrier_txt}\r\n" ;
+	
+	$inv_no = $order_record['ref_invoice'] ;
+	$txt_buffer.= "InvoiceNo : {$inv_no}\r\n" ;
+	
+	$value_currency = '' ;
+	$value_amount = 0 ;
+	foreach( $trspt_record['orders'] as $order_iter ) {
+		if( $order_iter['desc_value'] && $order_iter['desc_value_currency'] ) {
+			$value_currency = $order_iter['desc_value_currency'] ;
+			$value_amount += $order_iter['desc_value'] ;
+			break ;
+		}
+	}
+	$txt_buffer.= "Value - Amount : {$value_amount}\r\n" ;
+	$txt_buffer.= "Value - Currency : {$value_currency}\r\n" ;
+	
+	$tot_count = 0 ;
+	$tot_kg = 0 ;
+	foreach( $hat_record['parcels'] as $parcel ) {
+		$tot_count += $parcel['vol_count'] ;
+		$tot_kg += $parcel['vol_kg'] ;
+	}
+	$tot_kg = round($tot_kg,3) ;
+	$txt_buffer.= "ParcelCount : {$tot_count}\r\n" ;
+	$txt_buffer.= "Weight(kg) : {$tot_kg}\r\n" ;
+	$txt_buffer.= "\r\n" ;
+	
+	$attachments = array() ;
+	foreach( $order_record['attachments'] as $attachment_iter ) {
+		if( !(strpos($attachment_iter['attachment_txt'],'INVOICE')===FALSE) ) {
+			$attachments[] = $attachment_iter ;
+		}
+	}
+	if( $attachments ) {
+		$arr_ids = array() ;
+		foreach($attachments as $attachment_iter) {
+			$arr_ids[] = $attachment_iter['attachment_media_id'] ;
+		}
+		
+		
+		media_contextOpen( $_POST['_sdomainId'] ) ;
+		
+		$jpegs = array() ;
+		foreach( $arr_ids as $media_id ) {
+			$src_filepath = media_img_getPath( $media_id ) ;
+			if( $src_filepath && ($bin=file_get_contents($src_filepath)) ) {
+				$jpegs[] = $bin ;
+			}
+		}
+		if( count($jpegs)>0 ) {
+			$pdf = media_pdf_jpgs2pdf($jpegs,$page_format='A4') ;
+		}
+		media_contextClose() ;
+		
+		$binary_pdf = $pdf ;
+		$binary_filename = "INVOICE_{$inv_no}.pdf" ;
+	}
+	
+	
+	$mail = PhpMailer::getInstance() ;
+	$mail->CharSet = "utf-8";
+	$mail->setFrom('nobody@mirabel-sil.com');
+	$mail->addAddress('dm@mirabel-sil.com') ;
+	$mail->Subject  = 'Request Broker '.$inv_no ;
+	$mail->Body = $txt_buffer ;
+	$mail->addStringAttachment($binary_pdf, $binary_filename) ;
+	$mail->send() ;
+	$buffer = $mail->getSentMIMEMessage();
+
+	return $buffer ;
 }
 
 
