@@ -691,6 +691,22 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 		
 		
 		// ****** Champs dynamiques ***********
+		if( postData['link_action'] == 'BUMP' ) {
+			if( postData['bumptxt_is_on'] && !Ext.isEmpty(postData['bumptxt_code']) ) {
+				var fieldValue = postData['bumptxt_code'],
+					fieldTree = this.getForm().findField('bumptxt_code').cfgParamTree,
+					fieldNode = fieldTree.getStore().getNodeById(fieldValue),
+					fieldTxt = [] ;
+				while( true ) {
+					if( fieldNode.isRoot() ) {
+						break ;
+					}
+					fieldTxt.push( fieldNode.get('nodeText') ) ;
+					fieldNode = fieldNode.parentNode ;
+				}
+				postData['link_txt'] = fieldTxt.reverse().join(' - ') ;
+			}
+		}
 		switch( postData['next_action'] ) {
 			case 'AGREE_START' :
 				var fields = ['agree_amount','agree_period','agree_date','agree_datefirst','agree_count'] ;
@@ -706,6 +722,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 					}
 				},this) ;
 				break ;
+				
 			case 'CLOSE_ASK' :
 				if( Ext.isEmpty( postData['close_code'] ) ) {
 					var error = 'Renseigner raison de clôture' ;

@@ -41,21 +41,47 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusBumpPanel',{
 				width: 16
 			},{
 				flex: 1,
-				xtype: 'fieldset',
-				title: 'Commentaire',
-				defaults: {
-					anchor: '100%',
-					labelWidth: 80
-				},
+				xtype: 'container',
+				layout: 'anchor',
 				items: [{
-					style: 'margin-top: 4px;',
-					xtype: 'textarea',
-					name: 'txt',
-					height: 84
+					xtype: 'fieldset',
+					title: 'Qualifier la reprise ?',
+					checkboxToggle: true,
+					checkboxName: 'bumptxt_is_on',
+					defaults: {
+						anchor: '100%',
+						labelWidth: 80
+					},
+					items: [Ext.create('Optima5.Modules.Spec.RsiRecouveo.CfgParamField',{
+						cfgParam_id: 'OPT_BUMP',
+						cfgParam_emptyDisplayText: 'Select...',
+						optimaModule: this.optimaModule,
+						name: 'bumptxt_code',
+						allowBlank: false,
+						fieldLabel: 'Motif'
+					})]
+				},{
+					xtype: 'fieldset',
+					title: 'Commentaire',
+					defaults: {
+						anchor: '100%',
+						labelWidth: 80
+					},
+					items: [{
+						style: 'margin-top: 4px;',
+						xtype: 'textarea',
+						name: 'txt',
+						height: 84
+					}]
 				}]
 			}]
 		}) ;
 		
 		this.callParent() ;
+		
+		// Unmask reprise dossier ?
+		this.getForm().setValues({
+			bumptxt_is_on: false
+		});
 	}
 }) ;

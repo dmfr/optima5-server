@@ -65,6 +65,14 @@
             "gallery_is_on": "N"
         },
         {
+            "bible_code": "OPT_BUMP",
+            "bible_lib": "Option : Reprise dossier",
+            "bible_iconfile": "ico_dataadd_16.gif",
+            "bible_specdata": "",
+            "gmap_is_on": "N",
+            "gallery_is_on": "N"
+        },
+        {
             "bible_code": "OPT_CALLOUT",
             "bible_lib": "Option : R\u00e9sultat appel",
             "bible_iconfile": "ico_dataadd_16.gif",
@@ -396,6 +404,30 @@
         },
         {
             "bible_code": "OPT_ADRSTATUS",
+            "tree_field_code": "OPT_TXT",
+            "tree_field_is_key": "",
+            "tree_field_index": "2",
+            "tree_field_lib": "Txt",
+            "tree_field_type": "string",
+            "tree_field_linktype": "",
+            "tree_field_linkbible": "",
+            "tree_field_is_header": "O",
+            "tree_field_is_highlight": "O"
+        },
+        {
+            "bible_code": "OPT_BUMP",
+            "tree_field_code": "OPT_ID",
+            "tree_field_is_key": "O",
+            "tree_field_index": "1",
+            "tree_field_lib": "ID",
+            "tree_field_type": "string",
+            "tree_field_linktype": "",
+            "tree_field_linkbible": "",
+            "tree_field_is_header": "",
+            "tree_field_is_highlight": "O"
+        },
+        {
+            "bible_code": "OPT_BUMP",
             "tree_field_code": "OPT_TXT",
             "tree_field_is_key": "",
             "tree_field_index": "2",
@@ -1142,6 +1174,18 @@
         },
         {
             "bible_code": "OPT_ADRSTATUS",
+            "entry_field_code": "DUMMY",
+            "entry_field_is_key": "O",
+            "entry_field_index": "1",
+            "entry_field_lib": "Dummy",
+            "entry_field_type": "string",
+            "entry_field_linktype": "",
+            "entry_field_linkbible": "",
+            "entry_field_is_header": "O",
+            "entry_field_is_highlight": "O"
+        },
+        {
+            "bible_code": "OPT_BUMP",
             "entry_field_code": "DUMMY",
             "entry_field_is_key": "O",
             "entry_field_index": "1",
