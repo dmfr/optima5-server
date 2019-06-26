@@ -462,7 +462,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusEmailPanel',{
 		replyHead += "<b>Envoyé: </b>" + origEmailRecord.get("date_raw") + "\n" ;
 		replyHead += "<b>Objet: </b>" + origEmailRecord.get("subject") + "\n" ;
 		replyHtml = Ext.util.Format.nl2br(replyHead) ;
-		
+		// Bug 26-06-19 sur les mails brut corrigé. A tester
 		var bodyHtml = origEmailRecord.get('body_html') ;
 		if( Ext.isEmpty(bodyHtml) ) {
 			bodyHtml = origEmailRecord.get('body_text') ;
@@ -470,7 +470,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusEmailPanel',{
 			bodyHtml = Ext.util.Format.nl2br(bodyHtml) ;
 			bodyHtml = '<font face="Monospace">'+bodyHtml+'</font>' ;
 		}
-		bodyHtml = replyHtml + '<br>' + origEmailRecord.get('body_html') ;
+		bodyHtml = replyHtml + '<br>' + bodyHtml ;
 		bodyHtml = '<blockquote style="margin-left: 8px; border-left: 4px solid #00C; padding-left: 4px">' + bodyHtml + '</blockquote>' ;
 		bodyHtml = '<br><br>' + bodyHtml ;
 		// Fill form fields 
