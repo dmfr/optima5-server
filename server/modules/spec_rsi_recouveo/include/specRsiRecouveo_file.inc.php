@@ -498,7 +498,31 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 				'next_action_suffix' => null,
 				'next_txt' => 'Clôturé'
 			) ;
+			
+			$next_action_suffix = NULL ;
+			if( $next_action ) {
+				switch( $next_action['link_action'] ) {
+					case 'JUDIC_FOLLOW' :
+						$next_action_suffix = $next_action['link_action'].'_'.$next_action['link_judic'] ;
+						break ;
+					case 'LITIG_FOLLOW' :
+						$next_action_suffix = $next_action['link_action'].'_'.$next_action['link_litig'] ;
+						break ;
+					case 'CLOSE_ACK' :
+						$next_action_suffix = $next_action['link_action'].'_'.$next_action['link_close'] ;
+						switch( $map_closeask[$next_action['link_close']] ) {
+							case 'ZERO' :
+								$inv_header['inv_amount_zero'] = true ;
+								break ;
+						}
+						break ;
+				}
+			}
+			if( $next_action_suffix ) {
+				$file_row['next_txt'] = $map_actionnext[$next_action_suffix] ;
+			}
 		} elseif( $next_action ) {
+			$next_action_suffix = NULL ;
 			switch( $next_action['link_action'] ) {
 				case 'MAIL_OUT' :
 					$next_action_suffix = $next_action['link_action'].'_'.$next_action['link_tpl'] ;
