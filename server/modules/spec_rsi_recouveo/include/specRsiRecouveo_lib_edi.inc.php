@@ -53,6 +53,53 @@ function specRsiRecouveo_lib_edi_upload_preHandle($handle_in) {
 	return $handle_in ;
 }
 
+function specRsiRecouveo_lib_edi_convert_UPL_ACCPROPERTIES_to_mapMethodJson($handle) {
+	if (true){
+		$handle = specRsiRecouveo_lib_edi_upload_preHandle($handle) ;
+	}
+
+	$headers =fgetcsv($handle) ;
+	$map_header_csvIdx = array() ;
+	foreach ($headers as $csv_idx => $head){
+		switch ($head) {
+			case 'Société':
+				$head = "IdSoc" ;
+				break ;
+			case "Numéro client":
+				$head = "IdCli" ;
+				break ;
+			case "Affectation";
+				$head = "affectation" ;
+				break ;
+			case "Scénario":
+				$head = "scen" ;
+				break ;
+			case "Scen Auto":
+				$head = "auto" ;
+				break ;
+		}
+		if( trim($head)=='' ) {
+			continue ;
+		}
+		$map_header_csvIdx[$head] = $csv_idx ;
+	}
+	$account_rows = array() ;
+	while ($data = fgetcsv($handle)){
+		if( !$data ) {
+			continue ;
+		}
+		$row = array() ;
+		foreach( $map_header_csvIdx as $mkey => $idx ) {
+			$row[$mkey] = trim($data[$idx]) ;
+		}
+		$account_rows[] = $row ;
+	}
+	$accountprop_json = json_encode($account_rows) ;
+
+	return array(
+		"account_properties" => $accountprop_json
+	) ;
+}
 function specRsiRecouveo_lib_edi_convert_UPLCOMPTES_to_mapMethodJson( $handle ) {
 	if (true){
 		$handle = specRsiRecouveo_lib_edi_upload_preHandle($handle) ;
@@ -281,7 +328,9 @@ function specRsiRecouveo_lib_edi_post($apikey_code, $transaction, $handle) {
 		case 'upload_FACTURES' :
 			$mapMethodJson = specRsiRecouveo_lib_edi_convert_UPLFACTURES_to_mapMethodJson($handle_in) ;
 			break ;
-			
+		case 'upload_ACCOUNT_PROPERTIES':
+			$mapMethodJson = specRsiRecouveo_lib_edi_convert_UPL_ACCPROPERTIES_to_mapMethodJson($handle_in) ;
+			break ;
 		default :
 			break ;
 	}

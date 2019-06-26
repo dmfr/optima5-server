@@ -19,8 +19,8 @@ function specRsiRecouveo_upload( $post_data ) {
 			$ret = specRsiRecouveo_lib_edi_post($_SESSION["login_data"]["userstr"],'upload_FACTURES',$handle) ;
 			break ;
 
-		case 'SET_ALLOC' :
-			$ret = specRsiRecouveo_upload_EDI_IMPORT($handle,$file_model) ;
+		case 'IMPORT_ALLOC' :
+			$ret = specRsiRecouveo_lib_edi_post($_SESSION["login_data"]["userstr"],'upload_ACCOUNT_PROPERTIES',$handle) ;
 			break ;
 		
 		default :

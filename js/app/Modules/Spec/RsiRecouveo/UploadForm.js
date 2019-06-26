@@ -54,7 +54,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.UploadForm',{
 							id:'IMPORT_REC',
 							txt: 'Fiche navette : Factures'
 						},{
-							id:'SET_ALLOC',
+							id:'IMPORT_ALLOC',
 							txt: 'Fiche navette : Affectation/Scénarios'
 						}]
 					},
