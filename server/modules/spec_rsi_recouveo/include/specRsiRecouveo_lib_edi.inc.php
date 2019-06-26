@@ -388,7 +388,8 @@ function specRsiRecouveo_lib_edi_validateSocCli( $id_soc, $id_cli=NULL, $test_cl
 	if( !$id_cli ) {
 		return $id_soc ;
 	}
-
+	
+	$orig_id_cli = $id_cli ;
 	// normalisation du id_cli (si fourni)
 	if( strpos($id_cli,$id_soc."-")===0 ) {
 		// code cli déjà préfixé société
@@ -404,7 +405,13 @@ function specRsiRecouveo_lib_edi_validateSocCli( $id_soc, $id_cli=NULL, $test_cl
 	$query = "SELECT entry_key FROM view_bible_LIB_ACCOUNT_entry WHERE entry_key='{$id_cli}'" ;
 	$result = $_opDB->query($query) ;
 	if( $_opDB->num_rows($result) < 1 ) {
-		return false ;
+		$query2 = "SELECT entry_key FROM view_bible_LIB_ACCOUNT_entry WHERE entry_key='{$orig_id_cli}'" ;
+		$result2 = $_opDB->query($query2) ;
+		if( $_opDB->num_rows($result2) < 1 ) {
+			return false ;
+		} else{
+			return $orig_id_cli ;
+		}
 	}
 	return $id_cli ;
 }
