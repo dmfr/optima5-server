@@ -270,6 +270,7 @@ function specRsiRecouveo_lib_edi_post($apikey_code, $transaction, $handle) {
 	switch( $transaction ) {
 		case 'account' :
 		case 'account_adrbookentry' :
+		case 'account_properties' :
 		case 'record' :
 			$mapMethodJson[$transaction] = stream_get_contents($handle_in) ;
 			break ;
@@ -314,6 +315,7 @@ function specRsiRecouveo_lib_edi_post($apikey_code, $transaction, $handle) {
 	
 	// calls Recouveo int. API
 	specRsiRecouveo_lib_autorun_open() ;
+	specRsiRecouveo_lib_scenario_attach() ;
 	
 	return $ret ;
 }
@@ -358,6 +360,9 @@ function specRsiRecouveo_lib_edi_postJson($apikey_code, $transaction, $json_str)
 			break ;
 		case 'account_adrbookentry' :
 			$ret = specRsiRecouveo_lib_edi_post_adrbook( $json_rows ) ;
+			break ;
+		case 'account_properties':
+			$ret = specRsiRecouveo_lib_edi_post_acc_properties( $json_rows ) ;
 			break ;
 	}
 	
@@ -485,6 +490,81 @@ function specRsiRecouveo_lib_edi_post_adrbook($json_rows){
 			continue;
 		}
 	}
+	return array("count_success" => $count_success, "errors" => $ret_errors) ;
+}
+
+function specRsiRecouveo_lib_edi_post_acc_properties($json_rows){
+	global $_opDB;
+
+	$mandatory = array('IdSoc','IdCli', 'affectation', 'auto') ;
+	$map_entryKey = 'IdCli' ;
+	$map_json2file = array(
+		'scen' => 'field_SCENARIO',
+		'auto' => 'field_SCENARIO_IS_AUTO'
+	) ;
+	$map_json2acc = array(
+		'IdCli' => "field_ACC_ID",
+		'affectation' => "field_LINK_USER_LOCAL",
+	) ;
+
+
+	$count_success = 0 ;
+	$ret_errors = array() ;
+	foreach( $json_rows as $idx => $json_row ) {
+		$missing = array() ;
+		foreach( $mandatory as $field ) {
+			if( !isset($json_row[$field]) ) {
+				$missing[] = $field ;
+			}
+		}
+		if( count($missing) > 0 ) {
+			$ret_errors[] = "ERR Idx={$idx} : missing field(s) ".implode(',',$missing) ;
+			continue ;
+		}
+
+		$txt_IdSoc = $json_row['IdSoc'] ;
+		$json_row['IdSoc'] = specRsiRecouveo_lib_edi_validateSocCli($json_row['IdSoc']) ;
+		if( !$json_row['IdSoc'] ) {
+			$ret_errors[] = "ERR Idx={$idx} : unknown IdSoc={$txt_IdSoc}" ;
+			continue ;
+		}
+
+		$json_row['IdCli'] = specRsiRecouveo_lib_edi_validateSocCli($json_row['IdSoc'],$json_row['IdCli'], true) ;
+
+		$arr_ins_file = array() ;
+		foreach( $map_json2file as $json_field => $db_field ) {
+			if( isset($json_row[$json_field]) ) {
+				$arr_ins_file[$db_field] = $json_row[$json_field] ;
+			}
+		}
+
+		$arr_ins_acc = array() ;
+		foreach( $map_json2acc as $json_field => $db_field ) {
+			if( isset($json_row[$json_field]) ) {
+				$arr_ins_acc[$db_field] = $json_row[$json_field] ;
+			}
+		}
+		$entry_key = $json_row['IdCli'] ;
+		//print_r($entry_key) ;
+		$acc_open = specRsiRecouveo_account_open(array("acc_id" => $entry_key)) ;
+		if (!$acc_open["success"]){
+			$ret_errors[] = "ERR Idx={$idx} : unknown Idcli={$entry_key}" ;
+			continue ;
+		}
+		$curr_files = $acc_open["data"] ;
+		foreach ($curr_files["files"] as $file){
+			//print_r($file) ;
+			if (!$file["status_is_schednone"] && !$file["status_is_schedlock"]){
+				//print_r($arr_ins_file) ;
+				$filerecord_id = $file['file_filerecord_id'] ;
+				paracrm_lib_data_updateRecord_file('FILE', $arr_ins_file, $filerecord_id) ;
+				$count_success++;
+			}
+
+		}
+		paracrm_lib_data_updateRecord_bibleEntry("LIB_ACCOUNT", $entry_key, $arr_ins_acc) ;
+	}
+	
 	return array("count_success" => $count_success, "errors" => $ret_errors) ;
 }
 
