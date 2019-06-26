@@ -2106,12 +2106,25 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		if( pFileTitle.indexOf(pAccId+'/') === 0 ) {
 			pFileTitle = pFileTitle.substring(pAccId.length+1) ;
 		}
+		
+		var innerSorters = [{
+			property: 'status_is_ok',
+			direction: 'ASC'
+		},{
+			property: 'date_actual',
+			direction: 'DESC'
+		},{
+			property: 'fileaction_filerecord_id',
+			direction: 'DESC'
+		}] ;
+		
 		var pActionsGridData = [],
 			iteratedFilerecordIds = [],
 			iterateFileRecord = fileRecord ;
 		while(true) {
 			var isMainFile = (fileRecord.getId() == iterateFileRecord.getId()) ;
 			iteratedFilerecordIds.push( iterateFileRecord.getId() ) ;
+			iterateFileRecord.actions().sort(innerSorters);
 			iterateFileRecord.actions().each(function(rec) {
 				var recData = rec.getData() ;
 				recData['file_filerecord_id'] = iterateFileRecord.getId() ;
@@ -2134,6 +2147,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 						// on ne parcourt en parent<>child que les fichiers fermés
 						return ;
 					}
+					childFileRecord.actions().sort(innerSorters);
 					childFileRecord.actions().each(function(cRec) {
 						if( childrenFirst ) {
 							Ext.apply( recData, cRec.getData() ) ;
@@ -2486,16 +2500,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			store: {
 				model: 'RsiRecouveoFileActionCalcModel',
 				root: {root: true, fileaction_filerecord_id:0, expanded: true, children:pActionsGridData},
-				sorters: [{
-						property: 'status_is_ok',
-						direction: 'ASC'
-				},{
-						property: 'date_actual',
-						direction: 'DESC'
-				},{
-						property: 'fileaction_filerecord_id',
-						direction: 'DESC'
-				}],
 				proxy: {
 					type: 'memory',
 					reader: {
