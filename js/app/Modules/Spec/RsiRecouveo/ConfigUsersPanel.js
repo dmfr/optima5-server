@@ -139,7 +139,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigUsersPanel', {
 							{id:'CR', txt:'Chargé de recouvrement'},
 							{id:'CR_AFF', txt:'CR (avec affectation)'},
 							{id:'EXT', txt:'Externe pour traitement ltg'},
-							{id:'SUPER', txt:'Superviseur'}
+							{id:'SUPER', txt:'Superviseur'},
+							{id:'DEFAULT', txt:'Compte par défaut (non aff.)'}
 						]
 					},
 					queryMode: 'local',
