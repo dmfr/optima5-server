@@ -344,7 +344,7 @@ function admin_sdomains_importRemote( $post_data ) {
 			$post_url['dump_sdomain'] = $post_data['fetch_src_sdomain'] ;
 			
 			try {
-				$response = admin_sdomains_importRemote_doPostRequest( $private_url, http_build_query($post_url), 120.0 ) ;
+				$response = admin_sdomains_importRemote_doPostRequest( $private_url, http_build_query($post_url), 300.0 ) ;
 			} catch( Exception $e ) {
 				return array('success'=>false) ;
 			}
