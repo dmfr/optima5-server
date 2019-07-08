@@ -66,6 +66,7 @@ switch( $api_method ) {
 	case 'record' :
 	case 'upload_COMPTES':
 	case 'upload_FACTURES':
+	case 'account_properties':
 		break ;
 	default :
 		header("HTTP/1.0 404 Not Found");
