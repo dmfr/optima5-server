@@ -469,21 +469,27 @@ function specRsiRecouveo_lib_mail_doSendRaw($email_bin)
 		if (empty($hostinfo[2]) || $hostinfo[2] == 'none') {
 			$smtp->connect($url, $port);
 			$smtp->hello($hello_msg);
-			$smtp->authenticate($smtp_username, $smtp_pass);
+			if( $smtp_username ) {
+				$smtp->authenticate($smtp_username, $smtp_passwd);
+			}
 			//print_r($smtp);
 		}
 		if ($hostinfo[2] == 'ssl') {
 			$new_url = $hostinfo[2] . '://' . $url;
 			$smtp->connect($new_url, $port);
 			$smtp->hello($hello_msg);
-			$smtp->authenticate($smtp_username, $smtp_pass);
+			if( $smtp_username ) {
+				$smtp->authenticate($smtp_username, $smtp_passwd);
+			}
 		}
 		if ($hostinfo[2] == 'tls') {
 			$smtp->connect($url, $port);
 			$smtp->hello($hello_msg);
 			$smtp->startTls();
 			$smtp->hello($hello_msg);
-			$smtp->authenticate($smtp_username, $smtp_pass);
+			if( $smtp_username ) {
+				$smtp->authenticate($smtp_username, $smtp_passwd);
+			}
 		}
 	}
 
