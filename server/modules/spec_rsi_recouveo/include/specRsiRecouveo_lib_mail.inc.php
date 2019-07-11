@@ -973,7 +973,13 @@ function specRsiRecouveo_lib_mail_getBanner( $file_filerecord_id ) {
 	
 	$header_src = "\r\n" ;
 	$header_src.= "<table><tr>" ;
-		$logo_base64 = base64_encode( file_get_contents($templates_dir.'/'.'RSI_RECOUVEO_email_logo.jpg') ) ;
+		$raw_imgsrc = NULL ;
+		
+		if( @file_get_contents($templates_dir.'/'.'RSI_RECOUVEO_email_logo.jpg') ) {
+			$logo_base64 = base64_encode( file_get_contents($templates_dir.'/'.'RSI_RECOUVEO_email_logo.jpg') ) ;
+			$raw_imgsrc = "data:image/jpeg;base64,$logo_base64" ;
+		}
+		
 		if( TRUE ) { //HACK
 			$src_img = 'img_logo' ;
 			
@@ -998,20 +1004,13 @@ function specRsiRecouveo_lib_mail_getBanner( $file_filerecord_id ) {
 			}
 			
 			if( ($img_code=$mapSoc_mkey_value[$src_img]) && ($tplImgEntry=paracrm_lib_data_getRecord_bibleEntry('TPL_IMG',$img_code)) ) {
-				$img_code = $mapSoc_mkey_value[$src_img] ;
-				
 				$raw_imgsrc = $tplImgEntry['field_IMG_SRC'] ;
-				$token = 'base64,' ;
-				$pos = strpos($raw_imgsrc,$token) ;
-				if( $pos !== FALSE ) {
-					$logo_base64 = substr($raw_imgsrc,$pos+strlen($token)) ;
-				}
 			}
 		}
 		
 		
 		$header_src.= "<td align='center'>" ;
-		$header_src.= "<img src=\"data:image/jpeg;base64,$logo_base64\"/>" ;
+		$header_src.= "<img src=\"{$raw_imgsrc}\"/>" ;
 		$header_src.= "</td>" ;
 		
 		$header_src.= "<td>" ;
