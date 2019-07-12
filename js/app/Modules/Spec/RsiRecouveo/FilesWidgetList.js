@@ -57,6 +57,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesWidgetList', {
 	    var balageConvert = function(value,record) {
 		    var thisField = this,
 			    balageSegmtId = thisField.balageSegmtId ;
+			if( !record.data.inv_balage || !record.data.inv_balage[balageSegmtId] ) {
+				return 0 ;
+			}
 		    return record.data.inv_balage[balageSegmtId] ;
 	    };
 	    Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getBalageAll(), function(balageSegmt) {
