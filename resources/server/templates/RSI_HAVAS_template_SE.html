@@ -1,0 +1,311 @@
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<style type="text/css">
+		body {  
+			font-family: Arial, Helvetica, sans-serif;
+			font-size: 16px ;
+			margin: 4px;
+			display:block
+		}
+
+		table {
+			font-family: Arial, Helvetica, sans-serif;
+			font-size: 16px;
+			/*color: navy;*/
+			padding-top: 2px;
+			padding-bottom: 2px;
+			
+			border-spacing: 0px;
+			border-collapse: collapse;
+		}
+		
+		/*
+		table td {
+			padding: 6px;
+		}
+		*/
+		table.tabledonnees {
+			border: 1px solid black ;
+			page-break-inside: auto ;
+			width: 90%
+		}
+
+		table.tabledonnees tr td, table.tabledonnees tr th {
+			page-break-inside: avoid;
+			text-align: center;
+		}
+
+		table.tabledonnees  {
+			display:table-header-group ;
+		}
+
+		table.tabledonnees tfoot {
+			display:table-footer-group ;
+		}
+		
+		table.tabledonnees tfoot td {
+			padding: 2px 10px ;
+			font-weight: bold ;
+			text-align: left;
+			border-left: 0px ;
+			border-right: 0px ;
+		}
+		table.tabledonnees tfoot tr:first-child td {
+			border-top: 1px solid black ;
+		}
+
+		table.tabledonnees td {
+			padding-top: 1px ;
+			padding-bottom: 1px ;
+			padding-left: 10px;
+			padding-right: 10px;
+			border-left: 1px solid black ;
+			border-right: 1px solid black ;
+			vertical-align: top;
+		}
+		table.tabledonnees th {
+			padding-top: 2px ;
+			padding-bottom: 2px ;
+			padding-left: 10px;
+			padding-right: 10px;
+			border-left: 1px solid black ;
+			border-right: 1px solid black ;
+			vertical-align: top;
+		}
+
+		table.tabledonnees thead th {
+			font-weight: bold ;
+			border-top: 1px solid black ;
+			border-bottom: 1px solid black ;
+		}
+		table.tabledonnees thead td {
+			font-weight: bold ;
+			border-top: 1px solid black ;
+			border-bottom: 1px solid black ;
+		}
+		table.tabledonnees tbody td {
+			font-size: 12px;
+		}
+
+		.celltitle {
+			padding: 3px 15px;
+			text-align: right;
+			border-right: 1px solid black ;
+		}
+		.celldata {
+			text-align: left;
+			padding: 3px 15px;
+			
+		}
+
+		td.headertitle {
+			font-style: italic ;
+			background: #dddddd ;
+		}
+		
+		.footer-title {
+			color: #333399 ;
+			font-size: 12px ;
+		}
+		.footer-small {
+			color: #333399 ;
+			font-size: 10px ;
+		}
+		
+		.hvs-header {  
+			font-family: Arial, Helvetica, sans-serif;
+			font-size: 12px ;
+			font-weight: bold ;
+			color: #333333 ;
+		}
+		.hvs-logo {
+			height: 80px ;
+			background-position: 0px center ;
+			background-repeat: no-repeat ;
+			background-image: url("") !important;
+		}
+
+	</style>
+	<qbook-condition media='POSTAL'>
+	<style>
+	
+		.letterwidth  {
+			width: 900px ;
+		}
+	
+	</style>
+	</qbook-condition>
+	
+	<qbook-condition media='EMAIL'>
+	<style>
+	
+		.celltitle {
+			font-size: 12px ;
+			padding: 3px 15px;
+			text-align: right;
+			border-right: 1px solid black ;
+		}
+		.celldata {
+			font-size: 12px ;
+			text-align: left;
+			padding: 3px 15px;
+		}
+		
+		.letterwidth  {
+			width: 100% ;
+		}
+	
+	</style>
+	</qbook-condition>
+	
+</head>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	<body style='background-color:#FFFFFF'>
+		<table id='div_header_from' ><tr>
+			<td width="320" valign="middle" align="left">
+				<div>
+				<qbook-img src_img="img_logo"></qbook-img>
+				</div>
+			</td>
+			
+			<td valign="middle" width="200">
+				<div class="hvs-header">
+					<qbook-value src_value="soc_header_adr1"></qbook-value><br>
+					<qbook-value src_value="soc_header_adr2"></qbook-value><br>
+					<qbook-value src_value="soc_header_adr3"></qbook-value><br>
+					<qbook-value src_value="soc_header_adr4"></qbook-value><br>
+					<qbook-value src_value="soc_header_adr5"></qbook-value><br>
+					<qbook-value src_value="soc_header_adr6"></qbook-value><br>
+				</div>
+			</td>
+			
+		</tr></table>
+		
+		<qbook-condition media='EMAIL'>
+		<table class='letterwidth' id='div_header_to' style="padding:10px ; height: 75px"><tr>
+			<td width="58%" valign="top">
+			<br><br>
+			<table>
+				<tr>
+				<td class="celltitle"><b><qbook-condition lang='FR'>N/ Réf</qbook-condition><qbook-condition lang='EN'>Our ref</qbook-condition></b>&nbsp;:&nbsp;</td>
+				<td class="celldata"><qbook-value src_value="header_ref_client"></qbook-value></td>
+				</tr>
+				
+				<tr>
+				<td class="celltitle"><b>Date</b>&nbsp;:&nbsp;</td>
+				<td class="celldata">
+					<qbook-condition lang='FR'><qbook-value src_value="body_date"></qbook-value></qbook-condition>
+					<qbook-condition lang='EN'><qbook-value src_value="body_date_sql"></qbook-value></qbook-condition>
+				</td>
+				</tr>
+				
+				<tr>
+				<td class="celltitle"><b><qbook-condition lang='FR'>Objet</qbook-condition><qbook-condition lang='EN'>Subject</qbook-condition></b>&nbsp;:&nbsp;</td>
+				<td class="celldata"><qbook-value src_value="body_title"></qbook-value></td>
+				</tr>
+				
+			</table>
+			
+			</td>
+			<td width="42%" valign="top">
+				&nbsp;
+			</td>
+		</tr></table>
+		<br>
+		</qbook-condition>
+		
+		<qbook-condition media='POSTAL'>
+		<table class='letterwidth' id='div_header_to' style="padding:10px ; height: 75px"><tr>
+			<td width="58%" valign="top">
+			<br><br>
+			<table width='100%'>
+				<tr>
+				<td class="celldata">
+				<b><qbook-condition lang='FR'>N/ Réf</qbook-condition><qbook-condition lang='EN'>Our ref</qbook-condition></b>
+				&nbsp;:&nbsp;
+				<qbook-value src_value="header_ref_client"></qbook-value>
+				</td>
+				</tr>
+				<tr>
+				<td class="celldata">
+				<b><qbook-condition lang='FR'>(à rappeler dans toute correspondance)</qbook-condition><qbook-condition lang='EN'>(to be recalled in any correspondence)</qbook-condition></b>
+				</td>
+				</tr>
+				
+				<tr>
+				<td class="celldata">&nbsp;</td>
+				</tr>
+				
+				<tr>
+				<td class="celldata">
+				<b><qbook-condition lang='FR'>Affaire suivie par</qbook-condition><qbook-condition lang='EN'>Your correspondant</qbook-condition></b>
+				&nbsp;:&nbsp;
+				<qbook-value src_value="header_cr_fullname"></qbook-value>
+				</td>
+				</tr>
+				
+				<tr>
+				<td class="celldata">
+				<b><qbook-condition lang='FR'>Tel</qbook-condition><qbook-condition lang='EN'>Tel</qbook-condition></b>
+				&nbsp;:&nbsp;
+				<qbook-value src_value="header_cr_tel"></qbook-value>
+				</td>
+				</tr>
+				
+			</table>
+			
+			</td>
+			<td width="42%" valign="top">
+				<br>
+				<!--<span style="font-size:14px">Réf. courrier : <qbook-value src_value="header_ref_mail"></qbook-value></span>--><br><br>
+				
+				<b><qbook-value src_value="header_dest_name"></qbook-value></b><br>
+				<i>
+					<qbook-condition lang='FR'>Service comptabilité fournisseurs</qbook-condition>
+					<qbook-condition lang='EN'>Payables accounting department</qbook-condition>
+				</i><br>
+				<qbook-value src_value="header_dest_adrpost"></qbook-value><br>
+				<br>
+			</td>
+		</tr></table>
+		<br><br>
+		
+		<div class="letterwidth" style="margin:10px">
+			<b><qbook-condition lang='FR'>Objet</qbook-condition><qbook-condition lang='EN'>Subject</qbook-condition></b>
+			&nbsp;:&nbsp;
+			<qbook-value src_value="body_title"></qbook-value>
+			<br><br>
+			
+			Puteaux,
+			<qbook-condition lang='FR'><qbook-value src_value="body_date"></qbook-value></qbook-condition>
+			<qbook-condition lang='EN'><qbook-value src_value="body_date_sql"></qbook-value></qbook-condition>
+			<br><br>
+		</div>
+		
+		</qbook-condition>
+		
+		<br>
+		
+		<div class="letterwidth" id='div_body' style="margin:10px ; height: 720px">
+		<qbook-value src_value="body_content"></qbook-value>
+		<qbook-value src_value="body_signature"></qbook-value>
+		</div>
+		
+		
+</body>
+
+
+
+
+
+</html>
