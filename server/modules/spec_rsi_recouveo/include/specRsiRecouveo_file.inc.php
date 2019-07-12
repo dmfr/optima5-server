@@ -921,11 +921,19 @@ function specRsiRecouveo_file_createForAction( $post_data ) {
 	
 	
 	// Statut existant
+	$preMove_fromSchedNone_toActive = array() ;
 	$current_status = array() ;
 	foreach( $account_record['files'] as $accFile_record ) {
 		foreach( $accFile_record['records'] as $accFileRecord_record ) {
 			if( in_array($accFileRecord_record['record_filerecord_id'],$p_arr_recordIds)
 					&& !in_array($accFile_record['status'],$current_status) ) {
+					
+				if( $accFile_record['status_is_schednone'] ) {
+					$preMove_fromSchedNone_toActive[] = $accFileRecord_record['record_filerecord_id'] ;
+					continue ;
+				}
+					
+					
 				$current_status[] = $accFile_record['status'] ;
 				$current_fileFilerecordId = $accFile_record['file_filerecord_id'] ;
 			}
@@ -937,6 +945,25 @@ function specRsiRecouveo_file_createForAction( $post_data ) {
 	$current_status = reset($current_status) ;
 	if( $map_status[$current_status]['sched_lock'] ) {
 		return array('success'=>false, 'error'=>'Locked file (Current status)') ;
+	}
+	
+	// 12/07/2019, preMove from Schednone to Active
+	if( $preMove_fromSchedNone_toActive ) {
+		$targetFile_openFilerecordId = NULL ;
+		foreach( $account_record['files'] as $accFile_record ) {
+			if( !$accFile_record['status_is_schednone'] && !$accFile_record['status_is_schedlock'] ) {
+				$targetFile_openFilerecordId = $accFile_record['file_filerecord_id'] ;
+				break ;
+			}
+		}
+		if( !$targetFile_openFilerecordId ) {
+			return array('success'=>false, 'error'=>'Cannot find active file') ;
+		}
+		specRsiRecouveo_file_allocateRecordTemp( array(
+			'file_filerecord_id' => $targetFile_openFilerecordId,
+			'arr_recordFilerecordIds' => json_encode($preMove_fromSchedNone_toActive)
+		)) ;
+		return specRsiRecouveo_file_createForAction($post_data) ;
 	}
 	
 	// Statut cible
