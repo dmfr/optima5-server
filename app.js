@@ -263,14 +263,6 @@ Ext.onReady(function () {
 				// match if a child matches, or if the current node matches.
 				match = match || (node === root || filterFn(node));
 				node.set('visible', match, this._silentOptions);
-				if( match && node !== root ) { // HACK : DAMS , display children if parent matches
-					node.cascadeBy( function(childNode) {
-						if( childNode==node ) {
-							return ;
-						}
-						childNode.set('visible', true, this._silentOptions);
-					},this) ;
-				}
 				return match;
 			}
 		}
