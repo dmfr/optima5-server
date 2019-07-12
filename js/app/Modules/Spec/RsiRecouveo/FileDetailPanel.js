@@ -1122,6 +1122,25 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 					},
 					tbar:[{
 						hidden: true,
+						itemId: 'tbNewSelectAll',
+						icon: 'images/op5img/ico_sprite_plus.png',
+						handler: function() {
+							this.createFileSelect(true) ;
+						},
+						scope: this
+					},{
+						hidden: true,
+						itemId: 'tbNewSelectNone',
+						icon: 'images/op5img/ico_sprite_minus.png',
+						handler: function() {
+							this.createFileSelect(false) ;
+						},
+						scope: this
+					},{
+						xtype: 'tbseparator',
+						itemId: 'tbNewSeparator'
+					},{
+						hidden: true,
 						itemId: 'tbNewSubmit',
 						icon: 'images/modules/rsiveo-ok-16.gif',
 						text: '<b>Valider</b>',
@@ -1199,6 +1218,26 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 							this.handleCreateRecord() ;
 						},
 						scope: this
+					},{
+						hidden: true,
+						itemId: 'tbRecordSearchIcon',
+						icon: 'images/op5img/ico_loupe_16.png',
+						_visibleIfWhse: true
+					},{
+						hidden: true,
+						xtype: 'textfield',
+						itemId: 'tbRecordSearchTxt',
+						width: 150,
+						listeners: {
+							change: {
+								fn: function(field) {
+									this.onRecordsSearch() ;
+								},
+								scope: this,
+								buffer: 500
+							},
+							scope: this
+						}
 					}]
 				}]
 			},{xtype: 'splitter', cls: 'op5-spec-rsiveo-splitter'},{
@@ -1625,6 +1664,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			}) ;
 		},this) ;
 		this.down('#pRecordsTree').getStore().setRootNode({root:true, expanded:true, children:pRecordsTreeChildren}) ;
+		this.onRecordsSearch(true) ;
 		
 		var recordsPanel = this.down('#pRecordsPanel'),
 			recordsTree = recordsPanel.down('#pRecordsTree') ;
@@ -2726,6 +2766,26 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 	},
 	
 	
+	onRecordsSearch: function(doCancel=false) {
+		var recordsPanel = this.down('#pRecordsPanel'),
+			recordsTree = this.down('#pRecordsTree'),
+			recordsStore = recordsTree.getStore() ;
+		var recordSearchTxt = recordsTree.down('toolbar').down('#tbRecordSearchTxt').getValue() ;
+		
+		if(doCancel) {
+			recordsTree.down('toolbar').down('#tbRecordSearchTxt').reset() ;
+			recordsStore.clearFilter() ;
+			return ;
+		}
+		
+		if( Ext.isEmpty(recordSearchTxt) ) {
+			recordsStore.clearFilter() ;
+		} else {
+			recordsStore.filter('record_ref',recordSearchTxt) ;
+		}
+	},
+	
+	
 	
 	createFileSetMode: function( actionCode ) {
 		this.createFileMode = !!actionCode ;
@@ -2743,6 +2803,13 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		recordsTree.down('toolbar').down('#tbNew').setVisible(!this.createFileMode) ;
 		recordsTree.down('toolbar').down('#tbNewSubmit').setVisible(this.createFileMode) ;
 		recordsTree.down('toolbar').down('#tbNewAbort').setVisible(this.createFileMode) ;
+		recordsTree.down('toolbar').down('#tbNewSelectAll').setVisible(this.createFileMode) ;
+		recordsTree.down('toolbar').down('#tbNewSelectNone').setVisible(this.createFileMode) ;
+		recordsTree.down('toolbar').down('#tbNewSeparator').setVisible(this.createFileMode) ;
+		recordsTree.down('toolbar').down('#tbRecordSearchIcon').setVisible(this.createFileMode) ;
+		recordsTree.down('toolbar').down('#tbRecordSearchTxt').setVisible(this.createFileMode) ;
+		
+		this.onRecordsSearch(true) ;
 		
 		if( actionCode ) {
 			recordsTree.getRootNode().cascadeBy( function(node) {
@@ -2806,6 +2873,17 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		var existingData = cmp.getData() || {} ;
 		Ext.apply(existingData,mobj) ;
 		cmp.setData(existingData) ;
+	},
+	createFileSelect: function( all ) {
+		all = !!all ;
+		var recordsPanel = this.down('#pRecordsPanel'),
+			recordsTree = this.down('#pRecordsTree') ;
+		recordsTree.getRootNode().cascadeBy( function(node) {
+			var curVal = node.get('checked') ;
+			if( curVal===false || curVal===true ) {
+				node.set('checked',all) ;
+			}
+		}) ;
 	},
 	createFileSubmit: function() {
 		var accId = this._accountRecord.get('acc_id'),
