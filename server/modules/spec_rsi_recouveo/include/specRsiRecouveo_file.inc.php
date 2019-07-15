@@ -588,6 +588,11 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 			$file_action_row['txt_short'] = trim($txt_short) ;
 		}
 		unset( $file_action_row ) ;
+		
+		if( $post_data['filter_fastMode'] ) {
+			unset($file_row['records']) ;
+			//unset($file_row['actions']) ;
+		}
 	}
 	unset($file_row) ;
 	

@@ -535,6 +535,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				filter_soc: (arrSocFilter ? Ext.JSON.encode(arrSocFilter):''),
 				filter_user: (arrUserFilter ? Ext.JSON.encode(arrUserFilter):''),
 				filter_archiveIsOn: (this.showClosed ? 1 : 0),
+				filter_fastMode: (this.viewMode=='record' ? 0 : 1),
 				load_address: (this.showAddress ? 1 : 0)
 			},
 			success: function(response) {
