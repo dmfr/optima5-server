@@ -206,6 +206,9 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 				}
 			}
 		}
+		if( $filter_soc ) {
+			$query.= " AND la.treenode_key IN ".$_opDB->makeSQLlist($filter_soc) ;
+		}
 		if( !$filter_archiveIsOn ) {
 			$query.= " AND f.field_STATUS_CLOSED_VOID='0' AND f.field_STATUS_CLOSED_END='0'" ;
 		} else {
@@ -278,6 +281,9 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 				}
 			}
 		}
+		if( $filter_soc ) {
+			$query.= " AND la.treenode_key IN ".$_opDB->makeSQLlist($filter_soc) ;
+		}
 		if( !$filter_archiveIsOn ) {
 			$query.= " AND f.field_STATUS_CLOSED_VOID='0' AND f.field_STATUS_CLOSED_END='0'" ;
 		} else {
@@ -326,6 +332,9 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 					$query.= " AND {$atr_dbalias}.{$atr_dbfield} IN ".$_opDB->makeSQLlist($mvalue) ;
 				}
 			}
+		}
+		if( $filter_soc ) {
+			$query.= " AND la.treenode_key IN ".$_opDB->makeSQLlist($filter_soc) ;
 		}
 		if( !$filter_archiveIsOn ) {
 			$query.= " AND f.field_STATUS_CLOSED_VOID='0' AND f.field_STATUS_CLOSED_END='0' AND r.field_LETTER_IS_CONFIRM='0'" ;
