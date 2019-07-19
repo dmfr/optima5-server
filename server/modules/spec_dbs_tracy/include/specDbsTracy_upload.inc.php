@@ -300,32 +300,40 @@ function specDbsTracy_report_190304BrokerEmail( $trspt_filerecord_id ) {
 	$order_record = reset($trspt_record['orders']) ;
 	
 	
-	$txt_buffer = "\r\n" ;
-	$txt_buffer.= '---- Request to Broker ----'."\r\n" ;
-	$txt_buffer.= ''."\r\n" ;
-	$txt_buffer.= 'RequestDate : '.date('Ymd')."\r\n" ;
+	$txt_buffer = '' ;
 	
-	$static_office = 'FR00677A' ;
-	$txt_buffer.= "ShippingOffice : {$static_office}\r\n" ;
+	$txt_buffer.= "\r\n" ;
+	$txt_buffer.= 'Bonjour,'."\r\n" ;
+	$txt_buffer.= "\r\n" ;
+	$txt_buffer.= "\r\n" ;
+	$txt_buffer.= 'Merci de bien vouloir trouver ci-dessous les détails d’une nouvelle expédition export :'."\r\n" ;
+	$txt_buffer.= "\r\n" ;
 	
-	$static_location = 'MITRY MORY' ;
-	$txt_buffer.= "ShippingLocation : {$static_location}\r\n" ;
-	
-	$wid = $trspt_record['id_doc'] ;
-	$txt_buffer.= "WID : {$wid}\r\n" ;
-	
-	$prio_code = $trspt_record['atr_priority'] ;
-	$ttmp = paracrm_lib_data_getRecord('bible_entry','LIST_SERVICE',$prio_code) ;
-	$prio_txt = $ttmp['field_TEXT'] ;
-	$txt_buffer.= "Priority : {$prio_txt}\r\n" ;
+	$inv_no = $order_record['ref_invoice'] ;
+	$txt_buffer.= "Référence facture : {$inv_no}\r\n" ;
+	$txt_buffer.= "\r\n" ;
 	
 	$carrier_code = $trspt_record['mvt_carrier'] ;
 	$ttmp = paracrm_lib_data_getRecord('bible_entry','LIST_CARRIER',$carrier_code) ;
 	$carrier_txt = $ttmp['field_NAME'] ;
-	$txt_buffer.= "Carrier : {$carrier_txt}\r\n" ;
+	$txt_buffer.= "Transporteur : {$carrier_txt}\r\n" ;
+	$txt_buffer.= "\r\n" ;
 	
-	$inv_no = $order_record['ref_invoice'] ;
-	$txt_buffer.= "InvoiceNo : {$inv_no}\r\n" ;
+	$tot_count = 0 ;
+	$tot_kg = 0 ;
+	foreach( $hat_record['parcels'] as $parcel ) {
+		$tot_count += $parcel['vol_count'] ;
+		$tot_kg += $parcel['vol_kg'] ;
+	}
+	$tot_kg = round($tot_kg,3) ;
+	$txt_buffer.= "Nombre de colis : {$tot_count}\r\n" ;
+	$txt_buffer.= "\r\n" ;
+	$txt_buffer.= "Poids total : {$tot_kg} KG\r\n" ;
+	$txt_buffer.= "\r\n" ;
+	
+	$static_office = 'FR00677A' ;
+	$txt_buffer.= "Bureau de sortie : {$static_office}\r\n" ;
+	$txt_buffer.= "\r\n" ;
 	
 	$value_currency = '' ;
 	$value_amount = 0 ;
@@ -336,18 +344,21 @@ function specDbsTracy_report_190304BrokerEmail( $trspt_filerecord_id ) {
 			break ;
 		}
 	}
-	$txt_buffer.= "Value - Amount : {$value_amount}\r\n" ;
-	$txt_buffer.= "Value - Currency : {$value_currency}\r\n" ;
+	$txt_buffer.= "Valeur totale facture : {$value_amount} {$value_currency}\r\n" ;
+	$txt_buffer.= "\r\n" ;
 	
-	$tot_count = 0 ;
-	$tot_kg = 0 ;
-	foreach( $hat_record['parcels'] as $parcel ) {
-		$tot_count += $parcel['vol_count'] ;
-		$tot_kg += $parcel['vol_kg'] ;
-	}
-	$tot_kg = round($tot_kg,3) ;
-	$txt_buffer.= "ParcelCount : {$tot_count}\r\n" ;
-	$txt_buffer.= "Weight(kg) : {$tot_kg}\r\n" ;
+	$static_location = 'MITRY MORY' ;
+	$txt_buffer.= "Localisation : {$static_location}\r\n" ;
+	$txt_buffer.= "\r\n" ;
+	
+	$txt_buffer.= "\r\n" ;
+	
+	$txt_buffer.= 'Vous trouverez ci-joint l’ensemble des documents nécessaires à la déclaration.'."\r\n" ;
+	$txt_buffer.= "\r\n" ;
+	$txt_buffer.= 'Dans l’attente du retour du BAE.'."\r\n" ;
+	$txt_buffer.= "\r\n" ;
+	$txt_buffer.= 'Bien cordialement,'."\r\n" ;
+	$txt_buffer.= "\r\n" ;
 	$txt_buffer.= "\r\n" ;
 	
 	$attachments = array() ;
