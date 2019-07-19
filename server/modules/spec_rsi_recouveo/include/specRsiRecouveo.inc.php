@@ -21,6 +21,8 @@ include("$server_root/modules/spec_rsi_recouveo/include/specRsiRecouveo_lib_meta
 include("$server_root/modules/spec_rsi_recouveo/include/specRsiRecouveo_lib_mail.inc.php") ;
 include("$server_root/modules/spec_rsi_recouveo/include/specRsiRecouveo_lib_stat.inc.php") ;
 include("$server_root/modules/spec_rsi_recouveo/include/specRsiRecouveo_lib_edi.inc.php") ;
+include("$server_root/modules/spec_rsi_recouveo/include/specRsiRecouveo_lib_transfert.php") ;
+
 function specRsiRecouveo_cfg_doInit( $post_data ) {
 	global $_opDB ;
 	

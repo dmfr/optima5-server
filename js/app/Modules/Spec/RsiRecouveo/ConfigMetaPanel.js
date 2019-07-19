@@ -116,6 +116,22 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigMetaPanel', {
 						name: 'gen_uimode_saas',
 						boxLabel: 'Mode SaaS'
 					}]
+				},{
+					xtype: 'fieldset',
+					title: 'Transfert vers Recouvéo',
+					items: [{
+						xtype: 'textfield',
+						name: 'gen_transfert_url',
+						fieldLabel: 'Lien vers l\'api recouvéo'
+					},{
+						xtype: 'textfield',
+						name: 'gen_transfert_domain',
+						fieldLabel: 'Domaine'
+					},{
+						xtype: 'textfield',
+						name: 'gen_transfert_apikey',
+						fieldLabel: 'Clé API'
+					}]
 				}]
 			}],
 			buttons: [{
