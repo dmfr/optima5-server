@@ -251,6 +251,8 @@ if( TRUE ) {
 					$arr_update = array() ;
 					$arr_update['field_CUSTOMS_DATE_CLEARED'] = date('Y-m-d H:i:s') ;
 					paracrm_lib_data_updateRecord_file( 'TRSPT', $arr_update, $trspt_filerecord_id );
+					
+					specDbsTracy_trspt_ackCustomsStatus( array('trspt_filerecord_id'=>$trspt_filerecord_id) )
 				}
 			}
 			
