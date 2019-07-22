@@ -84,6 +84,9 @@ foreach( $rows as $row ) {
 	$lig = utf8_decode($lig) ;
 	$buffer.= $lig."\r\n" ;
 }
+if( count($tab['data'])==0 ) {
+	$buffer = NULL ;
+}
 
 // *********************************
 
