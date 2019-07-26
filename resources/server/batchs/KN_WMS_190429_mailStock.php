@@ -12,6 +12,9 @@ $PARAMS_BASE = array(
 '_action'       => 'xls_qsqlExec',
 'qsql_id'       => 'STK_Report'
 ) ;
+if( $qsql_id=getenv('QSQL') ) {
+	$PARAMS_BASE['qsql_id'] = $qsql_id ;
+}
 if( $soc=getenv('SOC') ) {
 $PARAMS_BASE += array(
 'vars'        => json_encode(array(
