@@ -514,6 +514,7 @@ function specRsiRecouveo_util_getLogUser($no_short=FALSE) {
 	$cfg_user = $ttmp['data']['cfg_user'] ;
 	$map_user = array() ;
 	foreach( $cfg_user as $user ) {
+		$user['user_id'] = strtoupper($user['user_id']) ;
 		$map_user[$user['user_id']] = $user ;
 	}
 	
