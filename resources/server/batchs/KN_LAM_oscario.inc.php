@@ -380,7 +380,7 @@ function oscario_interface_do( $_OSCARIO_DOMAIN, $_OSCARIO_MAG, $_OPTIMA_SOC ) {
 	
 	//echo "pouet\n" ;
 	$arr_cdeFilerecordIds = array() ;
-	$query = "SELECT filerecord_id FROM view_file_CDE WHERE field_STATUS='90' AND field_ATR_CDECLASS<>'' AND field_ATR_CDECLASS NOT IN ('2MAN')" ;
+	$query = "SELECT filerecord_id FROM view_file_CDE WHERE field_STATUS='90' AND field_SOC_CODE='{$_OPTIMA_SOC}'" ;
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
 		$arr_cdeFilerecordIds[] = $arr[0] ;
@@ -398,9 +398,15 @@ function oscario_interface_do( $_OSCARIO_DOMAIN, $_OSCARIO_MAG, $_OPTIMA_SOC ) {
 			if( strpos($ref,$_PREFIX_REF.'_') === 0 )
 				$ref = substr($ref,strlen($_PREFIX_REF)+1) ;
 			
+			$cde_nr = $cde_row['cde_nr'] ;
+			$query = "SELECT field_PARENT_CDENR FROM view_file_CDE_LIG WHERE filerecord_id='{$cdelig_row['cdelig_filerecord_id']}'" ;
+			$parent_cdenr = $_opDB->query_uniqueValue($query) ;
+			if( $parent_cdenr && ($parent_cdenr!=$cde_nr) ) {
+				$cde_nr = $parent_cdenr ;
+			}
 			
 			$lig = '' ;
-			$lig = substr_mklig( $lig, $cde_row['cde_nr'], 0, 20 ) ;
+			$lig = substr_mklig( $lig, $cde_nr, 0, 20 ) ;
 			$lig = substr_mklig( $lig, date('Y-m-d'), 20, 10 ) ;
 			$lig = substr_mklig( $lig, $ref, 30, 20 ) ;
 			$lig = substr_mklig( $lig, int_to_strX($cdelig_row['qty_cde']*100,10), 50, 10 ) ;
@@ -611,6 +617,8 @@ function oscario_interface_do( $_OSCARIO_DOMAIN, $_OSCARIO_MAG, $_OPTIMA_SOC ) {
 		$query = "SELECT filerecord_id FROM view_file_CDE WHERE field_CDE_NR='$dst_cdenr'" ;
 		$dst_filerecordId = $_opDB->query_uniqueValue($query) ;
 		
+		$query = "UPDATE view_file_CDE_LIG SET field_PARENT_CDENR='{$src_cdenr}' WHERE filerecord_parent_id='{$src_filerecordId}'" ;
+		$_opDB->query($query) ;
 		$query = "UPDATE view_file_CDE_LIG SET filerecord_parent_id='{$dst_filerecordId}' WHERE filerecord_parent_id='{$src_filerecordId}'" ;
 		$_opDB->query($query) ;
 		$query = "DELETE FROM view_file_CDE WHERE filerecord_id='{$src_filerecordId}'" ;
