@@ -111,6 +111,9 @@ function specDbsLam_lib_TMS_OPTIMA_getZplBuffer( $rowExtended_transferCdePack, $
 
 function specDbsLam_lib_TMS_getTrsptId($rowExtended_transferCdePack, $pack_id_trspt_code) {
 	switch( $pack_id_trspt_code ) {
+		case 'GAC' :
+			return 'GAC-'.$rowExtended_transferCdePack['id_nocolis'] ;
+		
 		case 'DPDG' :
 			return specDbsLam_lib_TMS_DPDG_getId($rowExtended_transferCdePack['cde']['soc_code']) ;
 		
@@ -129,6 +132,10 @@ function specDbsLam_lib_TMS_getTrsptZplBuffer($rowExtended_transferCdePack, $pac
 	$zebra_buffer.= '^XA^POI' ;
 	$zebra_buffer.= "^BY3,3.0,10^FS" ;
 	switch( $pack_id_trspt_code ) {
+		case 'GAC' :
+			$zebra_buffer.= specDbsLam_lib_TMS_GAC_getZplBuffer($rowExtended_transferCdePack) ;
+			break ;
+			
 		case 'DPDG' :
 			$zebra_buffer.= specDbsLam_lib_TMS_DPDG_getZplBuffer($rowExtended_transferCdePack,$pack_id_trspt_id) ;
 			break ;
@@ -1371,5 +1378,33 @@ function specDbsLam_lib_TMS_UPS_doRequest( $rowExtended_transferCdePack ) {
 	
 	return TRUE ;
 }
+
+
+
+function specDbsLam_lib_TMS_GAC_getZplBuffer( $rowExtended_transferCdePack ) {
+	$buffer = '' ;
+	
+	$w_data = 100 ;
+	$h = 250 ;
+	
+	$buffer.= "^FO{$w_data},{$h}^AUN^FD"."Customer Name"."^FS";
+	$h += 75 ;
+	$buffer.= "^FO{$w_data},{$h}^AVN^FD".$rowExtended_transferCdePack['cde']['adr_name']."^FS";
+	$h += 150 ;
+	
+	$buffer.= "^FO{$w_data},{$h}^AUN^FD"."Postcode"."^FS";
+	$h += 75 ;
+	$buffer.= "^FO{$w_data},{$h}^AVN^FD".$rowExtended_transferCdePack['cde']['adr_country'].' - '.$rowExtended_transferCdePack['cde']['adr_cp']."^FS";
+	$h += 150 ;
+	
+	$buffer.= "^FO{$w_data},{$h}^AUN^FD"."Order Number"."^FS";
+	$h += 75 ;
+	$buffer.= "^FO{$w_data},{$h}^AVN^FD".$rowExtended_transferCdePack['cde']['cde_ref']."^FS";
+	$h += 150 ;
+	
+	return $buffer ;
+}
+
+
 
 ?>
