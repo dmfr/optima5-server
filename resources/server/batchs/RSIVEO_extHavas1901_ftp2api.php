@@ -175,7 +175,7 @@ function add_CLT_header($binary,$separator) {
 	return implode($separator,$header)."\n".$binary ;
 }
 function add_ENR_header($binary,$separator) {
-	$header = array("Société","Numéro client","Date transmission","Date facture","Date échéance","Id facture","Numéro facture","Libellé","Montant HT","Montant TTC","Montant TVA","Meta:JOURNAL","Lettrage","Méta donnée 1","Méta donnée 2","Méta donnée 3","Méta donnée 4","Méta donnée 5","Lettrage soldé ?","Date lettrage","Montant devise","Code devise") ;
+	$header = array("Société","Numéro client","Date transmission","Date facture","Date échéance","Id facture","Numéro facture","Libellé","Montant HT","Montant TTC","Montant TVA","Meta:JOURNAL","Lettrage","Méta donnée 1","Meta:RMDT2","Meta:RMDT3","Méta donnée 4","Méta donnée 5","Lettrage soldé ?","Date lettrage","Montant devise","Code devise") ;
 	
 	return implode($separator,$header)."\n".$binary ;
 }
