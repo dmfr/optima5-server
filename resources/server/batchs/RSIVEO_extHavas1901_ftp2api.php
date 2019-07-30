@@ -187,7 +187,7 @@ function ftp_file_upload_SEND_REQUEST($binary, $api_method){
 
 	// Construction de l'URL
 	$arr_url = parse_url(getenv('API_URL')) ;
-	$auth_url = $arr_url['scheme'].'://'.urlencode(getenv('API_DOMAIN')).':'.urlencode(getenv('API_APIKEY')).'@'.$arr_url['host'].'/'.$arr_url['path'].'/'.$api_method ;
+	$auth_url = $arr_url['scheme'].'://'.urlencode(getenv('API_DOMAIN')).':'.urlencode(getenv('API_APIKEY')).'@'.$arr_url['host'].":".$arr_url["port"].'/'.$arr_url['path'].'/'.$api_method ;
 
 	echo $auth_url."\n" ;
 	$params = array('http' => array(
