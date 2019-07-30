@@ -1,22 +1,27 @@
 <?php
 
-function specRsiRecouveo_lib_transfert_extract_files(){
+$GLOBALS['specRsiRecouveo_lib_transfert_TRSFRcode'] = 'S2T_TRSFR' ;
+
+function specRsiRecouveo_lib_transfert_extract_mapMethodJson() {
 	global $_opDB ;
-	$query = "SELECT filerecord_id, field_FILE_ID, field_LINK_ACCOUNT FROM view_file_FILE WHERE field_STATUS='S2T_TRSFR' " ;
-	$res = $_opDB->query($query) ;
+	
+	$json = specRsiRecouveo_config_loadMeta(array()) ;
+	$config_meta = $json['data'] ;
+	if( !($idSoc=$config_meta['gen_transfert_destsoc']) ) {
+		return array() ;
+	}
+	
+	
 	$acc_array = array() ;
 	$adrbook_array =array() ;
-	while($row = $_opDB->fetch_assoc($res)){
+	$record_array = array() ;
+	
+	$query = "SELECT distinct field_LINK_ACCOUNT FROM view_file_FILE WHERE field_STATUS='{$GLOBALS['specRsiRecouveo_lib_transfert_TRSFRcode']}' " ;
+	$res = $_opDB->query($query) ;
+	while(($arr = $_opDB->fetch_row($res)) != FALSE){
+		$acc_id = $arr[0] ;
 
-		$acc_row = array() ;
-		$acc_id = $row['field_LINK_ACCOUNT'] ;
-
-		$idSoc_query = "SELECT treenode_key FROM view_bible_LIB_ACCOUNT_entry WHERE field_ACC_ID = '{$acc_id}'" ;
-		$soc_res = $_opDB->query($idSoc_query) ;
-		$soc_row = $_opDB->fetch_row($soc_res) ;
-		$idSoc = $soc_row[0] ;
-
-		$acc_row = specRsiRecouveo_lib_transfert_create_ACCOUNT_row($acc_id) ;
+		$acc_row = specRsiRecouveo_lib_transfert_create_ACCOUNT_row($acc_id, $idSoc) ;
 		$acc_array[] = $acc_row ;
 
 		$adrbook_row = specRsiRecouveo_lib_transfert_create_ADRBOOK_row($acc_id, $idSoc) ;
@@ -24,11 +29,10 @@ function specRsiRecouveo_lib_transfert_extract_files(){
 			$adrbook_array[] = $adr_row ;
 		}
 
-		$record_row = specRsiRecouveo_lib_transfert_create_RECORD_row($row['filerecord_id'], $idSoc) ;
-		if (!$record_row){
-			continue ;
+		$record_rows = specRsiRecouveo_lib_transfert_create_RECORD_row($acc_id, $idSoc) ;
+		foreach( $record_rows as $row ){
+			$record_array[] = $row ;
 		}
-		$record_array[] = $record_row ;
 	}
 
 	$acc_json = json_encode($acc_array) ;
@@ -38,49 +42,80 @@ function specRsiRecouveo_lib_transfert_extract_files(){
 	return array("account" => $acc_json, "account_adrbookentry" => $adrbook_json, "record" => $record_json) ;
 }
 
-function specRsiRecouveo_lib_transfert_create_RECORD_row($file_filerecord_id, $idSoc) {
-	$ttmp = specRsiRecouveo_file_getRecords( array(
-		'filter_fileFilerecordId_arr' => json_encode(array($file_filerecord_id))
-	)) ;
-	$data = $ttmp['data'][0] ;
-	if (!$data["records"]){
-		return ;
-	}
-
-
-	$acc_id = $data["acc_id"] ;
-
-	$record_array = array() ;
-	$record_row["IdCli"] = $acc_id ;
-	$record_row["IdSoc"] = $idSoc ;
-
-	foreach ($data["records"] as $rec){
-		$record_row["IdFact"] = $rec["record_id"] ;
-		$record_row["NumFact"] = $rec["record_ref"] ;
-		$record_row["DateFact"] = $rec["date_record"] ;
-		$record_row["MontantTTC"] = $rec["amount"] ;
-		$record_row["LibFact"] = $rec["record_txt"] ;
-		$record_row["DateTrans"] = $rec["date_load"] ;
-		$record_row["DateLimite"] = $rec["date_value"] ;
-		$record_row["Letter"] = $rec["letter_code"] ;
-		$record_row["NonFactType"] = $rec["type"] ;
+function specRsiRecouveo_lib_transfert_create_RECORD_row($acc_id, $idSoc) {
+	global $_opDB ;
+	
+	$query = "CREATE TEMPORARY TABLE acc_records (
+					record_filerecord_id INT PRIMARY KEY,
+					current_status INT,
+					letter_is_confirm INT
+				)" ;
+	$_opDB->query($query) ;
+	
+	
+	$query = "INSERT INTO acc_records(record_filerecord_id)
+					SELECT distinct(r.filerecord_id)
+					FROM view_file_RECORD r
+					JOIN view_file_RECORD_LINK rl ON rl.filerecord_parent_id=r.filerecord_id
+					JOIN view_file_FILE f ON f.filerecord_id=rl.field_LINK_FILE_ID
+					WHERE r.field_LINK_ACCOUNT='{$acc_id}' AND f.field_STATUS='{$GLOBALS['specRsiRecouveo_lib_transfert_TRSFRcode']}'" ;
+	$_opDB->query($query) ;
+	
+	$query = "UPDATE acc_records ar
+					JOIN view_file_RECORD r ON r.filerecord_id = ar.record_filerecord_id
+					SET ar.letter_is_confirm = r.field_LETTER_IS_CONFIRM" ;
+	$_opDB->query($query) ;
+	
+	$query = "UPDATE acc_records ar
+					JOIN view_file_RECORD_LINK rl ON rl.filerecord_parent_id=ar.record_filerecord_id AND rl.field_LINK_IS_ON='1'
+					JOIN view_file_FILE f ON f.filerecord_id = rl.field_LINK_FILE_ID
+					SET current_status='1'
+					WHERE f.field_STATUS='{$GLOBALS['specRsiRecouveo_lib_transfert_TRSFRcode']}'" ;
+	$_opDB->query($query) ;
+	
+	$query = "SELECT ar.*, r.* FROM acc_records ar
+					JOIN view_file_RECORD r ON r.filerecord_id = ar.record_filerecord_id" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		$letter_code = '' ;
+		if( $arr['letter_is_confirm'] ) {
+			$letter_code = 'LETTRE' ;
+		} elseif( !$arr['current_status'] ) {
+			$letter_code = 'ANNULE' ;
+		}
+		$letter_confirm = ($letter_code ? TRUE : FALSE) ;
+		
+		$record_row["IdSoc"] = $idSoc ;
+		$record_row["IdCli"] = $arr["field_LINK_ACCOUNT"] ;
+		$record_row["IdFact"] = $arr["field_RECORD_ID"] ;
+		$record_row["NumFact"] = $arr["field_RECORD_REF"] ;
+		$record_row["DateFact"] = $arr["field_DATE_RECORD"] ;
+		$record_row["MontantTTC"] = (float)$arr["field_AMOUNT"] ;
+		$record_row["LibFact"] = $arr["field_RECORD_TXT"] ;
+		$record_row["DateLimite"] = $arr["field_DATE_VALUE"] ;
+		$record_row["Letter"] = $letter_code ;
+		$record_row["LetterConfirm"] = $letter_confirm ;
+		$record_row["NonFactType"] = $arr["field_TYPE"] ;
 		$record_array[] = $record_row ;
 	}
-
-	return $record_row ;
+	
+	$query = "DROP TABLE acc_records" ;
+	$_opDB->query($query) ;
+	
+	return $record_array ;
 }
 
-function specRsiRecouveo_lib_transfert_create_ACCOUNT_row($acc_id) {
+function specRsiRecouveo_lib_transfert_create_ACCOUNT_row($acc_id, $idSoc) {
 	global $_opDB ;
 	$account_query = "SELECT * FROM view_bible_LIB_ACCOUNT_entry WHERE field_ACC_ID = '{$acc_id}'" ;
 	$res = $_opDB->query($account_query) ;
 	$row = $_opDB->fetch_assoc($res) ;
 
 	$api_row = array() ;
+	$api_row['IdSoc'] = $idSoc ;
 	$api_row['IdCli'] = $row['field_ACC_ID'] ;
 	$api_row['NameCli'] = $row['field_ACC_NAME'] ;
 	$api_row['SIRET'] = $row['field_ACC_SIRET'] ;
-	$api_row['IdSoc'] = $row['treenode_key'] ;
 
 	return $api_row ;
 }

@@ -119,18 +119,29 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigMetaPanel', {
 				},{
 					xtype: 'fieldset',
 					title: 'Transfert vers Recouvéo',
+					fieldDefaults: {
+						labelWidth: 100,
+						anchor: '100%'
+					},
 					items: [{
 						xtype: 'textfield',
 						name: 'gen_transfert_url',
-						fieldLabel: 'Lien vers l\'api recouvéo'
+						fieldLabel: 'API URL'
 					},{
 						xtype: 'textfield',
+						anchor: '50%',
 						name: 'gen_transfert_domain',
-						fieldLabel: 'Domaine'
+						fieldLabel: 'Domaine (sd@d)'
 					},{
 						xtype: 'textfield',
 						name: 'gen_transfert_apikey',
 						fieldLabel: 'Clé API'
+					},{
+						xtype: 'textfield',
+						anchor: '',
+						width: 175,
+						name: 'gen_transfert_destsoc',
+						fieldLabel: 'Dest. Soc'
 					}]
 				}]
 			}],
