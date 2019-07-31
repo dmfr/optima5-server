@@ -515,7 +515,7 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE, $stopAsHtm
 		if( $p_recordsFilerecordIds && !in_array($record_row['record_filerecord_id'],$p_recordsFilerecordIds) ) {
 			continue ;
 		}
-		
+		$record_row['record_txt'] = trim(substr($record_row['record_txt'],0,35)) ;
 		foreach( $record_row as $rkey => &$val ) {
 			if( !(strpos($rkey,'date')===0) && is_string($val) ) {
 				$val = htmlspecialchars($val) ;
@@ -526,7 +526,7 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE, $stopAsHtm
 		
 		$row_table = array(
 			'record_ref' => $record_row['record_ref'],
-			'record_txt' => trim(substr($record_row['record_txt'],0,35)),
+			'record_txt' => $record_row['record_txt'],
 			'type_temprec' => $record_row['type_temprec'],
 			'date_load' => date('d/m/Y',strtotime($record_row['date_load'])),
 			'date_record' => date('d/m/Y',strtotime($record_row['date_record'])),
