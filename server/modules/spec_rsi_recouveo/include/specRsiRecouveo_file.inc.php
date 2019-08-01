@@ -1987,7 +1987,8 @@ function specRsiRecouveo_file_getScenarioLine( $post_data ) {
 		$TAB[$scenstep_tag] = $row_scenario_step ;
 	}
 	$TAB['BUMP'] = array(
-		'link_action' => 'BUMP'
+		'link_action' => 'BUMP',
+		'link_txt' => 'Fin scénario'
 	);
 	
 	if( !$accFile_record && !$p_fileFilerecordId ) {

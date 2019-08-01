@@ -405,6 +405,7 @@ function specRsiRecouveo_action_execMailAutoAction( $post_data ) {
 		foreach( $json['data'] as $scenline_dot ) {
 			if( $scenline_dot['is_next'] ) {
 				$forward_post['next_action'] = $scenline_dot['link_action'] ;
+				$forward_post['next_action_txt'] = $scenline_dot['link_txt'] ;
 				$forward_post['scen_code'] = $scen_code ;
 				$forward_post['next_scenstep_code'] = $scenline_dot['scenstep_code'] ;
 				$forward_post['next_scenstep_tag'] = $scenline_dot['scenstep_tag'] ;
@@ -429,6 +430,9 @@ function specRsiRecouveo_action_execMailAutoAction( $post_data ) {
 			$arr_ins['field_DATE_SCHED'] = $forward_post['next_date'] ;
 			if( $link_tpl_id ) {
 				$arr_ins['field_LINK_TPL'] = $link_tpl_id ;
+			}
+			if( $forward_post['next_action_txt'] ) {
+				$arr_ins['field_LINK_TXT'] = $forward_post['next_action_txt'] ;
 			}
 			$next_fileaction_filerecord_id = paracrm_lib_data_insertRecord_file( $file_code, $p_fileFilerecordId, $arr_ins );
 		}
@@ -498,6 +502,7 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 	
 	
 	$post_form = json_decode($post_data['data'],true) ;
+	$post_form['link_status'] = $file_record['status'] ;
 	$file_code = 'FILE_ACTION' ;
 	
 	//print_r($post_form) ;
@@ -1238,6 +1243,9 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 				$arr_ins['field_DATE_SCHED'] = ($post_form['next_date'] ? $post_form['next_date'] : date('Y-m-d')) ;
 				if( $link_tpl_id ) {
 					$arr_ins['field_LINK_TPL'] = $link_tpl_id ;
+				}
+				if( $post_form['next_action_txt'] ) {
+					$arr_ins['field_LINK_TXT'] = $post_form['next_action_txt'] ;
 				}
 				$next_fileaction_filerecord_id = paracrm_lib_data_insertRecord_file( $file_code, $file_filerecord_id, $arr_ins );
 				break ;

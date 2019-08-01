@@ -183,6 +183,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusNextScenarioField',{
 			namePrefix = this.getName() ;
 		if( selModel ) {
 			data[namePrefix+'_'+'action'] = selModel.get('link_action') ;
+			if( !Ext.isEmpty(selModel.get('link_txt')) ) {
+				data[namePrefix+'_'+'action_txt'] = selModel.get('link_txt') ;
+			}
 			if( !Ext.isEmpty(selModel.get('scenstep_tag')) ) {
 				data[namePrefix+'_'+'scenstep_code'] = selModel.get('scenstep_code') ;
 				data[namePrefix+'_'+'scenstep_tag'] = selModel.get('scenstep_tag') ;

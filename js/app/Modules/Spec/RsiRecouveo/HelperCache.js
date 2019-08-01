@@ -192,6 +192,7 @@ Ext.define('RsiRecouveoConfigScenarioStepModel',{
 		{name: 'schedule_idx', type:'int'},
 		{name: 'schedule_daystep', type:'int'},
 		{name: 'link_action', type:'string'},
+		{name: 'link_txt', type:'string'},
 		{name: 'link_tpl', type:'string'},
 		{name: 'mail_modes_json', type:'string'},
 		{name: 'exec_is_auto', type:'boolean'}
