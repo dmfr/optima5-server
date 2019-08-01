@@ -102,7 +102,7 @@ $date_now = date('Y-m-d H:i:s') ;
 $arr_invFilerecordIds = array() ;
 
 // ************ Chargement INV **************
-$query = "SELECT i.filerecord_id, i.field_CLI_LINK, i.field_FACTOR_LINK
+$query = "SELECT i.filerecord_id, i.field_CLI_LINK, i.field_FACTOR_LINK, i.field_ADR_INVOICE
 	FROM view_file_INV i
 	INNER JOIN view_bible_CUSTOMER_entry c ON c.entry_key = i.field_CLI_LINK
 	LEFT OUTER JOIN view_file_INV_PEER ip ON ip.filerecord_parent_id=i.filerecord_id
@@ -114,9 +114,7 @@ while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
 	$filerecord_id = $arr[0] ;
 	$field_CLI_LINK = $arr[1] ;
 	$field_FACTOR_LINK = $arr[2] ;
-	if( !lookup_factorSiret($field_CLI_LINK) ) {
-		continue ;
-	}
+	$field_ADR_INVOICE = $arr[3] ;
 	if( $field_FACTOR_LINK != 'FACTOFR' ) {
 		$arr_ins = array() ;
 		$arr_ins['field_PEER_CODE'] = $GLOBALS['_cfg_peer_code'] ;
@@ -126,11 +124,18 @@ while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
 		paracrm_lib_data_insertRecord_file( 'INV_PEER' , $filerecord_id , $arr_ins ) ;
 		continue ;
 	}
+	if( !lookup_factorSiret($field_CLI_LINK) ) {
+		continue ;
+	}
+	if( !parseAdr($field_ADR_INVOICE) ) {
+		continue ;
+	}
 	$arr_invFilerecordIds[] = $filerecord_id ;
 }
 if( !$arr_invFilerecordIds ) {
 	exit ;
 }
+sort($arr_invFilerecordIds) ;
 
 // ************* Constitution de l'envoi ************
 $email_text = mail_getBody( $arr_invFilerecordIds ) ;
