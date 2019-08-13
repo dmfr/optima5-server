@@ -2,7 +2,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportGridPanel',{
 	extend: 'Optima5.Modules.Spec.RsiRecouveo.ReportFilterablePanel',
 	
 	alias: 'widget.op5specrsiveoreportgrid',
-	
+	_hideDataAvailable: false,
+	_preBuiltMode: null,
+	_tileFilter: null,
+	_filterStatus: null,
 	initComponent: function() {
 		// create tree for values
 		var map_timescale_arr = {} ;
@@ -55,8 +58,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportGridPanel',{
 					break ;
 			}
 		}) ;
-		
-		
+
 		Ext.apply(this,{
 			layout: 'border',
 			items:[{
@@ -90,6 +92,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportGridPanel',{
 					xtype: 'fieldset',
 					title: 'Rupture sur attribut',
 					checkboxName: 'groupby_is_on',
+					itemId: 'groupbyField',
 					checkboxToggle: true,
 					items: [{
 						xtype: 'radiogroup',
@@ -97,10 +100,12 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportGridPanel',{
 						// Arrange radio buttons into two columns, distributed vertically
 						columns: 1,
 						vertical: true,
+						itemId: "radio_atr",
 						items: [
 							{ boxLabel: 'Affectation', name: 'groupby_key', inputValue: 'user' },
 							{ boxLabel: 'Entité', name: 'groupby_key', inputValue: 'soc'},
-							{ boxLabel: 'Attribut', name: 'groupby_key', inputValue: 'atr' }
+							{ boxLabel: 'Attribut', name: 'groupby_key', inputValue: 'atr' },
+							{ boxLabel: 'Statut', name: 'groupby_key', inputValue: 'status' }
 						]
 					},{
 						xtype: 'combobox',
@@ -120,6 +125,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportGridPanel',{
 					xtype: 'fieldset',
 					title: 'Eclatement par période',
 					checkboxName: 'timebreak_is_on',
+					itemId: 'timebreakFieldSet',
 					checkboxToggle: true,
 					items: [{
 						xtype: 'combobox',
@@ -158,6 +164,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportGridPanel',{
 				title: 'Données disponibles',
 				rootVisible: false,
 				useArrows: true,
+				hidden: this._hideDataAvailable,
 				store: {
 					root: {root: true, children: rootChildren, expanded: true},
 					proxy: {
@@ -178,6 +185,21 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportGridPanel',{
 		this.resetGroupby() ;
 		this.doTbarChanged() ;
 		this.ready = true ;
+		if (this._hideDataAvailable && this._preBuiltMode){
+			this.down('#tbSoc').setHidden(true) ;
+			this.down('#tbAtr').setHidden(true) ;
+			this.down('#tbUser').setHidden(true) ;
+			this.down('#btnFilterDate').setHidden(true) ;
+			this.down('#btnFilterPeriodes').setHidden(true) ;
+			this.down('#menu').setHidden(true) ;
+			var tmp = Ext.ComponentQuery.query('tbseparator', this) ;
+			Ext.Array.each(tmp, function (elem) {
+				elem.setHidden(true) ;
+			})
+			this.down('#cfgGroupby').setCollapsed(true) ;
+			this.initGridWithMode() ;
+
+		}
 	},
 	onTbarChanged: function(filterValues) {
 		var atrData = [] ;
@@ -194,6 +216,58 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportGridPanel',{
 		this.resetGroupby() ;
 		this.down('#cfgGroupby').getForm().findField('groupby_atr').getStore().loadData(atrData) ;
 		this.doLoad() ;
+	},
+
+	initGridWithMode: function(){
+		var me = this ;
+		var radioVal = this.down("#radio_atr") ;
+		if (me._tileFilter != null && me._preBuiltMode == "interval"){
+			var groupbyForm = this.down('#cfgGroupby').getForm() ;
+			groupbyForm.setValues({
+				groupby_is_on: true
+			}) ;
+			switch (me._tileFilter) {
+				case "soc":
+					radioVal.setValue({
+						groupby_key: "soc"
+					}) ;
+					break ;
+				case "user":
+					radioVal.setValue({
+						groupby_key: "user"
+					}) ;
+					break ;
+			}
+			this.down('#groupbyField').setHidden(true) ;
+		} else if (me._preBuiltMode == "milestone"){
+			var groupbyForm = this.down('#cfgGroupby').getForm() ;
+			groupbyForm.setValues({
+				groupby_is_on: true
+			}) ;
+			radioVal.setValue({
+				groupby_key: "status"
+			}) ;
+			this.down('#timebreakFieldSet').setHidden(true) ;
+		}
+		this.down('#cfgValues').getRootNode().cascadeBy(function(node) {
+			if( node.get('checked')=== undefined || node.get('checked') == null) {
+				return ;
+			}
+			if (node.get("id").includes("in") != false || node.get("id").includes("out") != false){
+				if (me._preBuiltMode == "interval"){
+					node.set("checked", true) ;
+				}
+			} else{
+				if (me._preBuiltMode == "milestone"){
+					switch (node.get("id")) {
+						case "wallet_count":
+						case "wallet_amount":
+							node.set("checked", true) ;
+					}
+				}
+			}
+		}) ;
+		this.onValuesCheckChange() ;
 	},
 	onValuesCheckChange: function() {
 		var cnt=0 ;
@@ -245,20 +319,27 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportGridPanel',{
 			xtype: 'box',
 			cls:'op5-waiting'
 		});
-		
+
+		var filters = this.getFilterValues() ;
+		if (this._filterStatus != null){
+			filters["filter_status"] = this._filterStatus
+		} else{
+			filters["filter_status"] = null ;
+		}
+
 		var reportval_ids=[] ;
+
 		this.down('#cfgValues').getRootNode().cascadeBy(function(node) {
 			if( node.get('checked') ) {
 				reportval_ids.push(node.get('id')) ;
 			}
 		}) ;
-		
-		
+		console.log(this.down('#cfgGroupby').getForm().getValues()) ;
 		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: {
 				_moduleId: 'spec_rsi_recouveo',
 				_action: 'report_getGrid',
-				filters: Ext.JSON.encode(this.getFilterValues()),
+				filters: Ext.JSON.encode(filters),
 				axes: Ext.JSON.encode(this.down('#cfgGroupby').getForm().getValues()),
 				reportval_ids: Ext.JSON.encode(reportval_ids)
 			},
@@ -268,6 +349,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportGridPanel',{
 					Ext.MessageBox.alert('Error','Error') ;
 					return ;
 				}
+				this.fireEvent('onLoadData', ajaxResponse) ;
 				this.onLoadData(ajaxResponse) ;
 				// Setup autoRefresh task
 				//this.autoRefreshTask.delay( this.autoRefreshDelay ) ;
@@ -286,13 +368,26 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportGridPanel',{
 			if( Ext.isEmpty(col.reportval_id) ) {
 				Ext.apply(col,{
 					tdCls: 'op5-spec-rsiveo-taupe',
-					width: 150
+					width: 150,
+					summaryType: 'count',
+					summaryRenderer: function(value, summaryData, dataIndex) {
+						return '<b>'+'Total'+'</b>' ;
+					}
 				}) ;
 				fields.push({name: col.dataIndex, type:'string'}) ;
 			} else {
 				Ext.apply(col,{
-					align: 'center'
+					align: 'center',
+					summaryType: 'sum',
+					summaryRenderer: function(value) {
+						newValue = Ext.util.Format.number(value, '0,000') ;
+						return '<b>'+newValue+'</b>' ;
+					},
+					renderer: function (value) {
+						return Ext.util.Format.number(value, '0,000') ;
+					}
 				}) ;
+
 				fields.push({name: col.dataIndex, type:'number', allowNull:true}) ;
 			}
 			columns.push(col) ;
@@ -303,7 +398,11 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportGridPanel',{
 			store: {
 				fields: fields,
 				data: data
-			}
+			},
+			features: [{
+				ftype: 'summary',
+				dock: 'bottom'
+			}]
 		});
 		cntGrid.removeAll() ;
 		cntGrid.add(gridPanel);

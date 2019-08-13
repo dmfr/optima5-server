@@ -60,6 +60,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MainMenu',{
 				{type_action:true, action_caption: 'Reporting', action_sendEvent:'reports', action_iconCls:'op5-spec-rsiveo-mmenu-agenda'},
 				{type_action:true, action_caption: 'Dashboard', action_sendEvent:'dashboard', action_iconCls:'op5-spec-rsiveo-mmenu-agenda'},
 				{type_action:true, type_action_blank:true},
+				{type_action:true, action_caption: 'Nouveau dashboard', action_sendEvent:'new_dashboard', action_iconCls:'op5-spec-rsiveo-mmenu-agenda'},
 				{type_action:true, action_caption: 'Enveloppes / Envoi', action_sendEvent:'envbrowser', action_iconCls:'op5-spec-rsiveo-mmenu-mailout'},
 				{type_action:true, action_caption: 'Courrier entrant', action_sendEvent:'form_inbox', action_iconCls:'op5-spec-rsiveo-mmenu-mailin'},
 				{type_action:true, action_caption: 'Email reçus', action_sendEvent:'form_email', action_iconCls:'op5-spec-rsiveo-mmenu-mailin'},
@@ -226,6 +227,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MainMenu',{
 	},
 	itemClicked: function( view, record ) {
 		var me = this ;
+
 		if( record.get('type_action') && record.get('action_sendEvent') != '' ) {
 			// console.log('Send event '+record.get('action_sendEvent') ) ;
 			me.fireEvent('actionclick',view,record.get('action_sendEvent')) ;

@@ -7,6 +7,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportFilterablePanel',{
 				hidden: this._reportMode,
 				icon: 'images/modules/rsiveo-back-16.gif',
 				text: '<u>Menu</u>',
+				itemId: 'menu',
 				handler: function(){
 					this.doQuit() ;
 				},
@@ -105,6 +106,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportFilterablePanel',{
 				}]
 			},{
 				xtype: 'button',
+				itemId: 'btnFilterPeriodes',
 				hidden: this._hideDates,
 				text: 'Périodes',
 				menu: {

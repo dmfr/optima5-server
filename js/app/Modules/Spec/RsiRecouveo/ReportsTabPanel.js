@@ -46,7 +46,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportsTabPanel',{
 					xtype: 'op5specrsiveoreporttilespanel',
 					optimaModule: this.optimaModule,
 					listeners: {
-						opengrid: this.onOpenGrid,
+						//opengrid: this.onOpenGrid,
 						scope: this
 					}
 				}
@@ -73,6 +73,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportsTabPanel',{
 		});
 		this.callParent() ;
 	},
+
+
 	onOpenGrid: function( tilesPanel, reportvalId ) {
 		console.dir(arguments) ;
 		var newPanel = Ext.create('Optima5.Modules.Spec.RsiRecouveo.ReportGridPanel',{

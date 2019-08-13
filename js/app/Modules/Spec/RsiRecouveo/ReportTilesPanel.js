@@ -228,16 +228,16 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportTilesPanel',{
 		}
 		
 		
-		
-		this.setScrollable('vertical') ;
+
 	},
 	createTilePanel: function(tileData,dataComponents) {
 		var cmps = [] ;
-		Ext.Array.each( dataComponents, function(cmpData) {
+		Ext.Array.each( dataComponents, function(cmpData, index) {
 			cmps.push( Ext.create('Optima5.Modules.Spec.RsiRecouveo.ReportTileComponent',{
 				flex: 1,
 				tileData: tileData,
 				cmpData: cmpData,
+				itemId: "tile" + index,
 				listeners: {
 					click: this.onTileClick,
 					scope: this
@@ -248,7 +248,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportTilesPanel',{
 			title: tileData.reportval_txt,
 			margin: 10,
 			frame: true,
-			width: (cmps.length>1 ? 400 : 300),
+			width: (cmps.length>1 ? 500 : 400),
 			height: 200,
 			layout: {
 				type: 'hbox',
@@ -258,50 +258,97 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportTilesPanel',{
 		}) ;
 		
 		return p ;
-		/*
-		this.add( Ext.create('Ext.panel.Panel',{
-			title: 'Titre de la tuile',
-			margin: 10,
-			frame: true,
-			width: 300,
-			height: 200,
-			layout: 'fit',
-			items: [{
-				xtype: 'polar',
-				height: 240,
-				width: 300,
-				padding: '10 0 0 0',
-				store: {
-					fields: ['mph', 'fuel', 'temp', 'rpm' ],
-					data: [
-						{ mph: 65, fuel: 50, temp: 150, rpm: 6000 }
-					]
-				},
-				insetPadding: 30,
-				axes: {
-					title: 'Temp',
-					type: 'numeric',
-					position: 'gauge',
-					maximum: 250,
-					majorTickSteps: 2,
-					renderer: function (v) {
-							if (v === 0) return 'Cold';
-							if (v === 125) return 'Comfortable';
-							if (v === 250) return 'Hot';
-							return ' ';
-					}
-				},
-				series: {
-					type: 'gauge',
-					field: 'temp',
-					donut: 50
-				}
-			}]
-		}) ) ;
-		*/
 	},
 	
 	onTileClick: function(tileCmp) {
-		this.fireEvent('opengrid',this,tileCmp.reportval_id) ;
+		var curWidth = this.getEl().getWidth(),
+			curHeight = this.getEl().getHeight() ;
+		this.getEl().mask() ;
+		var tst = this.getFilterValues() ;
+		if (tileCmp.tileData.timescale == "interval"){
+			var tst = this.getFilterValues() ;
+			var mode = null ;
+			if (tst.filter_soc != null) mode = "user" ;
+			else if (tst.filter_user != null) mode = "soc" ;
+
+			if (tst.filter_soc != null && tst.filter_user != null) mode = null ;
+			var cnt = Ext.create('Optima5.Modules.Spec.RsiRecouveo.ReportTilePopup', {
+				height: curHeight,
+				width: curWidth,
+				floating: true,
+				draggable: true,
+				resizable: true,
+				renderTo: this.getEl(),
+				constrain: true,
+				closable: true,
+				frame: true,
+				_hideDataAvailable: true,
+				_preBuiltMode: "interval",
+				_tileFilter: mode ,
+				_filterValues: tst,
+				optimaModule: this.optimaModule,
+				_height: curHeight,
+				_width: curWidth,
+			}) ;
+
+		} else if (tileCmp.tileData.timescale == "milestone"){
+			var tmp = null ;
+			switch (tileCmp.tileData.reportval_id) {
+				case "agree":
+					tmp = "S2P_PAY" ;
+					break ;
+				case "non_echu":
+					tmp = "S0_PRE" ;
+					break ;
+				case "act_ext":
+					tmp = "S2L_LITIG" ;
+					break ;
+				case "judiciaire":
+					tmp = "S2J_JUDIC" ;
+					break ;
+				case "close":
+					tmp = "SX_CLOSE" ;
+					break ;
+				case "wallet":
+					tmp = "wallet" ;
+					break ;
+			}
+			var cnt = Ext.create('Optima5.Modules.Spec.RsiRecouveo.ReportTilePopup', {
+				height: curHeight,
+				width: curWidth,
+				floating: true,
+				draggable: true,
+				resizable: true,
+				renderTo: this.getEl(),
+				constrain: true,
+				closable: true,
+				frame: true,
+				_hideDataAvailable: true,
+				_preBuiltMode: "milestone",
+				_filterStatus: tmp,
+				_filterValues: tst,
+				_tileFilter: "status",
+				optimaModule: this.optimaModule,
+				_height: curHeight,
+				_width: curWidth,
+			}) ;
+		}
+
+
+		cnt.on('destroy', function(p){
+			this.getEl().unmask() ;
+			this.tileClickCnt = null ;
+		},this,{single:true}) ;
+
+		cnt.show();
+		cnt.getEl().alignTo(this.getEl(), 'c-c?');
+		this.tileClickCnt = cnt ;
+	},
+
+	onDestroy: function () {
+		if  (this.tileClickCnt){
+			this.tileClickCnt.destroy() ;
+		}
+		this.callParent();
 	}
 }) ;

@@ -48,6 +48,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportFilesPanel', {
 				items: [Ext.create('Optima5.Modules.Spec.RsiRecouveo.FilesWidgetAgenda', {
 					flex: 1,
 					itemId: 'centerWidgetAgendaCount',
+					_reportType: 'S2P_PAY',
 					listeners: {
 						agendaitemclick: this.onAgendaItemClick,
 						scope: this

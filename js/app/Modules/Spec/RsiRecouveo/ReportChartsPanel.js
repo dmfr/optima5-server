@@ -301,7 +301,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportChartsPanel',{
 		var fieldsChartMan = [
 			{name: 'date_group', type: 'string', axis: 'bottom'},
 			{name: 'v_cash', type: 'number', srcReportvalIds:['cash'], axis: 'right', srcReportvalTxt: 'Encaissements'},
-			{name: 'v_mails_man', type: 'number', srcReportvalIds:['mails_in','mails_out%manual'], axis: 'left', srcReportvalTxt: 'Courriers sortants'},
+			{name: 'v_mails_man', type: 'number', srcReportvalIds:['mails_in','mails_out%manual'	], axis: 'left', srcReportvalTxt: 'Courriers sortants'},
 			{name: 'v_emails_man', type: 'number', srcReportvalIds:['emails_in','emails_out%manual'], axis: 'left', srcReportvalTxt: 'Emails sortants'},
 			{name: 'v_calls_man', type: 'number', srcReportvalIds:['calls_in','calls_out%manual'], axis: 'left', srcReportvalTxt: 'Appels sortants'}
 		] ;
@@ -729,6 +729,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportChartsPanel',{
 					}
 					var targetFieldName = targetField.name ;
 					var targetFieldValue = 0 ;
+					console.log(ajaxResponse) ;
 					Ext.Array.each( ajaxResponse.data, function(srcRow) {
 						if( Ext.Array.contains(targetField.srcReportvalIds,srcRow.reportval_id) ) {
 							targetFieldValue += parseFloat(srcRow[col.dataIndex]) ;
