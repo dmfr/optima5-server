@@ -933,23 +933,30 @@ function specRsiRecouveo_file_createForAction( $post_data ) {
 	}
 	$account_record = $json['data'] ;
 	
-	
 	// Statut existant
 	$preMove_fromSchedNone_toActive = array() ;
 	$current_status = array() ;
 	foreach( $account_record['files'] as $accFile_record ) {
+		if( !$accFile_record['status_is_schednone'] && !$accFile_record['status_is_schedlock'] ) {
+			$EC_status = $accFile_record['status'] ;
+			$EC_fileFilerecordId = $accFile_record['file_filerecord_id'] ;
+			break ;
+		}
+	}
+	foreach( $account_record['files'] as $accFile_record ) {
 		foreach( $accFile_record['records'] as $accFileRecord_record ) {
-			if( in_array($accFileRecord_record['record_filerecord_id'],$p_arr_recordIds)
-					&& !in_array($accFile_record['status'],$current_status) ) {
-					
-				if( $accFile_record['status_is_schednone'] ) {
+			if( in_array($accFileRecord_record['record_filerecord_id'],$p_arr_recordIds) ) {
+				if( $accFile_record['status_is_schednone'] && isset($EC_status) ) {
 					$preMove_fromSchedNone_toActive[] = $accFileRecord_record['record_filerecord_id'] ;
-					continue ;
+					
+					$accFile_record['status'] = $EC_status ;
+					$accFile_record['file_filerecord_id'] = $EC_fileFilerecordId ;
 				}
 					
-					
-				$current_status[] = $accFile_record['status'] ;
-				$current_fileFilerecordId = $accFile_record['file_filerecord_id'] ;
+				if( !in_array($accFile_record['status'],$current_status) ) {
+					$current_status[] = $accFile_record['status'] ;
+					$current_fileFilerecordId = $accFile_record['file_filerecord_id'] ;
+				}
 			}
 		}
 	}
