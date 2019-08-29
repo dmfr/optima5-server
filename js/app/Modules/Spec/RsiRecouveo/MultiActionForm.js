@@ -155,7 +155,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MultiActionForm',{
 	initComponent: function() {
 		Ext.apply(this,{
 			width: 400,
-			height: 400,
+			height: 460,
 			title: 'Action groupée sur dossiers',
 			cls: 'ux-noframe-bg',
 			bodyCls: 'ux-noframe-bg',
