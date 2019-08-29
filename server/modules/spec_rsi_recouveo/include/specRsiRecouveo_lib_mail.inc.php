@@ -26,11 +26,10 @@ function specRsiRecouveo_lib_mail_sync_exchange( $email_adr, $exchange_server, $
 	}
 	
 	
-	
-	
-	
+
 	try {
-		$ews = new \jamesiarmes\PhpEws\Client($exchange_server, $username, $password, 'Exchange2013');
+		$version = "Exchange20".$exchange_server['version'] ;
+		$ews = new \jamesiarmes\PhpEws\Client($exchange_server['server'], $username, $password, $version);
 	} catch( Exception $e ) {
 		return FALSE ;
 	}
@@ -130,9 +129,12 @@ function specRsiRecouveo_lib_mail_sync_exchange( $email_adr, $exchange_server, $
 	return TRUE ;
 }
 function specRsiRecouveo_lib_mail_tool_getExchangeServer( $cfg_email_server_url ) {
-	$prefix = "exchange://" ;
+	$prefix = "exchange" ;
 	if( strpos($cfg_email_server_url,$prefix)===0 ) {
-		return substr($cfg_email_server_url,strlen($prefix)) ;
+		if (strpos($cfg_email_server_url,"exchange://")===0 ){
+			return array("server" => substr($cfg_email_server_url, 11), "version" => 13) ;
+		}
+		return array("server" => substr($cfg_email_server_url, 13), "version" => substr($cfg_email_server_url, 8, 2)) ;
 	}
 	return NULL ;
 }
