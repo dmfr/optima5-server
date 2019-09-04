@@ -178,6 +178,7 @@ function specRsiRecouveo_account_open( $post_data ) {
 	}
 	$json = specRsiRecouveo_file_getRecords($forward_post) ;
 	// print_r($json['data']) ;
+
 	$account_record['files'] = $json['data'] ;
 	
 	
@@ -210,8 +211,7 @@ function specRsiRecouveo_account_open( $post_data ) {
 		if( in_array($arr['filerecord_id'],$existing_ids) ) {
 			continue ;
 		}
-		
-		
+
 		$record_row = array(
 			'record_filerecord_id' => $arr['filerecord_id'],
 			'acc_id' => $arr['field_LINK_ACCOUNT']
@@ -273,7 +273,7 @@ function specRsiRecouveo_account_open( $post_data ) {
 		if( !$notification_rows[$notification_filerecord_id] ) {
 			$notification_rows[$notification_filerecord_id] = array(
 				'notification_filerecord_id' => $arr['notification_filerecord_id'],
-				'date_notification' => date('Y-m-d',strtotime($arr['date_notification'])),
+				'date_notification' => date('Y-m-d',strtotime($arr['date_notification'])).' '.'00:00:00',
 				'txt_notification' => $arr['txt_notification']
 			);
 		}
@@ -606,6 +606,38 @@ function specRsiRecouveo_account_clearNotifications($post_data) {
 	$_opDB->query($query) ;
 	
 	return array('success'=>true) ;
+}
+function specRsiRecouveo_account_getNotifications( $post_data ) {
+	$filter_soc = NULL ;
+	if( $post_data['filter_soc'] ) {
+		$filter_soc = json_decode($post_data['filter_soc'],true) ;
+	}
+	
+	global $_opDB ;
+	$query = "SELECT la.treenode_key as soc_id, n.*, la.field_ACC_NAME as acc_txt
+				FROM view_file_NOTIFICATION n
+				JOIN view_bible_LIB_ACCOUNT_entry la ON la.entry_key=n.field_LINK_ACCOUNT
+				WHERE 1
+				AND field_ACTIVE_IS_ON='1'" ;
+	if( $filter_soc ) {
+		$query.= " AND la.treenode_key IN ".$_opDB->makeSQLlist($filter_soc) ;
+	}
+	$query.= " ORDER BY field_DATE_NOTIFICATION" ;
+	
+	$result = $_opDB->query($query) ;
+	
+	$TAB = array() ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		$TAB[] = array(
+			'notification_filerecord_id' => $arr['filerecord_id'],
+			'soc_id' => $arr['soc_id'],
+			'acc_id' => $arr['field_LINK_ACCOUNT'],
+			'acc_txt' => $arr['acc_txt'],
+			'date_notification' => $arr['field_DATE_NOTIFICATION'],
+			'txt_notification' => $arr['field_TXT_NOTIFICATION']
+		) ;
+	}
+	return array('success'=>true,'data'=>$TAB) ;
 }
 function specRsiRecouveo_account_pushNotificationRecords( $post_data ) {
 	global $_opDB ;

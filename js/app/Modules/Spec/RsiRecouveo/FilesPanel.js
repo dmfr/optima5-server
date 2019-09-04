@@ -179,6 +179,17 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 					this.handleDownload() ;
 				},
 				scope: this
+			},{
+				hidden: true,
+				itemId: 'tbNotifications',
+				icon: 'images/op5img/ico_warning_16.gif',
+				cls: 'op5-spec-rsiveo-button-red',
+				text: 'Notifications',
+				menu: [],
+				handler: function(){
+					this.openNotifications() ;
+				},
+				scope: this
 			}],
 			items: [{
 				//title: 'Statistiques sur sélection',
@@ -232,11 +243,17 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			case 'datachange' :
 				this.onDataChange() ;
 				break ;
+			case 'notificationchange' :
+				this.onNotificationChange() ;
+				break ;
 			default: break ;
 		}
 	},
 	onDataChange: function() {
 		this.doLoad() ;
+	},
+	onNotificationChange: function() {
+		this.doLoadNotifications() ;
 	},
 	
 	onViewSet: function(viewId) {
@@ -506,6 +523,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 		if( this.filesTopPanel ) {
 			this.filesTopPanel.destroy() ;
 		}
+		if( this.notificationsPanel ) {
+			this.notificationsPanel.destroy() ;
+		}
 			
 			
 		var objAtrFilter = {}, arrSocFilter=null, arrUserFilter=null ;
@@ -586,6 +606,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 		pNorth.down('#northWidgetBalage').loadFilesData(ajaxData) ;
 
 		this.down('#pCenter').down('#pGrid').loadFilesData(ajaxData, doClearFilters) ;
+		
+		this.doLoadNotifications() ;
 	},
 
 	showLoadmask: function() {
@@ -621,6 +643,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 		}
 		if( this.filesTopPanel ) {
 			this.filesTopPanel.destroy() ;
+		}
+		if( this.notificationsPanel ) {
+			this.notificationsPanel.destroy() ;
 		}
 		if( this.multiActionForm ) {
 			this.multiActionForm.destroy() ;
@@ -929,5 +954,162 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 		filesTopPanel.getEl().alignTo(this.getEl(), 'tr-tr?');
 		
 		this.filesTopPanel = filesTopPanel ;
+	},
+	
+	
+	
+	
+	_notificationsData: null,
+	doLoadNotifications: function() {
+		var arrSocFilter=null ;
+		Ext.Array.each( this.query('toolbar > [cfgParam_id]'), function(cfgParamBtn) {
+			var cfgParam_id = cfgParamBtn.cfgParam_id ;
+			if( Ext.isEmpty(cfgParamBtn.getValue()) ) {
+				return ;
+			}
+			if( cfgParam_id=='SOC' ) {
+				arrSocFilter = cfgParamBtn.getLeafNodesKey() ;
+			}
+		}) ;
+		
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_rsi_recouveo',
+				_action: 'account_getNotifications',
+				filter_soc: (arrSocFilter ? Ext.JSON.encode(arrSocFilter):'')
+			},
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					return ;
+				}
+				
+				this.onLoadNotifications(ajaxResponse.data) ;
+			},
+			callback: function() {
+			},
+			scope: this
+		}) ;
+	},
+	onLoadNotifications: function(ajaxDataNotifications) {
+		var map_accId_enable = {} ;
+		var ajaxDataMain = this.getLoadData() ;
+		Ext.Array.each( ajaxDataMain, function(row) {
+			var accId = row.acc_id ;
+			map_accId_enable[accId] = true ;
+		}) ;
+		
+		var notificationsData = [] ;
+		Ext.Array.each( ajaxDataNotifications, function(row) {
+			var accId = row.acc_id ;
+			if( map_accId_enable[accId] ) {
+				notificationsData.push(row) ;
+			}
+		}) ;
+		this._notificationsData = notificationsData ;
+		
+		var hasNotifications = (notificationsData.length>0) ;
+		this.down('toolbar').down('#tbNotifications').setVisible( hasNotifications ) ;
+		if( hasNotifications && !(this.notificationsPanel===false) ) {
+			this.openNotifications() ;
+		}
+	},
+	openNotifications: function() {
+		
+		var notificationsData = this._notificationsData ;
+		if( !notificationsData ) {
+			return ;
+		}
+		/*
+		this._accountRecord.notifications().each( function(rec) {
+			notificationsData.push(rec.getData()) ;
+		}) ;
+		*/
+		if( this.notificationsPanel ) {
+			this.notificationsPanel.getStore().loadData( notificationsData ) ;
+			return ;
+		}
+		
+		var notificationsPanel = Ext.create('Ext.grid.Panel',{
+			optimaModule: this.optimaModule,
+			
+			title: 'Notifications',
+			
+			store: {
+				model: Optima5.Modules.Spec.RsiRecouveo.HelperCache.getNotificationModel(),
+				data: notificationsData,
+				proxy: {
+					type: 'memory'
+				}
+			},
+			columns: [{
+				width: 36,
+				renderer: function(v,m,r) {
+					m.tdCls += ' op5-spec-rsiveo-notification' ;
+				}
+			},{
+				flex: 1,
+				//xtype: 'datecolumn',
+				format: 'd/m/Y',
+				dataIndex: 'acc_id',
+				renderer: function(v,m,r) {
+					var txt = '<div>'+v+'</div>' ;
+					txt += '<div style="font-size: 10px; padding-left:6px">'+r.get('acc_txt')+'</div>' ;
+					return txt ;
+				}
+			},{
+				width: 110,
+				dataIndex: 'txt_notification',
+				renderer: function(v,m,r) {
+					var txt = '<div>'+v+'</div>' ;
+					txt += '<div style="font-size: 10px; padding-left:6px">'+Ext.util.Format.date(r.get('date_notification'),'d/m H:i')+'</div>' ;
+					return txt ;
+				}
+			}],
+			hideHeaders: true,
+			listeners: {
+				itemdblclick: function( view, record, itemNode, index, e ) {
+					this.handleOpenAccount(record.get('acc_id')) ;
+				},
+				scope: this
+			},
+			
+			frame: true,
+			
+			width:400, 
+			height:100,
+			floating: true,
+			draggable: false,
+			resizable: false,
+			renderTo: this.getEl(),
+			tools: [{
+				type: 'close',
+				handler: function(e, t, p) {
+					p.ownerCt.destroy() ;
+				},
+				scope: this
+			}],
+			_parentCmp: this,
+			doResize: function() {
+				var parentCmp = this._parentCmp ;
+				if( !parentCmp.getEl() ) {
+					return ;
+				}
+				var targetHeight = (parentCmp.getEl().getHeight() * 1) ;
+				this.setHeight( targetHeight ) ;
+				this.getEl().alignTo(parentCmp.getEl(), 'tl-br?')
+			}
+		});
+		
+		notificationsPanel.on('destroy',function(p) {
+			this.notificationsPanel = false ;
+		},this,{single:true}) ;
+		
+		notificationsPanel.show();
+		notificationsPanel.doResize() ;
+		this.notificationsPanel = notificationsPanel ;
+		this.notificationsPanel.mon(this,'resize', function(p){
+			p.notificationsPanel.doResize() ;
+		},this)
 	}
 });

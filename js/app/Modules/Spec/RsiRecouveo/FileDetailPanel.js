@@ -3588,6 +3588,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 					this.notificationsPanel.destroy() ;
 				}
 				this.doReload() ;
+				this.optimaModule.postCrmEvent('notificationchange',{}) ;
 			},
 			callback: function() {
 			},

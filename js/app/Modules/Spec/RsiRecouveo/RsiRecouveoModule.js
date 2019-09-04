@@ -199,7 +199,9 @@ Ext.define('RsiRecouveoNotificationTplModel',{ // TO: RsiRecouveoNotificationMod
 	idProperty: 'notification_filerecord_id',
 	fields: [
 		{name: 'notification_filerecord_id', type:'int'},
-		{name: 'date_notification', type:'date', dateFormat:'Y-m-d'},
+		{name: 'acc_id', type:'string'},
+		{name: 'acc_txt', type:'string'},
+		{name: 'date_notification', type:'date', dateFormat:'Y-m-d H:i:s'},
 		{name: 'txt_notification', type:'string'}
 	]
 }) ;
@@ -492,6 +494,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.RsiRecouveoModule', {
 		var eventParams = {} ;
 		switch( crmEvent ) {
 			case 'datachange' :
+			case 'notificationchange' :
 				break ;
 				
 			case 'openaccount' :

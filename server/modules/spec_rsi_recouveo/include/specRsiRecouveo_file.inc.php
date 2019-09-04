@@ -345,7 +345,6 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
 		$file_filerecord_id = $arr['file_filerecord_id'] ;
-	
 		$record_row = array(
 			'record_filerecord_id' => $arr['filerecord_id'],
 			
@@ -607,6 +606,7 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 	
 	
 	// ************ Notifications: 28/12/2018 ***************
+	/*
 	$map_accId_rowFirstNotification = array() ;
 	$query = "SELECT *
 				FROM view_file_NOTIFICATION
@@ -617,8 +617,8 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 		$acc_id = $arr['field_LINK_ACCOUNT'] ;
 		if( !isset($map_accId_rowFirstNotification[$acc_id]) ) {
 			$map_accId_rowFirstNotification[$acc_id] = array(
-				'notification_filerecord_id' => $arr['notification_filerecord_id'],
-				'date_notification' => date('Y-m-d',strtotime($arr['field_DATE_NOTIFICATION'])).' '.'00:00:00',
+				'notification_filerecord_id' => $arr['filerecord_id'],
+				'date_notification' => $arr['field_DATE_NOTIFICATION'],
 				'txt_notification' => $arr['field_TXT_NOTIFICATION']
 			) ;
 		}
@@ -632,6 +632,7 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 		}
 	}
 	unset($file_row) ;
+	*/
 	
 	foreach( $map_atrId_values as $atr_id => $keys_values ) {
 		$map_atrId_values[$atr_id] = array_keys($keys_values) ;

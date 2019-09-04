@@ -56,6 +56,8 @@ switch( $post_data['_action'] )
 	return specRsiRecouveo_account_setAdrbookPriority( $post_data ) ;
 	case 'account_clearNotifications' :
 	return specRsiRecouveo_account_clearNotifications( $post_data ) ;
+	case 'account_getNotifications' :
+	return specRsiRecouveo_account_getNotifications( $post_data ) ;
 	case 'account_uploadAttachment' :
 	return specRsiRecouveo_account_uploadAttachment( $post_data ) ;
 	case 'account_downloadAttachment' :
