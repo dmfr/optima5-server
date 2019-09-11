@@ -3,15 +3,6 @@
 function specDbsLam_lib_procCde_calcNeeds($transfer_filerecord_id) {
 	global $_opDB ;
 	
-	/*
-	$query = "SELECT mvtflow.field_IS_CDE, mvtflow.field_CDE_PROCESS FROM view_file_TRANSFER t
-				JOIN view_bible_CFG_MVTFLOW_tree mvtflow ON mvtflow.treenode_key=t.field_FLOW_CODE
-				WHERE t.filerecord_id='{$transfer_filerecord_id}'" ;
-	$result = $_opDB->query($query) ;
-	$arr = $_opDB->fetch_row($result) ;
-	$cfg_isCde = !(!$arr[0]) ;
-	$cfg_cdeProcess = $arr[1] ;
-	*/
 	$formard_post = array(
 		'filter_transferFilerecordId' => $transfer_filerecord_id,
 		'filter_fast' => true

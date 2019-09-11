@@ -14,54 +14,7 @@ Ext.define('DbsLamTransferTreeModel',{
 		{name: 'whse_src', type:'string'},
 		{name: 'whse_dest', type:'string'},
 		{name: 'flow_code', type:'string'}
-	],
-	hasAllowForeign: function() {
-		// iscde
-		var docFlow = this.get('flow_code'),
-			flowRecord = Optima5.Modules.Spec.DbsLam.HelperCache.getMvtflow(docFlow),
-			flowIsForeign = flowRecord.is_foreign ;
-		if( flowIsForeign ) {
-			return true ;
-		}
-		return false ;
-	},
-	hasAllowCde: function() {
-		// iscde
-		var docFlow = this.get('flow_code'),
-			flowRecord = Optima5.Modules.Spec.DbsLam.HelperCache.getMvtflow(docFlow),
-			flowIsCde = flowRecord.is_cde ;
-		if( flowIsCde ) {
-			return true ;
-		}
-		return false ;
-	},
-	hasAllowFastforward: function() {
-		// iscde
-		var docFlow = this.get('flow_code'),
-			flowRecord = Optima5.Modules.Spec.DbsLam.HelperCache.getMvtflow(docFlow),
-			flowIsFastforward = flowRecord.ack_fastforward ;
-		if( flowIsFastforward ) {
-			return true ;
-		}
-		return false ;
-	},
-	hasAllowFinalStock: function() {
-		// last step = final + whse_dest = stock
-		var docFlow = this.get('flow_code'),
-			flowRecord = Optima5.Modules.Spec.DbsLam.HelperCache.getMvtflow(docFlow),
-			flowSteps = flowRecord.steps,
-			lastStepIdx = (flowSteps.length - 1),
-			lastIsFinal = flowSteps[lastStepIdx].step_code ;
-		
-		var docWhse = this.get('whse_dest'),
-			whseRecord = Optima5.Modules.Spec.DbsLam.HelperCache.getWhse(docWhse),
-			whseIsStock = whseRecord.is_stock ;
-		
-		if( whseIsStock && lastIsFinal ) {
-			return true ;
-		}
-		return false ;
-	}
+	]
 });
 
 

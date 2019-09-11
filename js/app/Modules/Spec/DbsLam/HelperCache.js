@@ -29,7 +29,6 @@ Ext.define('Optima5.Modules.Spec.DbsLam.HelperCache',{
 	cfgAttributeStore: null,
 	cfgSocStore: null,
 	cfgWhseStore: null,
-	cfgMvtflowStore: null,
 	
 	isReady: false,
 	
@@ -133,10 +132,6 @@ Ext.define('Optima5.Modules.Spec.DbsLam.HelperCache',{
 			model: 'DbsLamCfgContainerTypeModel',
 			data : ajaxData.data.cfg_container
 		}) ;
-		this.cfgMvtflowStore = Ext.create('Ext.data.Store',{
-			model: 'DbsLamCfgMvtFlowModel',
-			data : ajaxData.data.cfg_mvtflow
-		}) ;
 		this.cfgTplTransferStore = Ext.create('Ext.data.Store',{
 			model: 'DbsLamCfgTplTransferModel',
 			data : ajaxData.data.tpl_transfer
@@ -190,16 +185,6 @@ Ext.define('Optima5.Modules.Spec.DbsLam.HelperCache',{
 	},
 	getPdaspecAll: function() {
 		return Ext.pluck( this.cfgPdaspecStore.getRange(), 'data' ) ;
-	},
-	getMvtflow: function( flowCode ) {
-		return this.cfgMvtflowStore.getById(flowCode) ? this.cfgMvtflowStore.getById(flowCode).getData(true) : null ;
-	},
-	getMvtflowAll: function() {
-		var data = [] ;
-		this.cfgMvtflowStore.each( function(record) {
-			data.push( record.getData(true) ) ;
-		}) ;
-		return data ;
 	},
 	getTplTransfer: function( transferTpl ) {
 		return this.cfgTplTransferStore.getById(transferTpl) ? this.cfgTplTransferStore.getById(transferTpl).getData(true) : null ;

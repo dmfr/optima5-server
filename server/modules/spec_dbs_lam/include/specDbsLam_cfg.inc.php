@@ -62,9 +62,6 @@ function specDbsLam_cfg_getConfig() {
 	$ttmp = specDbsLam_cfg_getContainer() ;
 	$cfg_container = $ttmp['data'] ;
 	
-	$ttmp = specDbsLam_cfg_getMvtflow() ;
-	$cfg_mvtflow = $ttmp['data'] ;
-	
 	$ttmp = specDbsLam_cfg_getTplTransfer() ;
 	$tpl_transfer = $ttmp['data'] ;
 	
@@ -175,7 +172,6 @@ function specDbsLam_cfg_getConfig() {
 		'cfg_soc' => $cfg_soc,
 		'cfg_container' => $cfg_container,
 		'cfg_attribute' => array_values($cfg_attribute),
-		'cfg_mvtflow' => $cfg_mvtflow,
 		'cfg_printer' => $cfg_printer,
 		'cfg_pdaspec' => $cfg_pdaspec,
 		'tpl_transfer' => $tpl_transfer
@@ -190,70 +186,6 @@ function specDbsLam_cfg_getConfig() {
 
 
 
-
-
-function specDbsLam_cfg_getMvtflow() {
-	global $_opDB ;
-	
-	$TAB = array() ;
-	
-	$query = "SELECT * FROM view_bible_CFG_MVTFLOW_tree WHERE treenode_parent_key IN ('','&') ORDER BY treenode_key" ;
-	$result = $_opDB->query($query) ;
-	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
-		$flow_code = $arr['field_FLOW_CODE'] ;
-		$record = array(
-			'flow_code' => $arr['field_FLOW_CODE'],
-			'flow_txt' => $arr['field_FLOW_TXT'],
-			'is_foreign' => $arr['field_IS_FOREIGN'],
-			'is_cde' => $arr['field_IS_CDE'],
-			'cde_process' => $arr['field_CDE_PROCESS'],
-			'ack_fastforward' => $arr['field_ACK_FASTFORWARD'],
-			'steps' => array(),
-			'checks' => array()
-		) ;
-		
-		$TAB[$flow_code] = $record ;
-	}
-	
-	$query = "SELECT * FROM view_bible_CFG_MVTFLOW_entry ORDER BY treenode_key, entry_key" ;
-	$result = $_opDB->query($query) ;
-	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
-		$flow_code = $arr['treenode_key'] ;
-		if( !$TAB[$flow_code] ) {
-			continue ;
-		}
-		$step_code = $arr['field_STEP_CODE'] ;
-		$record = array(
-			'step_code' => $arr['field_STEP_CODE'],
-			'step_txt' => $arr['field_STEP_TXT'],
-			'is_checklist' => $arr['field_IS_CHECKLIST'],
-			'is_attach_parent' => $arr['field_IS_ATTACH_PARENT'],
-			'is_final' => $arr['field_IS_ADR'],
-			'is_print' => $arr['field_IS_PRINT'],
-			'is_exit' => $arr['field_IS_EXIT']
-		) ;
-		
-		$TAB[$flow_code]['steps'][] = $record ;
-	}
-	
-	$query = "SELECT * FROM view_bible_CFG_CHECKS_entry ORDER BY treenode_key, entry_key" ;
-	$result = $_opDB->query($query) ;
-	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
-		$flow_code = $arr['treenode_key'] ;
-		if( !$TAB[$flow_code] ) {
-			continue ;
-		}
-		$check_code = $arr['field_CHECK_CODE'] ;
-		$record = array(
-			'check_code' => $arr['field_CHECK_CODE'],
-			'check_txt' => $arr['field_CHECK_TXT']
-		) ;
-		
-		$TAB[$flow_code]['checks'][] = $record ;
-	}
-	
-	return array('success'=>true, 'data'=>array_values($TAB)) ;
-}
 
 
 function specDbsLam_cfg_getTplTransfer() {

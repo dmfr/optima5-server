@@ -31,50 +31,6 @@ Ext.define('DbsLamCfgTplTransferModel',{
 });
 
 
-Ext.define('DbsLamCfgMvtStepModel',{
-	extend: 'Ext.data.Model',
-	idProperty: 'step_code',
-	fields: [
-		{name: 'step_code', type:'string'},
-		{name: 'step_txt', type:'string'},
-		{name: 'is_checklist', type: 'boolean'},
-		{name: 'is_attach_parent', type:'boolean'},
-		{name: 'is_final', type:'boolean'},
-		{name: 'is_print', type:'boolean'},
-		{name: 'is_exit', type:'boolean'}
-	]
-});
-Ext.define('DbsLamCfgChecklistModel',{
-	extend: 'Ext.data.Model',
-	idProperty: 'check_code',
-	fields: [
-		{name: 'check_code', type:'string'},
-		{name: 'check_txt', type:'string'}
-	]
-});
-Ext.define('DbsLamCfgMvtFlowModel',{
-	extend: 'Ext.data.Model',
-	idProperty: 'flow_code',
-	fields: [
-		{name: 'flow_code', type:'string'},
-		{name: 'flow_txt', type:'string'},
-		{name: 'is_foreign', type:'boolean'},
-		{name: 'is_cde', type:'boolean'},
-		{name: 'cde_process', type:'string'},
-		{name: 'ack_fastforward', type:'boolean'},
-	],
-	hasMany: [{
-		model: 'DbsLamCfgMvtStepModel',
-		name: 'steps',
-		associationKey: 'steps'
-	},{
-		model: 'DbsLamCfgChecklistModel',
-		name: 'checks',
-		associationKey: 'checks'
-	}]
-});
-
-
 Ext.define('DbsLamCfgSocAttributeModel',{
 	extend: 'Ext.data.Model',
 	idProperty: 'atr_code',
