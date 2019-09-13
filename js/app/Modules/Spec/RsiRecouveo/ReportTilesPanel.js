@@ -90,7 +90,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportTileComponent',{
 		
 		var data = {
 			caption: cmpData.caption_txt,
-			main_value: cmpData.main_value,
+			main_value: cmpData.main_value.toLocaleString(),
 			main_suffix: cmpData.main_suffix,
 			main_iconCls: cmpData.main_iconCls,
 			eval_caption: eval_caption,
@@ -273,8 +273,15 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportTilesPanel',{
 
 			if (tst.filter_soc != null && tst.filter_user != null) mode = null ;
 			var cnt = Ext.create('Optima5.Modules.Spec.RsiRecouveo.ReportTilePopup', {
-				height: curHeight,
-				width: curWidth,
+				_hideDataAvailable: true,
+				_preBuiltMode: "interval",
+				_tileFilter: mode ,
+				_filterValues: tst,
+				optimaModule: this.optimaModule,
+			}) ;
+			var pan = Ext.create('Ext.panel.Panel', {
+				layout: 'vbox',
+				scrollable: true,
 				floating: true,
 				draggable: true,
 				resizable: true,
@@ -282,14 +289,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportTilesPanel',{
 				constrain: true,
 				closable: true,
 				frame: true,
-				_hideDataAvailable: true,
-				_preBuiltMode: "interval",
-				_tileFilter: mode ,
-				_filterValues: tst,
-				optimaModule: this.optimaModule,
-				_height: curHeight,
-				_width: curWidth,
-			}) ;
+				width: "85%",
+				height: "85%",
+				items: [cnt]
+			})
 
 		} else if (tileCmp.tileData.timescale == "milestone"){
 			var tmp = null ;
@@ -314,8 +317,16 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportTilesPanel',{
 					break ;
 			}
 			var cnt = Ext.create('Optima5.Modules.Spec.RsiRecouveo.ReportTilePopup', {
-				height: curHeight,
-				width: curWidth,
+				_hideDataAvailable: true,
+				_preBuiltMode: "milestone",
+				_filterStatus: tmp,
+				_filterValues: tst,
+				_tileFilter: "status",
+				optimaModule: this.optimaModule,
+			}) ;
+			var pan = Ext.create('Ext.panel.Panel', {
+				layout: 'vbox',
+				scrollable: true,
 				floating: true,
 				draggable: true,
 				resizable: true,
@@ -323,28 +334,24 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportTilesPanel',{
 				constrain: true,
 				closable: true,
 				frame: true,
-				_hideDataAvailable: true,
-				_preBuiltMode: "milestone",
-				_filterStatus: tmp,
-				_filterValues: tst,
-				_tileFilter: "status",
-				optimaModule: this.optimaModule,
-				_height: curHeight,
-				_width: curWidth,
-			}) ;
+				width: "85%",
+				height: "85%",
+				items: [cnt]
+			})
 		}
 
 
-		cnt.on('destroy', function(p){
+		pan.on('destroy', function(p){
 			this.getEl().unmask() ;
 			this.tileClickCnt = null ;
 		},this,{single:true}) ;
 
-		cnt.show();
-		cnt.getEl().alignTo(this.getEl(), 'c-c?');
-		this.tileClickCnt = cnt ;
-	},
+		this.tileClickCnt = pan ;
 
+
+		pan.show();
+		pan.getEl().alignTo(this.getEl(), 'c-c?');
+	},
 	onDestroy: function () {
 		if  (this.tileClickCnt){
 			this.tileClickCnt.destroy() ;

@@ -239,6 +239,7 @@ function specRsiRecouveo_cfg_getConfig($post_data=array('skip_filter'=>true)) {
 			$query = "SELECT * FROM view_bible_{$bible_code}_tree ORDER BY treenode_key" ;
 			$result = $_opDB->query($query) ;
 			while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+
 				$parent = $arr['treenode_parent_key'] ;
 				$node = $arr['treenode_key'] ;
 				$id = $arr['treenode_key'] ;
@@ -249,7 +250,11 @@ function specRsiRecouveo_cfg_getConfig($post_data=array('skip_filter'=>true)) {
 					}
 				}
 				$next = $arr['field_LINK_NEXT'] ;
-				$records[] = array('node'=>'', 'id'=>$id, 'parent'=>$parent, 'text'=>implode(' - ',$lib), 'next'=>$next) ;
+				if ($bible_code == "OPT_CLOSEASK" || $bible_code == "OPT_JUDIC" || $bible_code == "OPT_LITIG"){
+					$records[] = array('node'=>'', 'id'=>$id, 'parent'=>$parent, 'text'=>implode(' - ',$lib), 'next'=>$next, 'color' => $arr['field_OPT_COLOR']) ;
+				} else{
+					$records[] = array('node'=>'', 'id'=>$id, 'parent'=>$parent, 'text'=>implode(' - ',$lib), 'next'=>$next) ;
+				}
 			}
 			
 			$new_rec = array(
@@ -458,7 +463,6 @@ function specRsiRecouveo_cfg_getConfig($post_data=array('skip_filter'=>true)) {
 			default :
 				continue 2 ;
 		}
-		//print_r($opt_record['records']) ;
 		foreach( $opt_record['records'] as $rec ) {
 			$TAB_action_next[] = array(
 				'id' => $action_prefix.'_'.$rec['id'],

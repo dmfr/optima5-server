@@ -966,7 +966,6 @@ function specRsiRecouveo_report_getGrid($post_data) {
 				}
 			}
 		}
-
 		return array('success'=>true, 'columns'=>$cols, 'data'=>$TAB) ;
 	}
 
@@ -1064,8 +1063,6 @@ function specRsiRecouveo_report_getGrid($post_data) {
 			'date_end' => $col['date_end']
 		);
 		$map_grouper_val = specRsiRecouveo_report_run_getValuesNew($col['reportval_id'],$dates,$p_filters,$grouper) ;
-		//print_r($map_grouper_val) ;
-
 		foreach($map_grouper_val as $group => $val ){
 			$TAB[$group][$col['dataIndex']] = $val ;
 		}
@@ -1085,7 +1082,7 @@ function specRsiRecouveo_report_getGrid($post_data) {
 		}
 		$rows[] = $row ;
 	}
-
+		
 	return array('success'=>true, 'columns'=>$cols, 'data'=>$rows) ;
 }
 
@@ -1167,15 +1164,15 @@ function specRsiRecouveo_report_run_getValuesNew( $reportval_id, $dates, $filter
 			switch ($filter_status){
 				case "S2J_JUDIC":
 					$group_joiner .= "JOIN view_bible_OPT_JUDIC_tree oj ON tst.field_LINK_JUDIC = oj.treenode_key" ;
-					$group_field = "oj.field_OPT_TXT" ;
+					$group_field = "oj.field_OPT_ID" ;
 					break ;
 				case "S2L_LITIG":
 					$group_joiner .= "JOIN view_bible_OPT_LITIG_tree ol ON tst.field_LINK_LITIG = ol.treenode_key" ;
-					$group_field = "ol.field_OPT_TXT" ;
+					$group_field = "ol.field_OPT_ID" ;
 					break ;
 				case "SX_CLOSE":
 					$group_joiner .= "JOIN view_bible_OPT_CLOSEASK_tree oc ON tst.field_LINK_CLOSE = oc.treenode_key" ;
-					$group_field = "oc.field_OPT_TXT" ;
+					$group_field = "oc.field_OPT_ID" ;
 			}
 		}
 	}
@@ -1544,7 +1541,7 @@ function specRsiRecouveo_report_run_getValuesNew( $reportval_id, $dates, $filter
 		}
 		$map[$arr[0]] = $arr[1] ;
 	}
-
+	//print_r($map) ;
 	return $map ;
 
 }
