@@ -954,9 +954,13 @@ EOF;
 			switch( $field_type )
 			{
 				case 'string' :
-				case 'stringplus' :
 				$field_name.= '_str' ;
 				$arrAssoc_dbField_fieldType[$field_name] = 'varchar(500)' ;
+				break ;
+				
+				case 'stringplus' :
+				$field_name.= '_str' ;
+				$arrAssoc_dbField_fieldType[$field_name] = 'text' ;
 				break ;
 				
 				case 'number' :
@@ -1051,9 +1055,13 @@ EOF;
 			switch( $field_type )
 			{
 				case 'string' :
-				case 'stringplus' :
 				$field_name.= '_str' ;
 				$arrAssoc_dbField_fieldType[$field_name] = 'varchar(500)' ;
+				break ;
+				
+				case 'stringplus' :
+				$field_name.= '_str' ;
+				$arrAssoc_dbField_fieldType[$field_name] = 'text' ;
 				break ;
 				
 				case 'number' :
@@ -1188,7 +1196,6 @@ EOF;
 			switch( $field_type )
 			{
 				case 'string' :
-				case 'stringplus' :
 				$field_name.= '_str' ;
 				$arrAssoc_dbField_fieldType[$field_name] = 'varchar(500)' ;
 				if( $field_type!='stringplus' && $arr_field_isIndex[$field_code] ) {
@@ -1197,6 +1204,11 @@ EOF;
 				if( $field_type!='stringplus' && $_mode_primaryKey && $arr_field_isPrimaryKey[$field_code] ) {
 					$arrAssoc_dbField_fieldType[$field_name] = 'varchar(50)' ;
 				}
+				break ;
+				
+				case 'stringplus' :
+				$field_name.= '_str' ;
+				$arrAssoc_dbField_fieldType[$field_name] = 'text' ;
 				break ;
 				
 				case 'number' :
@@ -1348,7 +1360,6 @@ EOF;
 			switch( $field_type )
 			{
 				case 'string' :
-				case 'stringplus' :
 				$field_name.= '_str' ;
 				$arrAssoc_dbField_fieldType[$field_name] = 'varchar(500)' ;
 				if( $field_type!='stringplus' && $arr_field_isIndex[$field_code] ) {
@@ -1357,6 +1368,11 @@ EOF;
 				if( $field_type!='stringplus' && $_mode_primaryKey && $arr_field_isPrimaryKey[$field_code] ) {
 					$arrAssoc_dbField_fieldType[$field_name] = 'varchar(50)' ;
 				}
+				break ;
+				
+				case 'stringplus' :
+				$field_name.= '_str' ;
+				$arrAssoc_dbField_fieldType[$field_name] = 'text' ;
 				break ;
 				
 				case 'number' :
