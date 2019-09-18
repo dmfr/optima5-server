@@ -11,6 +11,7 @@ include("$server_root/modules/spec_dbs_tracy/include/specDbsTracy_orderTree.inc.
 include("$server_root/modules/spec_dbs_tracy/include/specDbsTracy_lib_calc.inc.php") ;
 
 include("$server_root/modules/spec_dbs_tracy/include/specDbsTracy_lib_edi.inc.php") ;
+include("$server_root/modules/spec_dbs_tracy/include/specDbsTracy_lib_TMS.inc.php") ;
 
 function specDbsTracy_cfg_doInit( $post_data ) {
 	global $_opDB ;
