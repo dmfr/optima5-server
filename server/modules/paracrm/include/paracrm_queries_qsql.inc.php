@@ -328,6 +328,7 @@ function paracrm_queries_qsqlTransaction_tokenGet( $post_data , &$arr_saisie ) {
 	$sql_querystring = $arr['sql_querystring'] ;
 	$tpl_resultset = array() ;
 	$q = 0 ;
+	@ini_set('pcre.backtrack_limit', PHP_INT_MAX); // HACK
 	foreach( SqlParser::split_sql($sql_querystring) as $sql_sentence ) {
 		if( !trim($sql_sentence) ) {
 			continue ;
