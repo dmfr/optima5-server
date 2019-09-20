@@ -7,8 +7,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MainPanel',{
 		'Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',
 		'Optima5.Modules.Spec.RsiRecouveo.ConfigPanel',
 		'Optima5.Modules.Spec.RsiRecouveo.DevNotepad',
-		'Optima5.Modules.Spec.RsiRecouveo.ReportsPanel',
-		'Optima5.Modules.Spec.RsiRecouveo.ReportsTabPanel',
 		
 		'Optima5.Modules.Spec.RsiRecouveo.EnvPreviewPanel',
 		'Optima5.Modules.Spec.RsiRecouveo.EnvDocPreviewPanel',
@@ -22,8 +20,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MainPanel',{
 		'Optima5.Modules.Spec.RsiRecouveo.InboxPanel',
 		'Optima5.Modules.Spec.RsiRecouveo.ProfilePasswdPanel',
 
+		'Optima5.Modules.Spec.RsiRecouveo.ReportsPanel',
 		'Optima5.Modules.Spec.RsiRecouveo.ReportPopupPanel',
-
 		'Optima5.Modules.Spec.RsiRecouveo.ReportFilesPanel',
 		'Optima5.Modules.Spec.RsiRecouveo.ReportTilesPanel',
 		'Optima5.Modules.Spec.RsiRecouveo.ReportChartsPanel',
@@ -112,7 +110,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MainPanel',{
 				return me.openReports() ;
 			case 'dashboard' :
 				return me.openDashboard() ;
-			case 'new_dashboard':
+			case 'tmp_reporting':
 				return me.openReportPopup() ;
 			case 'bank' :
 				return me.openBank() ;
@@ -459,7 +457,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MainPanel',{
 		// recherche d'une fenetre deja ouverte
 		var doOpen = true ;
 		this.eachPanel(function(pnl){
-			if( !(pnl instanceof Optima5.Modules.Spec.RsiRecouveo.ReportsTabPanel) ) {
+			if( !(pnl instanceof Optima5.Modules.Spec.RsiRecouveo.ReportTilesPanel) ) {
 				return true ;
 			}
 			this.focusPanel(pnl) ;
@@ -471,7 +469,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MainPanel',{
 		}
 		
 		//open
-		var pnl = Ext.create('Optima5.Modules.Spec.RsiRecouveo.ReportsTabPanel',{
+		var pnl = Ext.create('Optima5.Modules.Spec.RsiRecouveo.ReportTilesPanel',{
 			optimaModule: this.optimaModule,
 			
 			title: 'Dashboard',
