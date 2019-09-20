@@ -108,8 +108,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MainPanel',{
 				return me.openFiles() ;
 			case 'reports' :
 				return me.openReports() ;
-			case 'dashboard' :
-				return me.openDashboard() ;
 			case 'tmp_reporting':
 				return me.openReportPopup() ;
 			case 'bank' :
@@ -442,37 +440,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MainPanel',{
 			optimaModule: this.optimaModule,
 			
 			title: 'Reporting',
-			closable: true
-		}) ;
-		this.addPanel(pnl) ;
-		this.focusPanel(pnl) ;
-	},
-	openDashboard: function() {
-		var desktopCfgIsDev = this.optimaModule.getApp().desktopGetCfgIsDev() ;
-		if( !desktopCfgIsDev ) {
-			Ext.Msg.alert('Development', 'Not available in prod') ;
-			return false ;
-		}
-		
-		// recherche d'une fenetre deja ouverte
-		var doOpen = true ;
-		this.eachPanel(function(pnl){
-			if( !(pnl instanceof Optima5.Modules.Spec.RsiRecouveo.ReportTilesPanel) ) {
-				return true ;
-			}
-			this.focusPanel(pnl) ;
-			doOpen = false ;
-			return false ;
-		},this) ;
-		if( !doOpen ) {
-			return ;
-		}
-		
-		//open
-		var pnl = Ext.create('Optima5.Modules.Spec.RsiRecouveo.ReportTilesPanel',{
-			optimaModule: this.optimaModule,
-			
-			title: 'Dashboard',
 			closable: true
 		}) ;
 		this.addPanel(pnl) ;
