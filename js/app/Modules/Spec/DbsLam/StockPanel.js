@@ -32,8 +32,7 @@ Ext.define('DbsLamStockGridModel',{
 		{name: 'inv_container', type:'string'},
 		{name: 'container_is_on', type:'boolean'},
 		{name: 'container_types', type:'auto'},
-		{name: 'container_is_picking', type:'boolean'},
-		{name: 'prealloc', type:'boolean'}
+		{name: 'container_is_picking', type:'boolean'}
 	]
 });
 
@@ -551,14 +550,11 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockPanel',{
 					text: '',
 					width: 24,
 					renderer: function(v,metadata,record) {
-						if( Ext.isEmpty(record.get('inv_prod')) && !record.get('prealloc') ) {
+						if( Ext.isEmpty(record.get('inv_prod')) ) {
 							metadata.tdCls = 'op5-spec-dbslam-stock-avail'
 						} else {
 							if( !Ext.isEmpty(record.get('inv_prod')) ) {
 								metadata.tdCls = 'op5-spec-dbslam-stock-notavail'
-							}
-							if( record.get('prealloc') ) {
-								metadata.tdCls = 'op5-spec-dbslam-stock-prealloc'
 							}
 						}
 					}

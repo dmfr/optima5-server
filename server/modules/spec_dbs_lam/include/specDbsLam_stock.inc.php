@@ -125,7 +125,6 @@ function specDbsLam_stock_getGrid($post_data) {
 		}
 		
 		$row['status'] = $status ;
-		$row['prealloc'] = $arr['ADR_field_STATUS_IS_PREALLOC'] ;
 		
 		$tab_DATA[] = $row ;
 	}
