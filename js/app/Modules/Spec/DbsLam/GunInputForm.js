@@ -622,6 +622,20 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunInputForm',{
 						name: 'mvt_qty',
 						fieldLabel: 'Qty'
 					}]
+				},{
+					xtype: 'fieldset',
+					itemId: 'fsCount',
+					title: 'Container count',
+					items: [{
+						fieldLabel: 'Count',
+						anchor: '',
+						width: 150,
+						xtype: 'numberfield',
+						name: 'submit_cnt',
+						value: 1,
+						minValue: 1,
+						maxValue: 10
+					}]
 				}]
 			});
 		}) ;
@@ -683,6 +697,12 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunInputForm',{
 				if( (formField=form.findField('stk_sn')) && !transferstepRow.prodspec_is_sn ) {
 					formField.destroy() ;
 				}
+				
+				if( (stkData_arrObjs.length == 1) && Ext.isEmpty(stkData_arrObjs[0]['container_ref']) ) {
+					formPanel.down('#fsCount').setVisible(true) ;
+				} else {
+					formPanel.down('#fsCount').destroy() ;
+				}
 			}) ;
 		}
 		
@@ -700,7 +720,13 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunInputForm',{
 		
 		var stkData_arrObjs = [] ;
 		tabPanel.items.each( function(formPanel) {
-			stkData_arrObjs.push( formPanel._stkData_obj );
+			var cnt=1 ;
+			if( (tabPanel.items.getCount()==1) && formPanel.getForm().findField('submit_cnt') ) {
+				cnt = formPanel.getForm().findField('submit_cnt').getValue() ;
+			}
+			for( var idx=0 ; idx<cnt ; idx++ ) {
+				stkData_arrObjs.push( formPanel._stkData_obj );
+			}
 		}) ;
 		if( !torf ) {
 			// cancel
