@@ -271,7 +271,9 @@ function specDbsLam_cfg_getWhse() {
 			'whse_code' => $arr['field_WHSE_CODE'],
 			'whse_txt' => $arr['field_WHSE_TXT'],
 			'is_stock' => $arr['field_IS_STOCK'],
-			'is_work' => $arr['field_IS_WORK']
+			'is_work' => $arr['field_IS_WORK'],
+			'adr_sqlrun_pre' => $arr['field_ADR_SQLRUN_PRE'],
+			'adr_sqlrun_post' => $arr['field_ADR_SQLRUN_POST']
 		) ;
 		
 		$TAB[$whse_code] = $record ;

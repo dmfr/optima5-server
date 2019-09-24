@@ -47,12 +47,35 @@ function specDbsLam_lib_proc_lock_off() {
 	$_opDB->query($query) ;
 }
 
+function specDbsLam_lib_proc_findAdr_runSql( $sql_qId ) {
+	$forward_post = array(
+		'q_type' => 'qsql',
+		'q_id' => $sql_qId
+	);
+	$return_json = paracrm_queries_direct($forward_post,$auth_bypass=true,$is_rw=true) ;
+	return $return_json['success'] ;
+}
 function specDbsLam_lib_proc_findAdr( $mvt_obj, $whse_dest, $to_picking=NULL, $to_picking_imp=NULL ) {
 	global $_opDB ;
 	
 	// Load cfg attributes
 	$ttmp = specDbsLam_cfg_getConfig() ;
 	$json_cfg = $ttmp['data'] ;
+	
+	foreach($json_cfg['cfg_whse'] as $whse) {
+		if( ($whse['whse_code']==$whse_dest) ) {
+			$sqlrun_pre = $whse['adr_sqlrun_pre'] ;
+			$sqlrun_post = $whse['adr_sqlrun_post'] ;
+		}
+	}
+	
+	
+	/* SQL Run Pre */
+	if( $sqlrun_pre ) {
+		specDbsLam_lib_proc_findAdr_runSql($sqlrun_pre) ;
+	}
+	
+	
 	
 	/*
 	* --- mvt_obj -----
@@ -160,6 +183,11 @@ function specDbsLam_lib_proc_findAdr( $mvt_obj, $whse_dest, $to_picking=NULL, $t
 	if( $pickingIsStatic && $doCheckAttributes && $to_picking ) {
 		// restockage
 		specDbsLam_prods_setPickStaticAdr($mvt_obj['stk_prod'],$adr_id) ;
+	}
+	
+	/* SQL Run Post */
+	if( $sqlrun_post ) {
+		specDbsLam_lib_proc_findAdr_runSql($sqlrun_post) ;
 	}
 	
 	return $adr_id ;

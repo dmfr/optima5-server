@@ -75,7 +75,9 @@ Ext.define('DbsLamCfgWhseModel',{
 		{name: 'whse_code', type:'string', useNull:true},
 		{name: 'whse_txt', type:'string'},
 		{name: 'is_stock', type:'boolean'},
-		{name: 'is_work', type:'boolean'}
+		{name: 'is_work', type:'boolean'},
+		{name: 'adr_sqlrun_pre', type:'string'},
+		{name: 'adr_sqlrun_post', type:'string'}
 	]
 });
 
