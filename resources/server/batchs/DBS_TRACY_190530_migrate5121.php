@@ -24,6 +24,9 @@ $_sdomain_id = DatabaseMgr_Sdomain::dbCurrent_getSdomainId() ;
 $query = "INSERT INTO `store_bible_CFG_ORDERFLOW_entry` VALUES ('51_CREQ','AIR','51_CREQ','BAE requested','51_CREQ','BAE requested',51.000,0,0,0,'',1),('52_CACK','AIR','52_CACK','BAE received','52_CACK','BAE received',52.000,0,0,0,'',1)" ;
 $_opDB->query($query) ;
 
+$query = "UPDATE view_file_TRSPT SET field_CUSTOMS_MODE='MAN' WHERE field_CUSTOMS_MODE='' AND field_CUSTOMS_IS_ON='1'" ;
+$_opDB->query($query) ;
+
 
 paracrm_queries_direct( array(
 	'q_type' => 'qsql',

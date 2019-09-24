@@ -179,6 +179,7 @@ Ext.define('DbsTracyFileTrsptModel',{
 		{name: 'calc_step_warning_edi', type:'boolean'},
 		{name: 'calc_customs_is_wait', type:'boolean'},
 		{name: 'customs_mode', type:'string'},
+		{name: 'customs_mode_auto', type:'string'},
 		{name: 'customs_date_request', dateFormat:'Y-m-d H:i:s'},
 		{name: 'customs_date_cleared', dateFormat:'Y-m-d H:i:s'},
 		{name: 'pod_doc', type:'string'},

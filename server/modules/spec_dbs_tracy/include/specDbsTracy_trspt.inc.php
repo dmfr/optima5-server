@@ -40,6 +40,8 @@ function specDbsTracy_trspt_getRecords( $post_data ) {
 	$query.= " ORDER BY t.filerecord_id DESC" ;
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		$arr['field_CUSTOMS_MODE_arr'] = explode('_',$arr['field_CUSTOMS_MODE']) ;
+		
 		$TAB_trspt[$arr['filerecord_id']] = array(
 			'trspt_filerecord_id' => $arr['filerecord_id'],
 			'flow_code' => $arr['field_FLOW_CODE'],
@@ -58,7 +60,8 @@ function specDbsTracy_trspt_getRecords( $post_data ) {
 			'flight_awb' => $arr['field_FLIGHT_AWB'],
 			'flight_date' => substr($arr['field_FLIGHT_DATE'],0,10),
 			'flight_code' => $arr['field_FLIGHT_CODE'],
-			'customs_mode' => $arr['field_CUSTOMS_MODE'],
+			'customs_mode' => $arr['field_CUSTOMS_MODE_arr'][0],
+			'customs_mode_auto' => $arr['field_CUSTOMS_MODE_arr'][1],
 			'customs_edi_ready' => ($arr['field_CUSTOMS_EDI_READY'] ? true:false),
 			'customs_edi_sent' => ($arr['field_CUSTOMS_EDI_SENT'] ? true:false),
 			'customs_date_request' => (specDbsTracy_trspt_tool_isDateValid($arr['field_CUSTOMS_DATE_REQUEST']) ? $arr['field_CUSTOMS_DATE_REQUEST'] : null),
@@ -233,7 +236,11 @@ function specDbsTracy_trspt_setHeader( $post_data ) {
 	$arr_ins['field_FLIGHT_DATE'] = $form_data['flight_date'] ;
 	$arr_ins['field_FLIGHT_CODE'] = $form_data['flight_code'] ;
 	$arr_ins['field_CUSTOMS_IS_ON'] = ($form_data['customs_mode']=='ON') ;
-	$arr_ins['field_CUSTOMS_MODE'] = trim($form_data['customs_mode']) ;
+	$field_CUSTOMS_MODE = trim($form_data['customs_mode']) ;
+	if( ($form_data['customs_mode']=='AUTO') && trim($form_data['customs_mode_auto']) ) {
+		$field_CUSTOMS_MODE.= '_'.trim($form_data['customs_mode_auto']) ;
+	}
+	$arr_ins['field_CUSTOMS_MODE'] = $field_CUSTOMS_MODE ;
 	if( $form_data['customs_mode']=='MAN' ) {
 		$arr_ins['field_CUSTOMS_DATE_REQUEST'] = ($form_data['customs_date_request'] ? $form_data['customs_date_request'] : '') ;
 		$arr_ins['field_CUSTOMS_DATE_CLEARED'] = ($form_data['customs_date_cleared'] ? $form_data['customs_date_cleared'] : '') ;

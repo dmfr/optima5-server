@@ -114,11 +114,12 @@ function specDbsTracy_order_getRecords( $post_data ) {
 		if( !isset($TAB_order[$filerecord_id]) ) {
 			continue ;
 		}
+		$arr[4] = explode('_',$arr[4]) ;
 		$TAB_order[$filerecord_id]['calc_link_is_active'] = ($arr[1]!=NULL) ;
 		$TAB_order[$filerecord_id]['calc_link_trspt_filerecord_id'] = $arr[1] ;
 		$TAB_order[$filerecord_id]['calc_link_trspt_txt'] = $arr[2] ;
 		$TAB_order[$filerecord_id]['calc_step_warning_edi'] = $arr[3] ;
-		$TAB_order[$filerecord_id]['calc_link_customs_mode'] = $arr[4] ;
+		$TAB_order[$filerecord_id]['calc_link_customs_mode'] = $arr[4][0] ;
 		$TAB_order[$filerecord_id]['calc_link_customs_REQ'] = specDbsTracy_trspt_tool_isDateValid($arr[5]) ;
 		$TAB_order[$filerecord_id]['calc_link_customs_CLR'] = specDbsTracy_trspt_tool_isDateValid($arr[6]) ;
 	}

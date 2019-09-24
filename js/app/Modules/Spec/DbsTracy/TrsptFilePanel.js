@@ -276,8 +276,27 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 								formPanel.down('#cntCustomsTransaction').setVisible(cmb.getValue()=='AUTO') ;
 								formPanel.down('#customs_date_request_cnt').setVisible(cmb.getValue()=='AUTO') ;
 								form.findField('customs_date_cleared_ro').setVisible(cmb.getValue()=='AUTO') ;
+								form.findField('customs_mode_auto').setVisible(cmb.getValue()=='AUTO') ;
 							}
 						}
+					},{
+						xtype: 'combobox',
+						name: 'customs_mode_auto',
+						fieldLabel: 'EDI mode',
+						queryMode: 'local',
+						forceSelection: true,
+						allowBlank: true,
+						editable: false,
+						store: {
+							fields: ['id','text'],
+							data: [
+								{id: ' ', text: ' '},
+								{id: 'EMAIL', text: 'Email'},
+								{id: 'XML', text: 'XML'}
+							]
+						},
+						valueField: 'id',
+						displayField: 'text',
 					},{
 						hidden: true,
 						xtype: 'datetimefield',
@@ -890,7 +909,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 		}
 		
 		
-		console.dir( trsptRecord.get('sword_edi_1_sent') ) ;
+		//console.dir( trsptRecord.get('sword_edi_1_sent') ) ;
 		Ext.Array.each( this.down('#pHeaderForm').down('#fsCustoms').query('field'), function(field) {
 			if( field.setReadOnly ) {
 				// TODO : set Readonly
