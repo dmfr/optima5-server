@@ -51,6 +51,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.UploadForm',{
 							id:'IMPORT_ACC',
 							txt: 'Fiche navette : Comptes'
 						},{
+							id:'IMPORT_ACC_ADRBOOK',
+							txt: 'Fiche navette : Adrbook comptes'
+						},{
 							id:'IMPORT_REC',
 							txt: 'Fiche navette : Factures'
 						},{

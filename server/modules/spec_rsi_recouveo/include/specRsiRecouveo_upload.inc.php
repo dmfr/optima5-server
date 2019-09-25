@@ -15,6 +15,10 @@ function specRsiRecouveo_upload( $post_data ) {
 			$ret = specRsiRecouveo_lib_edi_post($_SESSION["login_data"]["userstr"],'upload_COMPTES',$handle) ;
 			break ;
 
+		case 'IMPORT_ACC_ADRBOOK' :
+			$ret = specRsiRecouveo_lib_edi_post($_SESSION["login_data"]["userstr"],'upload_COMPTES_ADRBOOK',$handle) ;
+			break ;
+
 		case 'IMPORT_REC' :
 			$ret = specRsiRecouveo_lib_edi_post($_SESSION["login_data"]["userstr"],'upload_FACTURES',$handle) ;
 			break ;

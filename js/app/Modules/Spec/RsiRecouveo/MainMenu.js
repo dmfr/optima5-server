@@ -96,8 +96,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MainMenu',{
 					{type_action:true, action_caption: 'Courrier entrant', action_sendEvent:'form_inbox', action_iconCls:'op5-spec-rsiveo-mmenu-mailin'},
 					{type_action:true, action_caption: 'Email reçus', action_sendEvent:'form_email', action_iconCls:'op5-spec-rsiveo-mmenu-mailin'},
 					{type_separator:true, separator_label: 'Administration'},
-					{type_action:true, action_caption: 'Configuration', action_sendEvent:'cfg', action_iconCls:'op5-spec-rsiveo-mmenu-cfg'}
-					//{type_action:true, action_caption: 'Upload / Sync', action_sendEvent:'form_upload', action_iconCls:'op5-spec-rsiveo-mmenu-upload'}
+					{type_action:true, action_caption: 'Configuration', action_sendEvent:'cfg', action_iconCls:'op5-spec-rsiveo-mmenu-cfg'},
+					{type_action:true, action_caption: 'Upload / Sync', action_sendEvent:'form_upload', action_iconCls:'op5-spec-rsiveo-mmenu-upload'}
 				];
 			} else {
 				switch( authProfile ) {

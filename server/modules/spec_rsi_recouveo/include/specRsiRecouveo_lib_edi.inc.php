@@ -211,6 +211,58 @@ function specRsiRecouveo_lib_edi_convert_UPLCOMPTES_to_mapMethodJson( $handle ) 
 		"account_adrbookentry" => $adrbook_json
 	) ;
 }
+function specRsiRecouveo_lib_edi_convert_UPLCOMPTESADRBOOK_to_mapMethodJson( $handle ) {
+	if (true){
+		$handle = specRsiRecouveo_lib_edi_upload_preHandle($handle) ;
+	}
+
+	$headers = fgetcsv($handle) ;
+	//print_r($headers) ;
+	$map_header_csvIdx = array() ;
+	foreach ($headers as $csv_idx => $head){
+		switch ($head) {
+			case "Société":
+				$head = "IdSoc";
+				break;
+			case "Numéro client":
+				$head = "IdCli";
+				break;
+			case "Titre":
+				$head = "Lib" ;
+				break ;
+			case "Type":
+				$head = "AdrType" ;
+				break ;
+			case "Contenu":
+				$head = "Adr" ;
+				break ;
+			default:
+				break ;
+		}
+
+		if( trim($head)=='' ) {
+			continue ;
+		}
+
+		$map_header_csvIdx[$head] = $csv_idx ;
+	}
+	$adrbook_rows = array() ;
+	while ($data = fgetcsv($handle)){
+		if( !$data ) {
+			continue ;
+		}
+		$row = array() ;
+		foreach( $map_header_csvIdx as $mkey => $idx ) {
+			$row[$mkey] = trim($data[$idx]) ;
+		}
+		$adrbook_rows[] = $row ;
+	}
+	$adrbook_json = json_encode($adrbook_rows) ;
+	
+	return array(
+		"account_adrbookentry" => $adrbook_json
+	) ;
+}
 function specRsiRecouveo_lib_edi_convert_UPLFACTURES_to_mapMethodJson( $handle ) {
 	if (true){
 		$handle = specRsiRecouveo_lib_edi_upload_preHandle($handle) ;
@@ -324,6 +376,9 @@ function specRsiRecouveo_lib_edi_post($apikey_code, $transaction, $handle) {
 			
 		case 'upload_COMPTES' :
 			$mapMethodJson = specRsiRecouveo_lib_edi_convert_UPLCOMPTES_to_mapMethodJson($handle_in) ;
+			break ;
+		case 'upload_COMPTES_ADRBOOK' :
+			$mapMethodJson = specRsiRecouveo_lib_edi_convert_UPLCOMPTESADRBOOK_to_mapMethodJson($handle_in) ;
 			break ;
 		case 'upload_FACTURES' :
 			$mapMethodJson = specRsiRecouveo_lib_edi_convert_UPLFACTURES_to_mapMethodJson($handle_in) ;
@@ -474,6 +529,7 @@ function specRsiRecouveo_lib_edi_post_adrbook($json_rows){
 	global $_opDB;
 	
 	$mandatory = array('IdSoc', 'IdCli', 'Lib', 'AdrType', 'Adr') ;
+	$skip_ifempty = array('Adr') ;
 	$map_json2adrbook = array (
 		'IdCli' => 'field_ACC_ID',
 		'Lib' => 'field_ADR_ENTITY'
@@ -488,14 +544,22 @@ function specRsiRecouveo_lib_edi_post_adrbook($json_rows){
 	$ret_errors = array() ;
 
 	foreach($json_rows as $idx => $json_row){
-		$missing = array() ;
+		$missing = $empties = array() ;
 		foreach($mandatory as $field){
 			if ( !isset($json_row[$field])){
 				$missing[] = $field ;
 			}
 		}
+		foreach( $skip_ifempty as $field ) {
+			if( !trim($json_row[$field]) ) {
+				$empties[] = $field ;
+			}
+		}
 		if (count($missing) > 0){
 			$ret_errors[] = "ERR Idx={$idx} : missing field(s) ".implode(',',$missing) ;
+			continue ;
+		}
+		if (count($empties) > 0){
 			continue ;
 		}
 		$txt_IdSoc = $json_row['Idsoc'] ;
