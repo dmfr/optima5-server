@@ -18,6 +18,12 @@ function specDbsTracy_lib_edi_robot() {
 		}
 		$maps_ediCode_params[$edi_code] = $arr_params ;
 	}
+	if( $GLOBALS['__OPTIMA_TEST'] ) {
+		$maps_ediCode_params['TRSPT_CUSTOMS_XML']['LOCAL_PATH'] = '/tmp' ;
+		
+		$maps_ediCode_params['TRSPT_CUSTOMS_EMAIL']['SMTP'] = '127.0.0.1' ;
+		$maps_ediCode_params['TRSPT_CUSTOMS_EMAIL']['EMAIL_TO'] = 'dm@mirabel-sil.com' ;
+	}
 	
 	$query = "SELECT filerecord_id as trsptedi_filerecord_id
 				, filerecord_parent_id as trspt_filerecord_id
@@ -82,6 +88,18 @@ function specDbsTracy_lib_edi_flow_TRSPTCUSTOMSEMAIL( $trspt_filerecord_id, $arr
 	$hat_record = reset($trspt_record['hats']) ;
 	$order_record = reset($trspt_record['orders']) ;
 	
+	$arr_orderIds = array() ;
+	$arr_invIds = array() ;
+	foreach( $trspt_record['orders'] as $order_record ) {
+		if( !in_array($order_record['ref_invoice'],$arr_invIds) ) {
+			$arr_invIds[] = $order_record['ref_invoice'] ;
+		}
+		if( !in_array($order_record['id_dn'],$arr_orderIds) ) {
+			$arr_orderIds[] = $order_record['id_dn'] ;
+		}
+	}
+	$order_record = reset($trspt_record['orders']) ;
+	
 	
 	$txt_buffer = '' ;
 	
@@ -93,7 +111,8 @@ function specDbsTracy_lib_edi_flow_TRSPTCUSTOMSEMAIL( $trspt_filerecord_id, $arr
 	$txt_buffer.= "\r\n" ;
 	
 	$inv_no = $order_record['ref_invoice'] ;
-	$txt_buffer.= "Référence facture : {$inv_no}\r\n" ;
+	$inv_txt = implode(' ',$arr_invIds) ;
+	$txt_buffer.= "Référence facture(s) : {$inv_txt}\r\n" ;
 	$txt_buffer.= "\r\n" ;
 	
 	$carrier_code = $trspt_record['mvt_carrier'] ;
@@ -183,6 +202,10 @@ function specDbsTracy_lib_edi_flow_TRSPTCUSTOMSEMAIL( $trspt_filerecord_id, $arr
 	$prio_txt = $ttmp['field_TEXT'] ;
 	
 	$email_subject = $prio_txt.' / '.$inv_no.' / '.$wid_txt ;
+	if( $trspt_record['id_soc']=='ACL' ) {
+		$order_txt = implode('-',$arr_orderIds) ;
+		$email_subject = "SAFRAN NACELLE / {$prio_txt} / {$order_txt} / {$wid}" ;
+	}
 	
 	
 	$mail = PhpMailer::getInstance() ;
