@@ -453,8 +453,10 @@ function specDbsTracy_trspt_ackCustomsStatus( $post_data ) {
 	if( in_array($trspt_record['customs_mode'],array('AUTO')) ) {
 		foreach( $ttmp['data']['cfg_soc'] as $soc_row ) {
 			if( $soc_row['soc_code'] == $trspt_record['id_soc'] ) {
-				if( !$soc_row['cfg_customs'] ) {
+				if( !$soc_row['cfg_customs'] || !$soc_row['cfg_customs']['enabled'] ) {
 					$errors[] = 'EDI Broker not enabled for BU' ;
+				} elseif( !in_array($trspt_record['customs_mode_auto'],$soc_row['cfg_customs']['modes']) ) {
+					$errors[] = 'EDI method not valid for BU' ;
 				}
 			}
 		}

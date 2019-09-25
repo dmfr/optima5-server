@@ -37,6 +37,20 @@ function specDbsTracy_lib_edi_robot() {
 				$ret = FALSE ;
 				break ;
 		}
+		switch( $arr['edi_code'] ) {
+			case 'TRSPT_CUSTOMS_EMAIL' :
+			case 'TRSPT_CUSTOMS_XML' :
+				if( $ret ) {
+					$arr_update = array() ;
+					$arr_update['field_CUSTOMS_DATE_REQUEST'] = date('Y-m-d H:i:s') ;
+					paracrm_lib_data_updateRecord_file( 'TRSPT', $arr_update, $arr['trspt_filerecord_id'] );
+				
+					specDbsTracy_trspt_ackCustomsStatus( array('trspt_filerecord_id'=>$arr['trspt_filerecord_id']) ) ;
+				}
+				break ;
+			default :
+				break ;
+		}
 		if( $ret ) {
 			$arr_ins = array() ;
 			$arr_ins['field_EXEC_STATUS'] = 1 ;
@@ -175,18 +189,28 @@ function specDbsTracy_lib_edi_flow_TRSPTCUSTOMSEMAIL( $trspt_filerecord_id, $arr
 	if( !$mail ) {
 		return FALSE ;
 	}
-	$mail->CharSet = "utf-8";
-	$mail->setFrom('nobody@mirabel-sil.com');
-	foreach( explode(',',$arr_params['EMAIL_TO']) as $email_to ) {
-		$mail->addAddress($email_to) ;
-	}
-	$mail->Subject  = $email_subject ;
-	$mail->Body = $txt_buffer ;
-	$mail->addStringAttachment($binary_pdf, $binary_filename) ;
-	$mail->send() ;
-	$buffer = $mail->getSentMIMEMessage();
 
-	return !!$buffer ;
+	try {
+		$mail->isSMTP();
+		$mail->Host = $arr_params['SMTP'] ;
+		
+		$mail->CharSet = "utf-8";
+		$mail->setFrom('tracy@dbschenker.com');
+		foreach( explode(',',$arr_params['EMAIL_TO']) as $email_to ) {
+			$mail->addAddress($email_to) ;
+		}
+		$mail->Subject  = $email_subject ;
+		$mail->Body = $txt_buffer ;
+		$mail->addStringAttachment($binary_pdf, $binary_filename) ;
+		$mail->send() ;
+	
+	} catch (Exception $e) {
+		echo "Message could not be sent. Mailer Error: {$mail->ErrorInfo}";
+		return false ;
+	}
+	//$buffer = $mail->getSentMIMEMessage();
+
+	return true ;
 }
 
 ?>
