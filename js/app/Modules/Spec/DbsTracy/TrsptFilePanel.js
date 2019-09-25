@@ -273,7 +273,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 									form = formPanel.getForm() ;
 								form.findField('customs_date_request').setVisible(cmb.getValue()=='MAN') ;
 								form.findField('customs_date_cleared').setVisible(cmb.getValue()=='MAN') ;
-								formPanel.down('#cntCustomsTransaction').setVisible(cmb.getValue()=='AUTO') ;
+								//formPanel.down('#cntCustomsTransaction').setVisible(cmb.getValue()=='AUTO') ;
 								formPanel.down('#customs_date_request_cnt').setVisible(cmb.getValue()=='AUTO') ;
 								form.findField('customs_date_cleared_ro').setVisible(cmb.getValue()=='AUTO') ;
 								form.findField('customs_mode_auto').setVisible(cmb.getValue()=='AUTO') ;
@@ -347,6 +347,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 							xtype: 'displayfield',
 							name: 'customs_date_request_ro',
 						},{
+							hidden: true,
 							itemId: 'customs_date_request_btn',
 							margin: '0px 10px',
 							xtype: 'button',
@@ -893,7 +894,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 		this.down('#pHeaderForm').getForm().findField('flow_code').setReadOnly(true) ;
 		this.down('#pHeaderForm').getForm().findField('atr_type').setReadOnly(true) ;
 		this.down('#pHeaderForm').getForm().findField('id_doc').setReadOnly(true) ;
-		this.down('#pHeaderForm').down('#customs_date_request_btn').setVisible( !Ext.isEmpty(headerFormValues.customs_date_request) ) ;
+		//this.down('#pHeaderForm').down('#customs_date_request_btn').setVisible( !Ext.isEmpty(headerFormValues.customs_date_request) ) ;
 		Ext.apply(headerFormValues, {
 			customs_date_request_ro: Ext.util.Format.date(headerFormValues.customs_date_request, 'd/m/Y H:i'),
 			customs_date_cleared_ro: Ext.util.Format.date(headerFormValues.customs_date_cleared, 'd/m/Y H:i')
