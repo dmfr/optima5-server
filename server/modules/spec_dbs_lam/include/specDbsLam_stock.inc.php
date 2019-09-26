@@ -657,5 +657,150 @@ function specDbsLam_stock_printEtiq($post_data) {
 	
 	return array('success'=>true, 'html'=>$doc->saveHTML() ) ;
 }
+function specDbsLam_stock_printEtiqZpl($post_data) {
+	global $_opDB ;
+	
+	$app_root = $GLOBALS['app_root'] ;
+	$resources_root=$app_root.'/resources' ;
+	$templates_dir=$resources_root.'/server/templates' ;
+	$_IMG['DBS_logo_bw'] = file_get_contents($templates_dir.'/'.'DBS_logo_bw.png') ;
+	
+	// Load cfg attributes
+	$ttmp = specDbsLam_cfg_getConfig() ;
+	$json_cfg = $ttmp['data'] ;
+	
+	$p_stock_filerecordIds = json_decode($post_data['stock_filerecordIds'],true) ;
+	if( !$p_stock_filerecordIds ) {
+		return array('success'=>false) ;
+	}
+	
+	$rows = array() ;
+	foreach( $p_stock_filerecordIds as $stk_filerecord_id ) {
+		$query = "SELECT * FROM view_file_STOCK WHERE filerecord_id='{$stk_filerecord_id}'" ;
+		$result = $_opDB->query($query) ;
+		$arr_stk = $_opDB->fetch_assoc($result) ;
+		if( !$arr_stk ) {
+			continue ;
+		}
+		
+		$adr_txt = $adr ;
+		if( $arr_stk['field_CONTAINER_REF'] ) {
+			$adr_txt = $arr_stk['field_CONTAINER_REF'] ;
+		}
+		
+				$ttmp = explode('_',$arr_stk['field_PROD_ID'],2) ;
+				$soc_code = $ttmp[0] ;
+				$prod_txt = $ttmp[1] ;
+				$query = "SELECT * FROM view_bible_PROD_entry WHERE entry_key='{$arr_stk['field_PROD_ID']}'" ;
+				$result = $_opDB->query($query) ;
+				$arr_prod = $_opDB->fetch_assoc($result) ;
+				
+		
+		
+		
+		$zebra_buffer = '' ;
+		$zebra_buffer.= '^XA^POI' ;
+		$zebra_buffer.= "^BY3,3.0,10^FS" ;
+		
+		//echo $str ;
+		
+		$barcode_w = 50 ;
+		$barcode_h = 50 ;
+		$str = $adr_txt ;
+		$zebra_buffer.= "^FO{$barcode_w},{$barcode_h}^BY2^BCN,100,Y,N^FD".$str."^FS";
+		
+		
+		$legend_w = 400 ;
+		$legend_h = 55 ;
+		$zebra_buffer.= "^FO{$legend_w},{$legend_h},0^ASN^FD".'STOCK LABEL'."^FS";
+		$legend_h+= 50 ;
+		$legend_w+= 20 ;
+		$zebra_buffer.= "^FO{$legend_w},{$legend_h},0^AUN^FD".$str."^FS";
+		
+		
+		$h = 250 ;
+		
+		$zebra_buffer.= "^FO50,250^GB200,100,2^FS";
+		$zebra_buffer.= "^FO250,250^GB500,100,2^FS";
+		
+			$legend_w = 60 ;
+			$legend_h = $h+20 ;
+			$zebra_buffer.= "^FO{$legend_w},{$legend_h},0^ARN^FD".'BusinessUnit'."^FS";
+		
+			$legend_w = 290 ;
+			$legend_h = $h+20 ;
+			$zebra_buffer.= "^FO{$legend_w},{$legend_h},0^ASN^FD".$soc_code."^FS";
+		
+		$h+= 100 ;
+		
+		$zebra_buffer.= "^FO50,{$h}^GB200,200,2^FS";
+		$zebra_buffer.= "^FO250,{$h}^GB500,200,2^FS";
+		
+			$legend_w = 60 ;
+			$legend_h = $h+20 ;
+			$zebra_buffer.= "^FO{$legend_w},{$legend_h},0^ARN^FD".'PartNumber'."^FS";
+			
+			$legend_w = 290 ;
+			$legend_h = $h+30 ;
+			$zebra_buffer.= "^FO{$legend_w},{$legend_h}^BY2^BCN,100,Y,N^FD".$prod_txt."^FS";
+		
+		$h+= 200 ;
+		
+		$zebra_buffer.= "^FO50,{$h}^GB200,150,2^FS";
+		$zebra_buffer.= "^FO250,{$h}^GB500,150,2^FS";
+		
+			$legend_w = 60 ;
+			$legend_h = $h+20 ;
+			$zebra_buffer.= "^FO{$legend_w},{$legend_h},0^ARN^FD".'Description'."^FS";
+		
+		
+			$legend_w = 290 ;
+			$legend_h = $h+20 ;
+			$zebra_buffer.= "^FO{$legend_w},{$legend_h},0^ASN^FD".$arr_prod['entry_key']."^FS";
+			$legend_h = $h+70 ;
+			$zebra_buffer.= "^FO{$legend_w},{$legend_h},0^ARN^FD".$arr_prod['field_PROD_TXT']."^FS";
+		
+		$h+= 150 ;
+		
+		$zebra_buffer.= "^FO50,{$h}^GB200,100,2^FS";
+		$zebra_buffer.= "^FO250,{$h}^GB500,100,2^FS";
+		
+			$legend_w = 60 ;
+			$legend_h = $h+20 ;
+			$zebra_buffer.= "^FO{$legend_w},{$legend_h},0^ARN^FD".'Quantity'."^FS";
+		
+			$legend_w = 290 ;
+			$legend_h = $h+20 ;
+			$zebra_buffer.= "^FO{$legend_w},{$legend_h},0^ATN^FD".(float)($arr_stk['field_QTY_IN']+$arr_stk['field_QTY_AVAIL']+$arr_stk['field_QTY_OUT'])."^FS";
+			
+		$h+= 100 ;
+		
+		$zebra_buffer.= "^FO50,{$h}^GB200,200,2^FS";
+		$zebra_buffer.= "^FO250,{$h}^GB500,200,2^FS";
+		
+			$legend_w = 60 ;
+			$legend_h = $h+20 ;
+			$zebra_buffer.= "^FO{$legend_w},{$legend_h},0^ARN^FD".'Position'."^FS";
+		
+			$legend_w = 290 ;
+			$legend_h = $h+20 ;
+			$zebra_buffer.= "^FO{$legend_w},{$legend_h},0^ASN^FD".$arr_stk['field_ADR_ID']."^FS";
+			$legend_h = $h+70 ;
+			$zebra_buffer.= "^FO{$legend_w},{$legend_h}^BY2^BCN,80,Y,N^FD".$arr_stk['field_ADR_ID']."^FS";
+			
+		$h+= 200 ;
+		
+		$zebra_buffer.= '^XZ' ;
+		
+		
+		$rows[] = array(
+			'zpl_is_on' => true,
+			'zpl_binary' => $zebra_buffer
+		);
+	}
+	
+	
+	return array('success'=>true, 'data'=>$rows ) ;
+}
 
 ?>

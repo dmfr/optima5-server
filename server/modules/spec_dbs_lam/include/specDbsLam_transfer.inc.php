@@ -802,7 +802,11 @@ function specDbsLam_transfer_printDoc( $post_data ) {
 						WHERE field_CONTAINER_REF='{$row_transferLig['container_ref']}' AND (field_QTY_AVAIL+field_QTY_OUT) > 0" ;
 			$arr_stkFilerecordId[] = $_opDB->query_uniqueValue($query) ; ;
 		}
-		return specDbsLam_stock_printEtiq( array('stock_filerecordIds'=>json_encode($arr_stkFilerecordId)) ) ;
+		if( $post_data['outputZpl'] ) {
+			return specDbsLam_stock_printEtiqZpl( array('stock_filerecordIds'=>json_encode($arr_stkFilerecordId)) ) ;
+		} else {
+			return specDbsLam_stock_printEtiq( array('stock_filerecordIds'=>json_encode($arr_stkFilerecordId)) ) ;
+		}
 	}
 	
 	

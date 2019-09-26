@@ -382,6 +382,14 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 						},
 						scope: this
 					},{
+						icon: 'images/op5img/ico_print_16.png',
+						text: '<b>Print labels ZPL</b>',
+						itemIdPrintLabels: true,
+						handler: function() {
+							this.handlePrintInput() ;
+						},
+						scope: this
+					},{
 						xtype: 'menuseparator',
 						itemIdAdrAlloc: true
 					},{
@@ -2036,6 +2044,45 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 			},
 			callback: function() {
 				//this.hideLoadmask() ;
+			},
+			scope: this
+		}) ;
+	},
+	
+	
+	handlePrintInput: function() {
+		var pCenter = this.down('#pCenter'),
+			pCenterTb = pCenter.down('toolbar'),
+			tabPanel = pCenter.down('tabpanel') ;
+		var activeTab = tabPanel.getActiveTab();
+		if( !activeTab ) {
+			return ;
+		}
+		var activeTransferStepRecord = activeTab.getActiveTransferStepRecord() ;
+		if( !activeTransferStepRecord ) {
+			return ;
+		}
+		
+		this.showLoadmask() ;
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_dbs_lam',
+				_action: 'transfer_printDoc',
+				transfer_filerecordId: this._activeTransferRecord.get('transfer_filerecord_id'),
+				transferStep_filerecordId: activeTransferStepRecord.get('transferstep_filerecord_id'),
+				printEtiq: 1,
+				outputZpl: 1
+			},
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					Ext.MessageBox.alert('Error',ajaxResponse.error) ;
+					return ;
+				}
+				this.openTransferCdePackPopup( ajaxResponse.data ) ;
+			},
+			callback: function() {
+				this.hideLoadmask() ;
 			},
 			scope: this
 		}) ;
