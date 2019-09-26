@@ -164,9 +164,14 @@ function specDbsTracy_lib_edi_flow_TRSPTCUSTOMSEMAIL( $trspt_filerecord_id, $arr
 	$txt_buffer.= "\r\n" ;
 	
 	$attachments = array() ;
-	foreach( $order_record['attachments'] as $attachment_iter ) {
-		if( !(strpos($attachment_iter['attachment_txt'],'INVOICE')===FALSE) ) {
-			$attachments[] = $attachment_iter ;
+	foreach( $trspt_record['orders'] as $order_record ) {
+		if( !$order_record['attachments'] ) {
+			continue ;
+		}
+		foreach( $order_record['attachments'] as $attachment_iter ) {
+			if( true ) {
+				$attachments[] = $attachment_iter ;
+			}
 		}
 	}
 	if( $attachments ) {
@@ -191,7 +196,7 @@ function specDbsTracy_lib_edi_flow_TRSPTCUSTOMSEMAIL( $trspt_filerecord_id, $arr
 		media_contextClose() ;
 		
 		$binary_pdf = $pdf ;
-		$binary_filename = "INVOICE_{$inv_no}.pdf" ;
+		$binary_filename = 'DN_'.$order_record['id_soc'].'_'.$order_record['id_dn'].'_'.time().'.pdf' ;
 	}
 	
 	$wid = $trspt_record['id_doc'] ;
