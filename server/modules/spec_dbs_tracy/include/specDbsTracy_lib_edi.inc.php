@@ -39,6 +39,9 @@ function specDbsTracy_lib_edi_robot() {
 			case 'TRSPT_CUSTOMS_EMAIL' :
 				$ret = specDbsTracy_lib_edi_flow_TRSPTCUSTOMSEMAIL($arr['trspt_filerecord_id'],$maps_ediCode_params[$edi_code]) ;
 				break ;
+			case 'TRSPT_CUSTOMS_XML' :
+				$ret = specDbsTracy_lib_edi_flow_TRSPTCUSTOMSXML($arr['trspt_filerecord_id'],$maps_ediCode_params[$edi_code]) ;
+				break ;
 			default :
 				$ret = FALSE ;
 				break ;
@@ -239,6 +242,157 @@ function specDbsTracy_lib_edi_flow_TRSPTCUSTOMSEMAIL( $trspt_filerecord_id, $arr
 	//$buffer = $mail->getSentMIMEMessage();
 
 	return true ;
+}
+function specDbsTracy_lib_edi_flow_TRSPTCUSTOMSXML( $trspt_filerecord_id, $arr_params ) {
+	global $_opDB ;
+		
+	$_domain_id = DatabaseMgr_Base::dbCurrent_getDomainId() ;
+	$_sdomain_id = DatabaseMgr_Sdomain::dbCurrent_getSdomainId() ;
+	
+	
+	if( !$arr_params['LOCAL_PATH'] ) {
+		return FALSE ;
+	}
+	
+	$ttmp = specDbsTracy_trspt_getRecords(array('filter_trsptFilerecordId_arr'=>json_encode(array($trspt_filerecord_id)))) ;
+	$trspt_record = $ttmp['data'][0] ;
+	if( !$trspt_record ) {
+		return FALSE ;
+	}
+	$hat_record = reset($trspt_record['hats']) ;
+	$order_record = reset($trspt_record['orders']) ;
+
+	
+	
+	$xml_buffer = '' ;
+	$xml_buffer.= '<?xml version="1.0" encoding="utf-8"?>' ;
+	$xml_buffer.= '<RequestToBroker>' ;
+	$xml_buffer.= '<RequestDate>'.date('Ymd').'</RequestDate>' ;
+	
+	$static_office = 'FR00677A' ;
+	$xml_buffer.= "<ShippingOffice>{$static_office}</ShippingOffice>" ;
+	
+	$static_location = 'MITRY MORY' ;
+	$xml_buffer.= "<ShippingLocation>{$static_location}</ShippingLocation>" ;
+	
+	$wid = $trspt_record['id_doc'] ;
+	$xml_buffer.= "<WID>{$wid}</WID>" ;
+	
+	$prio_code = $trspt_record['atr_priority'] ;
+	$ttmp = paracrm_lib_data_getRecord('bible_entry','LIST_SERVICE',$prio_code) ;
+	$prio_txt = $ttmp['field_TEXT'] ;
+	$xml_buffer.= "<Priority>{$prio_txt}</Priority>" ;
+	
+	$carrier_code = $trspt_record['mvt_carrier'] ;
+	$ttmp = paracrm_lib_data_getRecord('bible_entry','LIST_CARRIER',$carrier_code) ;
+	$carrier_txt = $ttmp['field_NAME'] ;
+	$xml_buffer.= "<Carrier>{$carrier_txt}</Carrier>" ;
+	
+	$inv_no = $order_record['ref_invoice'] ;
+	$xml_buffer.= "<InvoiceNo>{$inv_no}</InvoiceNo>" ;
+	
+	/*
+	$xml_buffer.= "<Deliveries>" ;
+	foreach( $trspt_record['orders'] as $order_iter ) {
+		$xml_buffer.= "<DeliveryNo>{$order_iter['id_dn']}</DeliveryNo>" ;
+	}
+	$xml_buffer.= "</Deliveries>" ;
+	*/
+	
+	$value_currency = '' ;
+	$value_amount = 0 ;
+	foreach( $trspt_record['orders'] as $order_iter ) {
+		if( $order_iter['desc_value'] && $order_iter['desc_value_currency'] ) {
+			$value_currency = $order_iter['desc_value_currency'] ;
+			$value_amount += $order_iter['desc_value'] ;
+			break ;
+		}
+	}
+	$xml_buffer.= "<Value>" ;
+		$xml_buffer.= "<ValueAmount>{$value_amount}</ValueAmount>" ;
+		$xml_buffer.= "<ValueCurrency>{$value_currency}</ValueCurrency>" ;
+	$xml_buffer.= "</Value>" ;
+	
+	/*
+	$xml_buffer.= "<Packagings>" ;
+	foreach( $hat_record['parcels'] as $parcel ) {
+		$xml_buffer.= "<Packaging>" ;
+		$xml_buffer.= "<Count>{$parcel['vol_count']}</Count>" ;
+		$xml_buffer.= "<Weight>{$parcel['vol_kg']}</Weight>" ;
+		
+		$xml_buffer.= "<Dimensions>" ;
+			$xml_buffer.= "<Length>{$parcel['vol_dims'][0]}</Length>" ;
+			$xml_buffer.= "<Width>{$parcel['vol_dims'][1]}</Width>" ;
+			$xml_buffer.= "<Height>{$parcel['vol_dims'][2]}</Height>" ;
+		$xml_buffer.= "</Dimensions>" ;
+		
+		$xml_buffer.= "</Packaging>" ;
+	}
+	$xml_buffer.= "</Packagings>" ;
+	*/
+	$tot_count = 0 ;
+	$tot_kg = 0 ;
+	foreach( $hat_record['parcels'] as $parcel ) {
+		$tot_count += $parcel['vol_count'] ;
+		$tot_kg += $parcel['vol_kg'] ;
+	}
+	$tot_kg = round($tot_kg,3) ;
+	$xml_buffer.= "<ParcelCount>{$tot_count}</ParcelCount>" ;
+	$xml_buffer.= "<Weight>{$tot_kg}</Weight>" ;
+	
+	$attachments = array() ;
+	foreach( $trspt_record['orders'] as $order_record ) {
+		if( !$order_record['attachments'] ) {
+			continue ;
+		}
+		foreach( $order_record['attachments'] as $attachment_iter ) {
+			if( !(strpos($attachment_iter['attachment_txt'],'INVOICE')===FALSE) ) {
+				$attachments[] = $attachment_iter ;
+			}
+		}
+	}
+	if( $attachments ) {
+		$arr_ids = array() ;
+		foreach($attachments as $attachment_iter) {
+			$arr_ids[] = $attachment_iter['attachment_media_id'] ;
+		}
+		
+		
+		media_contextOpen( $_sdomain_id ) ;
+		
+		$jpegs = array() ;
+		foreach( $arr_ids as $media_id ) {
+			$src_filepath = media_img_getPath( $media_id ) ;
+			if( $src_filepath && ($bin=file_get_contents($src_filepath)) ) {
+				$jpegs[] = $bin ;
+			}
+		}
+		if( count($jpegs)>0 ) {
+			$pdf = media_pdf_jpgs2pdf($jpegs,$page_format='A4') ;
+		}
+		media_contextClose() ;
+		
+		$xml_buffer.= "<DocumentExport>" ;
+		$xml_buffer.= "<BinaryFormat>".'PDF'."</BinaryFormat>" ;
+		$xml_buffer.= "<BinarySize>".strlen($pdf)."</BinarySize>" ;
+		$xml_buffer.= "<BinaryBase64>".base64_encode($pdf)."</BinaryBase64>" ;
+		$xml_buffer.= "</DocumentExport>" ;
+	}
+	
+	
+	$xml_buffer.= '</RequestToBroker>' ;
+
+	$xml_buffer ;
+	
+	// File write
+	$filename = $inv_no.'_'.date('Ymd').'_'.date('His').'.xml' ;
+	if( $arr_params['FILENAME_PREFIX'] ) {
+		$filename = $arr_params['FILENAME_PREFIX'].'_'.$filename ;
+	}
+	$filepath = $arr_params['LOCAL_PATH'].'/'.$filename ;
+	file_put_contents($filepath,$xml_buffer) ;
+	
+	return TRUE ;
 }
 
 ?>
