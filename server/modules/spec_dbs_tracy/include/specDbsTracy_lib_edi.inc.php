@@ -48,7 +48,7 @@ function specDbsTracy_lib_edi_robot() {
 		}
 		switch( $arr['edi_code'] ) {
 			case 'TRSPT_CUSTOMS_EMAIL' :
-			case 'TRSPT_CUSTOMS_XML' :
+			//case 'TRSPT_CUSTOMS_XML' :
 				if( $ret ) {
 					$arr_update = array() ;
 					$arr_update['field_CUSTOMS_DATE_REQUEST'] = date('Y-m-d H:i:s') ;
@@ -146,6 +146,9 @@ function specDbsTracy_lib_edi_flow_TRSPTCUSTOMSEMAIL( $trspt_filerecord_id, $arr
 		if( $order_iter['desc_value'] && $order_iter['desc_value_currency'] ) {
 			$value_currency = $order_iter['desc_value_currency'] ;
 			$value_amount += $order_iter['desc_value'] ;
+			if( $trspt_record['id_soc']=='ACL' ) {
+				continue ;
+			}
 			break ;
 		}
 	}
@@ -305,6 +308,9 @@ function specDbsTracy_lib_edi_flow_TRSPTCUSTOMSXML( $trspt_filerecord_id, $arr_p
 		if( $order_iter['desc_value'] && $order_iter['desc_value_currency'] ) {
 			$value_currency = $order_iter['desc_value_currency'] ;
 			$value_amount += $order_iter['desc_value'] ;
+			if( $trspt_record['id_soc']=='ACL' ) {
+				continue ;
+			}
 			break ;
 		}
 	}
@@ -385,11 +391,13 @@ function specDbsTracy_lib_edi_flow_TRSPTCUSTOMSXML( $trspt_filerecord_id, $arr_p
 	$xml_buffer ;
 	
 	// File write
-	$filename = $inv_no.'_'.date('Ymd').'_'.date('His').'.xml' ;
+	$filename = $inv_no.'_'.date('Ymd').'-'.date('His').'.xml' ;
 	if( $arr_params['FILENAME_PREFIX'] ) {
 		$filename = $arr_params['FILENAME_PREFIX'].'_'.$filename ;
 	}
 	$filepath = $arr_params['LOCAL_PATH'].'/'.$filename ;
+	file_put_contents($filepath,$xml_buffer) ;
+	$filepath = '/tmp'.'/'.$filename ;
 	file_put_contents($filepath,$xml_buffer) ;
 	
 	return TRUE ;
