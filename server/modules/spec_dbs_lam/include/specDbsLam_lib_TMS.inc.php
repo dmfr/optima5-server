@@ -212,6 +212,9 @@ function specDbsLam_lib_TMS_DPDG_getId( $soc_code ) {
 
 
 	function specDbsLam_lib_TMS_DPDG_getZplBuffer( $rowExtended_transferCdePack,$pack_id_trspt_id ) {
+		setlocale(LC_ALL,'en_US.UTF-8');
+		
+		
 		$buffer = '' ;
 		
 		$buffer.= "~DGPREDIC.GRF,1435,7, 00000000000000
@@ -1164,6 +1167,9 @@ function specDbsLam_lib_TMS_UPS_getElements( $rowExtended_transferCdePack, $do_f
 }
 
 function specDbsLam_lib_TMS_UPS_doRequest( $rowExtended_transferCdePack ) {
+	setlocale(LC_ALL,'en_US.UTF-8');
+	
+	
 	// Pack variables
 	$soc_code = $rowExtended_transferCdePack['cde']['soc_code'] ;
 	
