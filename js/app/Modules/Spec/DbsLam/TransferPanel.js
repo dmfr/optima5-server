@@ -2307,6 +2307,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 					return ;
 				}
 				var me = this ;
+				qz.websocket.disconnect() ;
 				qz.websocket.connect().then(function() {
 					// Pass the printer name into the next Promise
 					qz.printers.find().then(function(data) {
@@ -2324,6 +2325,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 				if( !arrPrinters || arrPrinters.length==0 ) {
 					btnPrint.setVisible(false) ;
 					btnPrint.menu.removeAll() ;
+					return ;
 				}
 				var menuItems = [] ;
 				Ext.Array.each(arrPrinters, function(printerName) {
