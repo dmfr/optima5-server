@@ -137,13 +137,14 @@ function specDbsLam_cde_oscarioCancel( $post_data ) {
 	$arr_noscde = explode(',',$post_data['str_noscde']) ;
 	$sql_arrNoscde = $_opDB->makeSQLlist($arr_noscde) ;
 	
-	$query = "SELECT filerecord_id FROM view_file_CDE WHERE field_CDE_NR IN {$sql_arrNoscde} AND field_STATUS IN ('5','10')" ;
-	$result = $_opDB->query($query) ;
-	$cnt = $_opDB->num_rows($result) ;
-	if( $cnt!=count($arr_noscde) ) {
+	$query = "SELECT count(*) FROM view_file_CDE WHERE field_CDE_NR IN {$sql_arrNoscde} AND field_STATUS NOT IN ('5','10')" ;
+	$cnt = $_opDB->query_uniqueValue($query) ;
+	if( $cnt > 0 ) {
 		return array('success'=>false) ;
 	}
 	
+	$query = "SELECT filerecord_id FROM view_file_CDE WHERE field_CDE_NR IN {$sql_arrNoscde} AND field_STATUS IN ('5','10')" ;
+	$result = $_opDB->query($query) ;
 	$arr_cdeFilerecordIds = array() ;
 	while( ($arr=$_opDB->fetch_row($result)) != FALSE ) {
 		$arr_cdeFilerecordIds[] = $arr[0] ;
