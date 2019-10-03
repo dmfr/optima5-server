@@ -99,6 +99,8 @@ switch( $post_data['_action'] )
 	
 	case 'cde_getGrid' :
 	return specDbsLam_cde_getGrid( $post_data ) ;
+	case 'cde_oscarioCancel' :
+	return specDbsLam_cde_oscarioCancel( $post_data ) ;
 	
 	case 'util_htmlToPdf' :
 	return specDbsLam_util_htmlToPdf($post_data) ;

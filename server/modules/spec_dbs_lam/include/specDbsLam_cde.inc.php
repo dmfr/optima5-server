@@ -131,4 +131,28 @@ function specDbsLam_cde_getGrid($post_data) {
 }
 
 
+function specDbsLam_cde_oscarioCancel( $post_data ) {
+	global $_opDB ;
+	
+	$arr_noscde = explode(',',$post_data['str_noscde']) ;
+	$sql_arrNoscde = $_opDB->makeSQLlist($arr_noscde) ;
+	
+	$query = "SELECT filerecord_id FROM view_file_CDE WHERE field_CDE_NR IN {$sql_arrNoscde} AND field_STATUS<='10'" ;
+	$result = $_opDB->query($query) ;
+	$cnt = $_opDB->num_rows($result) ;
+	if( $cnt!=count($arr_noscde) ) {
+		return array('success'=>false) ;
+	}
+	
+	$arr_cdeFilerecordIds = array() ;
+	while( ($arr=$_opDB->fetch_row($result)) != FALSE ) {
+		$arr_cdeFilerecordIds[] = $arr[0] ;
+	}
+	foreach( $arr_cdeFilerecordIds as $cde_filerecord_id ) {
+		$query = "DELETE FROM view_file_CDE WHERE filerecord_id='{$cde_filerecord_id}'" ;
+		$_opDB->query($query) ;
+	}
+	return array('success'=>true) ;
+}
+
 ?>
