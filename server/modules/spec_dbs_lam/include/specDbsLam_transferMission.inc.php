@@ -243,7 +243,8 @@ function specDbsLam_transferPacking_getPackingRecord($post_data) {
 	$rowExtended_transferCdePack = NULL ;
 	$json = specDbsLam_transfer_getTransferCdePack( array(
 		'filter_transferCdePackFilerecordId_arr'=>json_encode(array($p_transferCdePackFilerecordId)),
-		'load_extended' => 1
+		'load_extended' => 1,
+		'download_zpl' => 1
 	) ) ;
 	$rowExtended_transferCdePack = $json['data'][0] ;
 	

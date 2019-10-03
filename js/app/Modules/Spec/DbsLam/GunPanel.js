@@ -3,6 +3,8 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunPanel',{
 	requires:[
 		//'Optima5.Modules.Spec.DbsLam.HelperCache',
 		
+		'Optima5.Modules.Spec.DbsLam.GunHelper',
+		
 		'Optima5.Modules.Spec.DbsLam.GunMenu',
 		'Optima5.Modules.Spec.DbsLam.GunContainers',
 		'Optima5.Modules.Spec.DbsLam.GunPicking',
@@ -22,9 +24,15 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunPanel',{
 		});
 		this.callParent() ;
 		
-		Ext.defer( function() {
-			this.switchToMainMenu() ;
-		},1000,this) ;
+		var helperCache = Optima5.Modules.Spec.DbsLam.GunHelper ;
+		helperCache.init(this.optimaModule) ;
+		if( helperCache.isReady ) {
+			this.startComponent() ;
+		} else {
+			this.mon(helperCache,'ready',function(helperCache) {
+				this.switchToMainMenu() ;
+			},this,{single:true}) ;
+		}
 	},
 	switchToMainMenu: function() {
 		var me = this ;
@@ -75,5 +83,8 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunPanel',{
 		
 		this.removeAll() ;
 		this.add( panel ) ;
+	},
+	onDestroy: function() {
+		Optima5.Modules.Spec.DbsLam.GunHelper.doQzClose() ;
 	}
 }) ;

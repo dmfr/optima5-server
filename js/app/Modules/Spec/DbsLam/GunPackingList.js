@@ -25,7 +25,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunPackingList',{
 				scope: this
 			},'-',{
 				icon: 'images/op5img/ico_print_16.png',
-				text: '<b>'+this._printerIp+'</u>'
+				text: '<b>'+this._printerUri+'</u>'
 			}],
 			store: {
 				model: 'DbsLamGunPackingSummaryModel',

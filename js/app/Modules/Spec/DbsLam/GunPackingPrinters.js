@@ -1,14 +1,3 @@
-Ext.define('DbsLamGunPrinterModel',{
-	extend: 'Ext.data.Model',
-	idProperty: 'printer_ip',
-	fields: [
-		{name: 'printer_ip', type:'string'},
-		{name: 'printer_type', type:'string'},
-		{name: 'printer_desc', type:'string'}
-	]
-});
-
-
 Ext.define('Optima5.Modules.Spec.DbsLam.GunPackingPrinters',{
 	extend:'Ext.grid.Panel',
 	requires: [
@@ -26,17 +15,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunPackingPrinters',{
 			}],
 			store: {
 				model: 'DbsLamGunPrinterModel',
-				autoLoad: true,
-				proxy: this.optimaModule.getConfiguredAjaxProxy({
-					extraParams : {
-						_moduleId: 'spec_dbs_lam',
-						_action: 'transferPacking_getPrinters'
-					},
-					reader: {
-						type: 'json',
-						rootProperty: 'data'
-					}
-				}),
+				data: Optima5.Modules.Spec.DbsLam.GunHelper.getGunPrinterAll(),
 				listeners: {
 					beforeload: this.onGridBeforeLoad,
 					load: this.onGridLoad,
@@ -52,12 +31,12 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunPackingPrinters',{
 					tooltip: 'Select',
 					handler: function(grid, rowIndex, colIndex) {
 						var rec = grid.getStore().getAt(rowIndex);
-						this.selectPrinter( rec.get('printer_ip') ) ;
+						this.selectPrinter( rec.get('printer_uri') ) ;
 					},
 					scope: this
 				}]
 			},{
-				dataIndex: 'printer_ip',
+				dataIndex: 'printer_uri',
 				width: 180,
 				text: 'Picking',
 			},{
