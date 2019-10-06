@@ -1,6 +1,6 @@
 <?php
 
-function xmlUtil_parseAdr( $adr_string ) {
+function xmlUtil_parseAdr( $adr_string, $do_test_FR=FALSE ) {
 	$adr_string = trim($adr_string) ;
 	
 	$adr_array = array() ;
@@ -50,6 +50,10 @@ function xmlUtil_parseAdr( $adr_string ) {
 		return implode(' ',$words) ;
 	};
 	
+	if( $do_test_FR ) {
+		return $isFr($adr_array) ;
+	}
+	
 	if( $isFr($adr_array) ) {
 		$pxml = '' ;
 		$pxml.= '<com:AddressLines>' ;
@@ -90,7 +94,7 @@ function xml_getContents( $env_id, $track_email ) {
 	global $_opDB ;
 	
 	$track_id = $env_id ;
-	$prefix = '' ;
+	$prefix = 'RECOUV' ;
 	if( $prefix ) {
 		$track_id = $prefix.'-'.$env_id ;
 	}
@@ -187,6 +191,11 @@ function xml_getContents( $env_id, $track_email ) {
 	$xml.= "</pjs:Documents>" ;
 	$xml.= "</pjs:DocumentData>" ;
 	
+	$xml_postageClass = 'SLOW' ;
+	if( xmlUtil_parseAdr( $db['field_SENDER_ADR'], $do_test_FR=TRUE ) ) {
+		$xml_postageClass = 'ECOPLI_GRAND_COMPTE' ;
+	}
+	
 	$xml.= '<pjs:Options>' ;
 	$xml.= '<pjs:RequestOption>' ;
 	$xml.= '<spec:PaperOption>' ;
@@ -199,7 +208,7 @@ function xml_getContents( $env_id, $track_email ) {
 	$xml.= '</spec:DocumentOption>' ;
 	$xml.= '<spec:EnvelopeType>C6</spec:EnvelopeType>' ;
 	$xml.= '<spec:EnvelopeWindowType>DBL</spec:EnvelopeWindowType>' ;
-	$xml.= '<spec:PostageClass>STANDARD</spec:PostageClass>' ;
+	$xml.= "<spec:PostageClass>{$xml_postageClass}</spec:PostageClass>" ;
 	$xml.= '<spec:UseFlyLeaf>0</spec:UseFlyLeaf>' ;
 	$xml.= '<spec:PrintSenderAddress>0</spec:PrintSenderAddress>' ;
 	$xml.= '<spec:PrintRecipTrackId>1</spec:PrintRecipTrackId>' ;

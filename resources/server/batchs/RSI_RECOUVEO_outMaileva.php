@@ -34,8 +34,8 @@ $_sdomain_id = DatabaseMgr_Sdomain::dbCurrent_getSdomainId() ;
 // *******************************************
 if( TRUE ) {
 	$GLOBALS['maileva_URL'] = 'https://webservices.maileva.com/java/public/connector/ConnectorWebService?wsdl' ;
-	$GLOBALS['maileva_USER'] = 'recouveo.rabayrol' ;
-	$GLOBALS['maileva_PASS'] = 'bLLYHnS' ;
+	$GLOBALS['maileva_USER'] = 'RECOUVEOSI.RECOUVEOEC' ;
+	$GLOBALS['maileva_PASS'] = 'zq8g6yE6LR' ;
 }
 if( $GLOBALS['__OPTIMA_TEST'] ) {
 	$GLOBALS['maileva_URL'] = 'https://webservices.recette.maileva.com/java/public/connector/ConnectorWebService?wsdl' ;
@@ -57,7 +57,7 @@ if( !$arr_envs ) {
 }
 
 foreach( $arr_envs as $env_filerecord_id ) {
-		$xml = xml_getContents($env_filerecord_id, $track_email='dm@mirabel-sil.com') ;
+		$xml = xml_getContents($env_filerecord_id, $track_email='tracking-maileva@mirabel-sil.com') ;
 		//echo $xml ;
 		//continue ;
 		
