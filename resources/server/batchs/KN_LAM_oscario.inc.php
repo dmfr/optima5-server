@@ -261,16 +261,74 @@ function oscario_interface_do( $_OSCARIO_DOMAIN, $_OSCARIO_MAG, $_OPTIMA_SOC ) {
 	/*
 	**************************************************
 		RemontÃ©es MVTs
+		- receptions : select * from view_file_MVT where field_SRC_WHSE='' AND field_DST_WHSE='RECEP' AND field_SOC_CODE='EVE' ;
+		- regul + : select * from view_file_MVT where field_SRC_WHSE='' AND field_DST_WHSE='STOCK' AND field_SOC_CODE='EVE' ;
+		- regul - : select * from view_file_MVT where field_SRC_WHSE='STOCK' AND field_DST_WHSE='' AND field_SOC_CODE='EVE' ;
+		
 	********************************************
 	*/
+	$_tag_code = 'OSCARIO' ;
+	$_tag_date = date('Y-m-d H:i:s') ;
+	
 	$buffer = '' ;
+	$rows = array() ;
+	
+	// *** Réceptions 
+	$query = "SELECT m.*, t.filerecord_id as transfer_id, t.field_TRANSFER_TXT as transfer_txt
+				FROM view_file_MVT m
+				LEFT OUTER JOIN view_file_TRANSFER_LIG tl ON tl.field_FILE_MVT_ID=m.filerecord_id
+				LEFT OUTER JOIN view_file_TRANSFER t ON t.filerecord_id=tl.filerecord_parent_id
+				LEFT OUTER JOIN view_file_MVT_TAG mt ON mt.filerecord_parent_id=m.filerecord_id AND mt.field_TAG_CODE='{$_tag_code}'
+				WHERE m.field_SRC_WHSE='' AND m.field_DST_WHSE='RECEP' AND m.field_SOC_CODE='EVE'
+				AND mt.filerecord_id IS NULL" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_assoc($result)) ) {
+		$mvt_filerecord_id = $arr['filerecord_id'] ;
+		$arr['type'] = 'RECEP' ;
+		$arr['signe'] = '+' ;
+		
+		$rows[$mvt_filerecord_id] = $arr ;
+	}
+	ksort($rows) ;
+	
+	
+	$buffer = '' ;
+	foreach( $rows as $row ) {
+		$ref = $row['field_PROD_ID'] ;
+		if( strpos($ref,$_PREFIX_REF.'_') === 0 )
+			$ref = substr($ref,strlen($_PREFIX_REF)+1) ;
+				
+		$lig = '' ;
+		$lig = substr_mklig( $lig, $row['type'].'-'.$row['transfer_id'], 0, 10 ) ;
+		$lig = substr_mklig( $lig, $row['field_COMMIT_DATE'], 10, 10 ) ;
+		$lig = substr_mklig( $lig, $ref, 20, 20 ) ;
+		$lig = substr_mklig( $lig, $row['field_SPEC_BATCH'], 40, 20 ) ;
+		$lig = substr_mklig( $lig, $row['field_SPEC_DATELC'], 60, 10 ) ;
+		$lig = substr_mklig( $lig, $row['signe'].int_to_strX($row['field_QTY_MVT']*100,9), 70, 10 ) ;
+		//$lig = substr_mklig( $lig, $arr['no_oa'], 80, 20 ) ; 
+		//$lig = substr_mklig( $lig, $mag_exp, 100, 10 ) ; 
+		$lig = substr_mklig( $lig, $row['transfer_txt'], 200, 100 ) ; 
+		$lig.= "\r\n" ;
+		
+		$buffer.= $lig ;
+		
+	}
+	foreach( array_keys($rows) as $mvt_filerecord_id ) {
+		$arr_ins = array() ;
+		$arr_ins['filerecord_parent_id'] = $mvt_filerecord_id ;
+		$arr_ins['field_TAG_CODE'] = $_tag_code ;
+		$arr_ins['field_TAG_DATE'] = $_tag_date ;
+		$_opDB->insert('view_file_MVT_TAG',$arr_ins);
+	}
+	
+	//echo $buffer ;
 	
 	$post_params = array() ;
 	$post_params['oscario_domain'] = $_OSCARIO_DOMAIN ;
 	$post_params['oscario_mag'] = $_OSCARIO_MAG ;
 	$post_params['action'] = 'put_mvtin' ;
 	$post_params['data'] = $buffer ;
-	//oscario_http_post($poscario_http_postost_params) ;
+	oscario_http_post($post_params) ;
 
 
 
@@ -282,101 +340,6 @@ function oscario_interface_do( $_OSCARIO_DOMAIN, $_OSCARIO_MAG, $_OPTIMA_SOC ) {
 	***************************************
 	*/
 	$buffer = '' ;
-
-	
-	// *****************************************
-	//  Circuit EVE MATTRESS
-	//  - remontee commandes KT
-	if( $_OPTIMA_SOC=='E' ) {
-		$obj_trsptman = new TransporteurManager ;
-		
-		$obj_cdeman = new CommandeManager ;
-		$arr_select['cmad'] = 'REMONTEE_READY' ;
-		$arr_select['code_soc'] = $_OPTIMA_SOC ;
-		$obj_cdeman->interroCriteres( $arr_select, -1 ) ;
-		while( ($obj_cde = $obj_cdeman->getNextCommande()) != FALSE )
-		{
-			// Dispatch des infos tracking
-			$noscde = $obj_cde->getNoscde() ;
-			$query = "UPDATE da4colis ldst
-					JOIN da4colis lsrc ON SUBSTRING_INDEX(lsrc.noscde_lig_n2,'@',1)=SUBSTRING_INDEX(ldst.noscde_lig_n2,'@',1) AND lsrc.no_carton_exp=ldst.no_carton_exp AND lsrc.etiq_exp<>''
-					SET ldst.id_colis_transporteur=lsrc.id_colis_transporteur , ldst.id_colis_sscc=lsrc.id_colis_sscc
-					WHERE SUBSTRING_INDEX(ldst.noscde_lig_n2,'@',1) = '{$noscde}' AND ldst.no_carton_exp<>''" ;
-			$connection->query($query) ;
-		
-		
-			$noscde = $obj_cde->getNoscde() ;
-			$query = "SELECT noscde_lig_n2, kit_link_noscde FROM da4lgcde WHERE noscde='{$noscde}' AND kit_link_noscde<>'' AND imp_prep<>'KT'" ;
-			$result = $connection->query($query) ;
-			while( ($arr = $connection->fetch_assoc($result)) != FALSE ) {
-				$ttmp_kit = explode('@',$arr['kit_link_noscde'],2) ;
-				if( count($ttmp_kit) != 2 ) {
-					continue ;
-				}
-				//print_r($arr) ;
-				
-				// kit_link_noscde = LIG
-				// => déplacement de la ligne + colis vers commande originale
-				$ttmp_lig = explode('@',$arr['noscde_lig_n2'],2) ;
-				$ttmp_kit = explode('@',$arr['kit_link_noscde'],2) ;
-				$dst_noscde = $ttmp_kit[0] ;
-				$dst_noscdelign3 = $arr['kit_link_noscde'] ;
-				$dst_noscdelign2 = $ttmp_kit[0].'@'.$ttmp_lig[1] ;
-				$src_noscdelign2 = $arr['noscde_lig_n2'] ;
-				
-				$query = "UPDATE da4lgcde 
-						SET noscde='{$dst_noscde}', noscde_lig_n2='{$dst_noscdelign2}', noscde_lig_n3='{$dst_noscdelign3}', kit_link_noscde=''
-						WHERE noscde_lig_n2='{$src_noscdelign2}'" ;
-				$connection->query($query) ;
-				
-				$query = "UPDATE da4colis
-						SET noscde_lig_n2='{$dst_noscdelign2}'
-						WHERE noscde_lig_n2='{$src_noscdelign2}'" ;
-				$connection->query($query) ;
-				
-				// update CMAD+no_bl+no_brt ?
-				$arr_update = array() ;
-				$arr_update['no_bl'] = $obj_cde->getNoBl() ;
-				$arr_update['no_brt'] = $obj_cde->getNoBrt() ;
-				$arr_update['cmad'] = $obj_cde->getCMAD() ;
-				$arr_cond = array() ;
-				$arr_cond['noscde'] = $dst_noscde ;
-				$connection->update('da4ecde',$arr_update,$arr_cond) ;
-			}
-			
-			$query = "SELECT noscde_lig_n3, kit_link_noscde FROM da4lgcde WHERE noscde='{$noscde}' AND kit_link_noscde<>'' AND imp_prep='KT'" ;
-			$result = $connection->query($query) ;
-			while( ($arr = $connection->fetch_assoc($result)) != FALSE ) {
-				// kit_link_noscde = ENT
-				$noscde_lig_n3 = $arr['noscde_lig_n3'] ;
-				$kit_noscde = $arr['kit_link_noscde'] ;
-				
-				// checks ?
-				$query = "SELECT sum(qte_cde-qte_prep) FROM da4lgcde WHERE noscde='{$kit_noscde}'" ;
-				if( $connection->query_uniqueValue($query) > 0 ) {
-					// erreur de qte ?
-					continue ;
-				}
-				
-				$obj_lig = new LigneCommande ;
-				$obj_lig->load($noscde_lig_n3) ;
-				
-				
-				// interro ?
-				// - id_colis_sscc
-				// - id_colis_transporteur
-				$query = "SELECT c.no_carton_exp, c.id_colis_transporteur, c.id_colis_sscc
-							FROM da4colis c
-							JOIN da4lgcde l ON l.noscde_lig_n2=c.noscde_lig_n2
-							WHERE l.noscde='{$kit_noscde}' AND c.id_colis_transporteur<>''" ;
-				$res2 = $connection->query($query) ;
-				$infos_tracking = $connection->fetch_assoc($res2) ;
-				$obj_lig->acquitter_qte_kitting($infos_tracking) ;
-			}
-		}
-	}
-	
-	
 	
 	//echo "pouet\n" ;
 	$arr_cdeFilerecordIds = array() ;
