@@ -279,7 +279,8 @@ function oscario_interface_do( $_OSCARIO_DOMAIN, $_OSCARIO_MAG, $_OPTIMA_SOC ) {
 				LEFT OUTER JOIN view_file_TRANSFER_LIG tl ON tl.field_FILE_MVT_ID=m.filerecord_id
 				LEFT OUTER JOIN view_file_TRANSFER t ON t.filerecord_id=tl.filerecord_parent_id
 				LEFT OUTER JOIN view_file_MVT_TAG mt ON mt.filerecord_parent_id=m.filerecord_id AND mt.field_TAG_CODE='{$_tag_code}'
-				WHERE m.field_SRC_WHSE='' AND m.field_DST_WHSE='RECEP' AND m.field_SOC_CODE='EVE'
+				WHERE m.field_SRC_WHSE='' AND m.field_DST_WHSE='RECEP' AND m.field_SOC_CODE='EVE' 
+				AND m.field_COMMIT_IS_OK='1' AND DATE(m.field_COMMIT_DATE)<DATE(NOW())
 				AND mt.filerecord_id IS NULL" ;
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_assoc($result)) ) {
