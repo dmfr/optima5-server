@@ -637,7 +637,12 @@ function specDbsLam_transfer_rollback( $post_data ) {
 		
 		$test_undoFormard = isset($forwardToIdx) ;
 		while(TRUE) {
-			$success = specDbsLam_lib_procMvt_commitUndo($mvt_filerecordId) ;
+			$success = FALSE ;
+			try {
+				$success = specDbsLam_lib_procMvt_commitUndo($mvt_filerecordId) ;
+			} catch( Exception $e ) {
+				$rollback_error = $e->getMessage() ;
+			}
 			
 			// => si échec
 			// if forward_is_on
@@ -687,7 +692,6 @@ function specDbsLam_transfer_rollback( $post_data ) {
 	}
 	
 	if( $transferstep_row['spec_cde_packing'] ) {
-		// HACK 22/10/2018 build byCde packing
 		if( TRUE ) {
 			$json = specDbsLam_transfer_getTransfer($formard_post) ;
 			$transfer_row = reset($json['data']) ;
@@ -714,7 +718,7 @@ function specDbsLam_transfer_rollback( $post_data ) {
 		specDbsLam_lib_procCde_syncLinks($transfer_filerecordId) ;
 	}
 	
-	return array('success'=>$success) ;
+	return array('success'=>$success, 'error'=>(!$success?$rollback_error:null)) ;
 }
 
 

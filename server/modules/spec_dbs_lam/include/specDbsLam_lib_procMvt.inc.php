@@ -394,8 +394,16 @@ function specDbsLam_lib_procMvt_commitUndo($mvt_filerecordId) {
 		WHERE filerecord_id='{$mvt_filerecordId}' AND field_COMMIT_IS_OK='1'" ;
 	$result = $_opDB->query($query) ;
 	if( $_opDB->num_rows($result) != 1 ) {
-		return FALSE ;
+		throw new Exception('Mvt error');
 	}
+	
+	// verifs mvt non commit
+	$query_test = "SELECT * FROM view_file_MVT_TAG
+		WHERE filerecord_parent_id='{$mvt_filerecordId}'" ;
+	if( $_opDB->query_uniqueValue($query_test) > 0 ) {
+		throw new Exception('Mvt tag(s) already sent');
+	}
+	
 	$row_mvt = $_opDB->fetch_assoc($result) ;
 	$qte_mvt = (float)$row_mvt['field_QTY_MVT'] ;
 	$stockSrc_filerecordId = $row_mvt['field_SRC_FILE_STOCK_ID'] ;
@@ -409,7 +417,7 @@ function specDbsLam_lib_procMvt_commitUndo($mvt_filerecordId) {
 	$query = "SELECT * FROM view_file_STOCK WHERE filerecord_id='{$stockDst_filerecordId}'" ;
 	$result = $_opDB->query($query) ;
 	if( $_opDB->num_rows($result) != 1 ) {
-		return FALSE ;
+		throw new Exception('Target stock entry missing / altered');
 	}
 	$row_stkDst = $_opDB->fetch_assoc($result) ;
 	
@@ -430,13 +438,13 @@ function specDbsLam_lib_procMvt_commitUndo($mvt_filerecordId) {
 	}
 	
 	if( !$test_stkAvailableRollback ) {
-		return FALSE ;
+		throw new Exception('Target stock entry missing / altered');
 	}
 	
 	
 	// restauration du stock orig ?
 	if( paracrm_lib_data_recoverRecord_file('STOCK',$stockSrc_filerecordId) != 0 ) {
-		return FALSE ;
+		throw new Exception('Cannot recover source stock entry');
 	}
 	
 	
@@ -444,7 +452,7 @@ function specDbsLam_lib_procMvt_commitUndo($mvt_filerecordId) {
 		WHERE filerecord_id IN ('{$stockSrc_filerecordId}','{$stockDst_filerecordId}')" ;
 	$result = $_opDB->query($query) ;
 	if( $_opDB->num_rows($result) != 2 ) {
-		return FALSE ;
+		throw new Exception('Stk error');
 	}
 	
 	$query = "UPDATE view_file_MVT mvt

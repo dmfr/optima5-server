@@ -1123,7 +1123,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 			success: function(response) {
 				var ajaxResponse = Ext.decode(response.responseText) ;
 				if( ajaxResponse.success == false ) {
-					Ext.MessageBox.alert('Error','Rollback failed / not allowed') ;
+					Ext.MessageBox.alert('Error',ajaxResponse.error||'Rollback failed / not allowed') ;
 					return ;
 				}
 				this.optimaModule.postCrmEvent('datachange') ;
