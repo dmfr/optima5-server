@@ -1,5 +1,7 @@
 <?php
 define( 'CRM_AUTORUN_DEFAULT_DELAY_MN', 10 ) ;
+define( 'CRM_AUTORUN_LOCK_KEY', 'AUTORUN' ) ;
+define( 'CRM_AUTORUN_LOCK_EXPIRE_MN', 10 ) ;
 
 
 //ini_set( 'memory_limit', '4096M');
@@ -63,10 +65,59 @@ function do_autorun( $domain_id ) {
 	
 	openBaseDb($domain_id,$do_select=TRUE) ;
 	
+	if( !do_autorun_manageLock($action='create') ) {
+		die("WARN: Lock present on domain [ $domain_id ], skip.\n") ;
+		return ;
+	}
+	
 	$t = new DatabaseMgr_Sdomain( $domain_id ) ;
 	foreach( $t->sdomains_getAll() as $sdomain_id ) {
 		do_autorun_sdomain( $t->getSdomainDb($sdomain_id) ) ;
 	}
+	
+	do_autorun_manageLock($action='release') ;
+}
+function do_autorun_manageLock($lock_action) {
+	global $_opDB ;
+	
+	switch($lock_action) {
+		case 'create' :
+		case 'update' :
+		case 'release' :
+			break ;
+		default :
+			return FALSE ;
+	}
+	
+	$sql_table = 'q_lock' ;
+	
+	$lock_key = CRM_AUTORUN_LOCK_KEY ;
+	
+	switch($lock_action) {
+		case 'release' :
+			$query = "DELETE FROM {$sql_table} WHERE lock_key='{$lock_key}'" ;
+			$_opDB->query($query) ;
+			return TRUE ; 
+		
+		case 'update' :
+			$cur_ts = time() ;
+			$query = "UPDATE {$sql_table} SET lock_ts='{$cur_ts}' WHERE lock_key='{$lock_key}'" ;
+			$_opDB->query($query) ;
+			return TRUE ; 
+		
+		case 'create' :
+			$min_ts = time() - (CRM_AUTORUN_LOCK_EXPIRE_MN * 60) ;
+			$query = "DELETE FROM {$sql_table} WHERE lock_key='{$lock_key}' AND lock_ts<'{$min_ts}'" ;
+			$_opDB->query($query) ;
+			$query = "SELECT lock_ts FROM {$sql_table} WHERE lock_key='{$lock_key}'" ;
+			if( $_opDB->num_rows($_opDB->query($query)) > 0 ) {
+				return FALSE ;
+			}
+			$_opDB->insert( $sql_table, array('lock_key'=>$lock_key, 'lock_ts'=>time()) ) ;
+			return TRUE ;
+	}
+	
+	return FALSE ;
 }
 function do_autorun_sdomain( $sql_database ) {
 	global $_opDB ;
@@ -130,6 +181,8 @@ function do_autorun_sdomain( $sql_database ) {
 }
 function do_autorun_qsql( $sql_database, $qsql_id ) {
 	global $_opDB ;
+	
+	do_autorun_manageLock($action='update') ;
 	
 	$query = "SELECT sql_querystring, sql_is_rw, qsql_name
 		FROM {$sql_database}.qsql
