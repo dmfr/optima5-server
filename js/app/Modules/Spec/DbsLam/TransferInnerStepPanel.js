@@ -542,8 +542,8 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferInnerStepPanel',{
 		var skuData_obj = {
 			"soc_code": Ext.isEmpty(values.soc_code) ? prodRecord.get('prod_soc') : values.soc_code,
 			"stk_prod":prodRecord.get('id'),
-			"stk_batch":'',
-			"stk_sn":'',
+			"stk_batch":values.stk_batch,
+			"stk_sn":values.stk_sn,
 			"mvt_qty":values.mvt_qty,
 			"container_is_off":Ext.isEmpty(values.container_type),
 			"container_type":values.container_type,
