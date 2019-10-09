@@ -775,17 +775,17 @@ function specDbsLam_stock_printEtiqZpl($post_data) {
 			
 		$h+= 100 ;
 		
-		$zebra_buffer.= "^FO50,{$h}^GB200,200,2^FS";
-		$zebra_buffer.= "^FO250,{$h}^GB500,200,2^FS";
+		$zebra_buffer.= "^FO50,{$h}^GB200,250,2^FS";
+		$zebra_buffer.= "^FO250,{$h}^GB500,250,2^FS";
 		
 			$legend_w = 60 ;
 			$legend_h = $h+20 ;
 			$zebra_buffer.= "^FO{$legend_w},{$legend_h},0^ARN^FD".'Position'."^FS";
 		
 			$legend_w = 290 ;
-			$legend_h = $h+20 ;
-			$zebra_buffer.= "^FO{$legend_w},{$legend_h},0^ASN^FD".$arr_stk['field_ADR_ID']."^FS";
-			$legend_h = $h+70 ;
+			$legend_h = $h+30 ;
+			$zebra_buffer.= "^FO{$legend_w},{$legend_h},0^AUN^FD".$arr_stk['field_ADR_ID']."^FS";
+			$legend_h = $h+120 ;
 			$zebra_buffer.= "^FO{$legend_w},{$legend_h}^BY2^BCN,80,Y,N^FD".$arr_stk['field_ADR_ID']."^FS";
 			
 		$h+= 200 ;
