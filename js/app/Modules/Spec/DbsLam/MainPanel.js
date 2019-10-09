@@ -152,7 +152,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.MainPanel',{
 			title: 'Live Trspt Validation',
 			itemId: 'windowGun',
 			width:375,
-			height:440,
+			height:500,
 			iconCls: 'op5-crmbase-dataformwindow-icon',
 			animCollapse:false,
 			layout: 'fit',
