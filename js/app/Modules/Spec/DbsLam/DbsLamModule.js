@@ -129,6 +129,13 @@ Ext.define('Optima5.Modules.Spec.DbsLam.DbsLamModule', {
 			resizable:true,
 			layout:'fit',
 			border: false,
+			tools: [{
+				type: 'restore',
+				handler: function() {
+					this.postCrmEvent('opengun') ;
+				},
+				scope: me
+			}],
 			items:[Ext.create('Optima5.Modules.Spec.DbsLam.MainPanel',{
 				optimaModule: me
 			})]
@@ -143,6 +150,9 @@ Ext.define('Optima5.Modules.Spec.DbsLam.DbsLamModule', {
 		var eventParams = {} ;
 		switch( crmEvent ) {
 			case 'datachange' :
+				break ;
+				
+			case 'opengun' :
 				break ;
 				
 			case 'openstocklog' :

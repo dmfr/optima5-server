@@ -44,6 +44,9 @@ Ext.define('Optima5.Modules.Spec.DbsLam.MainPanel',{
 			case 'openstocklog' :
 				this.openStockLogWindow(eventParams) ;
 				break ;
+			case 'opengun' :
+				this.openGunWindow(eventParams) ;
+				break ;
 			default: break ;
 		}
 	},
