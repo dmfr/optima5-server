@@ -182,6 +182,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunInputForm',{
 					name: 'inputstack_level'
 				},{
 					xtype: 'combobox',
+					itemId: 'champReference',
 					name: 'stk_prod',
 					fieldLabel: 'Product P/N',
 					forceSelection:true,
@@ -557,7 +558,21 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunInputForm',{
 					}
 					return v ;
 				}
-			}]
+			}],
+			listeners: {
+				itemdblclick: function( grid, record, item, index, event ) {
+					/*
+					console.log('double click sur un item de la liste PO !') ;
+					console.dir( arguments ) ;
+					console.dir(record) ;
+					console.dir(record.getData()) ;
+					*/
+					var refProduit = record.getData()['stk_prod'] ;
+					this.down('#champReference').setValue( refProduit ) ;
+					this.down('#gpPoList').collapse(Ext.Component.DIRECTION_BOTTOM,false) ;
+				},
+				scope: this
+			}
 		};
 		Ext.apply(grid,{
 			itemId: 'gpPoList',
