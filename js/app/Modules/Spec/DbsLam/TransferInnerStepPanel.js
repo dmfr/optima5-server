@@ -159,7 +159,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferInnerStepPanel',{
 								store: {
 									model: 'DbsLamCfgContainerTypeModel',
 									data: Ext.Array.merge([{
-										container_type:'',
+										container_type:' ',
 										container_type_txt: '- Aucun -'
 									}],Optima5.Modules.Spec.DbsLam.HelperCache.getContainerTypeAll()),
 									proxy: {
@@ -545,7 +545,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferInnerStepPanel',{
 			"stk_batch":values.stk_batch,
 			"stk_sn":values.stk_sn,
 			"mvt_qty":values.mvt_qty,
-			"container_is_off":Ext.isEmpty(values.container_type),
+			"container_is_off":(Ext.isEmpty(values.container_type)||Ext.isEmpty(Ext.String.trim(values.container_type))),
 			"container_type":values.container_type,
 			"container_ref":""
 		} ;
