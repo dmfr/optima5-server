@@ -119,13 +119,16 @@ Ext.define('Optima5.Module',{
 					border: false,
 					resizable: false,
 					title: titleTxt,
-					tools: [{
-						type: 'close',
-						handler: function(e, t, p) {
-							me.app.onLogout();
-						},
-						scope: this
-					}]
+				});
+				Ext.applyIf(cfg,{
+					tools: []
+				}) ;
+				cfg.tools.push({
+					type: 'close',
+					handler: function(e, t, p) {
+						me.app.onLogout();
+					},
+					scope: this
 				});
 				cls = cls || Ext.panel.Panel;
 				panel = fullscreenViewport.add(new cls(cfg));
