@@ -27,6 +27,14 @@ function oscario_http_post( $post_data ) {
 	$post = $post_base + $post_data ;
 	return do_post_request($_URL,http_build_query($post)) ;
 }
+function oscario_http_post_new( $post_data ) {
+	$_URL = 'http://10.39.1.1:8080/oscario/edi.php' ;
+	$post_base = array();
+	$post_base['auth_username'] = 'ediPrivate' ;
+	$post_base['auth_password'] = 'ediPrivate' ;
+	$post = $post_base + $post_data ;
+	return do_post_request($_URL,http_build_query($post)) ;
+}
 
 
 function oscario_interface_do( $_OSCARIO_DOMAIN, $_OSCARIO_MAG, $_OPTIMA_SOC ) {
@@ -123,6 +131,31 @@ function oscario_interface_do( $_OSCARIO_DOMAIN, $_OSCARIO_MAG, $_OPTIMA_SOC ) {
 	}
 
 
+	
+	
+	/*
+	**************************************************************
+		Importation des nomenclature + Delete des nomenclatures
+	****************************************************************
+	*/
+	setlocale(LC_ALL,'en_US.UTF-8');
+	$post_params = array() ;
+	$post_params['edi_method'] = 'RAW_prod' ;
+	$post_params['oscario_domain'] = $_OSCARIO_DOMAIN ;
+	$data = oscario_http_post_new($post_params) ;
+	$json = json_decode($data,true) ;
+	if( $json && $json['success'] ) {
+		foreach( $json['data'] as $prod_row ) {
+			$entry_key = strtoupper($_PREFIX_REF.'_'.$prod_row['prod_ref']) ;
+			
+			$arr_ins = array() ;
+			$arr_ins['field_PROD_ID'] = $entry_key ;
+			$arr_ins['field_PROD_TXT'] = iconv('UTF-8','ASCII//TRANSLIT',$prod_row['prod_lib']);
+			
+			paracrm_lib_data_updateRecord_bibleEntry( 'PROD', $entry_key, $arr_ins );
+		}
+	}
+	
 
 
 	/*
