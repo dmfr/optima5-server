@@ -204,10 +204,29 @@ function specDbsLam_stock_submitInvAction( $post_data ) {
 				return array('success'=>false, 'error'=>'Qty mismatch. Retry.') ;
 			}
 			sleep(1) ;
-			if( !trim($p_formData['adjust_txt']) ) {
+			if( !trim($p_formData['adjust_qty_txt']) ) {
 				return array('success'=>false, 'error'=>'Please write description') ;
 			}
-			$res = specDbsLam_lib_procMvt_rawMvt($stk_row['stk_filerecord_id'], $adjust_qty, $p_formData['adjust_txt']);
+			$res = specDbsLam_lib_procMvt_rawMvt($stk_row['stk_filerecord_id'], $adjust_qty, $p_formData['adjust_qty_txt']);
+			return array('success'=>!!$res) ;
+			break ;
+			
+		case 'adjust_stk' :
+			$json = specDbsLam_stock_getGrid( array('filter_stkFilerecordId'=>$p_formData['stk_filerecord_id']) ) ;
+			$stk_row = reset($json['data']) ;
+			if( count($json['data']) != 1 || $stk_row['stk_filerecord_id']!=$p_formData['stk_filerecord_id'] ) {
+				return array('success'=>false) ;
+			}
+			if( !trim($p_formData['adjust_stk_txt']) ) {
+				return array('success'=>false, 'error'=>'Please write description') ;
+			}
+			$adjust_stk_obj = array() ;
+			foreach( $p_formData as $mkey=>$values ) {
+				if( is_array($values) && isset($values['old_value']) && isset($values['new_value']) ) {
+					$adjust_stk_obj[$mkey] = $values ;
+				}
+			}
+			$res = specDbsLam_lib_procMvt_rawChange($stk_row['stk_filerecord_id'], $adjust_stk_obj, $p_formData['adjust_stk_txt']);
 			return array('success'=>!!$res) ;
 			break ;
 		

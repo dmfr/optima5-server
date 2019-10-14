@@ -39,6 +39,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockInvForm',{
 				fieldLabel: attribute.atr_txt,
 				name: mkey,
 				readOnly: true,
+				adjustStkToggle: true
 			}) ;
 			atrStkFormFields.push(fieldEditor) ;
 		},this) ;
@@ -75,12 +76,14 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockInvForm',{
 					name: 'inv_container_type',
 					optimaModule: this.optimaModule,
 					cfgParam_id: 'CONTAINER',
-					readOnly: true
+					readOnly: true,
+					adjustStkToggle: true
 				}),{
 					xtype: 'textfield',
 					name: 'inv_container_ref',
 					fieldLabel: 'Container ID',
-					readOnly: true
+					readOnly: true,
+					adjustStkToggle: true
 				}]
 			},{
 				xtype: 'fieldset',
@@ -91,13 +94,35 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockInvForm',{
 					name: 'inv_soc',
 					optimaModule: this.optimaModule,
 					cfgParam_id: 'SOC',
-					readOnly: true
+					readOnly: true,
+					adjustStkToggle: true
 				}),{
 					xtype: 'op5crmbasebiblepicker',
 					bibleId: 'PROD',
 					optimaModule: this.optimaModule,
 					fieldLabel: 'P/N',
-					name: 'inv_prod'
+					name: 'inv_prod',
+					readOnly: true,
+					adjustStkToggle: true
+				},{
+					xtype: 'textfield',
+					name: 'inv_batch',
+					fieldLabel: 'BatchCode',
+					readOnly: true,
+					adjustStkToggle: true
+				},{
+					xtype: 'datefield',
+					format: 'Y-m-d',
+					name: 'inv_datelc',
+					fieldLabel: 'DateLC',
+					readOnly: true,
+					adjustStkToggle: true
+				},{
+					xtype: 'textfield',
+					name: 'inv_sn',
+					fieldLabel: 'S/N',
+					readOnly: true,
+					adjustStkToggle: true
 				},{
 					xtype: 'textfield',
 					name: 'inv_qty',
@@ -112,7 +137,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockInvForm',{
 				title: 'Adujust Qty',
 				items: [{
 					xtype: 'textfield',
-					name: 'adjust_txt',
+					name: 'adjust_qty_txt',
 					allowBlank: false,
 					fieldLabel: 'Comment',
 					labelStyle: 'font-weight:bold'
@@ -151,16 +176,56 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockInvForm',{
 						scope: this
 					}]
 				}]
+			},{
+				xtype: 'fieldset',
+				checkboxName: 'stk_toggle',
+				checkboxToggle: true,
+				itemId: 'fsEditStk',
+				title: 'Adjust Properties',
+				items: [{
+					xtype: 'textfield',
+					name: 'adjust_stk_txt',
+					allowBlank: false,
+					fieldLabel: 'Comment',
+					labelStyle: 'font-weight:bold'
+				},{
+					xtype: 'container',
+					anchor: '100%',
+					padding: 6,
+					layout: {
+						type: 'hbox',
+						pack: 'end'
+					},
+					items: [{
+						xtype: 'button',
+						scale: 'medium',
+						icon: 'images/op5img/ico_procblue_16.gif',
+						text: 'Submit',
+						handler: function() {
+							this.handleSubmitAction('adjust_stk') ;
+						},
+						scope: this
+					}]
+				}]
 			}]
 		}) ;
 		
 		this.callParent() ;
 		this.getForm().getFields().each(function(field) {
-			field.on('change',function(){
+			field.on('change',function(ifield){
 				if( !this.init_done ) {
 					return ;
 				}
-				this.calcLayout() ;
+				this.calcLayout(ifield) ;
+				if( ifield.getName()=='stk_toggle' && ifield.getValue() ) {
+					this.onAdjustStkStart() ;
+				}
+				if( ifield.adjustStkToggle ) {
+					this.onAdjustStkFieldChange(ifield) ;
+				}
+				if( ifield.getName()=='stk_toggle' && !ifield.getValue() ) {
+					this.onAdjustStkEndAbort() ;
+				}
 				this.fireEvent('change') ;
 			},this) ;
 		},this) ;
@@ -171,14 +236,25 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockInvForm',{
 			this.init_inv( this._cfg_adrId, (this._cfg_stkFilerecordId>0 ? this._cfg_stkFilerecordId : null) ) ;
 		}
 	},
-	calcLayout: function() {
-		
+	calcLayout: function(field) {
+		if( !field || field.getName()=='inv_soc' ) {
+			var socCode = this.getForm().findField('inv_soc').getValue(),
+				socRow = Optima5.Modules.Spec.DbsLam.HelperCache.getSoc(socCode) ;
+			if( socRow ) {
+				var form = this.getForm() ;
+				form.findField('inv_batch').setVisible( socRow.prodspec_is_batch ) ;
+				form.findField('inv_datelc').setVisible( socRow.prodspec_is_dlc ) ;
+				form.findField('inv_sn').setVisible( socRow.prodspec_is_sn ) ;
+			}
+		}
 	},
 	init_inv: function( adrId, stkFilerecordId=null ) {
 		this.down('#fsContainer').setVisible( false ) ;
 		this.getForm().setValues({
 			qty_toggle: false,
-			adjust_qty: 0
+			adjust_qty: 0,
+			
+			stk_toggle: false
 		});
 		
 		this.showLoadmask() ;
@@ -215,7 +291,9 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockInvForm',{
 		
 		this.getForm().setValues({
 			qty_toggle: false,
-			adjust_qty: 0
+			adjust_qty: 0,
+			
+			stk_toggle: false
 		});
 		
 		this.calcLayout() ;
@@ -224,6 +302,58 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockInvForm',{
 		this.init_done = true ;
 	},
 	
+	
+	onAdjustStkStart: function() {
+		Ext.Array.each( this.query('[adjustStkToggle=true]'), function(field) {
+			field.adjustStkValueOrig = field.getValue() ;
+			field.adjustStkValueNew = null ;
+			field.setReadOnly(false) ;
+		},this) ;
+	},
+	onAdjustStkFieldChange: function(field) {
+		field.adjustStkValueNew = field.getValue() ;
+		if( !this.onAdjustStkFieldChangeTask ) {
+			this.onAdjustStkFieldChangeTask = new Ext.util.DelayedTask(function(){
+				this.onAdjustStkFieldSummary() ;
+			},this);
+		}
+		this.onAdjustStkFieldChangeTask.delay(500) ;
+		//this.onAdjustStkFieldSummary() ;
+	},
+	onAdjustStkFieldSummary: function() {
+		//delete all fields
+		Ext.Array.each( this.down('#fsEditStk').query('displayfield'), function(df) {
+			df.destroy() ;
+		}) ;
+		
+		var fields = [] ;
+		Ext.Array.each( this.query('[adjustStkToggle=true]'), function(field) {
+			if( field.adjustStkValueNew != null ) {
+				fields.push({
+					xtype: 'displayfield',
+					fieldLabel: field.fieldLabel,
+					value: '<strike>'+field.adjustStkValueOrig+'</strike>' + ' > ' + '<b>'+field.adjustStkValueNew+'</b>',
+				});
+			}
+		},this) ;
+		this.down('#fsEditStk').insert(0,fields) ;
+	},
+	onAdjustStkEndAbort: function() {
+		Ext.Array.each( this.query('[adjustStkToggle=true]'), function(field) {
+			if( field.adjustStkValueOrig ) {
+				field.setValue(field.adjustStkValueOrig) ;
+				field.adjustStkValueNew = null ;
+			}
+			field.setReadOnly(true) ;
+		},this) ;
+		Ext.Array.each( this.down('#fsEditStk').query('displayfield'), function(df) {
+			df.destroy() ;
+		}) ;
+		if( this.onAdjustStkFieldChangeTask ) {
+			this.onAdjustStkFieldChangeTask.cancel() ;
+			this.onAdjustStkFieldChangeTask = null ;
+		}
+	},
 	
 	onChangeQty: function() {
 		var form = this.getForm(),
@@ -243,6 +373,29 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockInvForm',{
 			formValues = form.getFieldValues() ;
 		if( !form.isValid() ) {
 			//return ;
+		}
+		
+		if( actionCode == 'adjust_stk' ) {
+			// rewrite formValues
+			var cntDiff = 0 ;
+			Ext.Array.each( formPanel.query('[adjustStkToggle=true]'), function(field) {
+				if( field.adjustStkToggle ) {
+					delete formValues[field.getName()] ;
+					if( (field.adjustStkValueNew != null) && (field.getValue()==field.adjustStkValueNew)
+						&& (field.adjustStkValueNew != field.adjustStkValueOrig)
+					) {
+						cntDiff++ ;
+						formValues[field.getName()] = {
+							old_value: field.adjustStkValueOrig,
+							new_value: field.adjustStkValueNew
+						};
+					}
+				}
+			}) ;
+			if( cntDiff == 0 ) {
+				Ext.MessageBox.alert('Empty transaction','No change(s) to commit') ;
+				return ;
+			}
 		}
 		
 		this.showLoadmask() ;

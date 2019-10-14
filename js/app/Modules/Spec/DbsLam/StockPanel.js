@@ -619,7 +619,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockPanel',{
 							type: 'string'
 						}
 					},{
-						hidden: true,
+						//hidden: true,
 						dataIndex: 'inv_batch',
 						text: 'BatchCode',
 						width: 100
@@ -1047,10 +1047,11 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockPanel',{
 		this.optimaModule.postCrmEvent('datachange') ;
 	},
 	handleEastDestroy: function() {
-		var pEast = this.down('#pEast'),
-			pEastInner = pEast.items.getAt(0) ;
-		pEast.removeAll() ;
-		pEast.hide() ;
+		var pEast = this.down('#pEast') ;
+		if( pEast && !pEast.isDestroyed ) {
+			pEast.removeAll() ;
+			pEast.hide() ;
+		}
 	},
 	
 	
