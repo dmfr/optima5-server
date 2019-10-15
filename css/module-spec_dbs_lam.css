@@ -107,6 +107,16 @@
 
 
 
+.op5-spec-dbslam-stock-green .x-grid-cell-inner {
+	background: url('../images/op5img/ico_greendot.gif') no-repeat center center ;
+}
+.op5-spec-dbslam-stock-orange .x-grid-cell-inner {
+	background: url('../images/op5img/ico_orangedot.gif') no-repeat center center ;
+}
+.op5-spec-dbslam-stock-red .x-grid-cell-inner {
+	background: url('../images/op5img/ico_reddot.gif') no-repeat center center ;
+}
+
 .op5-spec-dbslam-stock-avail .x-grid-cell-inner {
 	background: url('../images/op5img/ico_greendot.gif') no-repeat center center ;
 }

@@ -30,6 +30,9 @@ Ext.define('DbsLamStockGridModel',{
 		{name: 'inv_qty_out', type:'number', useNull:true},
 		{name: 'inv_sn', type:'string'},
 		{name: 'inv_container', type:'string'},
+		{name: 'warn_is_on', type:'boolean'},
+		{name: 'warn_is_locked', type:'boolean'},
+		{name: 'warn_txt', type:'string'},
 		{name: 'container_is_on', type:'boolean'},
 		{name: 'container_types', type:'auto'},
 		{name: 'container_is_picking', type:'boolean'}
@@ -551,11 +554,16 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockPanel',{
 					width: 24,
 					renderer: function(v,metadata,record) {
 						if( Ext.isEmpty(record.get('inv_prod')) ) {
-							metadata.tdCls = 'op5-spec-dbslam-stock-avail'
+							return '-' ;
 						} else {
-							if( !Ext.isEmpty(record.get('inv_prod')) ) {
-								metadata.tdCls = 'op5-spec-dbslam-stock-notavail'
+							if( !record.get('warn_is_on') ) {
+								metadata.tdCls = 'op5-spec-dbslam-stock-green' ;
+							} else if( !record.get('warn_is_locked') ) {
+								metadata.tdCls = 'op5-spec-dbslam-stock-orange' ;
+							} else {
+								metadata.tdCls = 'op5-spec-dbslam-stock-red' ;
 							}
+							return '' ;
 						}
 					}
 				},{
