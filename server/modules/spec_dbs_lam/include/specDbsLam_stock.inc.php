@@ -118,11 +118,14 @@ function specDbsLam_stock_getGrid($post_data) {
 		$row['inv_qty_out'] = (float)( $arr['STOCK_field_PROD_ID'] ? $arr['STOCK_field_QTY_OUT'] : null ) ;
 		$row['inv_sn'] = $arr['STOCK_field_SPEC_SN'] ;
 		$row['inv_container'] = $arr['STOCK_field_CONTAINER_REF'] ;
-		
 		if( $arr['STOCK_field_CONTAINER_REF'] ) {
 			$row['inv_container_ref'] = $arr['STOCK_field_CONTAINER_REF'] ;
 			$row['inv_container_type'] = $arr['STOCK_field_CONTAINER_TYPE'] ;
 		}
+		
+		$row['warn_is_on'] = $arr['STOCK_field_WARN_IS_ON'] ;
+		$row['warn_is_locked'] = $arr['STOCK_field_WARN_IS_LOCKED'] ;
+		$row['warn_txt'] = $arr['STOCK_field_WARN_TXT'] ;
 		
 		$row['status'] = $status ;
 		
@@ -190,6 +193,22 @@ function specDbsLam_stock_submitInvAction( $post_data ) {
 	$p_formData = json_decode($post_data['form_data'],true) ;
 	
 	switch( $p_actionCode ) {
+		case 'warn_status' :
+			$json = specDbsLam_stock_getGrid( array('filter_stkFilerecordId'=>$p_formData['stk_filerecord_id']) ) ;
+			$stk_row = reset($json['data']) ;
+			if( count($json['data']) != 1 || $stk_row['stk_filerecord_id']!=$p_formData['stk_filerecord_id'] ) {
+				return array('success'=>false) ;
+			}
+			
+			$arr_ins = array() ;
+			$arr_ins['field_WARN_IS_ON'] = $p_formData['warn_is_on'] ;
+			$arr_ins['field_WARN_IS_LOCKED'] = ($p_formData['warn_is_on'] ? $p_formData['warn_is_locked'] : false) ;
+			$arr_ins['field_WARN_TXT'] = ($p_formData['warn_is_on'] ? $p_formData['warn_txt'] : null) ;
+			paracrm_lib_data_updateRecord_file('STOCK',$arr_ins,$stk_row['stk_filerecord_id']) ;
+			
+			return array('success'=>true) ;
+			break ;
+			
 		case 'adjust_qty' :
 			$json = specDbsLam_stock_getGrid( array('filter_stkFilerecordId'=>$p_formData['stk_filerecord_id']) ) ;
 			$stk_row = reset($json['data']) ;

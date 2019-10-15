@@ -131,6 +131,43 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockInvForm',{
 				}]
 			},{
 				xtype: 'fieldset',
+				itemId: 'fsWarning',
+				title: 'Warning status',
+				items: [{
+					xtype: 'checkboxfield',
+					name: 'warn_is_on',
+					boxLabel: 'Warning enabled ?'
+				},{
+					xtype: 'checkboxfield',
+					name: 'warn_is_locked',
+					boxLabel: 'Service locked ?'
+				},{
+					xtype: 'textfield',
+					name: 'warn_txt',
+					fieldLabel: 'Description'
+				},{
+					xtype: 'container',
+					hidden: true,
+					itemId: 'cntWarningSubmit',
+					anchor: '100%',
+					padding: 6,
+					layout: {
+						type: 'hbox',
+						pack: 'end'
+					},
+					items: [{
+						xtype: 'button',
+						scale: 'medium',
+						icon: 'images/op5img/ico_procblue_16.gif',
+						text: 'Submit',
+						handler: function() {
+							this.handleSubmitAction('warn_status') ;
+						},
+						scope: this
+					}]
+				}]
+			},{
+				xtype: 'fieldset',
 				checkboxName: 'qty_toggle',
 				checkboxToggle: true,
 				itemId: 'fsEditQty',
@@ -226,6 +263,9 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockInvForm',{
 				if( ifield.getName()=='stk_toggle' && !ifield.getValue() ) {
 					this.onAdjustStkEndAbort() ;
 				}
+				if( ifield.getName().indexOf('warn_')===0 ) {
+					this.onWarningFieldChange() ;
+				}
 				this.fireEvent('change') ;
 			},this) ;
 		},this) ;
@@ -233,7 +273,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockInvForm',{
 		this.getForm().reset();
 		
 		if( this._cfg_adrId ) {
-			this.init_inv( this._cfg_adrId, (this._cfg_stkFilerecordId>0 ? this._cfg_stkFilerecordId : null) ) ;
+			this.do_init_params() ;
 		}
 	},
 	calcLayout: function(field) {
@@ -247,6 +287,17 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockInvForm',{
 				form.findField('inv_sn').setVisible( socRow.prodspec_is_sn ) ;
 			}
 		}
+		if( !field || field.getName().indexOf('warn_')===0 ) {
+			var warnEnabled = this.getForm().findField('warn_is_on').getValue() ;
+			this.getForm().findField('warn_is_locked').setVisible(warnEnabled);
+			this.getForm().findField('warn_txt').setVisible(warnEnabled);
+		}
+	},
+	onWarningFieldChange: function() {
+		this.down('#cntWarningSubmit').setVisible(true) ;
+	},
+	do_init_params: function() {
+		this.init_inv( this._cfg_adrId, (this._cfg_stkFilerecordId>0 ? this._cfg_stkFilerecordId : null) ) ;
 	},
 	init_inv: function( adrId, stkFilerecordId=null ) {
 		this.down('#fsContainer').setVisible( false ) ;
@@ -295,6 +346,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockInvForm',{
 			
 			stk_toggle: false
 		});
+		this.down('#cntWarningSubmit').setVisible(false) ;
 		
 		this.calcLayout() ;
 		this.onChangeQty() ;
@@ -375,6 +427,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockInvForm',{
 			//return ;
 		}
 		
+		var dontReload = false ;
 		if( actionCode == 'adjust_stk' ) {
 			// rewrite formValues
 			var cntDiff = 0 ;
@@ -397,6 +450,9 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockInvForm',{
 				return ;
 			}
 		}
+		if( actionCode == 'warn_status' ) {
+			dontReload = true ;
+		}
 		
 		this.showLoadmask() ;
 		var ajaxParams = {
@@ -415,7 +471,11 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockInvForm',{
 					return ;
 				}
 				this.fireEvent('saved') ;
-				this.destroy() ;
+				if( !dontReload ) {
+					this.destroy() ;
+				} else {
+					this.do_init_params() ;
+				}
 			},
 			callback: function() {
 				//this.hideLoadmask() ;
