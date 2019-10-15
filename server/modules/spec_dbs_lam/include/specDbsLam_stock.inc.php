@@ -687,6 +687,10 @@ function specDbsLam_stock_printEtiqZpl($post_data) {
 	// Load cfg attributes
 	$ttmp = specDbsLam_cfg_getConfig() ;
 	$json_cfg = $ttmp['data'] ;
+	$map_socCode_socRow = array() ;
+	foreach( $json_cfg['cfg_soc'] as $row ) {
+		$map_socCode_socRow[$row['soc_code']] = $row ;
+	}
 	
 	$p_stock_filerecordIds = json_decode($post_data['stock_filerecordIds'],true) ;
 	if( !$p_stock_filerecordIds ) {
@@ -714,7 +718,7 @@ function specDbsLam_stock_printEtiqZpl($post_data) {
 				$result = $_opDB->query($query) ;
 				$arr_prod = $_opDB->fetch_assoc($result) ;
 				
-		
+		$soc_row = $map_socCode_socRow[$soc_code] ;
 		
 		
 		$zebra_buffer = '' ;
@@ -780,6 +784,20 @@ function specDbsLam_stock_printEtiqZpl($post_data) {
 			$zebra_buffer.= "^FO{$legend_w},{$legend_h},0^ARN^FD".$arr_prod['field_PROD_TXT']."^FS";
 		
 		$h+= 150 ;
+		
+		$zebra_buffer.= "^FO50,{$h}^GB200,100,2^FS";
+		$zebra_buffer.= "^FO250,{$h}^GB500,100,2^FS";
+		
+		if( $soc_row['prodspec_is_batch'] ) {
+			$legend_w = 60 ;
+			$legend_h = $h+20 ;
+			$zebra_buffer.= "^FO{$legend_w},{$legend_h},0^ARN^FD".'Batch code'."^FS";
+		
+			$legend_w = 290 ;
+			$legend_h = $h+20 ;
+			$zebra_buffer.= "^FO{$legend_w},{$legend_h},0^ATN^FD".strtoupper($arr_stk['field_SPEC_BATCH'])."^FS";
+		}
+		$h+= 100 ;
 		
 		$zebra_buffer.= "^FO50,{$h}^GB200,100,2^FS";
 		$zebra_buffer.= "^FO250,{$h}^GB500,100,2^FS";
