@@ -25,6 +25,7 @@ Ext.define('DbsLamStockGridModel',{
 		{name: 'inv_id', type:'int', useNull:true},
 		{name: 'inv_prod', type:'string'},
 		{name: 'inv_batch', type:'string'},
+		{name: 'inv_datelc', type:'date', dateFormat: 'Y-m-d'},
 		{name: 'inv_qty', type:'number', useNull:true},
 		{name: 'inv_qty_prein', type:'number', useNull:true},
 		{name: 'inv_qty_out', type:'number', useNull:true},
@@ -481,7 +482,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockPanel',{
 			singleExpand: false,
 			columns: {
 				defaults: {
-					menuDisabled: false,
+					menuDisabled: true,
 					draggable: false,
 					sortable: false,
 					hideable: false,
@@ -627,7 +628,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockPanel',{
 							type: 'string'
 						}
 					},{
-						//hidden: true,
+						hidden: false,
 						dataIndex: 'inv_batch',
 						text: 'BatchCode',
 						width: 100
@@ -682,6 +683,13 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockPanel',{
 							}
 							return v ;
 						}
+					},{
+						hidden: false,
+						xtype: 'datecolumn',
+						format: 'Y-m-d',
+						dataIndex: 'inv_datelc',
+						text: 'DateLC',
+						width: 100
 					},{
 						hidden: true,
 						dataIndex: 'inv_sn',

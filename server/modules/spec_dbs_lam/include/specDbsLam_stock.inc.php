@@ -113,6 +113,7 @@ function specDbsLam_stock_getGrid($post_data) {
 		$row['inv_soc'] = $arr['STOCK_field_SOC_CODE'] ;
 		$row['inv_prod'] = $arr['STOCK_field_PROD_ID'] ;
 		$row['inv_batch'] = $arr['STOCK_field_SPEC_BATCH'] ;
+		$row['inv_datelc'] = substr($arr['STOCK_field_SPEC_DATELC'],0,10) ;
 		$row['inv_qty_prein'] = (float)( $arr['STOCK_field_PROD_ID'] ? $arr['STOCK_field_QTY_PREIN'] : null ) ;
 		$row['inv_qty'] = (float)( $arr['STOCK_field_PROD_ID'] ? $arr['STOCK_field_QTY_AVAIL'] : null ) ;
 		$row['inv_qty_out'] = (float)( $arr['STOCK_field_PROD_ID'] ? $arr['STOCK_field_QTY_OUT'] : null ) ;
