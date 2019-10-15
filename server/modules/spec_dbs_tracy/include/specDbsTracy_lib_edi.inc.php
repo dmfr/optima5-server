@@ -400,6 +400,37 @@ function specDbsTracy_lib_edi_flow_TRSPTCUSTOMSXML( $trspt_filerecord_id, $arr_p
 	$filepath = '/tmp'.'/'.$filename ;
 	file_put_contents($filepath,$xml_buffer) ;
 	
+	
+	if( $arr_params['EMAILCOPY_TO'] ) {
+		$mail = PhpMailer::getInstance() ;
+		if( !$mail ) {
+			return FALSE ;
+		}
+		try {
+			$mail->isSMTP();
+			$mail->Host = $arr_params['EMAILCOPY_SMTP'] ;
+			
+			$mail->CharSet = "utf-8";
+			$mail->setFrom('tracy@dbschenker.com');
+			foreach( explode(',',$arr_params['EMAILCOPY_TO']) as $email_to ) {
+				$mail->addAddress($email_to) ;
+			}
+			
+			//Content
+			$mail->isHTML(true);                                  // Set email format to HTML
+			$mail->Subject = "DHLBROKER EMAILCOPY : {$inv_no}" ;
+			$mail->Body    = 'Fichier joint : <b>'.$filename.'</b><br>';
+			$mail->AltBody = 'Fichier joint : '.$filename.'<br>';
+			
+			$mail->addStringAttachment($xml_buffer, $filename) ;
+			
+			$mail->send() ;
+		} catch (Exception $e) {
+			return false ;
+		}
+	}
+	
+	
 	return TRUE ;
 }
 
