@@ -839,6 +839,16 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockPanel',{
 					},
 					scope : this
 				});
+				
+				gridContextMenuItems.push({
+					icon: 'images/op5img/ico_print_16.png',
+					text: 'Print label(s) ZPL',
+					itemIdPrintLabels: true,
+					handler: function() {
+						this.handlePrintStock([stkFilerecordId]) ;
+					},
+					scope: this
+				});
 			}
 			
 			gridContextMenuItems.push('-') ;
@@ -1069,6 +1079,426 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockPanel',{
 			pEast.hide() ;
 		}
 	},
+	
+	
+	
+	
+	showLoadmask: function() {
+		if( this.rendered ) {
+			this.doShowLoadmask() ;
+		} else {
+			this.on('afterrender',this.doShowLoadmask,this,{single:true}) ;
+		}
+	},
+	doShowLoadmask: function() {
+		if( this.loadMask ) {
+			return ;
+		}
+		this.loadMask = Ext.create('Ext.LoadMask',{
+			target: this,
+			msg:"Please wait..."
+		}).show();
+	},
+	hideLoadmask: function() {
+		this.un('afterrender',this.doShowLoadmask,this) ;
+		if( this.loadMask ) {
+			this.loadMask.destroy() ;
+			this.loadMask = null ;
+		}
+	},
+	
+	handlePrintStock: function(stkFilerecordIds) {
+		this.showLoadmask() ;
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_dbs_lam',
+				_action: 'stock_printEtiqZpl',
+				stock_filerecordIds: Ext.JSON.encode(stkFilerecordIds)
+			},
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					Ext.MessageBox.alert('Error',ajaxResponse.error) ;
+					return ;
+				}
+				this.openPrintPopup( ajaxResponse.data ) ;
+			},
+			callback: function() {
+				this.hideLoadmask() ;
+			},
+			scope: this
+		}) ;
+	},
+	openPrintPopup: function( ajaxData ) {
+		var cnt_total = cnt_printable = 0 ;
+		Ext.Array.each( ajaxData, function(row) {
+			cnt_total++ ;
+			if( row.zpl_is_on ) {
+				cnt_printable++ ;
+			}
+		}) ;
+		
+		var me = this ;
+		var popupPanel = Ext.create('Ext.form.Panel',{
+			optimaModule: this.optimaModule,
+			
+			_printRows: ajaxData,
+			
+			width:400,
+			height:250,
+			
+			cls: 'ux-noframe-bg',
+			
+			floating: true,
+			renderTo: me.getEl(),
+			tools: [{
+				type: 'close',
+				handler: function(e, t, p) {
+					p.ownerCt.destroy();
+				}
+			}],
+			
+			xtype: 'form',
+			border: false,
+			bodyCls: 'ux-noframe-bg',
+			bodyPadding: 8,
+			layout:'anchor',
+			fieldDefaults: {
+				labelWidth: 125,
+				anchor: '100%'
+			},
+			listeners: {
+				zplprintqz: function( zplArr, printerName ) {
+					this.libZplPrint( zplArr, printerName ) ;
+				},
+				zplprintsys: function( zplArr, printerIp ) {
+					// TODO
+				},
+				zpldownload: function( zplArr, zplTitle ) {
+					var zplBinary = zplArr.join('') ;
+					this.libZplDownload( zplBinary, zplTitle, 'text/plain' ) ;
+				},
+				scope: this,
+			},
+			items:[{
+				height: 72,
+				xtype: 'component',
+				tpl: [
+					'<div class="op5-spec-embralam-liveadr-relocatebanner">',
+						'<span>{text}</span>',
+					'</div>'
+				],
+				data: {text: '<b>Print supports</b><br><br>'}
+			},{
+				xtype: 'displayfield',
+				fieldLabel: 'Total supports',
+				fieldStyle: 'font-weight:bold',
+				value: cnt_total
+			},{
+				xtype: 'displayfield',
+				fieldLabel: 'Printable supports',
+				fieldStyle: 'font-weight:bold',
+				value: cnt_printable
+			}],
+			buttons: [{
+				xtype: 'button',
+				text: 'Download ZPL',
+				handler:function(btn){ 
+					var formPanel = btn.up('form') ;
+					formPanel.doSubmitDownload() ;
+				},
+				scope: this
+			},{
+				hidden: true,
+				itemId: 'btnPrintQz',
+				xtype: 'button',
+				text: '<b>Print to QZ</b>',
+				menu: {
+					defaults: {
+						handler:function(btn){ 
+							var printerName = btn._printerName ;
+							var formPanel = btn.up('form') ;
+							formPanel.doSubmitPrintQz(printerName) ;
+						},
+						scope: this
+					},
+					items: []
+				}
+			},{
+				hidden: true,
+				itemId: 'btnPrintSys',
+				xtype: 'button',
+				text: '<b>Print</b>',
+				menu: {
+					defaults: {
+						handler:function(btn){ 
+							var printerIp = btn._printerIp ;
+							var formPanel = btn.up('form') ;
+							formPanel.doSubmitPrintSystem(printerIp) ;
+						},
+						scope: this
+					},
+					items: []
+				}
+			}],
+			getZplTitle: function() {
+				return 'ZPL_'+new Date().getTime()+'.zpl' ;
+			},
+			getZplBinaryArr: function() {
+				var binaryArr = [] ;
+				Ext.Array.each( this._printRows, function(row) {
+					if( row.zpl_is_on ) {
+						binaryArr.push(row.zpl_binary) ;
+					}
+				},this) ;
+				return binaryArr ;
+			},
+			doSubmitDownload: function() {
+				var binaryArr = this.getZplBinaryArr() ;
+				if( Ext.isEmpty(binaryArr) ) {
+					return ;
+				}
+				this.fireEvent('zpldownload',binaryArr,this.getZplTitle()) ;
+			},
+			doSubmitPrintQz: function(printerName) {
+				var binaryArr = this.getZplBinaryArr() ;
+				if( Ext.isEmpty(binaryArr) ) {
+					return ;
+				}
+				this.fireEvent('zplprintqz',binaryArr, printerName) ;
+			},
+			doSubmitPrintSystem: function(printerIp) {
+				var binaryArr = this.getZplBinaryArr() ;
+				if( Ext.isEmpty(binaryArr) ) {
+					return ;
+				}
+				this.fireEvent('zplprintsys',binaryArr, printerIp) ;
+			},
+			
+			queryPrintersQz: function() {
+				if( typeof qz == 'undefined' ) {
+					//Ext.MessageBox.alert('Error','Print system disabled') ;
+					return ;
+				}
+				var me = this ;
+				qz.websocket.disconnect() ;
+				qz.websocket.connect().then(function() {
+					// Pass the printer name into the next Promise
+					qz.printers.find().then(function(data) {
+						
+						me.populatePrintersQz(data) ;
+						qz.websocket.disconnect() ;
+					}).catch(function(e) { 
+						me.populatePrintersQz(null) ;
+						qz.websocket.disconnect() ;
+					})
+				}).catch(function(e) { me.populatePrintersQz(null) });
+			},
+			populatePrintersQz: function(arrPrinters) {
+				var btnPrint = this.down('#btnPrintQz') ;
+				if( !arrPrinters || arrPrinters.length==0 ) {
+					btnPrint.setVisible(false) ;
+					btnPrint.menu.removeAll() ;
+					return ;
+				}
+				var menuItems = [] ;
+				Ext.Array.each(arrPrinters, function(printerName) {
+					menuItems.push({
+						icon: 'images/op5img/ico_print_16.png',
+						text: printerName,
+						_printerName: printerName,
+					}) ;
+				}) ;
+				btnPrint.menu.removeAll() ;
+				btnPrint.menu.add(menuItems) ;
+				btnPrint.setVisible(true) ;
+			},
+			
+			queryPrintersSystem: function() {
+				this.populatePrintersSystem()
+			},
+			populatePrintersSystem: function() {
+				var btnPrint = this.down('#btnPrintSys') ;
+				var menuItems = [] ;
+				Ext.Array.each(Optima5.Modules.Spec.DbsLam.HelperCache.getPrinterAll(), function(printerRow) {
+					var text = printerRow.printer_ip ;
+					if( printerRow.printer_desc ) {
+						text+= ' - ' + printerRow.printer_desc ;
+					}
+					menuItems.push({
+						icon: 'images/op5img/ico_print_16.png',
+						text: text,
+						_printerIp: printerRow.printer_ip,
+					}) ;
+				}) ;
+				btnPrint.menu.removeAll() ;
+				btnPrint.menu.add(menuItems) ;
+				btnPrint.setVisible(true) ;
+			}
+		});
+		
+		popupPanel.on('destroy',function() {
+			me.getEl().unmask() ;
+		},me,{single:true}) ;
+		me.getEl().mask() ;
+		
+		popupPanel.show();
+		popupPanel.queryPrintersQz() ;
+		popupPanel.queryPrintersSystem() ;
+		popupPanel.getEl().alignTo(me.getEl(), 'c-c?');
+	},
+	
+	
+	
+	
+	libZplDownload: function(data, strFileName, strMimeType) {
+		
+		var self = window, // this script is only for browsers anyway...
+			u = "application/octet-stream", // this default mime also triggers iframe downloads
+			m = strMimeType || u, 
+			x = data,
+			D = document,
+			a = D.createElement("a"),
+			z = function(a){return String(a);},
+			
+			
+			B = self.Blob || self.MozBlob || self.WebKitBlob || z,
+			BB = self.MSBlobBuilder || self.WebKitBlobBuilder || self.BlobBuilder,
+			fn = strFileName || "download",
+			blob, 
+			b,
+			ua,
+			fr;
+
+		//if(typeof B.bind === 'function' ){ B=B.bind(self); }
+		
+		if(String(this)==="true"){ //reverse arguments, allowing download.bind(true, "text/xml", "export.xml") to act as a callback
+			x=[x, m];
+			m=x[0];
+			x=x[1]; 
+		}
+		
+		
+		
+		//go ahead and download dataURLs right away
+		if(String(x).match(/^data\:[\w+\-]+\/[\w+\-]+[,;]/)){
+			return navigator.msSaveBlob ?  // IE10 can't do a[download], only Blobs:
+				navigator.msSaveBlob(d2b(x), fn) : 
+				saver(x) ; // everyone else can save dataURLs un-processed
+		}//end if dataURL passed?
+		
+		try{
+		
+			blob = x instanceof B ? 
+				x : 
+				new B([x], {type: m}) ;
+		}catch(y){
+			if(BB){
+				b = new BB();
+				b.append([x]);
+				blob = b.getBlob(m); // the blob
+			}
+			
+		}
+		
+		
+		
+		function d2b(u) {
+			var p= u.split(/[:;,]/),
+			t= p[1],
+			dec= p[2] == "base64" ? atob : decodeURIComponent,
+			bin= dec(p.pop()),
+			mx= bin.length,
+			i= 0,
+			uia= new Uint8Array(mx);
+
+			for(i;i<mx;++i) uia[i]= bin.charCodeAt(i);
+
+			return new B([uia], {type: t});
+		}
+		
+		function saver(url, winMode){
+			
+			
+			if ('download' in a) { //html5 A[download] 			
+				a.href = url;
+				a.setAttribute("download", fn);
+				a.innerHTML = "downloading...";
+				D.body.appendChild(a);
+				setTimeout(function() {
+					a.click();
+					D.body.removeChild(a);
+					if(winMode===true){setTimeout(function(){ self.URL.revokeObjectURL(a.href);}, 250 );}
+				}, 66);
+				return true;
+			}
+			
+			//do iframe dataURL download (old ch+FF):
+			var f = D.createElement("iframe");
+			D.body.appendChild(f);
+			if(!winMode){ // force a mime that will download:
+				url="data:"+url.replace(/^data:([\w\/\-\+]+)/, u);
+			}
+			
+		
+			f.src = url;
+			setTimeout(function(){ D.body.removeChild(f); }, 333);
+			
+		}//end saver 
+			
+
+		if (navigator.msSaveBlob) { // IE10+ : (has Blob, but not a[download] or URL)
+			return navigator.msSaveBlob(blob, fn);
+		} 	
+		
+		if(self.URL){ // simple fast and modern way using Blob and URL:
+			saver(self.URL.createObjectURL(blob), true);
+		}else{
+			// handle non-Blob()+non-URL browsers:
+			if(typeof blob === "string" || blob.constructor===z ){
+				try{
+					return saver( "data:" +  m   + ";base64,"  +  self.btoa(blob)  ); 
+				}catch(y){
+					return saver( "data:" +  m   + "," + encodeURIComponent(blob)  ); 
+				}
+			}
+			
+			// Blob but not URL:
+			fr=new FileReader();
+			fr.onload=function(e){
+				saver(this.result); 
+			};
+			fr.readAsDataURL(blob);
+		}	
+		return true;
+	},
+	libZplPrint: function(dataArr, printerName) {
+		//console.log(printerName) ;
+		if( typeof qz == 'undefined' ) {
+			//Ext.MessageBox.alert('Error','Print system disabled') ;
+			return ;
+		}
+		qz.websocket.connect().then(function() {
+			// Pass the printer name into the next Promise
+			//console.log(printerName) ;
+			return qz.printers.find(printerName);
+		}).then(function(printer) {
+			// Create a default config for the found printer
+			var config = qz.configs.create(printer);
+
+			// Raw ZPL
+			//var data = ['^XA^FO50,50^ADN,36,20^FDRAW ZPL EXAMPLE^FS^XZ'];
+
+			qz.print(config, dataArr).then( function() {
+				qz.websocket.disconnect() ;
+			}) ;
+		}).catch(function(e) { 
+			qz.websocket.disconnect() ;
+			console.error(e); 
+			Ext.MessageBox.alert('Error',e) ;
+		});
+	},
+	
 	
 	
 	doQuit: function() {
