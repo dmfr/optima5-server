@@ -3,6 +3,9 @@
 function specDbsTracy_lib_edi_robot() {
 	global $_opDB ;
 	
+	$ttmp = specDbsTracy_cfg_getConfig() ;
+	$json_cfg = $ttmp['data'] ;
+	
 	$maps_ediCode_params = array() ;
 	$query = "SELECT * FROM view_bible_CFG_EDI_entry" ;
 	$result = $_opDB->query($query) ;
@@ -18,29 +21,48 @@ function specDbsTracy_lib_edi_robot() {
 		}
 		$maps_ediCode_params[$edi_code] = $arr_params ;
 	}
-	if( $GLOBALS['__OPTIMA_TEST'] ) {
-		$maps_ediCode_params['TRSPT_CUSTOMS_XML']['LOCAL_PATH'] = '/tmp' ;
-		
-		$maps_ediCode_params['TRSPT_CUSTOMS_EMAIL']['SMTP'] = '127.0.0.1' ;
-		$maps_ediCode_params['TRSPT_CUSTOMS_EMAIL']['EMAIL_TO'] = 'dm@mirabel-sil.com' ;
-	}
 	
-	$query = "SELECT filerecord_id as trsptedi_filerecord_id
-				, filerecord_parent_id as trspt_filerecord_id
-				, field_EDI_CODE as edi_code 
-				FROM view_file_TRSPT_EDI WHERE field_EXEC_STATUS='0'" ;
+	$query = "SELECT te.filerecord_id as trsptedi_filerecord_id
+				, t.filerecord_id as trspt_filerecord_id
+				, te.field_EDI_CODE as edi_code 
+				, t.field_ID_SOC as soc_code
+				FROM view_file_TRSPT_EDI te
+				JOIN view_file_TRSPT t ON t.filerecord_id=te.filerecord_parent_id
+				WHERE te.field_EXEC_STATUS='0'" ;
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
 		$edi_code = $arr['edi_code'] ;
+		$soc_code = $arr['soc_code'] ;
 		if( !isset($maps_ediCode_params[$edi_code]) ) {
 			continue ;
 		}
+		
+		$arr_params = $maps_ediCode_params[$edi_code] ;
+		foreach( $json_cfg['cfg_soc'] as $soc_row ) {
+			print_r($soc_row) ;
+			if( $soc_row['soc_code']==$soc_code && $soc_row['cfg_customs'] && $soc_row['cfg_customs']['params'] ) {
+				$arr_params = $soc_row['cfg_customs']['params'] + $arr_params ;
+			}
+		}
+		
+		if( $GLOBALS['__OPTIMA_TEST'] ) {
+			switch( $edi_code ) {
+				case 'TRSPT_CUSTOMS_XML' :
+					$arr_params['LOCAL_PATH'] = '/tmp' ;
+					break ;
+				case 'TRSPT_CUSTOMS_EMAIL' :
+					$arr_params['SMTP'] = '127.0.0.1' ;
+					$arr_params['EMAIL_TO'] = 'dm@mirabel-sil.com' ;
+					break ;
+			}
+		}
+		
 		switch( $arr['edi_code'] ) {
 			case 'TRSPT_CUSTOMS_EMAIL' :
-				$ret = specDbsTracy_lib_edi_flow_TRSPTCUSTOMSEMAIL($arr['trspt_filerecord_id'],$maps_ediCode_params[$edi_code]) ;
+				$ret = specDbsTracy_lib_edi_flow_TRSPTCUSTOMSEMAIL($arr['trspt_filerecord_id'],$arr_params) ;
 				break ;
 			case 'TRSPT_CUSTOMS_XML' :
-				$ret = specDbsTracy_lib_edi_flow_TRSPTCUSTOMSXML($arr['trspt_filerecord_id'],$maps_ediCode_params[$edi_code]) ;
+				$ret = specDbsTracy_lib_edi_flow_TRSPTCUSTOMSXML($arr['trspt_filerecord_id'],$arr_params) ;
 				break ;
 			default :
 				$ret = FALSE ;
@@ -76,6 +98,10 @@ function specDbsTracy_lib_edi_flow_TRSPTCUSTOMSEMAIL( $trspt_filerecord_id, $arr
 	$_sdomain_id = DatabaseMgr_Sdomain::dbCurrent_getSdomainId() ;
 	
 	
+	$email_default = 'tracy@dbschenker.com' ;
+	if( !$arr_params['EMAIL_FROM'] ) {
+		$arr_params['EMAIL_FROM'] = $email_default ;
+	}
 	if( !$arr_params['EMAIL_TO'] ) {
 		return FALSE ;
 	}
@@ -223,13 +249,12 @@ function specDbsTracy_lib_edi_flow_TRSPTCUSTOMSEMAIL( $trspt_filerecord_id, $arr
 	if( !$mail ) {
 		return FALSE ;
 	}
-
 	try {
 		$mail->isSMTP();
 		$mail->Host = $arr_params['SMTP'] ;
 		
 		$mail->CharSet = "utf-8";
-		$mail->setFrom('tracy@dbschenker.com');
+		$mail->setFrom($arr_params['EMAIL_FROM']);
 		foreach( explode(',',$arr_params['EMAIL_TO']) as $email_to ) {
 			$mail->addAddress($email_to) ;
 		}
@@ -244,6 +269,33 @@ function specDbsTracy_lib_edi_flow_TRSPTCUSTOMSEMAIL( $trspt_filerecord_id, $arr
 	}
 	//$buffer = $mail->getSentMIMEMessage();
 
+	if( $email_default==$arr_params['EMAIL_FROM'] ) {
+		return true ;
+	}
+	
+	$mail = PhpMailer::getInstance() ;
+	if( !$mail ) {
+		return FALSE ;
+	}
+	try {
+		$mail->isSMTP();
+		$mail->Host = $arr_params['SMTP'] ;
+		
+		$mail->CharSet = "utf-8";
+		$mail->setFrom($email_default);
+		foreach( explode(',',$arr_params['EMAIL_FROM']) as $email_to ) {
+			$mail->addAddress($email_to) ;
+		}
+		$mail->Subject  = $email_subject ;
+		$mail->Body = $txt_buffer ;
+		$mail->addStringAttachment($binary_pdf, $binary_filename) ;
+		$mail->send() ;
+	
+	} catch (Exception $e) {
+		echo "Message could not be sent. Mailer Error: {$mail->ErrorInfo}";
+		return false ;
+	}
+	
 	return true ;
 }
 function specDbsTracy_lib_edi_flow_TRSPTCUSTOMSXML( $trspt_filerecord_id, $arr_params ) {
