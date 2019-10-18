@@ -1192,8 +1192,16 @@ EOF;
 		}
 		
 		DatabaseMgr_Util::syncTableStructure( $sdomain_db , $db_table , $arrAssoc_dbField_fieldType , $arr_model_keys ) ;
-		$query = "ALTER TABLE {$sdomain_db}.{$db_table} MODIFY filerecord_id int(11) NOT NULL AUTO_INCREMENT" ;
-		$_opDB->query($query) ;
+		$has_autoIncrement = FALSE ;
+		$query = "SHOW COLUMNS FROM {$db_table} where field='filerecord_id'" ;
+		$result = $_opDB->query($query) ;
+		$arr = $_opDB->fetch_row($result) ;
+		$extra = $arr[5] ;
+		$has_autoIncrement = !(strpos(strtolower($extra),'auto_increment')===FALSE) ;
+		if( !$has_autoIncrement ) {
+			$query = "ALTER TABLE {$sdomain_db}.{$db_table} MODIFY filerecord_id int(11) NOT NULL AUTO_INCREMENT" ;
+			$_opDB->query($query) ;
+		}
 		
 		$view_name = 'view_file_'.$file_code ;
 		$query = "DROP VIEW IF EXISTS {$sdomain_db}.{$view_name}" ;
