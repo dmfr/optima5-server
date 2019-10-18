@@ -13,6 +13,7 @@ function specRsiRecouveo_lib_transfert_extract_mapMethodJson() {
 	
 	
 	$acc_array = array() ;
+	$accnotepadbin_array = array() ;
 	$adrbook_array =array() ;
 	$record_array = array() ;
 	
@@ -33,13 +34,41 @@ function specRsiRecouveo_lib_transfert_extract_mapMethodJson() {
 		foreach( $record_rows as $row ){
 			$record_array[] = $row ;
 		}
+
+		if( $acc_notepadbin_row = specRsiRecouveo_lib_transfert_create_ACCOUNTNOTEPADBIN($acc_id, $idSoc) ) {
+			$accnotepadbin_array[] = $acc_notepadbin_row ;
+		}
 	}
 
 	$acc_json = json_encode($acc_array) ;
 	$adrbook_json = json_encode($adrbook_array) ;
 	$record_json = json_encode($record_array) ;
+	$accnotepadbin_json = json_encode($accnotepadbin_array);
 
-	return array("account" => $acc_json, "account_adrbookentry" => $adrbook_json, "record" => $record_json) ;
+	return array("account" => $acc_json, "account_adrbookentry" => $adrbook_json, "record" => $record_json, "account_notepadbin"=>$accnotepadbin_json) ;
+}
+
+function specRsiRecouveo_lib_transfert_create_ACCOUNTNOTEPADBIN($acc_id, $idSoc) {
+	@include_once 'PHPExcel/PHPExcel.php' ;
+	if( !class_exists('PHPExcel') )
+		return NULL ;
+	
+	// extract récap détaillé
+ 		$workbook = specRsiRecouveo_xls_create_writer($acc_id) ;
+		$tmpfilename = tempnam( sys_get_temp_dir(), "FOO");
+		$objWriter = PHPExcel_IOFactory::createWriter($workbook, 'Excel2007');
+		$objWriter->save($tmpfilename);
+		$xls_binary = file_get_contents($tmpfilename) ;
+		unlink($tmpfilename) ;
+	
+	$api_row = array() ;
+	$api_row['IdSoc'] = $idSoc ;
+	$api_row['IdCli'] = $acc_id ;
+	$api_row['BinFilename'] = 'Summary_'.$acc_id.'.xlsx' ;
+	$api_row['BinDesc'] = "Summary for {$acc_id} on ".date('d/m/Y') ;
+	$api_row['BinBase64'] = base64_encode($xls_binary) ;
+
+	return $api_row ;
 }
 
 function specRsiRecouveo_lib_transfert_create_RECORD_row($acc_id, $idSoc) {

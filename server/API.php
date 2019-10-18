@@ -37,8 +37,16 @@ if( !$obj_dmgr_base->baseDb_exists($my_domainId) || !$obj_dmgr_sdomain->sdomainD
 }
 
 // Select DB
+$GLOBALS['mysql_db'] = $obj_dmgr_base->getBaseDb($my_domainId) ;
 $_opDB->select_db( $obj_dmgr_base->getBaseDb($my_domainId) ) ;
 $_opDB->select_db( $obj_dmgr_sdomain->getSdomainDb($my_sdomainId) ) ;
+
+// Fake context for media
+$_domain_id = DatabaseMgr_Base::dbCurrent_getDomainId() ;
+$_sdomain_id = DatabaseMgr_Sdomain::dbCurrent_getSdomainId() ;
+$_SESSION['login_data']['mysql_db'] = 'op5_'.$_domain_id.'_prod' ;
+$_SESSION['login_data']['login_domain'] = $_domain_id.'_prod' ;
+
 
 // Check API Key
 $query = "SELECT field_APIKEY_CODE FROM view_file_Z_APIKEYS WHERE field_APIKEY_HEX = '{$_SERVER['PHP_AUTH_PW']}'" ;
@@ -63,6 +71,7 @@ switch( $api_method ) {
 		die( json_encode( array('success'=>true) ) );
 	case 'account' :
 	case 'account_adrbookentry' :
+	case 'account_notepadbin' :
 	case 'record' :
 	case 'upload_COMPTES':
 	case 'upload_FACTURES':

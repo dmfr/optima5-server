@@ -703,7 +703,7 @@ function specRsiRecouveo_account_pushNotificationFileaction( $post_data ) {
 
 
 function specRsiRecouveo_account_saveNotepad( $post_data ) {
-	sleep(1) ;
+	//sleep(1) ;
 	
 	$arr_ins = array() ;
 	$arr_ins['field_ACC_ID'] = $post_data['acc_id'] ;
@@ -714,15 +714,22 @@ function specRsiRecouveo_account_saveNotepad( $post_data ) {
 	return array('success'=>true) ;
 }
 function specRsiRecouveo_account_uploadAttachment( $post_data ) {
-	sleep(1) ;
+	//sleep(1) ;
+	global $_opDB ;
 	
 	$_domain_id = DatabaseMgr_Base::dbCurrent_getDomainId() ;
 	$_sdomain_id = DatabaseMgr_Sdomain::dbCurrent_getSdomainId() ;
 	media_contextOpen( $_sdomain_id ) ;
 	
-	$src_path = $_FILES['bin_file']['tmp_name'] ;
-	$src_filename = $_FILES['bin_file']['name'] ;
-	$media_id = media_bin_processUploaded( $src_path ) ;
+	if( $_FILES['bin_file'] ) {
+		$src_path = $_FILES['bin_file']['tmp_name'] ;
+		$src_filename = $_FILES['bin_file']['name'] ;
+		$media_id = media_bin_processUploaded( $src_path ) ;
+	}
+	if( $post_data['bin_filename'] && $post_data['bin_base64'] ) {
+		$src_filename = $post_data['bin_filename'] ;
+		$media_id = media_bin_processBuffer(base64_decode($post_data['bin_base64'])) ;
+	}
 	if( !$media_id ) {
 		media_contextClose() ;
 		return array('success'=>false) ;
@@ -732,10 +739,21 @@ function specRsiRecouveo_account_uploadAttachment( $post_data ) {
 	$arr_ins['field_ACC_ID'] = $post_data['acc_id'] ;
 	$accnotepad_filerecord_id = paracrm_lib_data_insertRecord_file( 'ACC_NOTEPAD', 0, $arr_ins );
 	
-	$arr_ins = array() ;
-	$arr_ins['field_BIN_DESC'] = $post_data['bin_desc'] ;
-	$arr_ins['field_BIN_FILENAME'] = $src_filename ;
-	$accbin_filerecord_id = paracrm_lib_data_insertRecord_file( 'ACC_NOTEPAD_BIN', $accnotepad_filerecord_id, $arr_ins );
+	$accbin_filerecord_id = NULL ;
+	if( $post_data['bin_replace'] ) {
+		$query = "SELECT filerecord_id FROM view_file_ACC_NOTEPAD_BIN 
+			WHERE filerecord_parent_id='{$accnotepad_filerecord_id}' AND field_BIN_FILENAME='{$src_filename}'" ;
+		$accbin_filerecord_id = $_opDB->query_uniqueValue($query) ;
+		if( $accbin_filerecord_id ) {
+			media_bin_delete( media_pdf_toolFile_getId('ACC_NOTEPAD_BIN',$accbin_filerecord_id) ) ;
+		}
+	}
+	if( !$accbin_filerecord_id ) {
+		$arr_ins = array() ;
+		$arr_ins['field_BIN_DESC'] = $post_data['bin_desc'] ;
+		$arr_ins['field_BIN_FILENAME'] = $src_filename ;
+		$accbin_filerecord_id = paracrm_lib_data_insertRecord_file( 'ACC_NOTEPAD_BIN', $accnotepad_filerecord_id, $arr_ins );
+	}
 	
 	media_bin_move( $media_id,  media_pdf_toolFile_getId('ACC_NOTEPAD_BIN',$accbin_filerecord_id) ) ;
 

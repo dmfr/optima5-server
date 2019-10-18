@@ -369,6 +369,7 @@ function specRsiRecouveo_lib_edi_post($apikey_code, $transaction, $handle) {
 	switch( $transaction ) {
 		case 'account' :
 		case 'account_adrbookentry' :
+		case 'account_notepadbin' :
 		case 'account_properties' :
 		case 'record' :
 			$mapMethodJson[$transaction] = stream_get_contents($handle_in) ;
@@ -464,6 +465,9 @@ function specRsiRecouveo_lib_edi_postJson($apikey_code, $transaction, $json_str)
 			break ;
 		case 'account_adrbookentry' :
 			$ret = specRsiRecouveo_lib_edi_post_adrbook( $json_rows ) ;
+			break ;
+		case 'account_notepadbin' :
+			$ret = specRsiRecouveo_lib_edi_post_acc_notepadbin( $json_rows ) ;
 			break ;
 		case 'account_properties':
 			$ret = specRsiRecouveo_lib_edi_post_acc_properties( $json_rows ) ;
@@ -602,6 +606,48 @@ function specRsiRecouveo_lib_edi_post_adrbook($json_rows){
 			//$count_success++ ;
 			continue;
 		}
+	}
+	return array("count_success" => $count_success, "errors" => $ret_errors) ;
+}
+
+function specRsiRecouveo_lib_edi_post_acc_notepadbin($json_rows){
+	global $_opDB;
+
+	$mandatory = array('IdSoc','IdCli', 'BinFilename', 'BinDesc', 'BinBase64') ;
+	
+	$count_success = 0 ;
+	$ret_errors = array() ;
+	foreach( $json_rows as $idx => $json_row ) {
+		$missing = array() ;
+		foreach( $mandatory as $field ) {
+			if( !isset($json_row[$field]) ) {
+				$missing[] = $field ;
+			}
+		}
+		if( count($missing) > 0 ) {
+			$ret_errors[] = "ERR Idx={$idx} : missing field(s) ".implode(',',$missing) ;
+			continue ;
+		}
+		
+		$txt_IdSoc = $json_row['IdSoc'] ;
+		$json_row['IdSoc'] = specRsiRecouveo_lib_edi_validateSocCli($json_row['IdSoc']) ;
+		if( !$json_row['IdSoc'] ) {
+			$ret_errors[] = "ERR Idx={$idx} : unknown IdSoc={$txt_IdSoc}" ;
+			continue ;
+		}
+
+		$json_row['IdCli'] = specRsiRecouveo_lib_edi_validateSocCli($json_row['IdSoc'],$json_row['IdCli'], true) ;
+		
+		$forward_post = array(
+			'acc_id' => $json_row['IdCli'],
+			'bin_desc' => $json_row['BinDesc'],
+			'bin_filename' => $json_row['BinFilename'],
+			'bin_base64' => $json_row['BinBase64'],
+			'bin_replace' => 1
+		);
+		//print_r($forward_post) ;
+		specRsiRecouveo_account_uploadAttachment($forward_post) ;
+		$count_success++ ;
 	}
 	return array("count_success" => $count_success, "errors" => $ret_errors) ;
 }
