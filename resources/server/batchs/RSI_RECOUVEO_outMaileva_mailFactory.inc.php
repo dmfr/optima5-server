@@ -193,7 +193,7 @@ function xml_getContents( $env_id, $track_email ) {
 	$xml.= "</pjs:DocumentData>" ;
 	
 	$xml_postageClass = 'SLOW' ;
-	if( xmlUtil_parseAdr( $db['field_SENDER_ADR'], $do_test_FR=TRUE ) ) {
+	if( xmlUtil_parseAdr( $db['field_RECEP_ADR'], $do_test_FR=TRUE ) ) {
 		$xml_postageClass = 'ECOPLI_GRAND_COMPTE' ;
 	}
 	
