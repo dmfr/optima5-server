@@ -372,6 +372,7 @@ function specRsiRecouveo_lib_edi_post($apikey_code, $transaction, $handle) {
 		case 'account_notepadbin' :
 		case 'account_properties' :
 		case 'record' :
+		case 'DEV_purgeall' :
 			$mapMethodJson[$transaction] = stream_get_contents($handle_in) ;
 			break ;
 			
@@ -431,6 +432,9 @@ function specRsiRecouveo_lib_edi_postJson($apikey_code, $transaction, $json_str)
 	
 	// normaliser le data => json_array[json_rows]
 	$json_rows = json_decode($json_str,true) ;
+	if( !$json_rows ) {
+			$json_rows = array() ;
+	}
 	
 	// HACK: meta
 	foreach( $json_rows as &$json_row ) {
@@ -471,6 +475,9 @@ function specRsiRecouveo_lib_edi_postJson($apikey_code, $transaction, $json_str)
 			break ;
 		case 'account_properties':
 			$ret = specRsiRecouveo_lib_edi_post_acc_properties( $json_rows ) ;
+			break ;
+		case 'DEV_purgeall':
+			$ret = specRsiRecouveo_lib_edi_post_devpurge( $json_rows ) ;
 			break ;
 	}
 	
@@ -904,6 +911,28 @@ function specRsiRecouveo_lib_edi_post_account( $json_rows ) {
 	}
 
 	return array("count_success" => $count_success, "errors" => $ret_errors) ;
+}
+
+function specRsiRecouveo_lib_edi_post_devpurge() {
+	global $_opDB;
+	
+	if( !$GLOBALS['__OPTIMA_APIDEV'] ) {
+		return array("count_success" => 0, "errors" => array('Overwrite locked')) ;
+	}
+	
+	$queries = array() ;
+	$queries[] = "TRUNCATE TABLE store_bible_LIB_ACCOUNT_entry" ;
+	$queries[] = "TRUNCATE TABLE store_file_ADRBOOK" ;
+	$queries[] = "TRUNCATE TABLE store_file_ADRBOOK_ENTRY" ;
+	$queries[] = "TRUNCATE TABLE store_file_FILE" ;
+	$queries[] = "TRUNCATE TABLE store_file_FILE_ACTION" ;
+	$queries[] = "TRUNCATE TABLE store_file_RECORD" ;
+	$queries[] = "TRUNCATE TABLE store_file_RECORD_LINK" ;
+	
+	foreach( $queries as $query ) {
+		$_opDB->query($query) ;
+	}
+	return array("count_success" => 0, "errors" => array()) ;
 }
 
 ?>

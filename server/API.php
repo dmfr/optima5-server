@@ -47,6 +47,15 @@ $_sdomain_id = DatabaseMgr_Sdomain::dbCurrent_getSdomainId() ;
 $_SESSION['login_data']['mysql_db'] = 'op5_'.$_domain_id.'_prod' ;
 $_SESSION['login_data']['login_domain'] = $_domain_id.'_prod' ;
 
+// Check debug mode
+if( TRUE ) {
+	$basedb = $obj_dmgr_base->getBaseDb($my_domainId) ;
+	$query = "SELECT count(*) FROM {$basedb}.sdomain WHERE sdomain_id='{$my_sdomainId}' AND overwrite_is_locked<>'O'" ;
+	if( $_opDB->query_uniqueValue($query) == 1 ) {
+			$GLOBALS['__OPTIMA_APIDEV'] = TRUE ;
+	}
+}
+
 
 // Check API Key
 $query = "SELECT field_APIKEY_CODE FROM view_file_Z_APIKEYS WHERE field_APIKEY_HEX = '{$_SERVER['PHP_AUTH_PW']}'" ;
@@ -76,6 +85,8 @@ switch( $api_method ) {
 	case 'upload_COMPTES':
 	case 'upload_FACTURES':
 	case 'account_properties':
+		break ;
+	case 'DEV_purgeall':
 		break ;
 	default :
 		header("HTTP/1.0 404 Not Found");
