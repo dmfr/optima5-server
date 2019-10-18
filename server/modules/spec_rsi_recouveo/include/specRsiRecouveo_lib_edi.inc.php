@@ -532,7 +532,7 @@ function specRsiRecouveo_lib_edi_validateSocCli( $id_soc, $id_cli=NULL, $test_cl
 function specRsiRecouveo_lib_edi_post_adrbook($json_rows){
 	global $_opDB;
 	
-	$mandatory = array('IdSoc', 'IdCli', 'Lib', 'AdrType', 'Adr') ;
+	$mandatory = array('IdSoc', 'IdCli', 'AdrType', 'Adr') ;
 	$skip_ifempty = array('Adr') ;
 	$map_json2adrbook = array (
 		'IdCli' => 'field_ACC_ID',
@@ -573,6 +573,10 @@ function specRsiRecouveo_lib_edi_post_adrbook($json_rows){
 			continue ;
 		}
 		$json_row['IdCli'] = specRsiRecouveo_lib_edi_validateSocCli($json_row['IdSoc'],$json_row['IdCli']) ;
+		if( !$json_row['Lib'] ) {
+			$query = "SELECT field_ACC_NAME FROM view_bible_LIB_ACCOUNT WHERE entry_key='{$json_row['IdCli']}'" ;
+			$json_row['Lib'] = $_opDB->query_uniqueValue($query) ;
+		}
 
 		$arr_ins_adrbook = array() ;
 		foreach($map_json2adrbook as $json_field => $db_field){
