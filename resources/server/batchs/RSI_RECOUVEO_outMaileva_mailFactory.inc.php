@@ -7,6 +7,7 @@ function xmlUtil_parseAdr( $adr_string, $do_test_FR=FALSE ) {
 	foreach( explode("\n",$adr_string) as $adr_line ) {
 		$adr_line = trim($adr_line) ;
 		$adr_line = str_replace('&','et',$adr_line) ;
+		$adr_line = preg_replace('/[\x00-\x1F\x7F]/u', '', $adr_line);
 		if( !trim($adr_line) ) {
 			continue ;
 		}
