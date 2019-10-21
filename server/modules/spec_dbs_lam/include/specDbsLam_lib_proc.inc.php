@@ -241,6 +241,8 @@ function specDbsLam_lib_proc_validateAdr( $mvt_obj, $whse_dest, $adr_id ) {
 		}
 	}
 	
+	
+	
 	$query = "SELECT adr.entry_key FROM view_bible_ADR_entry adr
 				LEFT OUTER JOIN view_file_STOCK inv ON inv.field_ADR_ID = adr.entry_key
 				WHERE inv.filerecord_id IS NULL AND adr.field_STATUS_IS_ACTIVE='1'
@@ -257,7 +259,13 @@ function specDbsLam_lib_proc_validateAdr( $mvt_obj, $whse_dest, $adr_id ) {
 	//echo $query ;
 	$result = $_opDB->query($query) ;
 	if( $_opDB->num_rows($result) == 0 ) {
-		return NULL ;
+		// HACK : accept systématique sur adresses non paletier
+		$query = "SELECT adr.entry_key FROM view_bible_ADR_entry adr
+			WHERE adr.field_CONT_IS_ON='0' AND adr.treenode_key IN ".$_opDB->makeSQLlist($adr_treenodes)." AND adr.entry_key='{$adr_id}'" ;
+		$result = $_opDB->query($query) ;
+		if( $_opDB->num_rows($result) == 0 ) {
+			return NULL ;
+		}
 	}
 	$arr = $_opDB->fetch_row($result) ;
 	$adr_id = $arr[0] ;
