@@ -354,6 +354,16 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferInnerCdePickingPanel',{
 				scope : this
 			});
 		}
+		if( areNotCommitted ) {
+			gridContextMenuItems.push({
+				icon: 'images/op5img/ico_process_16.gif',
+				text: 'Commit picking line',
+				handler : function() {
+					this.fireEvent('op5lamstockpickingcommit',this,transferligFilerecordIds) ;
+				},
+				scope : this
+			});
+		}
 		
 		if( Ext.isEmpty(gridContextMenuItems) ) {
 			return ;

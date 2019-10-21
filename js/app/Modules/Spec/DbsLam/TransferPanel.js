@@ -989,6 +989,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 					listeners: {
 						op5lamstockpickingadd: this.onLamStockPickingAdd,
 						op5lamstockpickingremove: this.onLamStockPickingRemove,
+						op5lamstockpickingcommit: this.onLamStockPickingCommit,
 						op5lamstockpickingrollback: this.onLamStockRollback,
 						scope: this
 					}
@@ -1234,6 +1235,30 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 		var ajaxParams = {
 			_moduleId: 'spec_dbs_lam',
 			_action: 'transfer_removeCdePickingStock',
+			transfer_filerecordId: this._activeTransferRecord.get('transfer_filerecord_id'),
+			transferStep_filerecordId: transferInnerPanel.getActiveTransferStepRecord().get('transferstep_filerecord_id'),
+			transferLig_filerecordIds: Ext.JSON.encode(transferLigIds) 
+		} ;
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: ajaxParams,
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					Ext.MessageBox.alert('Error','Error') ;
+					return ;
+				}
+				this.optimaModule.postCrmEvent('datachange') ;
+			},
+			scope: this
+		}) ;
+	},
+	onLamStockPickingCommit: function(transferInnerPanel, transferLigIds) {
+		if( !this._activeTransferRecord || !transferInnerPanel || !transferInnerPanel.getActiveTransferStepRecord() ) {
+			return ;
+		}
+		var ajaxParams = {
+			_moduleId: 'spec_dbs_lam',
+			_action: 'transfer_setCommit',
 			transfer_filerecordId: this._activeTransferRecord.get('transfer_filerecord_id'),
 			transferStep_filerecordId: transferInnerPanel.getActiveTransferStepRecord().get('transferstep_filerecord_id'),
 			transferLig_filerecordIds: Ext.JSON.encode(transferLigIds) 
