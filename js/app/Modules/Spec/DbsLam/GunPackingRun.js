@@ -35,12 +35,21 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunPackingRun',{
 				itemId: 'txtScan',
 				flex:1,
 				listeners : {
-					specialkey: function(field, e){
-						if (e.getKey() == e.ENTER) {
-							this.handleScan() ;
-						}
+					specialkey: {
+						fn: function(field, e){
+							if (e.getKey() == e.ENTER) {
+								this.handleScan() ;
+							}
+						},
+						scope: this
 					},
-					scope: this
+					change: {
+						fn: function(field) {
+							this.handleScan(true) ;
+						},
+						delay: 200,
+						scope: this
+					}
 				}
 			},{
 				xtype:'button',
@@ -140,25 +149,45 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunPackingRun',{
 		this.down('#txtScan').reset() ;
 		this.down('#txtScan').focus() ;
 	},
-	handleScan: function() {
+	handleScan: function(noReturnMode=false) {
 		var scanval = this.down('#txtScan').getValue() ;
 		scanval = scanval.trim().toUpperCase() ;
 		
-		var prodId = null ;
+		var scanvalGencod = scanval.toUpperCase().replace(/^0+/, '') ;
+		
+		var directProdId = null, gencodProdId = null, gencodMatches=0 ;
 		this.down('grid').getStore().each( function(rec) {
-			if( rec.get('prod_id') == scanval || rec.get('prod_gencod') == scanval ) {
-				prodId = rec.get('prod_id') ;
+			var recGencod = rec.get('prod_gencod').toUpperCase().replace(/^0+/, '') ;
+			if( !Ext.isEmpty(recGencod) && !Ext.isEmpty(scanvalGencod) && scanvalGencod==recGencod ) {
+				gencodProdId = rec.get('prod_id') ;
+				gencodMatches++ ;
+			}
+			if( rec.get('prod_id') == scanval ) {
+				directProdId = rec.get('prod_id') ;
 			}
 		}) ;
-		if( prodId ) {
-			this.submitDirectCommit(prodId) ;
+		if( directProdId && !noReturnMode ) {
+			this.submitDirectCommit(directProdId) ;
+			return ;
+		}
+		if( gencodProdId && gencodMatches==1 ) {
+			this.submitDirectCommit(gencodProdId) ;
+			return ;
+		}
+		
+		// no match
+		if( noReturnMode ) {
 			return ;
 		}
 		this.doLoadPackingSrc( this._transferligSrcAdr ) ;
 	},
 	
 	submitDirectCommit: function(prodId) {
+		if( this.hasSubmitPending ) {
+			return ;
+		}
 		this.showLoadmask() ;
+		this.hasSubmitPending = true ;
 		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: {
 				_moduleId: 'spec_dbs_lam',
@@ -170,6 +199,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunPackingRun',{
 				var ajaxResponse = Ext.decode(response.responseText),
 					transferligRecord = null ;
 				if( !ajaxResponse.success ) {
+					this.hasSubmitPending = false ;
 					Ext.MessageBox.alert('Error',(ajaxResponse.error||'Invalid item'), function() {
 						this.doLoadPackingSrc( this._transferligSrcAdr ) ;
 					},this) ;

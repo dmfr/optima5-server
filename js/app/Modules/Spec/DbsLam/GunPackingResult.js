@@ -83,6 +83,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunPackingResult',{
 					xtype: 'box',
 					width: 32
 				},{
+					itemId: 'btnSuccess',
 					xtype: 'button',
 					scale: 'large',
 					icon: 'images/op5img/ico_ok_16.gif',
@@ -132,6 +133,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunPackingResult',{
 	
 	onSuccess: function() {
 		this.down('#fsSuccess').setVisible(true);
+		this.down('#btnSuccess').focus() ;
 		Ext.defer( function() {
 			this.handlePrint() ;
 		},200,this) ;
