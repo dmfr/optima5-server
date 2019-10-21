@@ -815,6 +815,7 @@ function specDbsLam_lib_procCde_searchStock_doResupply( $whse_src, $stk_prod, $r
 	$query = "SELECT stk.* FROM view_file_STOCK stk";
 	$query.= " JOIN view_bible_ADR_entry adr ON adr.entry_key=stk.field_ADR_ID" ;
 	$query.= " WHERE 1 AND stk.field_PROD_ID='{$stk_prod}'" ;
+	$query.= " AND (stk.field_WARN_IS_ON='0' OR stk.field_WARN_IS_LOCKED='0')" ;
 	$query.= " AND field_QTY_AVAIL>'0' AND field_QTY_PREIN='0' AND field_QTY_OUT='0'" ;
 	$query.= " AND adr.treenode_key IN ".$_opDB->makeSQLlist($adr_treenodes) ;
 	$query.= " AND (adr.field_CONT_IS_ON='1' AND adr.field_CONT_IS_PICKING='0')" ;
@@ -884,6 +885,7 @@ function specDbsLam_lib_procCde_searchStock_doSearch( $whse_src, $stk_prod, &$qt
 	$query.= " JOIN view_bible_ADR_entry adr ON adr.entry_key=stk.field_ADR_ID" ;
 	$query.= " WHERE 1 AND stk.field_PROD_ID='{$stk_prod}'" ;
 	$query.= " AND adr.treenode_key IN ".$_opDB->makeSQLlist($adr_treenodes) ;
+	$query.= " AND (stk.field_WARN_IS_ON='0' OR stk.field_WARN_IS_LOCKED='0')" ;
 	if( $from_picking ) {
 		$query.= " AND (adr.field_CONT_IS_ON='0' OR (adr.field_CONT_IS_ON='1' AND adr.field_CONT_IS_PICKING='1'))" ;
 	}
