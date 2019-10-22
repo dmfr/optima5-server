@@ -95,7 +95,7 @@ function xml_getContents( $env_id, $track_email ) {
 	global $_opDB ;
 	
 	$track_id = $env_id ;
-	$prefix = 'RECOUV' ;
+	$prefix = $GLOBALS['maileva_TRACKPREFIX'] ;
 	if( $prefix ) {
 		$track_id = $prefix.'-'.$env_id ;
 	}

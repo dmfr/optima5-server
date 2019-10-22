@@ -18,7 +18,7 @@ $_opDB->connect_mysql( $mysql_host, $mysql_db, $mysql_user, $mysql_pass );
 $_opDB->query("SET NAMES UTF8") ;
 
 //include("$server_root/modules/paracrm/backend_paracrm.inc.php");
-include("$server_root/modules/spec_bp_sales/backend_spec_bp_sales.inc.php");
+include("$server_root/modules/spec_rsi_recouveo/backend_spec_rsi_recouveo.inc.php");
 
 
 include('RSI_RECOUVEO_outMaileva_mailFactory.inc.php') ;
@@ -29,13 +29,30 @@ $_SESSION['login_data']['login_domain'] = $_domain_id.'_prod' ;
 $_sdomain_id = DatabaseMgr_Sdomain::dbCurrent_getSdomainId() ;
 	
 
-
+$json = specRsiRecouveo_config_loadMeta(array()) ;
+$config_meta = $json['data'] ;
+foreach( array('gen_maileva_urlprod','gen_maileva_authuser','gen_maileva_authpass','gen_maileva_trackprefix','gen_maileva_trackemail') as $mkey ) {
+	
+	if( !$config_meta[$mkey] ) {
+		$err[] = $mkey ;
+	}
+}
+if( $err ) {
+	echo "Maileva // Paramètres manquants :\n" ;
+	foreach( $err as $mkey ) {
+		echo "  - {$mkey}\n" ;
+	}
+	die() ;
+}
 
 // *******************************************
 if( TRUE ) {
-	$GLOBALS['maileva_URL'] = 'https://webservices.maileva.com/java/public/connector/ConnectorWebService?wsdl' ;
-	$GLOBALS['maileva_USER'] = 'RECOUVEOSI.RECOUVEOEC' ;
-	$GLOBALS['maileva_PASS'] = 'zq8g6yE6LR' ;
+	$GLOBALS['maileva_URL'] = $config_meta['gen_maileva_urlprod'] ;
+	$GLOBALS['maileva_USER'] = $config_meta['gen_maileva_authuser'] ;
+	$GLOBALS['maileva_PASS'] = $config_meta['gen_maileva_authpass'] ;
+	
+	$GLOBALS['maileva_TRACKEMAIL'] = $config_meta['gen_maileva_trackemail'] ;
+	$GLOBALS['maileva_TRACKPREFIX'] = $config_meta['gen_maileva_trackprefix'] ;
 }
 if( $GLOBALS['__OPTIMA_TEST'] ) {
 	$GLOBALS['maileva_URL'] = 'https://webservices.recette.maileva.com/java/public/connector/ConnectorWebService?wsdl' ;
@@ -57,7 +74,7 @@ if( !$arr_envs ) {
 }
 
 foreach( $arr_envs as $env_filerecord_id ) {
-		$xml = xml_getContents($env_filerecord_id, $track_email='tracking-maileva@mirabel-sil.com') ;
+		$xml = xml_getContents($env_filerecord_id, $track_email=$GLOBALS['maileva_TRACKEMAIL']) ;
 		//echo $xml ;
 		//continue ;
 		

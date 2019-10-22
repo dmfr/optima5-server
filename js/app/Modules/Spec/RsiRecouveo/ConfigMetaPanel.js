@@ -70,6 +70,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigMetaPanel', {
 				flex: 2,
 				padding: 8,
 				xtype: 'container',
+				scrollable: 'vertical',
 				layout: 'anchor',
 				defaults: {
 					labelWidth: 165,
@@ -142,6 +143,36 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigMetaPanel', {
 						width: 175,
 						name: 'gen_transfert_destsoc',
 						fieldLabel: 'Dest. Soc'
+					}]
+				},{
+					xtype: 'fieldset',
+					title: 'Params Maileva',
+					fieldDefaults: {
+						labelWidth: 100,
+						anchor: '100%'
+					},
+					items: [{
+						xtype: 'textfield',
+						name: 'gen_maileva_urlprod',
+						fieldLabel: 'Webservice URL'
+					},{
+						xtype: 'textfield',
+						name: 'gen_maileva_authuser',
+						fieldLabel: 'Auth.Utilisateur'
+					},{
+						xtype: 'textfield',
+						name: 'gen_maileva_authpass',
+						fieldLabel: 'Auth.Password'
+					},{
+						xtype: 'textfield',
+						anchor: '',
+						width: 200,
+						name: 'gen_maileva_trackprefix',
+						fieldLabel: 'Track.Prefix'
+					},{
+						xtype: 'textfield',
+						name: 'gen_maileva_trackemail',
+						fieldLabel: 'Track.Email'
 					}]
 				}]
 			}],
