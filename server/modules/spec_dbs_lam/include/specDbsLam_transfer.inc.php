@@ -100,11 +100,13 @@ function specDbsLam_transfer_getTransfer($post_data) {
 			$map_idx_ligs[$idx] = array() ;
 		}
 		$map_idx_ligs[$idx][] = $lig ;
+		$map_idx_ligstat[$idx]['mvt_qty'] += $lig['mvt_qty'] ;
 	}
 	foreach( $TAB_steps as &$row_step ) {
 		$idx = $row_step['transferstep_idx'] ;
 		if( isset($map_idx_ligs[$idx]) ) {
 			$row_step['ligs'] = $map_idx_ligs[$idx] ;
+			$row_step['ligs_stats'] = $map_idx_ligstat[$idx] ;
 		}
 	}
 	unset($row_step) ;
@@ -1302,7 +1304,11 @@ function specDbsLam_transfer_addCdeLink($post_data) {
 	$p_transferFilerecordId = $post_data['transfer_filerecordId'] ;
 	$p_cdesFilerecordIds = json_decode($post_data['cde_filerecordIds'],true) ;
 	
-	$query = "SELECT count(*) FROM view_file_TRANSFER_LIG WHERE filerecord_parent_id='{$p_transferFilerecordId}'" ;
+	$query = "SELECT count(*) 
+				FROM view_file_TRANSFER_LIG tl 
+				JOIN view_file_TRANSFER_CDE_NEED tcn ON tl.field_PICK_TRSFRCDENEED_ID=tcn.filerecord_id
+				JOIN view_file_MVT mvt ON mvt.filerecord_id=tl.field_FILE_MVT_ID
+				WHERE tl.filerecord_parent_id='{$p_transferFilerecordId}' AND field_COMMIT_IS_OK='1'" ;
 	if( ($_opDB->query_uniqueValue($query) != 0) ) {
 		return array('success'=>false) ;
 	}

@@ -62,12 +62,6 @@ function specDbsLam_print_getDoc_Brt( $post_data ) {
 	
 		$adr_str = $adr ;
 		
-		if( $is_first ) {
-			$is_first = FALSE ;
-		} else {
-			$buffer.= '<DIV style="page-break-after:always"></DIV>' ;
-		}
-		$buffer.= '<DIV style="page-break-after:always"></DIV>' ;
 		$buffer.= "<table border='0' cellspacing='1' cellpadding='1'>" ;
 		$buffer.= "<tr><td width='5'/><td width='200'>" ;
 		$buffer.= "</td><td valign='middle' width='400'>" ;
