@@ -287,6 +287,7 @@ function paracrm_lib_dataImport_commit_processStream( $treefields_root, $map_fie
 		}
 	}
 	
+	$GLOBALS['_opDB']->query("START TRANSACTION") ;
 	$arr_insertedFilerecordId = array() ;
 	while( !feof($handle) ){
 		$arr_csv = fgetcsv($handle,0,$handle_delimiter) ;
@@ -308,6 +309,8 @@ function paracrm_lib_dataImport_commit_processStream( $treefields_root, $map_fie
 		
 		paracrm_lib_dataImport_commit_processNode($treefields_root,$arr_srcLig,$truncate_mode, $arr_insertedFilerecordId) ;
 	}
+	$GLOBALS['_opDB']->query("COMMIT") ;
+	
 	if( $truncate_mode=='truncate' ) {
 		global $_opDB ;
 		foreach( $treefields_root['children'] as $directChild ) {
