@@ -353,7 +353,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 							xtype: 'button',
 							text: 'Download XML',
 							handler: function() {
-								this.handle190304BrokerXMLDownload() ;
+								
 							},
 							scope: this
 						}]
@@ -1535,25 +1535,5 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 		
 		popupPanel.show();
 		popupPanel.getEl().alignTo(this.getEl(), 'c-c?');
-	},
-	
-	
-	handle190304BrokerXMLDownload: function() {
-		var exportParams = this.optimaModule.getConfiguredAjaxParams() ;
-		Ext.apply(exportParams,{
-			_moduleId: 'spec_dbs_tracy',
-			_action: 'report',
-			data: Ext.JSON.encode({
-				file_model: '190304BrokerXML',
-				trspt_filerecord_id: this._trsptFilerecordId
-			})
-		}) ;
-		Ext.create('Ext.ux.dams.FileDownloader',{
-			renderTo: Ext.getBody(),
-			requestParams: exportParams,
-			requestAction: Optima5.Helper.getApplication().desktopGetBackendUrl(),
-			requestMethod: 'POST'
-		}) ;
-		
 	}
 });
