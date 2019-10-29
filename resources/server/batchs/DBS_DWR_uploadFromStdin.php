@@ -1,5 +1,16 @@
 <?php
 
+/*
+Example usage :
+
+time \
+PHP_AUTH_USER="admin@dbs" \
+PHP_AUTH_PW="password" \
+php resources/server/batchs/DBS_DWR_test191023.php SLS_LX03_UPL@dwr < ~/tmp/SLS_LX03_UPLAUTO.csv
+
+*/
+
+
 $ttmp = explode('@',$argv[1]) ;
 if( count($ttmp) != 2 ) {
 	die() ;
