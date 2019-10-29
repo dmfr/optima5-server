@@ -1,6 +1,15 @@
 <?php
+$GLOBALS['__specDbsTracy_lib_TMS_URL'] = 'https://services.schenkerfrance.fr/gateway_PPD/rest/ship/v1/label/create' ;
+
 function specDbsTracy_lib_TMS_doLabelCreate( $row_trspt ) {
 	global $_opDB ;
+	$_STORE_DATE = date('Y-m-d H:i:s') ;
+	$_STORE_PEER = 'DBS_CREATELABEL' ;
+	
+	$request_filerecordId = NULL ;
+	$response_filerecordId = NULL ;
+	$response_success = NULL ;
+	$preview_filerecordId = NULL ;
 	
 	// Query EDI parameters
 	$edi_record = paracrm_lib_data_getRecord('bible_entry','CFG_EDI','TRSPT_API') ;
@@ -47,7 +56,7 @@ function specDbsTracy_lib_TMS_doLabelCreate( $row_trspt ) {
 	// Query CFG_SOC
 	$cfgsoc_record = paracrm_lib_data_getRecord('bible_entry','CFG_SOC',$row_trspt['id_soc']) ;
 	$cfgsoc_adr = json_decode($cfgsoc_record['field_TRSPT_ADR_ORIG'],true) ;
-	print_r($cfgsoc_adr) ;
+	//print_r($cfgsoc_adr) ;
 	
 	// CALC : Valeur
 	$value_currency = '' ;
@@ -145,28 +154,76 @@ function specDbsTracy_lib_TMS_doLabelCreate( $row_trspt ) {
 		),
 		"size" => "SIZE_8_4"
 	) ;
-
-echo json_encode($json,JSON_PRETTY_PRINT) ;
-//die() ;
-
-	$post_url = 'https://services.schenkerfrance.fr/gateway_PPD/rest/ship/v1/label/create' ;
-	$params = array('http' => array(
-	'method' => 'POST',
-	'content' => json_encode($json),
-	'timeout' => 600,
-	'ignore_errors' => true,
-	'header'=>"Authorization: {$_token}\r\n"."accept: application/json\r\n"."Content-Type: application/json\r\n"
-	));
-	$ctx = stream_context_create($params);
-	$fp = fopen($post_url, 'rb', false, $ctx);
-	if( !$fp ) {
-		return FALSE ;
+	
+	$arr_ins = array() ;
+	$arr_ins['field_TRSPT_ID'] = $row_trspt['trspt_filerecord_id'] ;
+	$arr_ins['field_STORE_DATE'] = $_STORE_DATE ;
+	$arr_ins['field_STORE_PEER'] = $_STORE_PEER ;
+	$arr_ins['field_STORE_TAG'] = 'REQUEST' ;
+	if( $request_filerecordId = paracrm_lib_data_insertRecord_file( 'TMS_STORE', 0, $arr_ins ) ) {
+		$_domain_id = DatabaseMgr_Base::dbCurrent_getDomainId() ;
+		$_sdomain_id = DatabaseMgr_Sdomain::dbCurrent_getSdomainId() ;
+		media_contextOpen( $_sdomain_id ) ;
+		$tmp_media_id = media_bin_processBuffer( json_encode($json,JSON_PRETTY_PRINT) ) ;
+		media_bin_move( $tmp_media_id , media_bin_toolFile_getId('TMS_STORE',$request_filerecordId) ) ;
+		media_contextClose() ;
 	}
 	
-	$response = stream_get_contents($fp) ;
-	echo $response ;
+	while(TRUE) {
+		$post_url = $GLOBALS['__specDbsTracy_lib_TMS_URL'] ;
+		$params = array('http' => array(
+		'method' => 'POST',
+		'content' => json_encode($json),
+		'timeout' => 600,
+		'ignore_errors' => true,
+		'header'=>"Authorization: {$_token}\r\n"."accept: application/json\r\n"."Content-Type: application/json\r\n"
+		));
+		$ctx = stream_context_create($params);
+		$fp = fopen($post_url, 'rb', false, $ctx);
+		if( !$fp ) {
+			break ;
+		}
+		$status_line = $http_response_header[0] ;
+		preg_match('{HTTP\/\S*\s(\d{3})}', $status_line, $match);
+		$status = $match[1];
+		$response_success = ($status == 200) ;
+		
+		$arr_ins = array() ;
+		$arr_ins['field_TRSPT_ID'] = $row_trspt['trspt_filerecord_id'] ;
+		$arr_ins['field_STORE_DATE'] = $_STORE_DATE ;
+		$arr_ins['field_STORE_PEER'] = $_STORE_PEER ;
+		$arr_ins['field_STORE_TAG'] = ($response_success ? 'RESPONSE_OK' : 'RESPONSE_NOK') ;
+		$arr_ins['field_STORE_HTTP_STATUS'] = $status ;
+		$resp = stream_get_contents($fp) ;
+		$response_filerecordId = paracrm_lib_data_insertRecord_file( 'TMS_STORE', 0, $arr_ins ) ;
+		if( $json = @json_decode($resp,true) ) {
+			$_domain_id = DatabaseMgr_Base::dbCurrent_getDomainId() ;
+			$_sdomain_id = DatabaseMgr_Sdomain::dbCurrent_getSdomainId() ;
+			media_contextOpen( $_sdomain_id ) ;
+			$tmp_media_id = media_bin_processBuffer( json_encode($json,JSON_PRETTY_PRINT) ) ;
+			media_bin_move( $tmp_media_id , media_bin_toolFile_getId('TMS_STORE',$response_filerecordId) ) ;
+			media_contextClose() ;
+		}
+		if( !$response_success ) {
+			break ;
+		}
+		
+		print_r($json) ;
+	
+		break ;
+	}
+}
 
+function specDbsTracy_lib_TMS_getLabel( $trspt_filerecord_id, $trsptevent_filerecord_id=null, $force_create=false ) {
+	
+	
+}
 
+/*
+function specDbsTracy_lib_TMS_getTransactions( $trspt_filerecord_id ) {
 
 }
+*/
+
+
 ?>
