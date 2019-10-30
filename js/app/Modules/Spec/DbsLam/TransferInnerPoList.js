@@ -9,6 +9,7 @@ Ext.define('DbsLamTransferInputPoModel',{
 		{name: 'stk_prod', type: 'string'},
 		{name: 'qty_po', type: 'number', allowNull:true},
 		{name: 'qty_input', type: 'number', allowNull:true},
+		{name: 'alert_is_off', type: 'boolean'},
 		
 		{name: '_input_is_on', type: 'boolean'}
 	]
@@ -124,6 +125,19 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferInnerPoList',{
 						return '<b>'+v+'</b>' ;
 					}
 					return v ;
+				}
+			},{
+				dataIndex: 'alert_is_off',
+				text: 'ValidDiff?',
+				align: 'center',
+				width: 75,
+				renderer: function(v) {
+					if( v ) {
+						return '<b>X</b>' ;
+					}
+				},
+				editorTpl: {
+					xtype: 'checkboxfield'
 				}
 			}]
 		};

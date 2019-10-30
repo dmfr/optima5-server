@@ -1230,7 +1230,7 @@ function specDbsLam_transfer_lib_updateStatus($transfer_filerecordId) {
 	if( $spec_hasInputlist_stepIdx > 0 ) {
 		$map_prod_Qtys = array() ;
 		
-		$query = "SELECT field_PROD_ID, sum(field_QTY_PO) FROM view_file_TRANSFER_INPUT_PO
+		$query = "SELECT field_PROD_ID, sum(field_QTY_PO), field_ALERT_IS_OFF FROM view_file_TRANSFER_INPUT_PO
 					WHERE filerecord_parent_id='{$transfer_filerecordId}' AND field_TRANSFERSTEP_IDX='{$spec_hasInputlist_stepIdx}'
 					GROUP BY field_PROD_ID" ;
 		$result = $_opDB->query($query) ;
@@ -1239,6 +1239,7 @@ function specDbsLam_transfer_lib_updateStatus($transfer_filerecordId) {
 				$map_prod_Qtys[$arr[0]] = array() ;
 			}
 			$map_prod_Qtys[$arr[0]]['qty_po'] = (float)$arr[1] ;
+			$map_prod_Qtys[$arr[0]]['alert_is_off'] = !!$arr[2] ;
 		}
 		
 		$query = "SELECT mvt.field_PROD_ID, sum(mvt.field_QTY_MVT) FROM view_file_TRANSFER_LIG tl
@@ -1254,6 +1255,9 @@ function specDbsLam_transfer_lib_updateStatus($transfer_filerecordId) {
 		}
 		
 		foreach( $map_prod_Qtys as $prodId => $qtys ) {
+			if( $qtys['alert_is_off'] ) {
+				continue ;
+			}
 			if( $qtys['qty_po'] != $qtys['qty_mvt'] ) {
 				$arr_update['field_STATUS_IS_ALERT'] = 1 ;
 				break ;

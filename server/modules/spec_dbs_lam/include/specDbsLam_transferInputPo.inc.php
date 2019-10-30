@@ -34,7 +34,8 @@ function specDbsLam_transferInputPo_getLigs( $post_data ) {
 			'po_txt' => $arr['field_PO_TXT'],
 			'stk_prod' => $arr['field_PROD_ID'],
 			'qty_po' => (float)$arr['field_QTY_PO'],
-			'qty_input' => 0
+			'qty_input' => 0,
+			'alert_is_off' => !!$arr['field_ALERT_IS_OFF']
 		);
 	}
 	
@@ -100,7 +101,8 @@ function specDbsLam_transferInputPo_setLig( $post_data ) {
 		'field_TRANSFERSTEP_IDX' => $transferstep_idx,
 		'field_PROD_ID' => $form_data['stk_prod'],
 		'field_PO_TXT' => $form_data['po_txt'],
-		'field_QTY_PO' => $form_data['qty_po']
+		'field_QTY_PO' => $form_data['qty_po'],
+		'field_ALERT_IS_OFF' => ($form_data['alert_is_off'] ? 1 : 0)
 	);
 	if( $form_data['_delete'] ) {
 		paracrm_lib_data_deleteRecord_file('TRANSFER_INPUT_PO',$form_data['transferinputpo_filerecord_id']) ;
