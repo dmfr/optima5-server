@@ -1377,6 +1377,7 @@ function specDbsLam_transfer_removeCdeLink($post_data) {
 		// OK
 	} else {
 		// vérif de chaque ligne
+		// TODO : possibilité d'éjecter des commandes même si les lignes de picking sont présentes
 		foreach( $p_cdesFilerecordIds as $cde_filerecord_id ) {
 			$arr_cdeligFilerecordIds = array() ;
 			$query = "SELECT filerecord_id FROM view_file_CDE_LIG WHERE filerecord_parent_id='{$cde_filerecord_id}'" ;
@@ -1393,6 +1394,7 @@ function specDbsLam_transfer_removeCdeLink($post_data) {
 					INNER JOIN view_file_TRANSFER_LIG tl ON tl.field_PICK_TRSFRCDENEED_ID=tcn.filerecord_id
 					WHERE cl.filerecord_id='{$cdelig_filerecord_id}'" ;
 				if( $_opDB->query_uniqueValue($query) > 0 ) {
+					//TODO
 					return array('success'=>false) ;
 				}
 			}

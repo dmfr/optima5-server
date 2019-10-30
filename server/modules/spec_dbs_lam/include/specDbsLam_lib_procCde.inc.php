@@ -325,6 +325,9 @@ function specDbsLam_lib_procCde_forwardPacking( $transfer_filerecord_id, $transf
 						}
 					}
 				}
+				if( $qtyNeedAvailable > 0 ) {
+					// TODO : création d'un reliquat pour remise en stock ?
+				}
 				break ;
 		}
 	}

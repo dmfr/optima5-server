@@ -391,6 +391,15 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferInnerCdePackingPanel',{
 					},
 					scope : this
 				});
+			} else if( false ) { // TODO : annulation last-minute packing pour annulation cde
+				gridContextMenuItems.push({
+					icon: 'images/op5img/ico_cancel_small.gif',
+					text: 'Discard packing row',
+					handler : function() {
+						this.fireEvent('op5lamstockpackingdiscard',this,transferligFilerecordIds) ;
+					},
+					scope : this
+				});
 			}
 		}
 

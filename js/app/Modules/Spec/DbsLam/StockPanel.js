@@ -249,10 +249,10 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockPanel',{
 		}
 		
 		this.doConfigure() ;
-		this.doSetDefaults() ;
+		this.doSetDefaults(this.whseCode) ;
 	},
 	
-	doSetDefaults: function() {
+	doSetDefaults: function(forceWhseCode=null) {
 		this.onViewSelect('status_active') ;
 		
 		//search for single "STOCK" warehouse ( != WORK warehouse )
@@ -262,6 +262,9 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockPanel',{
 				stockWhses.push( whseRow.whse_code ) ;
 			}
 		}) ;
+		if( forceWhseCode ) {
+			stockWhses = [forceWhseCode] ;
+		}
 		if( stockWhses.length==1 ) {
 			var stockWhseCode = stockWhses[0] ;
 			var btnWhse = this.down('toolbar').down('#btnWhse') ;

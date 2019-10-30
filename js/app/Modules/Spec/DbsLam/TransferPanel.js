@@ -1008,7 +1008,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 					
 					listeners: {
 						//op5lamstockadd: this.onLamStockAdd,
-						//op5lamstockremove: this.onLamStockRemove,
+						op5lamstockpackingdiscard: this.onLamStockRemove,
 						op5lamstockpackingrollback: this.onLamStockRollback,
 						op5lamstockpackingprint: this.onLamPackingPrint,
 						//op5lamstocksetadr: this.onLamStockSetAdr,
