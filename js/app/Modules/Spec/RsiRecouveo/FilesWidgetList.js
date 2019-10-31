@@ -551,7 +551,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesWidgetList', {
 		var showAddress = (showAddress) ;
 		this.headerCt.down('[dataIndex="adr_postal"]').setVisible(showAddress) ;
 		
-		var hasXe = !(disableXe) ;
+		var hasXe = (!(disableXe) && isFactView) ;
 		this.headerCt.down('[dataIndex="record_xe_currency_amount"]').setVisible(hasXe) ;
 		this.headerCt.down('[dataIndex="record_xe_currency_code"]').setVisible(hasXe) ;
 		
