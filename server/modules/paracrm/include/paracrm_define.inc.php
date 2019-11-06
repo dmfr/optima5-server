@@ -19,7 +19,7 @@ function paracrm_define_getMainToolbar($post_data, $auth_bypass=FALSE )
 	// Cache des "counts"
 	if( !$_SESSION['cache_counts'] && session_id() ) {
 		$count_bibles = $count_files = $count_tables = array() ;
-		$query = "SELECT table_name, TABLE_ROWS 
+		$query = "SELECT table_name, '0' 
 						FROM INFORMATION_SCHEMA.TABLES 
 						WHERE TABLE_SCHEMA = DATABASE()" ;
 		$result = $_opDB->query($query) ;

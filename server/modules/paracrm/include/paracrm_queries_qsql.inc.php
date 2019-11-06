@@ -455,35 +455,35 @@ function paracrm_queries_qsql_lib_getTables() {
 	
 	$arr_views = array() ;
 	
+	$dbs = array() ;
 	foreach( paracrm_queries_qsql_lib_getSdomains() as $sdomain ) {
 		// use database
 		$current_database = $sdomain['database_name'] ;
-		
-		// use define routines
-		$query = "SHOW TABLES FROM {$current_database} LIKE 'view\_%' " ;
-		$result = $_opDB->query($query) ;
-		while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
-			$arr_views[] = array(
-				'database_name' => $current_database,
-				'view_name' => $arr[0],
+		$dbs[] = $current_database ;
+	}
+	
+	$query = "SELECT TABLE_SCHEMA, TABLE_NAME, COLUMN_NAME, DATA_TYPE
+			FROM information_schema.columns 
+			WHERE table_schema IN ".$_opDB->makeSQLlist($dbs)."
+			AND table_name LIKE 'view\_%'
+			ORDER BY TABLE_SCHEMA,TABLE_NAME";
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+		$mkey = $arr[0].'.'.$arr[1] ;
+		if( !isset($arr_views[$mkey]) ) {
+			$arr_views[$mkey] = array(
+				'database_name' => $arr[0],
+				'view_name' => $arr[1],
 				'view_fields' => array()
 			);
 		}
+		$arr_views[$mkey]['view_fields'][] = array(
+			'field_name' => $arr[2],
+			'field_type' => $arr[3]
+		);
 	}
 	
-	foreach( $arr_views as &$view ) {
-		$query = "SHOW COLUMNS FROM {$view['database_name']}.{$view['view_name']}" ;
-		$result = $_opDB->query($query) ;
-		while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
-			$view['view_fields'][] = array(
-				'field_name' => $arr[0],
-				'field_type' => $arr[1]
-			);
-		}
-	}
-	unset($view) ;
-	
-	return $arr_views ;
+	return array_values($arr_views) ;
 }
 
 function paracrm_queries_qsql_lib_exec($querystring, $is_rw=FALSE, $auth_bypass=FALSE, $vars=array(), $is_superuser=FALSE) {
