@@ -1,6 +1,36 @@
 <?php
 
 function specRsiRecouveo_report_getValuesDesc() {
+	/*
+	return array(
+		array(
+			'reportval_id' => 'wallet',
+			'reportval_txt' => 'Encours',
+			'reportgroup_id' => 'finance',
+			'timescale' => 'milestone',
+			'subvalues' => array(
+				array(
+					//'reportval_id' => 'wallet_amount',
+					'reportval_id' => 'wallet?wvalue=amount',
+					'reportval_txt' => 'Montant',
+					'reportval_iconCls' => 'op5-spec-rsiveo-reporttile-main-icon-value-amount',
+					'value_suffix' => '€',
+					'eval_direction' => 1
+				),
+				array(
+					//'reportval_id' => 'wallet_late',
+					'reportval_id' => 'wallet?wvalue=amount&wlate=true',
+					'reportval_txt' => 'Retards',
+					'reportval_iconCls' => 'op5-spec-rsiveo-reporttile-main-icon-value-count',
+					'value_suffix' => '€',
+					'eval_direction' => 1
+				),
+
+			),
+		)
+	) ;
+	*/
+
 	return array(
 		/*
 		array(
@@ -85,14 +115,16 @@ function specRsiRecouveo_report_getValuesDesc() {
 			'timescale' => 'milestone',
 			'subvalues' => array(
 				array(
-					'reportval_id' => 'wallet_amount',
+					//'reportval_id' => 'wallet_amount',
+					'reportval_id' => 'wallet?wvalue=amount',
 					'reportval_txt' => 'Montant',
 					'reportval_iconCls' => 'op5-spec-rsiveo-reporttile-main-icon-value-amount',
 					'value_suffix' => '€',
 					'eval_direction' => 1
 				),
 				array(
-					'reportval_id' => 'wallet_late',
+					//'reportval_id' => 'wallet_late',
+					'reportval_id' => 'wallet?wvalue=amount&wlate=true',
 					'reportval_txt' => 'Retards',
 					'reportval_iconCls' => 'op5-spec-rsiveo-reporttile-main-icon-value-count',
 					'value_suffix' => '€',
@@ -110,14 +142,16 @@ function specRsiRecouveo_report_getValuesDesc() {
 			'reportval_iconCls' => 'op5-spec-rsiveo-reporttile-main-icon-value-amount',
 			'subvalues' => array(
 				array(
-					'reportval_id' => 'agree',
+					//'reportval_id' => 'agree',
+					'reportval_id' => 'wallet?wstatus=S2P_PAY&wvalue=amount',
 					'reportval_txt' => 'Montant',
 					'reportval_iconCls' => 'op5-spec-rsiveo-reporttile-main-icon-value-amount',
 					'value_suffix' => '€',
 					'eval_direction' => 1
 				),
 				array(
-					'reportval_id' => 'agree_late',
+					//'reportval_id' => 'agree_late',
+					'reportval_id' => 'wallet?wstatus=S2P_PAY&wvalue=amount&wlate=true',
 					'reportval_txt' => 'Retards',
 					'reportval_iconCls' => 'op5-spec-rsiveo-reporttile-main-icon-value-amount',
 					'value_suffix' => '€',
@@ -136,7 +170,8 @@ function specRsiRecouveo_report_getValuesDesc() {
 		),
 
 		array(
-			'reportval_id' => 'non_echu',
+			//'reportval_id' => 'non_echu',
+			'reportval_id' => 'wallet?wstatus=S0_PRE&wvalue=amount',
 			'reportval_txt' => 'Non-échus',
 			'reportgroup_id' => 'finance',
 			'timescale' => 'milestone',
@@ -152,14 +187,16 @@ function specRsiRecouveo_report_getValuesDesc() {
 			'timescale' => 'milestone',
 			'subvalues' => array(
 				array(
-					'reportval_id' => 'ext_amount',
+					//'reportval_id' => 'ext_amount',
+					'reportval_id' => 'wallet?wstatus=S2L_LITIG&wvalue=amount',
 					'reportval_txt' => 'Montant',
 					'reportval_iconCls' => 'op5-spec-rsiveo-reporttile-main-icon-value-amount',
 					'value_suffix' => '€',
 					'eval_direction' => 1
 				),
 				array(
-					'reportval_id' => 'ext_late',
+					//'reportval_id' => 'ext_late',
+					'reportval_id' => 'wallet?wstatus=S2L_LITIG&wvalue=amount&wlate=true',
 					'reportval_txt' => 'Retards',
 					'reportval_iconCls' => 'op5-spec-rsiveo-reporttile-main-icon-value-count',
 					'value_suffix' => '€',
@@ -175,14 +212,16 @@ function specRsiRecouveo_report_getValuesDesc() {
 			'timescale' => 'milestone',
 			'subvalues' => array(
 				array(
-					'reportval_id' => 'judi_amount',
+					//'reportval_id' => 'judi_amount',
+					'reportval_id' => 'wallet?wstatus=S2J_JUDIC&wvalue=amount',
 					'reportval_txt' => 'Montant',
 					'reportval_iconCls' => 'op5-spec-rsiveo-reporttile-main-icon-value-amount',
 					'value_suffix' => '€',
 					'eval_direction' => 1
 				),
 				array(
-					'reportval_id' => 'judi_late',
+					//'reportval_id' => 'judi_late',
+					'reportval_id' => 'wallet?wstatus=S2J_JUDIC&wvalue=amount&wlate=true',
 					'reportval_txt' => 'Retards',
 					'reportval_iconCls' => 'op5-spec-rsiveo-reporttile-main-icon-value-count',
 					'value_suffix' => '€',
@@ -192,7 +231,8 @@ function specRsiRecouveo_report_getValuesDesc() {
 			),
 		),
 		array(
-			'reportval_id' => 'close',
+			//'reportval_id' => 'close',
+			'reportval_id' => 'wallet?wstatus=SX_CLOSE&wvalue=amount',
 			'reportval_txt' => 'Clôturés',
 			'reportgroup_id' => 'finance',
 			'timescale' => 'milestone',
@@ -204,6 +244,29 @@ function specRsiRecouveo_report_getValuesDesc() {
 
 	);
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -579,6 +642,34 @@ function specRsiRecouveo_report_getGrid($post_data) {
 	return array('success'=>true, 'columns'=>$cols, 'data'=>$rows) ;
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 function specRsiRecouveo_report_run_getValues( $reportval_id, $dates, $filters, $grouper )
 {
 	global $_opDB;
@@ -586,12 +677,26 @@ function specRsiRecouveo_report_run_getValues( $reportval_id, $dates, $filters, 
 	$filter_atr = $filters['filter_atr'];
 	$filter_soc = $filters['filter_soc'];
 	$filter_user = $filters['filter_user'];
-	$filter_status = $filters['filter_status'] ;
 	$ttmp = specRsiRecouveo_cfg_getConfig();
 	$cfg_atr = $ttmp['data']['cfg_atr'];
 
+	
+	
+	
+	
+	// base SQL variables
+	$select_clause = NULL ;
+	$join_tables = array() ;
+	$join_clause = '' ;
+	$where_clause = 'WHERE 1' ;
+	
+	
+	
+	
+	
+	
+	
 	// build filter on account
-	$where_account = '';
 	if ($filter_atr) {
 		foreach ($cfg_atr as $atr_record) {
 			$atr_id = $atr_record['atr_id'];
@@ -603,94 +708,101 @@ function specRsiRecouveo_report_run_getValues( $reportval_id, $dates, $filters, 
 				default :
 					continue 2;
 			}
+			$join_tables['la'] = TRUE ;
 			if ($filter_atr[$atr_id]) {
 				$mvalue = $filter_atr[$atr_id];
-				$where_account .= " AND {$atr_dbalias}.{$atr_dbfield} IN " . $_opDB->makeSQLlist($mvalue);
+				$where_clause.= " AND {$atr_dbalias}.{$atr_dbfield} IN " . $_opDB->makeSQLlist($mvalue);
 			}
 		}
 	}
 	if ($filter_soc) {
-		$filter_joiner = ' JOIN view_bible_LIB_ACCOUNT_entry la ON la.entry_key=f.field_LINK_ACCOUNT ' ;
-		$where_account .= " AND la.treenode_key IN " . $_opDB->makeSQLlist($filter_soc);
+		$join_tables['la'] = TRUE ;
+		$where_clause.= " AND la.treenode_key IN " . $_opDB->makeSQLlist($filter_soc);
 	}
 	if ($filter_user) {
-		$filter_joiner = ' JOIN view_bible_LIB_ACCOUNT_entry la ON la.entry_key=f.field_LINK_ACCOUNT ' ;
-		$where_account .= " AND la.field_LINK_USER_LOCAL IN " . $_opDB->makeSQLlist($filter_user);
+		$join_tables['la'] = TRUE ;
+		$where_clause.= " AND la.field_LINK_USER_LOCAL IN " . $_opDB->makeSQLlist($filter_user);
 	}
-	if ($filter_status){
-		if ($filter_status == "wallet"){
-			$where_account .= "";
-		} else{
-			$where_account .= " AND f.field_STATUS = '{$filter_status}'";
-		}
-
-	}
+	
+	
+	
+	
+	// parse $reportval_id
+	switch( count($ttmp=explode('?',$reportval_id)) ) {
+		case 1 :
+			$reportval_id = $reportval_id ;
+			break ;
+		case 2 :
+			$reportval_id = $ttmp[0] ;
+			$reportval_filterMap = array() ;
+			foreach( explode('&',$ttmp[1]) as $wcond ) {
+				$wtmp = explode('=',$wcond) ;
+				if( count($wtmp)!=2 ) {
+					continue ;
+				}
+				$reportval_filterMap[$wtmp[0]] = $wtmp[1] ;
+			}
+			break ;
+		default :
+			return array() ; // NOK
+ 	}
+	
+	
+	
+	
+	
+	
+	
 	$group_joiner = '' ;
 	if ($grouper) {
 		$ttmp = explode(':', $grouper);
 		$key = $ttmp[0];
 		switch ($key) {
 			case 'USER' :
-				$group_joiner = ' JOIN view_bible_LIB_ACCOUNT_entry la ON la.entry_key=f.field_LINK_ACCOUNT ' ;
+				$join_tables['la'] = TRUE ;
 				$group_field = 'la.field_LINK_USER_LOCAL';
 				break;
 			case 'SOC' :
-				$group_joiner = ' JOIN view_bible_LIB_ACCOUNT_entry la ON la.entry_key=f.field_LINK_ACCOUNT ' ;
+				$join_tables['la'] = TRUE ;
 				$group_field = 'la.treenode_key';
 				break;
 			case 'ATR' :
-				$group_joiner = ' JOIN view_bible_LIB_ACCOUNT_entry la ON la.entry_key=f.field_LINK_ACCOUNT ' ;
+				$join_tables['la'] = TRUE ;
 				$group_field = 'la.field_ATR_A_' . $ttmp[1];
 				break;
 			case 'STATUS':
-				$group_joiner = 'JOIN view_bible_CFG_STATUS_tree fs ON f.field_STATUS=fs.field_CODE' ;
-				$group_field = 'fs.field_TXT' ;
-		}
-
-	}
-	if ($filter_status && $key == "STATUS"){
-		if ($filter_status == "S2J_JUDIC" || $filter_status == "S2L_LITIG" || $filter_status == "SX_CLOSE"){
-			$group_joiner = "JOIN (SELECT f.filerecord_id, fa.field_LINK_JUDIC, fa.field_LINK_CLOSE, fa.field_LINK_LITIG
-			FROM view_file_FILE f JOIN view_file_FILE_ACTION fa ON fa.filerecord_parent_id=f.filerecord_id 
-			WHERE fa.field_LINK_JUDIC<>'' OR fa.field_LINK_CLOSE<>'' OR fa.field_LINK_LITIG<>''
-			 AND fa.field_STATUS_IS_OK<>1 group by f.filerecord_id) tst ON tst.filerecord_id=f.filerecord_id " ;
-			switch ($filter_status){
-				case "S2J_JUDIC":
-					$group_joiner .= "JOIN view_bible_OPT_JUDIC_tree oj ON tst.field_LINK_JUDIC = oj.treenode_key" ;
-					$group_field = "oj.field_OPT_ID" ;
-					break ;
-				case "S2L_LITIG":
-					$group_joiner .= "JOIN view_bible_OPT_LITIG_tree ol ON tst.field_LINK_LITIG = ol.treenode_key" ;
-					$group_field = "ol.field_OPT_ID" ;
-					break ;
-				case "SX_CLOSE":
-					$group_joiner .= "JOIN view_bible_OPT_CLOSEASK_tree oc ON tst.field_LINK_CLOSE = oc.treenode_key" ;
-					$group_field = "oc.field_OPT_ID" ;
-			}
+				$join_tables['fs'] = TRUE ;
+				$group_field = 'fs.treenode_key' ;
+				if( $reportval_filterMap['wstatus'] ) {
+					$join_tables['fssub'] = TRUE ;
+					switch( $reportval_filterMap['wstatus'] ) {
+						case 'S2J_JUDIC' :
+							$group_field = 'fssub.field_LINK_JUDIC' ;
+							break ;
+						case 'S2L_LITIG' :
+							$group_field = 'fssub.field_LINK_LITIG' ;
+							break ;
+						case 'SX_CLOSE' :
+							$group_field = 'fssub.field_LINK_CLOSE' ;
+							break ;
+					}
+				}
+				break ;
 		}
 	}
-	$fgJoiner = '' ;
-	if ($group_joiner == $filter_joiner) $fgJoiner = $group_joiner ;
-	else{
-		$fgJoiner = $filter_joiner.$group_joiner ;
- 	}
-
-	//print_r($fgJoiner) ;
-	$ttmp = explode('%', $reportval_id);
-	$reportvalId_base = $ttmp[0];
-	$reportvalId_suffix = $ttmp[1];
-	if (($reportvalId_base == "wallet_count" || $reportvalId_base =="late_count")){
-		if ($key != "STATUS") $fgJoiner = "" ;
-		else $fgJoiner = $group_joiner ;
-	}
-	switch ($reportvalId_base) {
+	
+	
+	
+	
+	
+	switch( $reportval_id ) {
 		case 'calls_out' :
 		case 'calls_in' :
 		case 'emails_out' :
 		case 'emails_in' :
 		case 'mails_out' :
 		case 'mails_in' :
-			switch ($reportvalId_base) {
+			switch ($reportval_id) {
 				case 'calls_out' :
 					$action_code = 'CALL_OUT';
 					break;
@@ -737,7 +849,7 @@ function specRsiRecouveo_report_run_getValues( $reportval_id, $dates, $filters, 
 				$query .= " GROUP BY {$group_field}";
 			}
 			$result = $_opDB->query($query) ;
-
+			
 			$map = array() ;
 			while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
 				if( $grouper && !$arr[0] ) {
@@ -745,298 +857,119 @@ function specRsiRecouveo_report_run_getValues( $reportval_id, $dates, $filters, 
 				}
 				$map[$arr[0]] = $arr[1] ;
 			}
-
 			return $map ;
+			
+			
+			
+			
+			
+		case 'wallet' :
+			switch( $reportval_filterMap['wvalue'] ) {
+				case 'count' :
+					$select_word = "count( distinct f.field_LINK_ACCOUNT )" ;
+					break ;
+				case 'amount' :
+					$select_word = "sum( r.field_AMOUNT )" ;
+					break ;
+				default :
+					return array() ;
+			}
+			$select_clause = "'',{$select_word}" ;
+			if( $group_field ) {
+				$select_clause = $group_field.",{$select_word}" ;
+			}
+			
+			if( $reportval_filterMap['wlate'] ) {
+				$join_tables['filelate'] = TRUE ;
+			}
+			
+			
+			foreach( $join_tables as $table => $torf ) {
+				if( !$torf ) {
+					continue ;
+				}
+				switch( $table ) {
+					case 'la' :
+						$join_clause.= ' JOIN view_bible_LIB_ACCOUNT_entry la ON la.entry_key=r.field_LINK_ACCOUNT' ;
+						break ;
+						
+					case 'fs' :
+						$join_clause.= ' JOIN view_bible_CFG_STATUS_tree fs ON fs.treenode_key=f.field_STATUS' ;
+						break ;
+						
+					case 'fssub' :
+						$join_clause.= " JOIN (
+							SELECT f.filerecord_id, fa.field_LINK_JUDIC, fa.field_LINK_CLOSE, fa.field_LINK_LITIG
+							FROM op5_veo_prod_veo.view_file_FILE f
+							JOIN op5_veo_prod_veo.view_file_FILE_ACTION fa ON fa.filerecord_parent_id=f.filerecord_id
+							JOIN (
+								SELECT min(filerecord_id) as first_fileaction_filerecord_id
+								FROM op5_veo_prod_veo.view_file_FILE_ACTION 
+								group by filerecord_id
+							) first ON first.first_fileaction_filerecord_id=fa.filerecord_id 
+							WHERE field_LINK_JUDIC<>'' OR field_LINK_CLOSE<>'' OR field_LINK_LITIG<>''
+						) fssub ON fssub.filerecord_id=f.filerecord_id" ;
+						break ;
+						
+					case 'filelate' :
+						$join_clause.= " JOIN (
+							SELECT f.filerecord_id
+							FROM view_file_FILE f 
+							JOIN view_file_FILE_ACTION fa ON fa.filerecord_parent_id=f.filerecord_id 
+							WHERE 
+								(DATE(fa.field_DATE_SCHED)<>'0000-00-00' AND DATE(fa.field_DATE_SCHED)<'{$dates['date_end']}')
+								AND
+								(fa.field_STATUS_IS_OK<>'1' OR DATE(fa.field_DATE_ACTUAL)>'{$dates['date_end']}')
+							GROUP BY f.filerecord_id
+						) filelate ON filelate.filerecord_id=f.filerecord_id" ;
+						break ;
+				}
+			}
+			
+			$where_clause.= " AND (DATE(r.field_DATE_RECORD) < '{$dates['date_end']}')" ;
+			$where_clause.= " AND ((r.field_LETTER_IS_CONFIRM=1 AND r.field_LETTER_DATE > '{$dates['date_end']}') 
+										OR r.field_LETTER_IS_CONFIRM=0)" ;
+			if( $reportval_filterMap['wstatus'] ) {
+				$where_clause.= " AND f.field_STATUS='{$reportval_filterMap['wstatus']}'" ;
+			}
+			
 
-
-	}
-
-	switch ($reportvalId_base){
-		case 'wallet_amount' :
-			$select_clause = "'',sum( r.field_AMOUNT )" ;
-			if( $group_field ) {
-				$select_clause = $group_field.",sum( r.field_AMOUNT )" ;
-			}
+			
 			$query = "SELECT {$select_clause} 
-						FROM view_file_FILE f
-						JOIN view_file_RECORD_LINK rl ON rl.field_LINK_FILE_ID=f.filerecord_id AND rl.field_LINK_IS_ON='1'
-						JOIN view_file_RECORD r ON r.filerecord_id = rl.filerecord_parent_id
-						{$fgJoiner}
-						WHERE f.field_STATUS_CLOSED_VOID<>'1' AND f.field_STATUS_CLOSED_END<>'1'
-						AND (DATE(r.field_DATE_RECORD) < '{$dates['date_end']}')
-						AND ((r.field_LETTER_IS_CONFIRM=1 AND r.field_LETTER_DATE > '{$dates['date_end']}') OR r.field_LETTER_IS_CONFIRM=0)" ;
-			$query.= $where_account ;
+						FROM view_file_RECORD r
+						JOIN view_file_RECORD_LINK rl ON rl.filerecord_parent_id=r.filerecord_id
+						JOIN (
+							SELECT min(filerecord_id) as min_recordlink_filerecord_id
+							FROM view_file_RECORD_LINK
+							WHERE 
+								DATE(field_DATE_LINK_ON)<='{$dates['date_end']}' 
+								AND (DATE(field_DATE_LINK_OFF) > '{$dates['date_end']}' OR field_LINK_IS_ON='1') 
+							GROUP BY filerecord_parent_id
+						) rl_active ON rl_active.min_recordlink_filerecord_id = rl.filerecord_id
+						JOIN op5_veo_prod_veo.view_file_FILE f ON f.filerecord_id=rl.field_LINK_FILE_ID
+						{$join_clause}
+						{$where_clause}" ;
 			if( $group_field ) {
 				$query.= " GROUP BY {$group_field}" ;
 			}
-			break ;
-		case 'wallet_late':
-			$select_clause = "'',sum( r.field_AMOUNT )" ;
-			if( $group_field ) {
-				$select_clause = $group_field.',sum( r.field_AMOUNT )' ;
-			}
-			$query = "SELECT {$select_clause} 
-						FROM view_file_FILE_ACTION fa
-						JOIN view_file_FILE f ON f.filerecord_id=fa.filerecord_parent_id
-						{$fgJoiner}
-						JOIN view_file_RECORD_LINK rl ON rl.field_LINK_FILE_ID=f.filerecord_id AND rl.field_LINK_IS_ON='1'
-						JOIN view_file_RECORD r ON r.filerecord_id = rl.filerecord_parent_id
-						WHERE f.field_STATUS_CLOSED_VOID<>'1' AND f.field_STATUS_CLOSED_END<>'1'
-						AND fa.field_STATUS_IS_OK<>'1' AND DATE(field_DATE_SCHED)<DATE(NOW())
-						AND (DATE(r.field_DATE_RECORD) < '{$dates['date_end']}')
-						AND ((r.field_LETTER_IS_CONFIRM=1 AND r.field_LETTER_DATE > '{$dates['date_end']}') OR r.field_LETTER_IS_CONFIRM=0)" ;
-			$query.= $where_account ;
-			if( $group_field ) {
-				$query.= " GROUP BY {$group_field}" ;
-			}
-			break ;
-		case 'agree' :
-			$select_clause = "'',sum( r.field_AMOUNT )" ;
-			if( $group_field ) {
-				$select_clause = $group_field.",sum( r.field_AMOUNT )" ;
-			}
-			$query = "SELECT {$select_clause} 
-						FROM view_file_FILE f
-						JOIN view_file_RECORD_LINK rl ON rl.field_LINK_FILE_ID=f.filerecord_id AND rl.field_LINK_IS_ON='1'
-						JOIN view_file_RECORD r ON r.filerecord_id = rl.filerecord_parent_id
-						{$fgJoiner}
-						WHERE f.field_STATUS_CLOSED_VOID<>'1' AND f.field_STATUS_CLOSED_END<>'1' AND f.field_STATUS='S2P_PAY'
-						AND (DATE(r.field_DATE_RECORD) < '{$dates['date_end']}')
-						AND ((r.field_LETTER_IS_CONFIRM=1 AND r.field_LETTER_DATE > '{$dates['date_end']}') OR r.field_LETTER_IS_CONFIRM=0)" ;
-			$query.= $where_account ;
-			if( $group_field ) {
-				$query.= " GROUP BY {$group_field}" ;
-			}
-			break ;
-		case 'agree_late':
-			$select_clause = "'',sum( r.field_AMOUNT )" ;
-			if( $group_field ) {
-				$select_clause = $group_field.',sum( r.field_AMOUNT )' ;
-			}
-			$query = "SELECT {$select_clause} 
-						FROM view_file_FILE_ACTION fa
-						JOIN view_file_FILE f ON f.filerecord_id=fa.filerecord_parent_id
-						JOIN view_file_RECORD_LINK rl ON rl.field_LINK_FILE_ID=f.filerecord_id AND rl.field_LINK_IS_ON='1'
-						JOIN view_file_RECORD r ON r.filerecord_id = rl.filerecord_parent_id
-						{$fgJoiner}
-						WHERE f.field_STATUS_CLOSED_VOID<>'1' AND f.field_STATUS_CLOSED_END<>'1'
-						AND fa.field_STATUS_IS_OK<>'1' AND DATE(field_DATE_SCHED)<DATE(NOW()) AND f.field_STATUS='S2P_PAY'
-						AND (DATE(r.field_DATE_RECORD) < '{$dates['date_end']}')
-						AND ((r.field_LETTER_IS_CONFIRM=1 AND r.field_LETTER_DATE > '{$dates['date_end']}') OR r.field_LETTER_IS_CONFIRM=0)" ;
-			$query.= $where_account ;
-			if( $group_field ) {
-				$query.= " GROUP BY {$group_field}" ;
-			}
-			break ;
-		case 'cash' :
-			$select_clause = "'',sum( -1 * r.field_AMOUNT )" ;
-			if( $group_field ) {
-				$select_clause = $group_field.',sum( -1 * r.field_AMOUNT )' ;
-			}
-			$query = "SELECT {$select_clause} 
-						FROM view_file_FILE f
-						JOIN view_file_RECORD_LINK rl ON rl.field_LINK_FILE_ID=f.filerecord_id
-						JOIN view_file_RECORD r ON r.filerecord_id = rl.filerecord_parent_id
-						{$fgJoiner}
-						WHERE r.field_TYPE<>''
-						AND (DATE(r.field_DATE_RECORD) BETWEEN '{$dates['date_start']}' AND '{$dates['date_end']}')" ;
-			$query.= $where_account ;
-			if( $group_field ) {
-				$query.= " GROUP BY {$group_field}" ;
-			}
+			
 			$result = $_opDB->query($query) ;
+			
 			$map = array() ;
 			while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
-				if( $grouper && !$arr["filerecord_id"] ) {
+				if( $grouper && !$arr[0] ) {
 					continue ;
 				}
 				$map[$arr[0]] = $arr[1] ;
 			}
 			return $map ;
-		case 'late_count' :
-			$select_clause = "'',count( distinct f.field_LINK_ACCOUNT )" ;
-			if( $group_field ) {
-				$select_clause = $group_field.',count( distinct f.field_LINK_ACCOUNT )' ;
-			}
-			$query = "SELECT {$select_clause} 
-						FROM view_file_FILE_ACTION fa
-						JOIN view_file_FILE f ON f.filerecord_id=fa.filerecord_parent_id
-						JOIN view_file_RECORD_LINK rl ON rl.field_LINK_FILE_ID=f.filerecord_id AND rl.field_LINK_IS_ON='1'
-						JOIN view_file_RECORD r ON r.filerecord_id = rl.filerecord_parent_id
-						{$fgJoiner}
-						WHERE f.field_STATUS_CLOSED_VOID<>'1' AND f.field_STATUS_CLOSED_END<>'1'
-						AND fa.field_STATUS_IS_OK<>'1' AND DATE(field_DATE_SCHED)<DATE(NOW()) AND field_STATUS NOT IN ('SX_CLOSE')
-						AND (DATE(r.field_DATE_RECORD) < '{$dates['date_end']}')
-						AND ((r.field_LETTER_IS_CONFIRM=1 AND r.field_LETTER_DATE > '{$dates['date_end']}') OR r.field_LETTER_IS_CONFIRM=0)" ;
-			$query.= $where_account ;
-			if( $group_field ) {
-				$query.= " GROUP BY {$group_field}" ;
-			}
-			break ;
-		case 'late_amount' :
-			$select_clause = "'',sum( r.field_AMOUNT )" ;
-			if( $group_field ) {
-				$select_clause = $group_field.',sum( r.field_AMOUNT )' ;
-			}
-			$query = "SELECT {$select_clause} 
-						FROM view_file_FILE_ACTION fa
-						JOIN view_file_FILE f ON f.filerecord_id=fa.filerecord_parent_id
-						JOIN view_file_RECORD_LINK rl ON rl.field_LINK_FILE_ID=f.filerecord_id AND rl.field_LINK_IS_ON='1'
-						JOIN view_file_RECORD r ON r.filerecord_id = rl.filerecord_parent_id
-						{$fgJoiner}
-						WHERE f.field_STATUS_CLOSED_VOID<>'1' AND f.field_STATUS_CLOSED_END<>'1'
-						AND fa.field_STATUS_IS_OK<>'1' AND DATE(field_DATE_SCHED)<DATE(NOW()) AND field_STATUS NOT IN ('SX_CLOSE')
-						AND (DATE(r.field_DATE_RECORD) < '{$dates['date_end']}')
-						AND ((r.field_LETTER_IS_CONFIRM=1 AND r.field_LETTER_DATE > '{$dates['date_end']}') OR r.field_LETTER_IS_CONFIRM=0)" ;
-			$query.= $where_account ;
-			if( $group_field ) {
-				$query.= " GROUP BY {$group_field}" ;
-			}
-			break ;
-		case 'ext_amount':
-			$select_clause = "'',sum( r.field_AMOUNT )" ;
-			if( $group_field ) {
-				$select_clause = $group_field.",sum( r.field_AMOUNT )" ;
-			}
-			$query = "SELECT {$select_clause} 
-						FROM view_file_FILE f
-						JOIN view_file_RECORD_LINK rl ON rl.field_LINK_FILE_ID=f.filerecord_id AND rl.field_LINK_IS_ON='1'
-						JOIN view_file_RECORD r ON r.filerecord_id = rl.filerecord_parent_id
-						{$fgJoiner}
-						WHERE f.field_STATUS_CLOSED_VOID<>'1' AND f.field_STATUS_CLOSED_END<>'1' AND f.field_STATUS='S2L_LITIG'
-						AND (DATE(r.field_DATE_RECORD) < '{$dates['date_end']}')
-						AND ((r.field_LETTER_IS_CONFIRM=1 AND r.field_LETTER_DATE > '{$dates['date_end']}') OR r.field_LETTER_IS_CONFIRM=0)" ;
-			$query.= $where_account ;
-			if( $group_field ) {
-				$query.= " GROUP BY {$group_field}" ;
-			}
-			break ;
-		case 'ext_late':
-			$select_clause = "'',sum( r.field_AMOUNT )" ;
-			if( $group_field ) {
-				$select_clause = $group_field.',sum( r.field_AMOUNT )' ;
-			}
-			$query = "SELECT {$select_clause} 
-						FROM view_file_FILE_ACTION fa
-						JOIN view_file_FILE f ON f.filerecord_id=fa.filerecord_parent_id
-						JOIN view_file_RECORD_LINK rl ON rl.field_LINK_FILE_ID=f.filerecord_id AND rl.field_LINK_IS_ON='1'
-						JOIN view_file_RECORD r ON r.filerecord_id = rl.filerecord_parent_id
-						{$fgJoiner}
-						WHERE f.field_STATUS_CLOSED_VOID<>'1' AND f.field_STATUS_CLOSED_END<>'1'
-						AND fa.field_STATUS_IS_OK<>'1' AND DATE(field_DATE_SCHED)<DATE(NOW()) AND f.field_STATUS='S2L_LITIG'
-						AND (DATE(r.field_DATE_RECORD) < '{$dates['date_end']}')
-						AND ((r.field_LETTER_IS_CONFIRM=1 AND r.field_LETTER_DATE > '{$dates['date_end']}') OR r.field_LETTER_IS_CONFIRM=0)" ;
-			$query.= $where_account ;
-			if( $group_field ) {
-				$query.= " GROUP BY {$group_field}" ;
-			}
-			break ;
-		case 'non_echu':
-			$select_clause = "'',sum( r.field_AMOUNT )" ;
-			if( $group_field ) {
-				$select_clause = $group_field.",sum( r.field_AMOUNT )" ;
-			}
-			$query = "SELECT {$select_clause} 
-						FROM view_file_FILE f
-						JOIN view_file_RECORD_LINK rl ON rl.field_LINK_FILE_ID=f.filerecord_id AND rl.field_LINK_IS_ON='1'
-						JOIN view_file_RECORD r ON r.filerecord_id = rl.filerecord_parent_id
-						{$fgJoiner}
-						WHERE f.field_STATUS_CLOSED_VOID<>'1' AND f.field_STATUS_CLOSED_END<>'1' AND f.field_STATUS='S0_PRE'
-						AND (DATE(r.field_DATE_RECORD) < '{$dates['date_end']}')
-						AND ((r.field_LETTER_IS_CONFIRM=1 AND r.field_LETTER_DATE > '{$dates['date_end']}') OR r.field_LETTER_IS_CONFIRM=0)" ;
-			$query.= $where_account ;
-			if( $group_field ) {
-				$query.= " GROUP BY {$group_field}" ;
-			}
-			break ;
-		case 'close':
-			$select_clause = "'',sum( r.field_AMOUNT )" ;
-			if( $group_field ) {
-				$select_clause = $group_field.",sum( r.field_AMOUNT )" ;
-			}
-			$query = "SELECT {$select_clause} 
-						FROM view_file_FILE f
-						JOIN view_file_RECORD_LINK rl ON rl.field_LINK_FILE_ID=f.filerecord_id AND rl.field_LINK_IS_ON='1'
-						JOIN view_file_RECORD r ON r.filerecord_id = rl.filerecord_parent_id
-						{$fgJoiner}
-						WHERE f.field_STATUS_CLOSED_VOID<>'1' AND f.field_STATUS_CLOSED_END<>'1' AND f.field_STATUS='SX_CLOSE'
-						AND (DATE(r.field_DATE_RECORD) < '{$dates['date_end']}')
-						AND ((r.field_LETTER_IS_CONFIRM=1 AND r.field_LETTER_DATE > '{$dates['date_end']}') OR r.field_LETTER_IS_CONFIRM=0)" ;
-			$query.= $where_account ;
-			if( $group_field ) {
-				$query.= " GROUP BY {$group_field}" ;
-			}
-			break ;
-		case 'judi_amount':
-			$select_clause = "'',sum( r.field_AMOUNT )" ;
-			if( $group_field ) {
-				$select_clause = $group_field.",sum( r.field_AMOUNT )" ;
-			}
-			$query = "SELECT {$select_clause} 
-						FROM view_file_FILE f
-						JOIN view_file_RECORD_LINK rl ON rl.field_LINK_FILE_ID=f.filerecord_id AND rl.field_LINK_IS_ON='1'
-						JOIN view_file_RECORD r ON r.filerecord_id = rl.filerecord_parent_id
-						{$fgJoiner}
-						WHERE f.field_STATUS_CLOSED_VOID<>'1' AND f.field_STATUS_CLOSED_END<>'1' AND f.field_STATUS='S2J_JUDIC'
-						AND (DATE(r.field_DATE_RECORD) < '{$dates['date_end']}')
-						AND ((r.field_LETTER_IS_CONFIRM=1 AND r.field_LETTER_DATE > '{$dates['date_end']}') OR r.field_LETTER_IS_CONFIRM=0)" ;
-			$query.= $where_account ;
-			if( $group_field ) {
-				$query.= " GROUP BY {$group_field}" ;
-			}
-			break ;
-		case 'judi_late':
-			$select_clause = "'',sum( r.field_AMOUNT )" ;
-			if( $group_field ) {
-				$select_clause = $group_field.',sum( r.field_AMOUNT )' ;
-			}
-			$query = "SELECT {$select_clause} 
-						FROM view_file_FILE_ACTION fa
-						JOIN view_file_FILE f ON f.filerecord_id=fa.filerecord_parent_id
-						JOIN view_file_RECORD_LINK rl ON rl.field_LINK_FILE_ID=f.filerecord_id AND rl.field_LINK_IS_ON='1'
-						JOIN view_file_RECORD r ON r.filerecord_id = rl.filerecord_parent_id
-						{$fgJoiner}
-						WHERE f.field_STATUS_CLOSED_VOID<>'1' AND f.field_STATUS_CLOSED_END<>'1'
-						AND fa.field_STATUS_IS_OK<>'1' AND DATE(field_DATE_SCHED)<DATE(NOW()) AND f.field_STATUS='S2J_JUDIC'
-						AND (DATE(r.field_DATE_RECORD) < '{$dates['date_end']}')
-						AND ((r.field_LETTER_IS_CONFIRM=1 AND r.field_LETTER_DATE > '{$dates['date_end']}') OR r.field_LETTER_IS_CONFIRM=0)" ;
-
-			$query.= $where_account ;
-			if( $group_field ) {
-				$query.= " GROUP BY {$group_field}" ;
-			}
-			break ;
-		case 'wallet_count' :
-			$select_clause = "'',count( distinct field_LINK_ACCOUNT )" ;
-			if( $group_field ) {
-				$select_clause = $group_field.',count( distinct field_LINK_ACCOUNT )' ;
-			}
-			$query = "SELECT {$select_clause}
-						FROM view_file_FILE f
-						JOIN view_bible_LIB_ACCOUNT_entry la ON la.entry_key=f.field_LINK_ACCOUNT
-						{$fgJoiner}
-						WHERE f.field_STATUS_CLOSED_VOID<>'1' AND f.field_STATUS_CLOSED_END<>'1'" ;
-			$query.= $where_account ;
-			if( $group_field ) {
-				$query.= " GROUP BY {$group_field}" ;
-			}
-			break ;
-
+		
+		
+		
+		
 		default:
 			return array("" => 0 ) ;
 	}
-	$result = $_opDB->query($query) ;
-
-	$map = array() ;
-	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
-		if( $grouper && !$arr[0] ) {
-			continue ;
-		}
-		$map[$arr[0]] = $arr[1] ;
-	}
-	//print_r($map) ;
-	return $map ;
-
 }
 
 ?>
