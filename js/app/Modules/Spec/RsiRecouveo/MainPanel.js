@@ -25,7 +25,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MainPanel',{
 		'Optima5.Modules.Spec.RsiRecouveo.ReportFilesPanel',
 		'Optima5.Modules.Spec.RsiRecouveo.ReportTilesPanel',
 		'Optima5.Modules.Spec.RsiRecouveo.ReportChartsPanel',
-		'Optima5.Modules.Spec.RsiRecouveo.ReportTilePopup'
+		'Optima5.Modules.Spec.RsiRecouveo.ReportTilePopup',
+		
+		'Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPanel'
 	],
 	
 	initComponent: function() {
@@ -130,6 +132,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MainPanel',{
 				return me.openPasswdPopup() ;
 			case 'tiles':
 				return me.openTilesPanel();
+			case 'dashboard':
+				return me.openDashboardPanel();
 			case 'charts':
 				return me.openChartsPanel();
 			case 'analyse':
@@ -250,7 +254,31 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MainPanel',{
 		this.addPanel(pnl) ;
 		this.focusPanel(pnl) ;
 		this.minimizeWin() ;
+	},
+	openDashboardPanel: function(){
+		var doOpen = true ;
+		this.eachPanel(function(pnl){
+			if( !(pnl instanceof Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPanel) ) {
+				return true ;
+			}
+			this.focusPanel(pnl) ;
+			doOpen = false ;
+			return false ;
+		},this) ;
+		if( !doOpen ) {
+			return ;
+		}
 
+		//open
+		var pnl = Ext.create('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPanel',{
+			optimaModule: this.optimaModule,
+			title: 'Dashboard',
+			closable: true,
+			scrollable: true,
+		}) ;
+		this.addPanel(pnl) ;
+		this.focusPanel(pnl) ;
+		this.minimizeWin() ;
 	},
 
 	minimizeWin: function(){

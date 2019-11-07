@@ -1017,3 +1017,46 @@
 }
 
 
+.op5-spec-rsiveo-dashboard-pages {
+	text-align: center ;
+}
+.op5-spec-rsiveo-dashboard-pages-thumb {
+		position: relative ;
+		
+    display: inline-block;
+    vertical-align: top;
+    width: 130px;
+    min-height: 110px;
+    padding: 5px;
+    text-align: center;
+    margin: 4px;
+    background: #ccd8e7;
+    border: 1px solid #99BBE8;
+    border-radius: .5em;
+	 
+	 background-position: center 8px ;
+	 background-repeat: no-repeat;
+
+    user-select: none;
+}
+.op5-spec-rsiveo-dashboard-pages-thumbtext {
+	text-align: center;
+    position: absolute;
+    bottom: 4px;
+	 left: 0;
+	 right: 0;
+	 font-size: 11px;
+	 line-height: 12px;
+}
+.op5-spec-rsiveo-dashboard-pages-thumb:hover {
+    background-color: #999999;
+    border-color: #999999;
+	 cursor: pointer;
+}
+.op5-spec-rsiveo-dashboard-pages-thumb-selected  {
+    background-color: #FF4141 !important;
+}
+
+.op5-spec-rsiveo-dashboard-pageicon-wallet  {
+    background-image: url(../images/modules/rsiveo-recordtemp-64.png) ;
+}
