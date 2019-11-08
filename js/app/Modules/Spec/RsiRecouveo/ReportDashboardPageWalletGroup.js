@@ -6,7 +6,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageWalletGroup',{
 	},
 	
 	getTitleString: function() {
-		var filterData = this.getFilterData() ;
+		var filterData = this.getFilterValues() ;
 		//console.dir(filterData) ;
 		if( Ext.isEmpty(filterData['filter_date']['date_end']) ) {
 			return '???' ;
@@ -20,7 +20,21 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageWalletGroup',{
 	doLoad: function() {
 		this.callParent() ;
 		
-		
+		this.loadResultSets({
+			wallet_tile: {
+				
+			},
+			wallet_groups: {
+				reportval_ids: ['wallet?wvalue=amount&wlate=true']
+			}
+		}) ;
+	},
+	onResultSets: function() {
+		if( !this._viewInstalled ) {
+			console.log('do layout') ;
+			this._viewInstalled = true ;
+		}
+		console.dir( this._loadResultSets ) ;
 	},
 	
 	dummyFn: function() {
