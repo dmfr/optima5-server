@@ -79,7 +79,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportFilterablePanel',{
 						fieldLabel: 'Date début',
 						listeners: {
 							change: function() {
-								this.onDateSet() ;
+								//this.onDateSet() ;
 							},
 							scope: this
 						}
@@ -90,7 +90,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportFilterablePanel',{
 						fieldLabel: 'Date fin',
 						listeners: {
 							change: function() {
-								this.onDateSet() ;
+								//this.onDateSet() ;
 							},
 							scope: this
 						}
@@ -99,6 +99,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportFilterablePanel',{
 						text: 'Appliquer',
 						handler: function(btn) {
 							var form = btn.up('form') ;
+							form.up('menu').hide() ;
 							this.onDateSet() ;
 						},
 						scope: this

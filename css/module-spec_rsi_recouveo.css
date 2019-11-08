@@ -1019,6 +1019,7 @@
 
 .op5-spec-rsiveo-dashboard-pages {
 	text-align: center ;
+	background-color: #eeeeee ;
 }
 .op5-spec-rsiveo-dashboard-pages-thumb {
 		position: relative ;
@@ -1054,9 +1055,24 @@
 	 cursor: pointer;
 }
 .op5-spec-rsiveo-dashboard-pages-thumb-selected  {
-    background-color: #FF4141 !important;
+    background-color: #2f5584 !important;
+	 color: #ffffff ;
 }
 
 .op5-spec-rsiveo-dashboard-pageicon-wallet  {
     background-image: url(../images/modules/rsiveo-recordtemp-64.png) ;
+}
+
+.op5-spec-rsiveo-dashboard-pagetitle-box {
+	display: table ;
+}
+.op5-spec-rsiveo-dashboard-pagetitle {
+	display: table-cell ;
+	vertical-align: middle ;
+	
+	font-family: Play, sans-serif ;
+	font-size: 24px ;
+	line-height: 26px ;
+	color: #2f5584;
+	text-align: center ;
 }
