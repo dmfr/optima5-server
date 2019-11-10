@@ -606,6 +606,9 @@ function specRsiRecouveo_report_getGrid($post_data) {
 			case 'status':
 				$grouper = "STATUS" ;
 				break ;
+			case 'status_substatus':
+				$grouper = "STATUS_SUBSTATUS" ;
+				break ;
 		}
 	}
 
@@ -773,20 +776,11 @@ function specRsiRecouveo_report_run_getValues( $reportval_id, $dates, $filters, 
 			case 'STATUS':
 				$join_tables['fs'] = TRUE ;
 				$group_field = 'fs.treenode_key' ;
-				if( $reportval_filterMap['wstatus'] ) {
-					$join_tables['fssub'] = TRUE ;
-					switch( $reportval_filterMap['wstatus'] ) {
-						case 'S2J_JUDIC' :
-							$group_field = 'fssub.field_LINK_JUDIC' ;
-							break ;
-						case 'S2L_LITIG' :
-							$group_field = 'fssub.field_LINK_LITIG' ;
-							break ;
-						case 'SX_CLOSE' :
-							$group_field = 'fssub.field_LINK_CLOSE' ;
-							break ;
-					}
-				}
+				break ;
+			case 'STATUS_SUBSTATUS' :
+				$join_tables['fs'] = TRUE ;
+				$join_tables['fssub'] = TRUE ;
+				$group_field = "CONCAT(fs.treenode_key,':',fssub.substatus)" ;
 				break ;
 		}
 	}
@@ -899,7 +893,14 @@ function specRsiRecouveo_report_run_getValues( $reportval_id, $dates, $filters, 
 						
 					case 'fssub' :
 						$join_clause.= " JOIN (
-							SELECT f.filerecord_id, fa.field_LINK_JUDIC, fa.field_LINK_CLOSE, fa.field_LINK_LITIG
+							SELECT f.filerecord_id, 
+								CASE f.field_STATUS
+									WHEN 'S2L_LITIG' THEN field_LINK_LITIG
+									WHEN 'S2J_JUDIC' THEN field_LINK_JUDIC
+									WHEN 'SX_CLOSE' THEN field_LINK_CLOSE
+									ELSE ''
+								END
+								as substatus
 							FROM op5_veo_prod_veo.view_file_FILE f
 							JOIN op5_veo_prod_veo.view_file_FILE_ACTION fa ON fa.filerecord_parent_id=f.filerecord_id
 							JOIN (
@@ -907,7 +908,6 @@ function specRsiRecouveo_report_run_getValues( $reportval_id, $dates, $filters, 
 								FROM op5_veo_prod_veo.view_file_FILE_ACTION 
 								group by filerecord_id
 							) first ON first.first_fileaction_filerecord_id=fa.filerecord_id 
-							WHERE field_LINK_JUDIC<>'' OR field_LINK_CLOSE<>'' OR field_LINK_LITIG<>''
 						) fssub ON fssub.filerecord_id=f.filerecord_id" ;
 						break ;
 						

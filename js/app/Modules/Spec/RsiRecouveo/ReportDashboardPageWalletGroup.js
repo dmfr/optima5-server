@@ -21,12 +21,33 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageWalletGroup',{
 		this.callParent() ;
 		
 		this.loadResultSets({
-			wallet_tile: {
-				
+			tile: {
+				reportval_ids: ['wallet?wvalue=amount']
 			},
-			wallet_groups: {
+			tile_late: {
 				reportval_ids: ['wallet?wvalue=amount&wlate=true']
-			}
+			},
+			piechart_amount: {
+				reportval_ids: ['wallet?wvalue=amount'],
+				axes: {
+					groupby_is_on: true,
+					groupby_key: 'status'
+				}
+			},
+			piechart_count: {
+				reportval_ids: ['wallet?wvalue=count'],
+				axes: {
+					groupby_is_on: true,
+					groupby_key: 'status'
+				}
+			},
+			grid: {
+				reportval_ids: ['wallet?wvalue=amount'],
+				axes: {
+					groupby_is_on: true,
+					groupby_key: 'status_substatus'
+				}
+			},
 		}) ;
 	},
 	onResultSets: function() {
