@@ -362,6 +362,8 @@ function specRsiRecouveo_report_getGrid($post_data) {
 	$cfg_soc = $ttmp['data']['cfg_soc'] ;
 	$cfg_user = $ttmp['data']['cfg_user'] ;
 	$cfg_atr = $ttmp['data']['cfg_atr'] ;
+	$cfg_status = $ttmp['data']['cfg_status'] ;
+	$cfg_opt = $ttmp['data']['cfg_opt'] ;
 
 	$map_user = array() ;
 	foreach( $cfg_user as $user ) {
@@ -370,6 +372,29 @@ function specRsiRecouveo_report_getGrid($post_data) {
 	$map_soc = array() ;
 	foreach( $cfg_soc as $soc ) {
 		$map_soc[$soc['soc_id']] = $soc['soc_name'] ;
+	}
+	$map_statusName = array() ;
+	$map_statusColor = array() ;
+	foreach( $cfg_status as $status ) {
+		$map_statusName[$status['status_id']] = $status['status_txt'] ;
+		$map_statusColor[$status['status_id']] = $status['status_color'] ;
+	}
+	
+	$map_bibleCode_statusCode = array(
+		'OPT_JUDIC' => 'S2J_JUDIC',
+		'OPT_LITIG' => 'S2L_LITIG',
+		'OPT_CLOSEASK' => 'SX_CLOSE'
+	) ;
+	$map_substatusName = array() ;
+	foreach( $cfg_opt as $opt ) {
+		if( !isset($map_bibleCode_statusCode[$opt['bible_code']]) ) {
+			continue ;
+		}
+		$status = $map_bibleCode_statusCode[$opt['bible_code']] ;
+		foreach( $opt['records'] as $rec ) {
+			$mkey = $status.':'.$rec['id'] ;
+			$map_substatusName[$mkey] = $rec['text'] ;
+		}
 	}
 
 
@@ -633,10 +658,26 @@ function specRsiRecouveo_report_getGrid($post_data) {
 		$row['group_txt'] = $group ;
 		switch( $p_axes['groupby_key'] ) {
 			case 'user' :
-				$row['group_txt'] = $map_user[$row['group_id']] ;
+				$row['group_txt'] = $map_user[$group] ;
 				break ;
 			case 'soc' :
-				$row['group_txt'] = $map_soc[$row['group_id']] ;
+				$row['group_txt'] = $map_soc[$group] ;
+				break ;
+			case 'status' :
+				$row['group_txt'] = $map_statusName[$group] ;
+				$row['group_color'] = $map_statusColor[$group] ;
+				break ;
+			case 'status_substatus' :
+				$ttmp = explode(':',$group,2) ;
+				$status = $ttmp[0] ;
+				$substatus = $group ;
+				$row['parent_id'] = $status ;
+				$row['parent_txt'] = $map_statusName[$status] ;
+				$row['group_txt'] = $map_statusName[$status] ;
+				$row['group_color'] = $map_statusColor[$status] ;
+				if( $map_substatusName[$substatus] ) {
+					$row['group_txt'] = $map_substatusName[$substatus] ;
+				}
 				break ;
 		}
 		$rows[] = $row ;
@@ -849,7 +890,7 @@ function specRsiRecouveo_report_run_getValues( $reportval_id, $dates, $filters, 
 				if( $grouper && !$arr[0] ) {
 					continue ;
 				}
-				$map[$arr[0]] = $arr[1] ;
+				$map[$arr[0]] = (float)$arr[1] ;
 			}
 			return $map ;
 			
@@ -906,7 +947,7 @@ function specRsiRecouveo_report_run_getValues( $reportval_id, $dates, $filters, 
 							JOIN (
 								SELECT min(filerecord_id) as first_fileaction_filerecord_id
 								FROM op5_veo_prod_veo.view_file_FILE_ACTION 
-								group by filerecord_id
+								group by filerecord_parent_id
 							) first ON first.first_fileaction_filerecord_id=fa.filerecord_id 
 						) fssub ON fssub.filerecord_id=f.filerecord_id" ;
 						break ;
@@ -960,7 +1001,7 @@ function specRsiRecouveo_report_run_getValues( $reportval_id, $dates, $filters, 
 				if( $grouper && !$arr[0] ) {
 					continue ;
 				}
-				$map[$arr[0]] = $arr[1] ;
+				$map[$arr[0]] = (float)$arr[1] ;
 			}
 			return $map ;
 		

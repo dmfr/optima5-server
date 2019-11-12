@@ -82,7 +82,37 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPage',{
 		//
 	},
 	getResultSet: function(setId) {
-		return this._loadResultSets[setId] ;
+		if( !this._loadResultSets[setId] ) { 
+			return [] ;
+		}
+		var ajaxData = this._loadResultSets[setId] ;
+		var dataIndexes = [] ;
+		Ext.Array.each(ajaxData.columns, function(col) {
+			if( !Ext.isEmpty(col.reportval_id) ) {
+				dataIndexes.push(col.dataIndex) ;
+			}
+		}) ;
+		var rows = [],
+			row, val ;
+		Ext.Array.each(ajaxData.data, function(datarow) {
+			row = {} ;
+			Ext.Object.each( datarow, function(k,v) {
+				if( Ext.Array.contains(dataIndexes,k) ) {
+					return ;
+				}
+				row[k]=v ;
+			}) ;
+			row['values'] = [] ;
+			Ext.Array.each(dataIndexes, function(dataIndex) {
+				val = datarow[dataIndex] ;
+				if( Ext.isNumber(val) ) {
+					//val = Math.round(val) ;
+				}
+				row.values.push( val ) ;
+			}) ;
+			rows.push(row) ;
+		}) ;
+		return rows ;
 	},
 	
 	

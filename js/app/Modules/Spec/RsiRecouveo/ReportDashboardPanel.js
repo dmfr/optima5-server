@@ -12,8 +12,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPanel',{
 		page_class: 'Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageWalletGroup'
 	},{
 		page_id: 'wallet_history',
-		page_title: 'Décompossqd<br>fqsdqdsdsdqs',
-		page_iconcls: 'op5-spec-rsiveo-dashboard-pageicon-wallet'
+		page_title: 'Evolution de<br>l\'encours',
+		page_iconcls: 'op5-spec-rsiveo-dashboard-pageicon-wallet-history'
 	}],
 	
 	dashboardPagesStore: null,
