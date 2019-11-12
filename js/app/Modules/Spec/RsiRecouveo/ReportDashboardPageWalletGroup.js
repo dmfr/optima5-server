@@ -81,6 +81,11 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageWalletGroup',{
 			this.buildPage() ;
 		}
 		
+		var filterData = this.getFilterValues(),
+			dateValue = filterData['filter_date']['date_end'],
+			dateValuePrev = filterData['filter_date']['date_start'] ;
+		var dateValuePrevStr = Ext.Date.format(Ext.Date.parse(dateValuePrev,'Y-m-d'),"d/m/Y") ;		
+		
 		
 		var tileValue = this.getResultSet('tile')[0]['values'][0],
 			tileBeforeValue = this.getResultSet('tilebefore')[0]['values'][0] ;
@@ -96,7 +101,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageWalletGroup',{
 			main_value: Ext.util.Format.number(tileValue, '0,000'),
 			main_suffix: '€',
 			main_iconCls: 'op5-spec-rsiveo-reporttile-main-icon-value-amount',
-			eval_caption: 'Début de période',
+			eval_caption: 'Rappel au '+dateValuePrevStr,
 			eval_value: Ext.util.Format.number(tileBeforeValue, '0,000'),
 			eval_suffix: '€',
 			eval_direction: eval_direction
@@ -120,7 +125,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageWalletGroup',{
 			main_value: Ext.util.Format.number(tileValue, '0,000'),
 			main_suffix: '€',
 			main_iconCls: 'op5-spec-rsiveo-reporttile-main-icon-value-count',
-			eval_caption: 'Début de période',
+			eval_caption: 'Rappel au '+dateValuePrevStr,
 			eval_value: Ext.util.Format.number(tileBeforeValue, '0,000'),
 			eval_suffix: '€',
 			eval_direction: eval_direction
@@ -454,7 +459,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageWalletGroup',{
 					return v ;
 				}
 			},{
-				text: 'Mnt (€)',
+				text: 'Euros',
 				width: 100,
 				dataIndex: 'amount',
 				align: 'right',
@@ -466,7 +471,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageWalletGroup',{
 					return '<b>'+Ext.util.Format.number(value,'0,000')+'</b>' ;
 				}
 			},{
-				text: 'Nb.Comptes',
+				text: 'Dossiers',
 				width: 100,
 				dataIndex: 'count',
 				align: 'right',
