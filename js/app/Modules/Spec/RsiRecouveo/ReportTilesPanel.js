@@ -99,6 +99,18 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportTileComponent',{
 			eval_iconCls: eval_iconCls
 		} ;
 		this.update(data) ;
+	},
+	update: function(data) {
+		switch( data.eval_direction ) {
+			case 'more-good' :
+			case 'more-bad' :
+			case 'less-good' :
+			case 'less-bad' :
+				data.eval_iconCls = 'op5-spec-rsiveo-reporttile-main-icon-'+data.eval_direction ;
+				break ;
+		}
+		arguments[0] = data ;
+		this.callParent(arguments) ;
 	}
 }) ;
 
