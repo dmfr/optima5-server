@@ -2,7 +2,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPanel',{
 	extend: 'Optima5.Modules.Spec.RsiRecouveo.ReportFilterablePanel',
 	
 	requires: [
-		'Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageWalletGroup'
+		'Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageWalletGroup',
+		'Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageWalletHistory'
 	],
 	
 	dashboardPages: [{
@@ -13,7 +14,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPanel',{
 	},{
 		page_id: 'wallet_history',
 		page_title: 'Evolution de<br>l\'encours',
-		page_iconcls: 'op5-spec-rsiveo-dashboard-pageicon-wallet-history'
+		page_iconcls: 'op5-spec-rsiveo-dashboard-pageicon-wallet-history',
+		page_class: 'Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageWalletHistory'
 	}],
 	
 	dashboardPagesStore: null,

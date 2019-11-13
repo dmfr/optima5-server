@@ -81,6 +81,12 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPage',{
 	onResultSets: function() {
 		//
 	},
+	getResultSetRaw: function(setId) {
+		if( !this._loadResultSets[setId] ) { 
+			return null ;
+		}
+		return this._loadResultSets[setId]
+	},
 	getResultSet: function(setId) {
 		if( !this._loadResultSets[setId] ) { 
 			return [] ;
