@@ -153,8 +153,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageWalletHistory',{
 			this.buildPage() ;
 		}
 		
-		console.dir(this._loadResultSets) ;
-		
 		var filterData = this.getFilterValues(),
 			dateValue = filterData['filter_date']['date_end'],
 			dateValuePrev = filterData['filter_date']['date_start'] ;
@@ -185,7 +183,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageWalletHistory',{
 		
 		
 		//build Grid
-		console.dir( this.getResultSetRaw('timebreak') ) ;
 		var tableData = this.getResultSetRaw('timebreak') ;
 		
 		var fields = [] ;
@@ -259,32 +256,51 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageWalletHistory',{
 		
 		var groupIds = [],
 			groupTitles = [] ;
+		Ext.Array.sort( tableData.data, function(a,b) {
+			return !!(a.group_id<b.group_id) ? -1 : 1 ;
+		});
 		Ext.Array.each( tableData.data, function(row) {
+			var mkey = 'g_'+row.group_id ;
 			fields.push({
-				name: 'g_'+row.group_id,
+				name: mkey,
 				type: 'number'
 			}) ;
-			yFields.push( row.group_id ) ;
+			yFields.push( mkey ) ;
 			yTitles.push( row.group_txt ) ;
 			if( !Ext.isEmpty(row.group_color) ) {
 				yColors.push( row.group_color ) ;
 			}
 		}) ;
 		
-		var chartData = [] ;
+		var chartData = [],
+			chartRow ;
+		Ext.Array.each( tableData.columns, function(col) {
+			if( Ext.isEmpty(col.date_end) ) {
+				return ;
+			}
+			chartRow = {
+				timebreak_id: col.dataIndex,
+				timebreak_txt: col.text
+			};
+			Ext.Array.each( tableData.data, function(row) {
+				var mkey = 'g_'+row.group_id ;
+				chartRow[mkey] = (row[col.dataIndex] > 0 ? row[col.dataIndex] : 0);
+			});
+			chartData.push(chartRow) ;
+		}) ;
 		
 		
 		var barchart = {
 			xtype: 'cartesian',
 			width: '100%',
-			height: 460,
+			height: '100%',
 			legend: {
 				docked: 'left'
 			},
 			store: {
 				proxy: {type:'memory'},
 				fields: fields,
-				data: Ext.clone(tableData.data),
+				data: chartData,
 			},
 			insetPadding: {
 					top: 40,
@@ -292,19 +308,20 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageWalletHistory',{
 					right: 40,
 					bottom: 40
 			},
+			colors: yColors,
 			axes: [{
 					type: 'numeric',
 					position: 'left',
 					adjustByMajorUnit: true,
 					grid: true,
-					fields: ['data1'],
+					fields: [yFields[1]],
 					//renderer: function (v) { return v.toFixed(v < 10 ? 1: 0) + '%'; },
 					minimum: 0
 			}, {
 					type: 'category',
 					position: 'bottom',
 					grid: true,
-					fields: ['month'],
+					fields: [xField],
 					label: {
 						rotate: {
 							degrees: -45
@@ -314,12 +331,13 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageWalletHistory',{
 			series: [{
 					type: 'bar',
 					axis: 'left',
-					title: [ 'IE', 'Firefox', 'Chrome', 'Safari' ],
-					xField: 'month',
-					yField: [ 'data1', 'data2', 'data3', 'data4' ],
+					title: yTitles,
+					xField: xField,
+					yField: yFields,
 					stacked: true,
 					style: {
-						opacity: 0.80
+						opacity: 0.80,
+						minGapWidth: 30
 					},
 					highlight: {
 						fillStyle: 'yellow'
@@ -336,14 +354,19 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageWalletHistory',{
 			}]
 		} ;
 		
-		
+		var chartPanel = {
+			flex: 1,
+			xtype: 'panel',
+			layout: 'fit',
+			items: barchart
+		} ;
 		
 		
 		
 		
 		var pMain = this.down('#pMain') ;
 		pMain.removeAll() ;
-		pMain.add(grid) ;
+		pMain.add(grid, chartPanel) ;
 	},
 	
 	dummyFn: function() {
