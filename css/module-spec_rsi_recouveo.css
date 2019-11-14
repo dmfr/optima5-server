@@ -1065,6 +1065,9 @@
 .op5-spec-rsiveo-dashboard-pageicon-wallet-history  {
     background-image: url(../images/modules/rsiveo-upload-64.png) ;
 }
+.op5-spec-rsiveo-dashboard-pageicon-actions  {
+    background-image: url(../images/modules/rsiveo-mail-out-64.png) ;
+}
 
 .op5-spec-rsiveo-dashboard-pagetitle-box {
 	display: table ;
@@ -1092,4 +1095,8 @@
 	line-height: 16px ;
 	color: #2f5584;
 	text-align: center ;
+}
+
+.op5-spec-rsiveo-dashboard-grid-bluerow .x-grid-cell-inner {
+    background-color: #46d4ff ;
 }

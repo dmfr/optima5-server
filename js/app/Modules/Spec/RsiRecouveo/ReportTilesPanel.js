@@ -41,12 +41,14 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportTileComponent',{
 			'<div class="op5-spec-rsiveo-reporttile-main-text">{main_value}&nbsp;{main_suffix}</div>',
 			'<div class="op5-spec-rsiveo-reporttile-main-icon {main_iconCls}"></div>',
 		'</div>',
+		'<tpl if="eval_caption">',
 		'<hr>',
 		'<div class="op5-spec-rsiveo-reporttile-eval-caption">{eval_caption}</div>',
 		'<div class="op5-spec-rsiveo-reporttile-eval">',
 			'<div class="op5-spec-rsiveo-reporttile-eval-text">(&nbsp;{eval_value}&nbsp;{eval_suffix}&nbsp;)</div>',
 			'<div class="op5-spec-rsiveo-reporttile-eval-icon {eval_iconCls}"></div>',
 		'</div>',
+		'</tpl>',
 	],
 	initComponent: function() {
 		Ext.apply(this,{

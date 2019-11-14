@@ -100,15 +100,15 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageWalletHistory',{
 				},{
 					xtype: 'combobox',
 					name: 'timebreak_group',
-					fieldLabel: 'Intervalle',
+					fieldLabel: 'Périodicité',
 					forceSelection: true,
 					editable: false,
 					store: {
 						fields: ['mode','lib'],
 						data : [
-							{mode:'DAY', lib:'Day (Y-m-d)'},
-							{mode:'WEEK', lib:'Week (Y-week)'},
-							{mode:'MONTH', lib:'Month (Y-m)'}
+							{mode:'DAY', lib:'Quotidienne'},
+							{mode:'WEEK', lib:'Hebdomadaire'},
+							{mode:'MONTH', lib:'Mensuelle'}
 						]
 					},
 					queryMode: 'local',

@@ -831,6 +831,122 @@ function specRsiRecouveo_report_run_getValues( $reportval_id, $dates, $filters, 
 	
 	
 	switch( $reportval_id ) {
+		case 'cash_in' :
+			$select_clause = "'',sum( -1 * r.field_AMOUNT )" ;
+			if( $group_field ) {
+				$select_clause = $group_field.',sum( -1 * r.field_AMOUNT )' ;
+			}
+			
+			
+			foreach( $join_tables as $table => $torf ) {
+				if( !$torf ) {
+					continue ;
+				}
+				switch( $table ) {
+					case 'la' :
+						$join_clause.= ' JOIN view_bible_LIB_ACCOUNT_entry la ON la.entry_key=r.field_LINK_ACCOUNT' ;
+						break ;
+				}
+			}
+			
+			$where_clause.= " AND (r.field_TYPE<>'' OR r.field_AMOUNT<'0')" ;
+			$where_clause.= " AND (DATE(r.field_DATE_RECORD) BETWEEN '{$dates['date_start']}' AND '{$dates['date_end']}')" ;
+			if( $reportval_filterMap['wstatus'] ) {
+				$where_clause.= " AND f.field_STATUS='{$reportval_filterMap['wstatus']}'" ;
+			}
+			
+			
+			$query = "SELECT {$select_clause} 
+						FROM view_file_RECORD r
+						{$join_clause}
+						{$where_clause}" ;
+			if( $group_field ) {
+				$query.= " GROUP BY {$group_field}" ;
+			}
+			//echo $query."\n" ;
+			$result = $_opDB->query($query) ;
+			$map = array() ;
+			while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+				if( $grouper && !$arr[0] ) {
+					continue ;
+				}
+				$map[$arr[0]] = (float)$arr[1] ;
+			}
+			return $map ;
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+		case 'actions' :
+			$select_clause = "'',count(*)" ;
+			if( $group_field ) {
+				$select_clause = $group_field.',count(*)' ;
+			}
+			
+			
+			if( $reportval_filterMap['aclass'] ) {
+				$join_tables['tpl'] = TRUE ;
+			}
+			foreach( $join_tables as $table => $torf ) {
+				if( !$torf ) {
+					continue ;
+				}
+				switch( $table ) {
+					case 'la' :
+						$join_clause.= ' JOIN view_bible_LIB_ACCOUNT_entry la ON la.entry_key=f.field_LINK_ACCOUNT' ;
+						break ;
+					case 'tpl' :
+						$join_clause.= ' LEFT OUTER JOIN view_bible_TPL_entry te ON te.entry_key=fa.field_LINK_TPL' ;
+						break ;
+				}
+			}
+			
+			$where_clause.= " AND fa.field_STATUS_IS_OK='1' AND field_LINK_ACTION<>'BUMP'" ;
+			$where_clause.= " AND (DATE(fa.field_DATE_ACTUAL) BETWEEN '{$dates['date_start']}' AND '{$dates['date_end']}')" ;
+			switch ($reportval_filterMap['aclass']) {
+				case 'manual' :
+					$where_clause .= " AND (te.field_MANUAL_IS_ON IS NULL OR te.field_MANUAL_IS_ON='1')";
+					break;
+				case 'auto' :
+					$where_clause .= " AND (te.field_MANUAL_IS_ON IS NOT NULL AND te.field_MANUAL_IS_ON='0')";
+					break;
+			}
+			if( $reportval_filterMap['atype'] ) {
+				$where_clause.= " AND f.field_LINK_ACTION='{$reportval_filterMap['atype']}'" ;
+			}
+			if( $reportval_filterMap['astatus'] ) {
+				$where_clause.= " AND f.field_STATUS='{$reportval_filterMap['astatus']}'" ;
+			}
+		
+			$query = "SELECT {$select_clause} 
+						FROM view_file_FILE_ACTION fa
+						JOIN view_file_FILE f ON f.filerecord_id=fa.filerecord_parent_id
+						{$join_clause}
+						{$where_clause}" ;
+			if( $group_field ) {
+				$query.= " GROUP BY {$group_field}" ;
+			}
+			//echo $query."\n" ;
+			$result = $_opDB->query($query) ;
+			$map = array() ;
+			while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+				if( $grouper && !$arr[0] ) {
+					continue ;
+				}
+				$map[$arr[0]] = (float)$arr[1] ;
+			}
+			return $map ;
+			
+		
 		case 'calls_out' :
 		case 'calls_in' :
 		case 'emails_out' :
