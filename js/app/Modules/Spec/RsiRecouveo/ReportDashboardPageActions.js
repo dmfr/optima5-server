@@ -215,7 +215,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageActions',{
 		var componentData = {
 			caption: 'Actions automatiques',
 			main_value: Ext.util.Format.number(tileValue, '0,000'),
-			main_suffix: '€',
+			main_suffix: '',
 			main_iconCls: 'op5-spec-rsiveo-reporttile-main-icon-value-amount',
 		} ;
 		this.down('#actionsAuto').update(componentData) ;
@@ -225,7 +225,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageActions',{
 		var componentData = {
 			caption: 'Actions manuelles',
 			main_value: Ext.util.Format.number(tileValue, '0,000'),
-			main_suffix: '€',
+			main_suffix: '',
 			main_iconCls: 'op5-spec-rsiveo-reporttile-main-icon-value-amount',
 		} ;
 		this.down('#actionsMan').update(componentData) ;
