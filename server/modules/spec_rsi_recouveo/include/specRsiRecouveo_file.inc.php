@@ -1145,7 +1145,7 @@ function specRsiRecouveo_file_createForAction( $post_data ) {
 			$date_now = date('Y-m-d H:i:s') ;
 			$query = "UPDATE view_file_RECORD_LINK rl
 						JOIN recordsFilerecordIds ids ON ids.record_filerecord_id = rl.filerecord_parent_id
-						SET rl.field_LINK_IS_ON='0' AND rl.field_DATE_LINK_OFF='{$date_now}'
+						SET rl.field_LINK_IS_ON='0' , rl.field_DATE_LINK_OFF='{$date_now}'
 						WHERE rl.field_LINK_IS_ON='1'" ;
 			$_opDB->query($query) ;
 			
@@ -2150,12 +2150,13 @@ function specRsiRecouveo_file_allocateRecordTemp( $post_data ) {
 	$p_fileFilerecordId = $post_data['file_filerecord_id'] ;
 	$p_arrRecordFilerecordIds = json_decode($post_data['arr_recordFilerecordIds'],true) ;
 	
+	$date_now = date('Y-m-d H:i:s') ;
 	foreach( $p_arrRecordFilerecordIds as $record_filerecord_id ) {
 		if( $p_fileFilerecordId==='' ) {
 			paracrm_lib_data_deleteRecord_file( 'RECORD', $record_filerecord_id );
 		}
 		$query = "UPDATE view_file_RECORD r, view_file_RECORD_LINK rl
-					SET rl.field_LINK_IS_ON='0'
+					SET rl.field_LINK_IS_ON='0', rl.field_DATE_LINK_OFF='{$date_now}'
 					WHERE r.filerecord_id = rl.filerecord_parent_id
 					AND r.filerecord_id='{$record_filerecord_id}'" ;
 		$_opDB->query($query) ;
