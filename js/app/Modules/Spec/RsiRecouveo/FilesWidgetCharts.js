@@ -102,7 +102,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesWidgetCharts',{
 			},{
 				xtype: 'panel',
 				height: 240,
-				width: 215,
+				width: 207,
 				layout: 'fit',
 				border: false,
 				items: {
