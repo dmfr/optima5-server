@@ -18,10 +18,15 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPanel',{
 		page_iconcls: 'op5-spec-rsiveo-dashboard-pageicon-wallet-history',
 		page_class: 'Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageWalletHistory'
 	},{
-		page_id: 'wallet_history',
+		page_id: 'actions',
 		page_title: 'Actions<br>réalisées',
 		page_iconcls: 'op5-spec-rsiveo-dashboard-pageicon-actions',
 		page_class: 'Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageActions'
+	},{
+		page_id: 'users',
+		page_title: 'Collaborateurs',
+		page_iconcls: 'op5-spec-rsiveo-dashboard-pageicon-users',
+		page_class: 'Optima5.Modules.Spec.RsiRecouveo.ReportUsersPanel'
 	}],
 	
 	dashboardPagesStore: null,
@@ -133,6 +138,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPanel',{
 		
 		var pagePanel = Ext.create(pageClass,{
 			_dashboardPanel: this,
+			optimaModule: this.optimaModule,
 			listeners: {
 				pagetitle: this.onPageTitle,
 				scope: this
@@ -155,7 +161,12 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPanel',{
 			flex: 1,
 			itemId: 'pagePanel'
 		})]);
-		pagePanel.doLoad() ;
+		if( pageClass == 'Optima5.Modules.Spec.RsiRecouveo.ReportUsersPanel' ) {
+			pagePanel.down('toolbar').destroy() ;
+			pagePanel.fireEvent('pagetitle',pagePanel,'Collaborateurs') ;
+		} else {
+			pagePanel.doLoad() ;
+		}
 	},
 	onPageTitle: function( pagePanel, pageTitleString ) {
 		this.down('#pCenter').down('#pageTitle').setData({
