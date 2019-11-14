@@ -2,6 +2,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageWalletHistory',{
 	extend:'Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPage',
 	
 	_groupbyKey: 'fstatus',
+	_timebreakGroup: 'MONTH',
 	
 	initComponent: function() {
 		Ext.apply(this,{
@@ -53,7 +54,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageWalletHistory',{
 				reportval_ids: ['wallet?wvalue=amount'],
 				axes: {
 					timebreak_is_on: true,
-					timebreak_group: 'MONTH',
+					timebreak_group: this._timebreakGroup,
 					groupby_is_on: true,
 					groupby_key: groupbyKey
 				}
@@ -96,6 +97,23 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageWalletHistory',{
 					queryMode: 'local',
 					displayField: 'groupby_key_txt',
 					valueField: 'groupby_key'
+				},{
+					xtype: 'combobox',
+					name: 'timebreak_group',
+					fieldLabel: 'Intervalle',
+					forceSelection: true,
+					editable: false,
+					store: {
+						fields: ['mode','lib'],
+						data : [
+							{mode:'DAY', lib:'Day (Y-m-d)'},
+							{mode:'WEEK', lib:'Week (Y-week)'},
+							{mode:'MONTH', lib:'Month (Y-m)'}
+						]
+					},
+					queryMode: 'local',
+					displayField: 'lib',
+					valueField: 'mode'
 				}]
 			},{
 				xtype: 'panel',
@@ -128,7 +146,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageWalletHistory',{
 		}) ;
 		
 		this.down('#cfgForm').getForm().setValues({
-			groupby_key: this._groupbyKey
+			groupby_key: this._groupbyKey,
+			timebreak_group: this._timebreakGroup
 		}) ;
 		this.down('#cfgForm').getForm().getFields().each(function(field) {
 			field.on('change',function(ifield){
@@ -144,6 +163,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageWalletHistory',{
 			formValues = form.getFieldValues() ;
 		if( formValues['groupby_key'] ) {
 			this._groupbyKey = formValues['groupby_key'] ;
+		}
+		if( formValues['timebreak_group'] ) {
+			this._timebreakGroup = formValues['timebreak_group'] ;
 		}
 		this.doLoad() ;
 	},
@@ -280,7 +302,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageWalletHistory',{
 			}
 			chartRow = {
 				timebreak_id: col.dataIndex,
-				timebreak_txt: col.text
+				timebreak_txt: Ext.Date.format(Ext.Date.parse(col.date_end,'Y-m-d'),"d/m/Y")
 			};
 			Ext.Array.each( tableData.data, function(row) {
 				var mkey = 'g_'+row.group_id ;
@@ -308,21 +330,31 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageWalletHistory',{
 					right: 40,
 					bottom: 40
 			},
-			colors: yColors,
 			axes: [{
 					type: 'numeric',
 					position: 'left',
 					adjustByMajorUnit: true,
 					grid: true,
 					fields: [yFields[1]],
-					//renderer: function (v) { return v.toFixed(v < 10 ? 1: 0) + '%'; },
-					minimum: 0
+					renderer: function (v) { return Ext.util.Format.number(v,'0,000'); },
+					minimum: 0,
+			  
+					title: 'Euros',
+					label: {
+						fontFamily: 'Play, sans-serif',
+						fontSize: 12
+					}
 			}, {
 					type: 'category',
 					position: 'bottom',
 					grid: true,
 					fields: [xField],
+					renderer: function (v) { 
+						return v ;
+					},
 					label: {
+						fontFamily: 'Play, sans-serif',
+						fontSize: 12,
 						rotate: {
 							degrees: -45
 						}
@@ -345,14 +377,21 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageWalletHistory',{
 					tooltip: {
 						style: 'background: #fff',
 						renderer: function(storeItem, item) {
-							/*
-							var browser = item.series.getTitle()[Ext.Array.indexOf(item.series.getYField(), item.field)];
-							this.setHtml(browser + ' for ' + storeItem.get('month') + ': ' + storeItem.get(item.field) + '%');
-*/
+							var groupTitle = item.series.getTitle()[Ext.Array.indexOf(item.series.getYField(), item.field)];
+							var str = '' ;
+							str+= groupTitle ;
+							str+= ' au ' ;
+							str+= storeItem.get('timebreak_txt') ;
+							str+= ' : ' ;
+							str+= Ext.util.Format.number(storeItem.get(item.field),'0,000') + ' €' ;
+							this.setHtml(str);
 						}
 					}
 			}]
 		} ;
+		if( yColors.length>0 ) {
+			Ext.apply(barchart,{colors:yColors}) ;
+		}
 		
 		var chartPanel = {
 			flex: 1,

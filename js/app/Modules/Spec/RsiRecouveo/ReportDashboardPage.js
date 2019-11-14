@@ -57,10 +57,15 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPage',{
 						this.onResultSetLoad(setId, null) ;
 						return ;
 					}
-					
+					if( this.isDestroyed ) {
+						return ;
+					}
 					this.onResultSetLoad(setId,ajaxResponse) ;
 				},
 				failure: function() {
+					if( this.isDestroyed ) {
+						return ;
+					}
 					this.onResultSetLoad(setId, null) ;
 				},
 				scope: this

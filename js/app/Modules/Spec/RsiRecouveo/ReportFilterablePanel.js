@@ -73,13 +73,25 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportFilterablePanel',{
 						labelWidth: 75
 					},
 					items: [{
+						xtype: 'hiddenfield',
+						name: 'date_period'
+					},{
 						xtype: 'datefield',
 						format: 'Y-m-d',
 						name: 'date_start',
 						fieldLabel: 'Date début',
 						listeners: {
-							change: function() {
+							change: function(f) {
 								//this.onDateSet() ;
+								var form = f.up('form'),
+									filterDateValues = form.getForm().getFieldValues() ;
+								if( !filterDateValues.date_start || !filterDateValues.date_end ) {
+									return ;
+								}
+								if( filterDateValues.date_start > filterDateValues.date_end ) {
+									var date_end = Ext.Date.add(filterDateValues.start, Ext.Date.MONTH, 1) ;
+									form.getForm().findField('date_end').setValue(date_end) ;
+								}
 							},
 							scope: this
 						}
@@ -89,8 +101,17 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportFilterablePanel',{
 						name: 'date_end',
 						fieldLabel: 'Date fin',
 						listeners: {
-							change: function() {
+							change: function(f) {
 								//this.onDateSet() ;
+								var form = f.up('form'),
+									filterDateValues = form.getForm().getFieldValues() ;
+								if( !filterDateValues.date_start || !filterDateValues.date_end ) {
+									return ;
+								}
+								if( filterDateValues.date_start > filterDateValues.date_end ) {
+									var date_start = Ext.Date.subtract(filterDateValues.date_end, Ext.Date.MONTH, 1) ;
+									form.getForm().findField('date_start').setValue(date_start) ;
+								}
 							},
 							scope: this
 						}
@@ -240,6 +261,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportFilterablePanel',{
 					break ;
 			}
 			if( formValues ) {
+				formValues['date_period'] = doPreset ;
 				var filterDateForm = this.down('#btnFilterDate').menu.down('form') ;
 				filterDateForm.getForm().setValues( formValues ) ;
 			}

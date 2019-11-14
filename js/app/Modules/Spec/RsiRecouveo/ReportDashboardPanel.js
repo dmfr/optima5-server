@@ -35,7 +35,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPanel',{
 					type: 'json'
 				}
 			},
-			data: this.dashboardPages
+			data: Ext.clone(this.dashboardPages)
 		}) ;
 		
 		Ext.apply(this,{
@@ -97,6 +97,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPanel',{
 		this.onDateSet('month') ;
 		this.ready=true ;
 		//this.doLoad() ;
+		this.onItemClick(null,null,null,0) ;
 	},
 	
 	onItemClick: function( dataview, record, item, index ) {
@@ -108,8 +109,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPanel',{
 			rec.set('page_selected',idx==index) ;
 			idx++ ;
 		}) ;
+		var rec = this.dashboardPagesStore.getAt(index) ;
 		
-		this.doInstallPage( record.get('page_class') ) ;
+		this.doInstallPage( rec.get('page_class') ) ;
 	},
 	
 	doInstallPage: function( pageClass ) {
@@ -169,7 +171,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPanel',{
 	},
 	
 	onDestroy: function () {
-		console.log('onDestroy') ;
 		this.callParent();
 	}
 }) ;
