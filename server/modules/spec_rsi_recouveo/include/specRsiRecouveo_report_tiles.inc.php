@@ -1058,11 +1058,11 @@ function specRsiRecouveo_report_run_getValues( $reportval_id, $dates, $filters, 
 									ELSE ''
 								END
 								as substatus
-							FROM op5_veo_prod_veo.view_file_FILE f
-							JOIN op5_veo_prod_veo.view_file_FILE_ACTION fa ON fa.filerecord_parent_id=f.filerecord_id
+							FROM view_file_FILE f
+							JOIN view_file_FILE_ACTION fa ON fa.filerecord_parent_id=f.filerecord_id
 							JOIN (
 								SELECT min(filerecord_id) as first_fileaction_filerecord_id
-								FROM op5_veo_prod_veo.view_file_FILE_ACTION 
+								FROM view_file_FILE_ACTION 
 								group by filerecord_parent_id
 							) first ON first.first_fileaction_filerecord_id=fa.filerecord_id 
 						) fssub ON fssub.filerecord_id=f.filerecord_id" ;
@@ -1103,7 +1103,7 @@ function specRsiRecouveo_report_run_getValues( $reportval_id, $dates, $filters, 
 								AND (DATE(field_DATE_LINK_OFF) > '{$dates['date_end']}' OR field_LINK_IS_ON='1') 
 							GROUP BY filerecord_parent_id
 						) rl_active ON rl_active.min_recordlink_filerecord_id = rl.filerecord_id
-						JOIN op5_veo_prod_veo.view_file_FILE f ON f.filerecord_id=rl.field_LINK_FILE_ID
+						JOIN view_file_FILE f ON f.filerecord_id=rl.field_LINK_FILE_ID
 						{$join_clause}
 						{$where_clause}" ;
 			if( $group_field ) {
