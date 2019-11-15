@@ -122,6 +122,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MainPanel',{
 				return me.openNotepad() ;
 			case 'form_upload' :
 				return me.openUploadPopup() ;
+			case 'form_copydemo' :
+				return me.askCopyDemo() ;
 			case 'form_inbox' :
 				return me.openInboxPopup() ;
 			case 'form_email' :
@@ -504,6 +506,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MainPanel',{
 		createPanel.show();
 		createPanel.getEl().alignTo(this.getEl(), 'c-c?');
 	},
+	
 
 	openReportPopup: function(){
 		var doOpen = true ;
@@ -614,6 +617,34 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MainPanel',{
 		
 		createPanel.show();
 		createPanel.getEl().alignTo(this.getEl(), 'c-c?');
+	},
+	askCopyDemo: function() {
+		Ext.MessageBox.confirm('Confirmation','Réinitialisation base démo ?',function(btn) {
+			if( btn=='yes' ) {
+				this.doCopyDemo() ;
+			}
+		},this) ;
+	},
+	doCopyDemo: function() {
+		var msgbox = Ext.Msg.wait('Patientez...');
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_rsi_recouveo',
+				_action: 'copydemo'
+			},
+			success: function(response) {
+				msgbox.close() ;
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					Ext.MessageBox.alert('Error','Error') ;
+					return ;
+				}
+				Ext.MessageBox.alert('Success','Success') ;
+			},
+			callback: function() {
+			},
+			scope: this
+		}) ;
 	},
 	
 	

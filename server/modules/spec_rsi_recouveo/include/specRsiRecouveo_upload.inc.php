@@ -131,4 +131,25 @@ function specRsiRecouveo_upload_EDI_IMPORT( $handle, $file_model ) {
 
 
 
+
+
+
+
+function specRsiRecouveo_copydemo() {
+	global $_opDB ;
+	
+	$domain_id = DatabaseMgr_Base::dbCurrent_getDomainId() ;
+	$src_sdomain_id = 'src' ;
+	$dst_sdomain_id = 'demo' ;
+	
+	$t = new DatabaseMgr_Sdomain( $domain_id );
+	try {
+		$t->sdomainDb_clone( $src_sdomain_id, $dst_sdomain_id ) ;
+	} catch( Exception $e ) {
+		return array('success'=>false) ;
+	}
+	
+	return array('success'=>true) ;
+}
+
 ?>
