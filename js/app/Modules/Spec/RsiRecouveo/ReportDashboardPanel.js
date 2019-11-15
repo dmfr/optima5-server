@@ -109,6 +109,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPanel',{
 		this.ready=true ;
 		//this.doLoad() ;
 		this.onItemClick(null,null,null,0) ;
+		
+		
+		this.down('toolbar').down('#btnDemoDownload').setVisible(true) ;
 	},
 	
 	onItemClick: function( dataview, record, item, index ) {
@@ -189,5 +192,79 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPanel',{
 	
 	onDestroy: function () {
 		this.callParent();
+	},
+	
+	
+	demoOpenDownload: function() {
+		this.getEl().mask() ;
+		// Open panel
+		var createPanel = Ext.create('Ext.panel.Panel',{
+			optimaModule: this.optimaModule,
+			width: 500,
+			floating: true,
+			draggable: false,
+			resizable: false,
+			renderTo: this.getEl(),
+			tools: [{
+				type: 'close',
+				handler: function(e, t, p) {
+					p.ownerCt.destroy();
+				},
+				scope: this
+			}],
+			layout: 'fit',
+			title: 'Download',
+			bodyCls: 'ux-noframe-bg',
+			bodyPadding: '10px 10px',
+			frame: true,
+			layout: 'fit',
+			items:[{
+				xtype:'form',
+				border: false,
+				bodyPadding: '5px 5px',
+				bodyCls: 'ux-noframe-bg',
+				flex: 1,
+				layout: 'anchor',
+				fieldDefaults: {
+					labelAlign: 'left',
+					labelWidth: 110,
+					anchor: '100%'
+				},
+				items:[{
+					xtype: 'fieldset',
+					title: 'Téléchargement direct',
+					items: [{
+						xtype: 'button',
+						margin: '6px 0px',
+						text: 'Téléchargement...'
+					}]
+				},{
+					xtype: 'fieldset',
+					title: 'Envoi sur e-mail',
+					items: [{
+						xtype: 'checkboxfield',
+						boxLabel: 'Activé ?'
+					},{
+						xtype: 'textfield',
+						fieldLabel: '@ Destinataires'
+					}]
+				}]
+			}],
+			buttons: [{
+				xtype: 'button',
+				text: 'OK',
+				handler: function( btn ) {
+					//this.handleUpload() ;
+				},
+				scope: this
+			}]
+		});
+		createPanel.on('destroy',function(p) {
+			this.getEl().unmask() ;
+			this.floatingPanel = null ;
+		},this,{single:true}) ;
+		
+		createPanel.show();
+		createPanel.getEl().alignTo(this.getEl(), 'c-c?');
 	}
 }) ;

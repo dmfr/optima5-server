@@ -153,6 +153,16 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportFilterablePanel',{
 						text: 'Dernier mois'
 					}]
 				}
+			},'-',{
+				hidden: true,
+				itemId: 'btnDemoDownload',
+				xtype: 'button',
+				icon: 'images/op5img/ico_save_16.gif',
+				text: 'Télécharger PDF',
+				handler: function() {
+					this.demoOpenDownload() ;
+				},
+				scope: this
 			}]
 		}) ;
 		this.callParent() ;
