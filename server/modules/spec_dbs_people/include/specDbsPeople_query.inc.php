@@ -72,7 +72,7 @@ function specDbsPeople_query_getTableResult( $post_data ) {
 	
 	if( $form_data['filter_cli_code'] ) {
 		$filters['filter_cli_code'] = $form_data['filter_cli_code'] ;
-	} elseif( $form_data['filter_cli'] ) {
+	} elseif( $form_data['filter_cli'] && !(strpos($form_data['filter_cli'],'extModel')===0) ) {
 		$filters['filter_cli_code'] = $form_data['filter_cli'] ;
 	}
 	
@@ -163,7 +163,7 @@ function specDbsPeople_query_getTableResult( $post_data ) {
 		'query_vars' => $query_vars,
 		'result_tab' => $result_tab
 	) ;
-	if( $do_warningDate = TRUE ) {
+	if( $do_warningDate = FALSE ) {
 		if( $query_desc['enable_date_at'] ) {
 			$wd_dateEnd = $form_data['date_at'] ;
 		}
