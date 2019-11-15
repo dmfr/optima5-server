@@ -1193,7 +1193,7 @@ EOF;
 		
 		DatabaseMgr_Util::syncTableStructure( $sdomain_db , $db_table , $arrAssoc_dbField_fieldType , $arr_model_keys ) ;
 		$has_autoIncrement = FALSE ;
-		$query = "SHOW COLUMNS FROM {$db_table} where field='filerecord_id'" ;
+		$query = "SHOW COLUMNS FROM {$sdomain_db}.{$db_table} where field='filerecord_id'" ;
 		$result = $_opDB->query($query) ;
 		$arr = $_opDB->fetch_row($result) ;
 		$extra = $arr[5] ;
