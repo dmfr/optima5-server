@@ -798,7 +798,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 	
 	authHelperIsDemo: function() {
 		var me = this ;
-		console.dir(me.optimaModule.getDesktopCfgRecord().getData()) ;
 		if( me.optimaModule.getDesktopCfgRecord().get('login_str').split('@')[1]=='demo' ) {
 			return true ;
 		}
