@@ -1106,6 +1106,7 @@ function specDbsLam_lib_TMS_DPDG_getId( $soc_code ) {
 						$arr_data['E_30'] = substr(specDbsLam_lib_TMS_getValueStatic( 'WHSE_VILLE' ),0,5) ;
 						$arr_data['E_31'] = substr(specDbsLam_lib_TMS_getValueStatic( 'WHSE_VILLE' ),6) ;
 						$arr_data['E_32'] = 'FR' ;
+						$arr_data['S_36'] = $rowExtended_transferCdePack['cde']['field_ATR_CDE_D_EMAIL'] ;
 						$arr_data['S_37'] = $rowExtended_transferCdePack['cde']['CDE_ATR_CDE_D_TEL'] ;
 						$arr_data['S_42'] = '003' ;
 						$arr_data['S_43'] = str_pad($id_chargeur, 6, '0', STR_PAD_LEFT) ;
