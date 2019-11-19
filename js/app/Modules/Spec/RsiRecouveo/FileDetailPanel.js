@@ -1293,10 +1293,21 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		this.on('beforedestroy',this.onBeforeDestroy,this) ;
 		
 		this.mon(this.optimaModule,'op5broadcast',this.onCrmeventBroadcast,this) ;
+		
+		this.applyAuth() ;
 	},
 	onCrmeventBroadcast: function(crmEvent, eventParams) {
 		switch( crmEvent ) {
 			default: break ;
+		}
+	},
+	applyAuth: function() {
+		var helperCache = Optima5.Modules.Spec.RsiRecouveo.HelperCache,
+			authId = helperCache.authHelperGetId(),
+			authProfile = helperCache.authHelperGetProfile() ;
+		
+		if( authProfile=='CR_AFF' ) {
+			this.down('#pHeaderForm').getForm().findField('link_user').setReadOnly(true) ;
 		}
 	},
 	

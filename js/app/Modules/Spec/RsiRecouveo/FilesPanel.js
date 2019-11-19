@@ -164,6 +164,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				},
 				scope: this
 			},{
+				itemId: 'btnSelection',
 				hidden: this._reportMode,
 				iconCls: 'op5-spec-rsiveo-datatoolbar-new',
 				text: 'Select.multiple',
@@ -465,6 +466,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				}
 			}
 		}) ;
+		if( authProfile=='CR_AFF' ) {
+			this.down('toolbar > #btnSelection').setVisible(false) ;
+		}
 	},
 	
 	onSocSet: function() {
