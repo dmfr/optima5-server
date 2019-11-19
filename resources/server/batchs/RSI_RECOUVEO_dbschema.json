@@ -2545,8 +2545,21 @@
         },
         {
             "file_code": "FILE",
+            "entry_field_code": "CACHE_SUBSTATUS",
+            "entry_field_index": "5",
+            "entry_field_lib": "CACHE_SUBSTATUS",
+            "entry_field_type": "string",
+            "entry_field_linktype": "",
+            "entry_field_linkbible": "",
+            "entry_field_is_header": "O",
+            "entry_field_is_highlight": "O",
+            "entry_field_is_mandatory": "",
+            "entry_field_is_primarykey": ""
+        },
+        {
+            "file_code": "FILE",
             "entry_field_code": "DATE_LAST",
-            "entry_field_index": "12",
+            "entry_field_index": "13",
             "entry_field_lib": "Date last action",
             "entry_field_type": "date",
             "entry_field_linktype": "",
@@ -2559,7 +2572,7 @@
         {
             "file_code": "FILE",
             "entry_field_code": "DATE_OPEN",
-            "entry_field_index": "11",
+            "entry_field_index": "12",
             "entry_field_lib": "Date cr\u00e9ation",
             "entry_field_type": "date",
             "entry_field_linktype": "",
@@ -2585,7 +2598,7 @@
         {
             "file_code": "FILE",
             "entry_field_code": "FROM_FILE_ID",
-            "entry_field_index": "15",
+            "entry_field_index": "16",
             "entry_field_lib": "Fichier Origine",
             "entry_field_type": "extid",
             "entry_field_linktype": "",
@@ -2598,7 +2611,7 @@
         {
             "file_code": "FILE",
             "entry_field_code": "FROM_PARAMS_JSON",
-            "entry_field_index": "16",
+            "entry_field_index": "17",
             "entry_field_lib": "Param\u00e8tres",
             "entry_field_type": "stringplus",
             "entry_field_linktype": "",
@@ -2611,7 +2624,7 @@
         {
             "file_code": "FILE",
             "entry_field_code": "IS_CLOSED",
-            "entry_field_index": "13",
+            "entry_field_index": "14",
             "entry_field_lib": "Ferm\u00e9",
             "entry_field_type": "bool",
             "entry_field_linktype": "",
@@ -2650,7 +2663,7 @@
         {
             "file_code": "FILE",
             "entry_field_code": "NEXT_MAIL_NUM",
-            "entry_field_index": "14",
+            "entry_field_index": "15",
             "entry_field_lib": "Next mail num",
             "entry_field_type": "number",
             "entry_field_linktype": "",
@@ -2663,7 +2676,7 @@
         {
             "file_code": "FILE",
             "entry_field_code": "SCENARIO",
-            "entry_field_index": "8",
+            "entry_field_index": "9",
             "entry_field_lib": "Sc\u00e9nario actif",
             "entry_field_type": "link",
             "entry_field_linktype": "treenode",
@@ -2676,7 +2689,7 @@
         {
             "file_code": "FILE",
             "entry_field_code": "SCENARIO_IS_AUTO",
-            "entry_field_index": "10",
+            "entry_field_index": "11",
             "entry_field_lib": "Scenario automatique ?",
             "entry_field_type": "bool",
             "entry_field_linktype": "",
@@ -2689,7 +2702,7 @@
         {
             "file_code": "FILE",
             "entry_field_code": "SCENARIO_IS_NEW",
-            "entry_field_index": "9",
+            "entry_field_index": "10",
             "entry_field_lib": "New for scenario?",
             "entry_field_type": "bool",
             "entry_field_linktype": "",
@@ -2715,7 +2728,7 @@
         {
             "file_code": "FILE",
             "entry_field_code": "STATUS_CLOSED",
-            "entry_field_index": "5",
+            "entry_field_index": "6",
             "entry_field_lib": "Closed ?",
             "entry_field_type": "bool",
             "entry_field_linktype": "",
@@ -2728,7 +2741,7 @@
         {
             "file_code": "FILE",
             "entry_field_code": "STATUS_CLOSED_END",
-            "entry_field_index": "7",
+            "entry_field_index": "8",
             "entry_field_lib": "Closed end ?",
             "entry_field_type": "bool",
             "entry_field_linktype": "",
@@ -2741,7 +2754,7 @@
         {
             "file_code": "FILE",
             "entry_field_code": "STATUS_CLOSED_VOID",
-            "entry_field_index": "6",
+            "entry_field_index": "7",
             "entry_field_lib": "Closed empty ?",
             "entry_field_type": "bool",
             "entry_field_linktype": "",

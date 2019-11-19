@@ -50,6 +50,30 @@ while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
 }
 echo "OK\n" ;
 
+echo "Fix: field_CACHE_SUBSTATUS..." ;
+$query = "UPDATE view_file_FILE f 
+			JOIN ( SELECT fa.filerecord_id
+					, CASE fparent.field_STATUS 
+						WHEN 'S2L_LITIG' THEN fa.field_LINK_LITIG 
+						WHEN 'S2J_JUDIC' THEN fa.field_LINK_JUDIC 
+						WHEN 'SX_CLOSE' THEN fa.field_LINK_CLOSE 
+						ELSE '' 
+					END as substatus 
+					FROM view_file_FILE_ACTION fa 
+					JOIN view_file_FILE fparent ON fparent.filerecord_id=fa.filerecord_parent_id 
+			) fssub ON fssub.filerecord_id=( 
+				SELECT min(filerecord_id) 
+				FROM view_file_FILE_ACTION  
+				WHERE filerecord_parent_id = f.filerecord_id 
+			) 
+			SET f.field_CACHE_SUBSTATUS=IF(
+				fssub.substatus<>'',
+				CONCAT(f.field_STATUS,':',fssub.substatus),
+				''
+			)" ;
+$_opDB->query($query) ;
+echo "OK\n" ;
+
 echo "Closing 'zero' files..." ;
 specRsiRecouveo_lib_autorun_closeEnd() ;
 echo "OK\n" ;

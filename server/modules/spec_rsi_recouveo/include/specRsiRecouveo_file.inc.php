@@ -1402,6 +1402,24 @@ function specRsiRecouveo_file_createForAction( $post_data ) {
 			break ;
 	}
 	
+	
+	// Gestion du CACHE_SUBSTATUS (reports 11/2019)
+	$update_fieldSubstatus = NULL ;
+	switch( $p_newActionCode ) {
+		case 'JUDIC_START' :
+			$update_fieldSubstatus = $new_status.':'.$_formData['judic_code'] ;
+			break ;
+		case 'LITIG_START' :
+			$update_fieldSubstatus = $new_status.':'.$_formData['litig_code'] ;
+			break ;
+		case 'CLOSE_ASK' :
+			$update_fieldSubstatus = $new_status.':'.$_formData['close_code'] ;
+			break ;
+	}
+	$arr_update = array('field_CACHE_SUBSTATUS'=>$update_fieldSubstatus) ;
+	paracrm_lib_data_updateRecord_file( 'FILE', $arr_update, $file_filerecord_id);
+
+	
 	specRsiRecouveo_file_lib_updateStatus($account_record['acc_id']) ;
 	return array('success'=>true,'file_filerecord_id'=>$file_filerecord_id) ;
 }

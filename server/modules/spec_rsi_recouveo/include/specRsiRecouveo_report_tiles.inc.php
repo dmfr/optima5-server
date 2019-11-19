@@ -815,13 +815,15 @@ function specRsiRecouveo_report_run_getValues( $reportval_id, $dates, $filters, 
 				$group_field = 'la.field_ATR_A_' . $ttmp[1];
 				break;
 			case 'STATUS':
-				$join_tables['fs'] = TRUE ;
-				$group_field = 'fs.treenode_key' ;
+				//$join_tables['fs'] = TRUE ;
+				//$group_field = 'fs.treenode_key' ;
+				$group_field = 'f.field_STATUS' ;
 				break ;
 			case 'STATUS_SUBSTATUS' :
-				$join_tables['fs'] = TRUE ;
-				$join_tables['fssub'] = TRUE ;
-				$group_field = "CONCAT(fs.treenode_key,':',fssub.substatus)" ;
+				//$join_tables['fs'] = TRUE ;
+				//$join_tables['fssub'] = TRUE ;
+				//$group_field = "CONCAT(fs.treenode_key,':',fssub.substatus)" ;
+				$group_field = "IF(f.field_CACHE_SUBSTATUS<>'',f.field_CACHE_SUBSTATUS,f.field_STATUS)" ;
 				break ;
 		}
 	}
@@ -1050,22 +1052,21 @@ function specRsiRecouveo_report_run_getValues( $reportval_id, $dates, $filters, 
 						
 					case 'fssub' :
 						$join_clause.= " JOIN (
-							SELECT f.filerecord_id, 
-								CASE f.field_STATUS
-									WHEN 'S2L_LITIG' THEN field_LINK_LITIG
-									WHEN 'S2J_JUDIC' THEN field_LINK_JUDIC
-									WHEN 'SX_CLOSE' THEN field_LINK_CLOSE
+							SELECT fa.filerecord_id, 
+								CASE fparent.field_STATUS
+									WHEN 'S2L_LITIG' THEN fa.field_LINK_LITIG
+									WHEN 'S2J_JUDIC' THEN fa.field_LINK_JUDIC
+									WHEN 'SX_CLOSE' THEN fa.field_LINK_CLOSE
 									ELSE ''
 								END
 								as substatus
-							FROM view_file_FILE f
-							JOIN view_file_FILE_ACTION fa ON fa.filerecord_parent_id=f.filerecord_id
-							JOIN (
-								SELECT min(filerecord_id) as first_fileaction_filerecord_id
-								FROM view_file_FILE_ACTION 
-								group by filerecord_parent_id
-							) first ON first.first_fileaction_filerecord_id=fa.filerecord_id 
-						) fssub ON fssub.filerecord_id=f.filerecord_id" ;
+							FROM view_file_FILE_ACTION fa
+							JOIN view_file_FILE fparent ON fparent.filerecord_id=fa.filerecord_parent_id
+						) fssub ON fssub.filerecord_id=(
+							SELECT min(filerecord_id)
+							FROM view_file_FILE_ACTION 
+							WHERE filerecord_parent_id = f.filerecord_id
+						)" ;
 						break ;
 						
 					case 'filelate' :
@@ -1094,15 +1095,14 @@ function specRsiRecouveo_report_run_getValues( $reportval_id, $dates, $filters, 
 			
 			$query = "SELECT {$select_clause} 
 						FROM view_file_RECORD r
-						JOIN view_file_RECORD_LINK rl ON rl.filerecord_parent_id=r.filerecord_id
-						JOIN (
-							SELECT min(filerecord_id) as min_recordlink_filerecord_id
+						JOIN view_file_RECORD_LINK rl ON rl.filerecord_id=(
+							select min(filerecord_id)
 							FROM view_file_RECORD_LINK
 							WHERE 
 								DATE(field_DATE_LINK_ON)<='{$dates['date_end']}' 
-								AND (DATE(field_DATE_LINK_OFF) > '{$dates['date_end']}' OR field_LINK_IS_ON='1') 
-							GROUP BY filerecord_parent_id
-						) rl_active ON rl_active.min_recordlink_filerecord_id = rl.filerecord_id
+								AND (DATE(field_DATE_LINK_OFF) > '{$dates['date_end']}' OR field_LINK_IS_ON='1')
+								AND filerecord_parent_id = r.filerecord_id
+						)
 						JOIN view_file_FILE f ON f.filerecord_id=rl.field_LINK_FILE_ID
 						{$join_clause}
 						{$where_clause}" ;
