@@ -100,6 +100,50 @@ function specRsiRecouveo_lib_edi_convert_UPL_ACCPROPERTIES_to_mapMethodJson($han
 		"account_properties" => $accountprop_json
 	) ;
 }
+function specRsiRecouveo_lib_edi_convert_UPL_ACCTXTACTION_to_mapMethodJson($handle) {
+	if (true){
+		$handle = specRsiRecouveo_lib_edi_upload_preHandle($handle) ;
+	}
+
+	$headers =fgetcsv($handle) ;
+	$map_header_csvIdx = array() ;
+	foreach ($headers as $csv_idx => $head){
+		switch ($head) {
+			case 'Société':
+				$head = "IdSoc" ;
+				break ;
+			case "Numéro client":
+				$head = "IdCli" ;
+				break ;
+			case "Titre";
+				$head = "TxtTitle" ;
+				break ;
+			case "Texte":
+				$head = "Txt" ;
+				break ;
+		}
+		if( trim($head)=='' ) {
+			continue ;
+		}
+		$map_header_csvIdx[$head] = $csv_idx ;
+	}
+	$action_rows = array() ;
+	while ($data = fgetcsv($handle)){
+		if( !$data ) {
+			continue ;
+		}
+		$row = array() ;
+		foreach( $map_header_csvIdx as $mkey => $idx ) {
+			$row[$mkey] = trim($data[$idx]) ;
+		}
+		$action_rows[] = $row ;
+	}
+	$actions_json = json_encode($action_rows) ;
+
+	return array(
+		"account_txtaction" => $actions_json
+	) ;
+}
 function specRsiRecouveo_lib_edi_convert_UPLCOMPTES_to_mapMethodJson( $handle ) {
 	if (true){
 		$handle = specRsiRecouveo_lib_edi_upload_preHandle($handle) ;
@@ -370,6 +414,7 @@ function specRsiRecouveo_lib_edi_post($apikey_code, $transaction, $handle) {
 		case 'account' :
 		case 'account_adrbookentry' :
 		case 'account_notepadbin' :
+		case 'account_txtaction' :
 		case 'account_properties' :
 		case 'record' :
 		case 'DEV_purgeall' :
@@ -387,6 +432,9 @@ function specRsiRecouveo_lib_edi_post($apikey_code, $transaction, $handle) {
 			break ;
 		case 'upload_ACCOUNT_PROPERTIES':
 			$mapMethodJson = specRsiRecouveo_lib_edi_convert_UPL_ACCPROPERTIES_to_mapMethodJson($handle_in) ;
+			break ;
+		case 'upload_ACCOUNT_TXTACTION':
+			$mapMethodJson = specRsiRecouveo_lib_edi_convert_UPL_ACCTXTACTION_to_mapMethodJson($handle_in) ;
 			break ;
 		default :
 			break ;
@@ -463,6 +511,9 @@ function specRsiRecouveo_lib_edi_postJson($apikey_code, $transaction, $json_str)
 	switch( $transaction ) {
 		case 'account' :
 			$ret = specRsiRecouveo_lib_edi_post_account( $json_rows ) ;
+			break ;
+		case 'account_txtaction' :
+			$ret = specRsiRecouveo_lib_edi_post_account_txtaction( $json_rows ) ;
 			break ;
 		case 'record' :
 			$ret = specRsiRecouveo_lib_edi_post_record( $json_rows ) ;
@@ -908,6 +959,55 @@ function specRsiRecouveo_lib_edi_post_account( $json_rows ) {
 
 
 
+	}
+
+	return array("count_success" => $count_success, "errors" => $ret_errors) ;
+}
+
+function specRsiRecouveo_lib_edi_post_account_txtaction( $json_rows ) {
+	global $_opDB;
+	
+	$mandatory = array('IdSoc','IdCli','TxtTitle','Txt') ;
+	
+	$count_success = 0 ;
+	$ret_errors = array() ;
+	foreach( $json_rows as $idx => $json_row ) {
+		$missing = array() ;
+		foreach( $mandatory as $field ) {
+			if( !isset($json_row[$field]) ) {
+				$missing[] = $field ;
+			}
+		}
+		if( count($missing) > 0 ) {
+			$ret_errors[] = "ERR Idx={$idx} : missing field(s) ".implode(',',$missing) ;
+			continue ;
+		}
+		
+		$txt_IdSoc = $json_row['IdSoc'] ;
+		$json_row['IdSoc'] = specRsiRecouveo_lib_edi_validateSocCli($json_row['IdSoc']) ;
+		if( !$json_row['IdSoc'] ) {
+			$ret_errors[] = "ERR Idx={$idx} : unknown IdSoc={$txt_IdSoc}" ;
+			continue ;
+		}
+		
+		$json_row['IdCli'] = specRsiRecouveo_lib_edi_validateSocCli($json_row['IdSoc'],$json_row['IdCli']) ;
+		
+		$query = "SELECT filerecord_id FROM view_file_FILE 
+			WHERE field_LINK_ACCOUNT='{$json_row['IdCli']}'
+			AND field_STATUS LIKE 'S1\_%'" ;
+		$file_filerecord_id = $_opDB->query_uniqueValue($query) ;
+		
+		$forward_post = array(
+			'file_filerecord_id' => $file_filerecord_id,
+			'data' => json_encode(array(
+				'link_action' => 'BUMP',
+				'link_txt' => $json_row['TxtTitle'],
+				'txt' => $json_row['Txt'],
+				'next_action_save' => TRUE
+			))
+		);
+		specRsiRecouveo_action_doFileAction($forward_post) ;
+		$count_success++ ;
 	}
 
 	return array("count_success" => $count_success, "errors" => $ret_errors) ;

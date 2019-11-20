@@ -59,6 +59,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.UploadForm',{
 						},{
 							id:'IMPORT_ALLOC',
 							txt: 'Fiche navette : Affectation/Scénarios'
+						},{
+							id:'IMPORT_TXTACTION',
+							txt: 'Fiche navette : Actions commentaire'
 						}]
 					},
 					valueField: 'id',

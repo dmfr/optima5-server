@@ -81,6 +81,7 @@ switch( $api_method ) {
 	case 'account' :
 	case 'account_adrbookentry' :
 	case 'account_notepadbin' :
+	case 'account_txtaction' :
 	case 'record' :
 	case 'upload_COMPTES':
 	case 'upload_FACTURES':
