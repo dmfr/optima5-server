@@ -735,72 +735,17 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE, $stopAsHtm
 		$node_qbookTable->parentNode->replaceChild($node_table,$node_qbookTable) ;
 	}
 	
-	$elements = $doc->getElementsByTagName('qbook-tablerecords');
-	if( $elements->length > 0 && $table_data ) {
-		//echo "A" ;
-		$records_div = $elements->item(0);
-		$records_pagetemplate_binary = '';
-		foreach($records_div->childNodes as $node) {
-			$records_pagetemplate_binary .= $doc->saveHTML($node);
-		}
-		
-		$dom_pages = array() ;
-		
-		//echo $records_pagetemplate_binary ;
-		$arr_tablesData = array_chunk($table_data , 50) ;
-		$arr_tablesData_cnt = count($arr_tablesData) ;
-		
-		foreach( $arr_tablesData as $idx=>$table_data ) {
-			$lastPage = ( $idx+1 == $arr_tablesData_cnt ) ;
-			
-			// build table tag inside document
-			$table_html = paracrm_queries_template_makeTable($table_columns,$table_data,($lastPage?$table_datafoot:null)) ;
-			$dom_table = new DOMDocument();
-			@$dom_table->loadHTML( '<?xml encoding="UTF-8"><html>'.$table_html.'</html>' ) ;
-			$node_table = $dom_table->getElementsByTagName("table")->item(0);
-			$table_attr = $dom_table->createAttribute("class") ;
-			$table_attr->value = 'invoicewidth tabledonnees' ;
-			$node_table->appendChild($table_attr) ;
-
-			// build page
-			$dom_page = new DOMDocument();
-			@$dom_page->loadHTML('<?xml encoding="UTF-8"><html>'.$records_pagetemplate_binary.'</html>');
-			$node_qbookTable = $dom_page->getElementsByTagName('qbook-table')->item(0);
-			$node_table = $dom_page->importNode($node_table,true) ;
-			$node_qbookTable->parentNode->replaceChild($node_table,$node_qbookTable) ;
-			
-			//paging
-			$paging_node = $dom_page->getElementsByTagName('qbook-tablerecords-paging')->item(0) ;
-			if( $paging_node ) {
-				$currentPage = $idx+1 ;
-				$totalPage = $arr_tablesData_cnt ;
-				$text = '('.$currentPage.'/'.$totalPage.')' ;
-				
-				$new_node = $dom_page->createCDATASection($text) ;
-				$paging_node->parentNode->replaceChild($new_node,$paging_node) ;
-			}
-			
-			$dom_pages[] = $dom_page ;
-		}
-	}
-	if( $config_meta['print_records']=='none' ) {
-		unset($records_div) ;
-	}
 	
 	
-	if( $records_div && $_appendToMainDoc=($p_adrType=='POSTAL') ) {
-		$records_divnew = $doc->createElement("div");
-		$records_div->parentNode->replaceChild($records_divnew,$records_div) ;
-		
-		foreach( $dom_pages as $dom_page ) {
-			// insert page into main doc
-			$new_node = $doc->createCDATASection($dom_page->saveHTML()) ;
-			$records_divnew->appendChild($new_node) ;
-		}
-	}
-	if( $records_div && $_createSeparateDoc=($p_adrType=='EMAIL') ) {
-		$records_div->parentNode->removeChild($records_div) ;
-		
+	
+	
+	/*
+	*********** Extractions des extraits de comptes **************
+	* Balise : qbook-tablerecords
+	*/
+	
+	// *** Préparation du doc annexe ****
+	if( TRUE ) {
 		$new_doc = new DOMDocument();
 		@$new_doc->loadHTML('<?xml encoding="UTF-8"><html></html>');
 		// keep style only
@@ -817,13 +762,107 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE, $stopAsHtm
 		$new_doc_html->appendChild($new_doc_head) ;
 		
 		$new_doc_body = $new_doc->createElement('body') ;
-		foreach( $dom_pages as $dom_page ) {
-			// insert page into main doc
-			$new_node = $new_doc->createCDATASection($dom_page->saveHTML()) ;
-			$new_doc_body->appendChild($new_node) ;
-		}
 		$new_doc_html->appendChild($new_doc_body) ;
 	}
+	
+	$elements = $doc->getElementsByTagName('qbook-tablerecords');
+	$i = $elements->length - 1;
+	while($i > -1) {
+		$records_div = $elements->item($i);
+		$i--;
+		
+		
+		if( $config_meta['print_records']=='none' ) {
+			$records_div->parentNode->removeChild($records_div) ;
+			continue ;
+		}
+		
+		$records_pagetemplate_binary = '';
+		foreach($records_div->childNodes as $node) {
+			$records_pagetemplate_binary .= $doc->saveHTML($node);
+		}
+		
+		// ******** Récup des balises de configuration ***********
+		
+		
+		// ******** Génération des colonnes/données tables
+		$table_store = array(
+			'table_columns' => $table_columns,
+			'table_data' => $table_data
+		) ;
+		
+		//print_r($table_store) ;
+		//echo count($table_store['table_data']) ;
+		//continue ;
+		
+		// ******** Pagination ********
+		$table_store['table_dataPages'] = array_chunk($table_store['table_data'] , 50) ;
+		$table_store['table_dataPagesCnt'] = count($table_store['table_dataPages']) ;
+		
+		
+		// ******** Création des pages DOM *********
+		$table_DOMpages = array() ;
+		foreach( $table_store['table_dataPages'] as $idx=>$table_dataPage ) {
+			$lastPage = ( $idx+1 == $table_store['table_dataPagesCnt'] ) ;
+			
+			// Création de la table DOM
+			$table_html = paracrm_queries_template_makeTable($table_store['table_columns'],$table_dataPage,($lastPage?$table_datafoot:null)) ;
+			$dom_table = new DOMDocument();
+			@$dom_table->loadHTML( '<?xml encoding="UTF-8"><html>'.$table_html.'</html>' ) ;
+			$node_table = $dom_table->getElementsByTagName("table")->item(0);
+			$table_attr = $dom_table->createAttribute("class") ;
+			$table_attr->value = 'invoicewidth tabledonnees' ;
+			$node_table->appendChild($table_attr) ;
+
+			// *** Création de la page DOM ***
+			$dom_page = new DOMDocument();
+			@$dom_page->loadHTML('<?xml encoding="UTF-8"><html>'.$records_pagetemplate_binary.'</html>');
+			$node_qbookTable = $dom_page->getElementsByTagName('qbook-table')->item(0);
+			$node_table = $dom_page->importNode($node_table,true) ;
+			$node_qbookTable->parentNode->replaceChild($node_table,$node_qbookTable) ;
+			// *** si tag de pagination dans la page DOM : substitution ***
+			$paging_node = $dom_page->getElementsByTagName('qbook-tablerecords-paging')->item(0) ;
+			if( $paging_node ) {
+				$currentPage = $idx+1 ;
+				$totalPage = $table_store['table_dataPagesCnt'] ;
+				$text = '('.$currentPage.'/'.$totalPage.')' ;
+				
+				$new_node = $dom_page->createCDATASection($text) ;
+				$paging_node->parentNode->replaceChild($new_node,$paging_node) ;
+			}
+			
+			$table_DOMpages[] = $dom_page ;
+		}
+		
+		//continue ;
+		
+		// ******** Envoi postal : insertion des pages en lieu de la balise qbook-tablerecords *********
+		if( $table_DOMpages && $_appendToMainDoc=($p_adrType=='POSTAL') ) {
+			$records_divnew = $doc->createElement("div");
+			$records_div->parentNode->replaceChild($records_divnew,$records_div) ;
+			foreach( $table_DOMpages as $dom_page ) {
+				// insert page into main doc
+				$new_node = $doc->createCDATASection($dom_page->saveHTML()) ;
+				$records_divnew->appendChild($new_node) ;
+			}
+		}
+		// ******** Envoi email : suppr balise qbook-tablerecords, insertion des pages dans le doc annexe *********
+		if( $table_DOMpages && $_createSeparateDoc=($p_adrType=='EMAIL') ) {
+			$records_div->parentNode->removeChild($records_div) ;
+			foreach( $table_DOMpages as $dom_page ) {
+				// insert page into main doc
+				$new_node = $new_doc->createCDATASection($dom_page->saveHTML()) ;
+				$new_doc_body->appendChild($new_node) ;
+			}
+		}
+	}
+	
+	/*
+	*************************
+	*/
+	
+	
+	
 	
 	
 
