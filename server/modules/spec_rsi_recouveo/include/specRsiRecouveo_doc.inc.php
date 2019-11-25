@@ -27,7 +27,8 @@ function specRsiRecouveo_doc_cfg_getTpl( $post_data ) {
 			'html_signature_file' => $arr['field_HTML_SIGNATURE_FILE'],
 			'html_footer_file' => $arr['field_HTML_FOOTER_FILE'],
 			'html_body' => $arr['field_HTML_BODY'],
-			'html_title' => $arr['field_HTML_TITLE']
+			'html_title' => $arr['field_HTML_TITLE'],
+			'cfg_values_obj' => json_decode($arr['field_CFG_VALUES'],true)
 		);
 	}
 	if( !$p_tplBinary ) {

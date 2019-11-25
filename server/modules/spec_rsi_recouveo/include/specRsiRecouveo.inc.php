@@ -215,6 +215,7 @@ function specRsiRecouveo_cfg_getConfig($post_data=array('skip_filter'=>true)) {
 			'tpl_name' => $arr['field_TPL_NAME'],
 			'tpl_group' => $arr['treenode_key'],
 			'manual_is_on' => $arr['field_MANUAL_IS_ON'],
+			'cfg_values_json' => $arr['field_CFG_VALUES'],
 			'input_fields_json' => $arr['field_INPUT_FIELDS'],
 			'html_body' => $arr['field_HTML_BODY'],
 			'html_title' => $arr['field_HTML_TITLE']
