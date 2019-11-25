@@ -327,6 +327,19 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE, $stopAsHtm
 	}
 	
 	
+	// ************ Template ***********************
+	$ttmp = specRsiRecouveo_doc_cfg_getTpl( array(
+		'tpl_id' => $p_tplId,
+		'load_binary' => true
+	)) ;
+	$tplData = $ttmp['data'][0] ;
+	if( $tplData['manual_is_on'] && $p_inputFields ) {
+		$tplData['html_body'] = $p_inputFields['input_html'] ;
+		$tplData['html_title'] = $p_inputFields['input_title'] ;
+	}
+	
+	
+	
 	// ******** Current user *************
 	$json = specRsiRecouveo_config_getUsers(array()) ;
 	$data_users = $json['data'] ;
@@ -535,6 +548,9 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE, $stopAsHtm
 		if( $p_recordsFilerecordIds && !in_array($record_row['record_filerecord_id'],$p_recordsFilerecordIds) ) {
 			continue ;
 		}
+		if( $tplData['cfg_values_obj']['table_excludePending'] && $record_row['is_pending'] ) {
+			continue ;
+		}
 		$record_row['record_txt'] = trim(substr($record_row['record_txt'],0,35)) ;
 		foreach( $record_row as $rkey => &$val ) {
 			if( !(strpos($rkey,'date')===0) && is_string($val) ) {
@@ -660,17 +676,6 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE, $stopAsHtm
 
 
 	// ************ TEMPLATE ***********************
-
-	$ttmp = specRsiRecouveo_doc_cfg_getTpl( array(
-		'tpl_id' => $p_tplId,
-		'load_binary' => true
-	)) ;
-	$tplData = $ttmp['data'][0] ;
-	if( $tplData['manual_is_on'] && $p_inputFields ) {
-		$tplData['html_body'] = $p_inputFields['input_html'] ;
-		$tplData['html_title'] = $p_inputFields['input_title'] ;
-	}
-
 	$tplHtml = specRsiRecouveo_doc_buildTemplate($tplData,$p_adrType,$_lang_code) ;
 
 	$inputTitle = $tplData['tpl_name'];
