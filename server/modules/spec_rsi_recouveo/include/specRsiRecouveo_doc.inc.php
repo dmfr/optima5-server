@@ -746,23 +746,23 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE, $stopAsHtm
 	
 	// *** Préparation du doc annexe ****
 	if( TRUE ) {
-		$new_doc = new DOMDocument();
-		@$new_doc->loadHTML('<?xml encoding="UTF-8"><html></html>');
+		$DOM_docAnnexe = new DOMDocument();
+		@$DOM_docAnnexe->loadHTML('<?xml encoding="UTF-8"><html></html>');
 		// keep style only
 		$styleHTML = '' ;
 		foreach( $doc->getElementsByTagName('style') as $node_style ) {
 			$styleHTML.= $node_style->ownerDocument->saveXML( $node_style );
 		}
-		$new_doc_html = $new_doc->getElementsByTagName('html')->item(0) ;
+		$DOM_docAnnexe_html = $DOM_docAnnexe->getElementsByTagName('html')->item(0) ;
 		
-		$new_doc_head = $new_doc->createElement('head') ;
-		$new_doc_styleFrag = $new_doc->createDocumentFragment() ;
-		$new_doc_styleFrag->appendXML($styleHTML) ;
-		$new_doc_head->appendChild($new_doc_styleFrag) ;
-		$new_doc_html->appendChild($new_doc_head) ;
+		$DOM_docAnnexe_head = $DOM_docAnnexe->createElement('head') ;
+		$DOM_docAnnexe_styleFrag = $DOM_docAnnexe->createDocumentFragment() ;
+		$DOM_docAnnexe_styleFrag->appendXML($styleHTML) ;
+		$DOM_docAnnexe_head->appendChild($DOM_docAnnexe_styleFrag) ;
+		$DOM_docAnnexe_html->appendChild($DOM_docAnnexe_head) ;
 		
-		$new_doc_body = $new_doc->createElement('body') ;
-		$new_doc_html->appendChild($new_doc_body) ;
+		$DOM_docAnnexe_body = $DOM_docAnnexe->createElement('body') ;
+		$DOM_docAnnexe_html->appendChild($DOM_docAnnexe_body) ;
 	}
 	
 	$elements = $doc->getElementsByTagName('qbook-tablerecords');
@@ -851,8 +851,8 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE, $stopAsHtm
 			$records_div->parentNode->removeChild($records_div) ;
 			foreach( $table_DOMpages as $dom_page ) {
 				// insert page into main doc
-				$new_node = $new_doc->createCDATASection($dom_page->saveHTML()) ;
-				$new_doc_body->appendChild($new_node) ;
+				$new_node = $DOM_docAnnexe->createCDATASection($dom_page->saveHTML()) ;
+				$DOM_docAnnexe_body->appendChild($new_node) ;
 			}
 		}
 	}
@@ -883,8 +883,8 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE, $stopAsHtm
 		if( $binary_html ) {
 			$htmls[] = $binary_html ;
 		}
-		if( $new_doc ) {
-			$htmls[] = $new_doc->saveHTML() ;
+		if( $DOM_docAnnexe ) {
+			$htmls[] = $DOM_docAnnexe->saveHTML() ;
 		}
 		return $htmls ;
 	}
