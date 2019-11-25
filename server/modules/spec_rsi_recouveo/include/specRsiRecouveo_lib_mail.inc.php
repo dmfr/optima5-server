@@ -736,10 +736,12 @@ function specRsiRecouveo_lib_mail_buildEmail( $email_record, $test_mode=FALSE ) 
 		};
 		
 		if( ($outerBlockQuote = $extractOuterBlockquote($doc)) ) {
-			// blockquote / body / html = 3
+			// blockquote / body / html = 3 ---- UPDATE 25/11/2019 : do not use fixed depth
+			/*
 			while( $getDepth($outerBlockQuote)>3 ) {
 				$outerBlockQuote = $outerBlockQuote->parentNode ;
 			}
+			*/
 		} else {
 			unset( $outerBlockQuote ) ;
 		}
@@ -788,8 +790,8 @@ function specRsiRecouveo_lib_mail_buildEmail( $email_record, $test_mode=FALSE ) 
 				
 				$html_signature = '<br>'.$html_signature.'<br>' ;
 				$new_node = $doc->createCDATASection($html_signature) ;
-				if( $outerBlockQuote ) {
-					$bodyNode->insertBefore($new_node,$outerBlockQuote) ;
+				if( $outerBlockQuote && $outerBlockQuote->parentNode ) {
+					$outerBlockQuote->parentNode->insertBefore($new_node,$outerBlockQuote) ;
 				} else {
 					$bodyNode->appendChild($new_node) ;
 				}
