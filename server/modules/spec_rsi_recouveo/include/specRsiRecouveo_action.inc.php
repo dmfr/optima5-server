@@ -54,6 +54,7 @@ function specRsiRecouveo_action_execMailAutoPreview( $post_data ) {
 			
 			$json = specRsiRecouveo_doc_getMailOut(array(
 				'tpl_id' => $p_tplId,
+				'tpl_lang' => $post_data['tpl_lang'],
 				'file_filerecord_id' => $p_fileFilerecordId,
 				'record_filerecord_ids' => ($filter_recordsFilerecordIds ? json_encode($filter_recordsFilerecordIds) : null ),
 				'adr_type' => $post_data['adr_type'],
@@ -93,6 +94,7 @@ function specRsiRecouveo_action_execMailAutoPreview( $post_data ) {
 			
 			$htmls = specRsiRecouveo_doc_getMailOut(array(
 				'tpl_id' => $p_tplId,
+				'tpl_lang' => $post_data['tpl_lang'],
 				'file_filerecord_id' => $p_fileFilerecordId,
 				'record_filerecord_ids' => ($filter_recordsFilerecordIds ? json_encode($filter_recordsFilerecordIds) : null ),
 				'adr_type' => $post_data['adr_type'],
@@ -183,6 +185,9 @@ function specRsiRecouveo_action_execMailAutoAction( $post_data ) {
 	$p_fileFilerecordId = $post_data['file_filerecord_id'] ;
 	$p_fileActionFilerecordId = $post_data['fileaction_filerecord_id'] ;
 	$p_isNoSched = $post_data['is_no_sched'] ;
+	if( $post_data['tpl_data'] ) {
+		$p_tplData = json_decode($post_data['tpl_data'],true) ;
+	}
 	
 	global $_opDB ;
 	
@@ -314,6 +319,14 @@ function specRsiRecouveo_action_execMailAutoAction( $post_data ) {
 		if( !$next_action ) {
 			return array('success'=>false) ;
 		}
+		if( $p_tplData ) {
+			if( $p_tplData['tpl_id'] != $next_action['link_tpl'] ) {
+				return array('success'=>false) ;
+			}
+			if( $p_tplData['tpl_lang'] ) {
+				$next_action['link_tpl_lang'] = $p_tplData['tpl_lang'] ;
+			}
+		}
 	}
 	
 	
@@ -344,6 +357,7 @@ function specRsiRecouveo_action_execMailAutoAction( $post_data ) {
 			'file_filerecord_id' => $p_fileFilerecordId,
 			'filesub_filerecord_id' => $filesub_filerecord_id,
 			'tpl_id' => $next_action['link_tpl'],
+			'tpl_lang' => $next_action['link_tpl_lang'],
 			'adr_type' => 'POSTAL'
 		));
 		if( $json['success'] ) {
@@ -370,6 +384,7 @@ function specRsiRecouveo_action_execMailAutoAction( $post_data ) {
 			'file_filerecord_id' => $p_fileFilerecordId,
 			'filesub_filerecord_id' => $filesub_filerecord_id,
 			'tpl_id' => $next_action['link_tpl'],
+			'tpl_lang' => $next_action['link_tpl_lang'],
 			'adr_type' => 'EMAIL'
 		));
 		if( $json['success'] ) {
@@ -948,7 +963,11 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 		$forward_post = array(
 			'file_filerecord_id' => $file_filerecord_id,
 			'fileaction_filerecord_id' => $fileaction_filerecord_id,
-			'is_no_sched' => true
+			'is_no_sched' => true,
+			'tpl_data' => json_encode(array(
+				'tpl_id' => $post_form['tpl_id'],
+				'tpl_lang' => $post_form['tpl_lang']
+			))
 		);
 		specRsiRecouveo_action_execMailAutoAction($forward_post) ;
 	}

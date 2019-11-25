@@ -349,13 +349,17 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 		
 		
 		// Gestion du template
-		var tplField = this.getForm().findField('tpl_id') ;
+		var tplField = this.getForm().findField('tpl_id'),
+			tplFieldLang = this.getForm().findField('tpl_lang') ;
 		if( tplField ) {
 			while(true) {
 				if( this.isCurrentActionAuto() ) {
 					tplField.getStore().clearFilter();
 					tplField.setReadOnly(true) ;
 					tplField.setValue( this.getCurrentTpl() ) ;
+					if( tplFieldLang ) {
+						tplFieldLang.setVisible(false) ;
+					}
 					break ;
 				} 
 				switch( currentAction.action_id ) {
@@ -870,11 +874,18 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 			return ;
 		}
 		
+		var tplFieldLang = this.getForm().findField('tpl_lang'),
+			tplFieldLangValue = '' ;
+		if( tplFieldLang && !Ext.isEmpty(tplFieldLang.getValue()) ) {
+			tplFieldLangValue = tplFieldLang.getValue() ;
+		}
+		
 		var postParams = {
 			_moduleId: 'spec_rsi_recouveo',
 			_action: 'action_execMailAutoPreview',
 			file_filerecord_id: this._fileRecord.get('file_filerecord_id'),
 			tpl_id: tplId,
+			tpl_lang: tplFieldLangValue,
 			adr_type: adrType
 		} ;
 		var filesubFilerecordId = this.getCurrentFilesubFilerecordId() ;

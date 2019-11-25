@@ -676,7 +676,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 		return atrIds ;
 	},
 	getAtrHeader: function(atrId) {
-		return this.cfgAtrStore.getById(atrId).getData() ;
+		return this.cfgAtrStore.getById(atrId) ? this.cfgAtrStore.getById(atrId).getData() : null ;
 	},
 	getAtrData: function(atrId) {
 		return this.cfgAtrStore.getById(atrId) ? Ext.pluck(this.cfgAtrStore.getById(atrId).records().getRange(), 'data') : null ;

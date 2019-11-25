@@ -373,21 +373,27 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE, $stopAsHtm
 	
 	
 	// ******** 06/02/2019 : attributs, probe LANG atr *********
-	$probe_lang_atrField = NULL ;
-	$ttmp = specRsiRecouveo_cfg_getConfig() ;
-	$cfg_atr = $ttmp['data']['cfg_atr'] ;
-	foreach( $cfg_atr as $atr_record ) {
-		$atr_id = $atr_record['atr_id'] ;
-		$ttmp = explode('@',$atr_id) ;
-		$atr_code = $ttmp[1] ;
-		if( $atr_record['atr_type']=='account' && $atr_code=='LANG' ) {
-			$probe_lang_atrField = $atr_record['atr_field'] ;
-			break ;
-		}
-	}
-	if( $probe_lang_atrField && $account_record ) {
-		$_lang_code = $account_record[$probe_lang_atrField] ;
+	if( $post_data['tpl_lang'] ) {
+		$_lang_code = $post_data['tpl_lang'] ;
 		$_lang_code = strtoupper(substr($_lang_code,0,2)) ;
+	}
+	if( !$_lang_code ) {
+		$probe_lang_atrField = NULL ;
+		$ttmp = specRsiRecouveo_cfg_getConfig() ;
+		$cfg_atr = $ttmp['data']['cfg_atr'] ;
+		foreach( $cfg_atr as $atr_record ) {
+			$atr_id = $atr_record['atr_id'] ;
+			$ttmp = explode('@',$atr_id) ;
+			$atr_code = $ttmp[1] ;
+			if( $atr_record['atr_type']=='account' && $atr_code=='LANG' ) {
+				$probe_lang_atrField = $atr_record['atr_field'] ;
+				break ;
+			}
+		}
+		if( $probe_lang_atrField && $account_record ) {
+			$_lang_code = $account_record[$probe_lang_atrField] ;
+			$_lang_code = strtoupper(substr($_lang_code,0,2)) ;
+		}
 	}
 	
 	

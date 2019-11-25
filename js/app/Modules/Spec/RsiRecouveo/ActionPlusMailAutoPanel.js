@@ -4,12 +4,77 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusMailAutoPanel',{
 	_fileRecord: null,
 	
 	initComponent: function() {
+		var langAtrField = 'account@LANG' ;
+		var tplFields = [{
+			xtype: 'combobox',
+			name: 'tpl_id',
+			fieldLabel: 'Modèle lettre',
+			forceSelection: true,
+			editable: false,
+			store: {
+				model: 'RsiRecouveoCfgTemplateModel',
+				data: Optima5.Modules.Spec.RsiRecouveo.HelperCache.getTemplateAll()
+			},
+			queryMode: 'local',
+			displayField: 'tpl_name',
+			valueField: 'tpl_id',
+			listeners: {
+				change: function(cmb,value) {
+					var record = cmb.getStore().getById(value) ;
+					this.onTplChange(record) ;
+				},
+				scope: this
+			}
+		}] ;
+		
+		var langAtrId = 'account@LANG',
+			langAtrField = 'ATR_A_LANG' ;
+		if( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAtrHeader(langAtrId) ) {
+			var tplLangField = {
+				xtype: 'combobox',
+				fieldLabel: 'Langue',
+				name: 'tpl_lang',
+				forceSelection:true,
+				allowBlank:true,
+				editable:false,
+				typeAhead:false,
+				queryMode: 'remote',
+				displayField: 'atr_value',
+				valueField: 'atr_value',
+				queryParam: 'search_txt',
+				minChars: 1,
+				checkValueOnChange: function() {}, //HACK
+				store: {
+					fields: [
+						{name: 'atr_value', type:'string'}
+					],
+					proxy: this.optimaModule.getConfiguredAjaxProxy({
+						extraParams : {
+							_moduleId: 'spec_rsi_recouveo',
+							_action: 'account_getAllAtrs',
+							atr_field: langAtrField
+						},
+						reader: {
+							type: 'json',
+							rootProperty: 'data'
+						}
+					})
+				}
+			} ;
+			tplFields.push(tplLangField) ;
+		}
+		
+		
 		Ext.apply(this,{
 			bodyCls: 'ux-noframe-bg',
 			bodyPadding: 0,
 			layout: {
 				type: 'vbox',
 				align: 'stretch'
+			},
+			fieldDefaults: {
+				labelWidth: 80,
+				anchor: '100%'
 			},
 			items: [{
 				xtype: 'fieldset',
@@ -18,10 +83,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusMailAutoPanel',{
 					type: 'hbox',
 					align: 'begin'
 				},
-				defaults: {
-					anchor: '100%',
-					labelWidth: 80
-				},
 				items: [{
 					flex: 1,
 					xtype: 'displayfield',
@@ -29,25 +90,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusMailAutoPanel',{
 					value: '<b>Action automatique</b>'
 				},{
 					flex: 1,
-					xtype: 'combobox',
-					name: 'tpl_id',
-					fieldLabel: 'Modèle lettre',
-					forceSelection: true,
-					editable: false,
-					store: {
-						model: 'RsiRecouveoCfgTemplateModel',
-						data: Optima5.Modules.Spec.RsiRecouveo.HelperCache.getTemplateAll()
-					},
-					queryMode: 'local',
-					displayField: 'tpl_name',
-					valueField: 'tpl_id',
-					listeners: {
-						change: function(cmb,value) {
-							var record = cmb.getStore().getById(value) ;
-							this.onTplChange(record) ;
-						},
-						scope: this
-					}
+					itemId: 'cntTpl',
+					xtype: 'fieldcontainer',
+					layout: 'anchor',
+					items: tplFields
 				}]
 			}]
 		}) ;
