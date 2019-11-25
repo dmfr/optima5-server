@@ -807,7 +807,8 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE, $stopAsHtm
 		// ******** Génération des colonnes/données tables
 		$table_store = array(
 			'table_columns' => $table_columns,
-			'table_data' => $table_data
+			'table_data' => $table_data,
+			'table_datafoot' => $table_datafoot
 		) ;
 		
 		//print_r($table_store) ;
@@ -825,7 +826,7 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE, $stopAsHtm
 			$lastPage = ( $idx+1 == $table_store['table_dataPagesCnt'] ) ;
 			
 			// Création de la table DOM
-			$table_html = paracrm_queries_template_makeTable($table_store['table_columns'],$table_dataPage,($lastPage?$table_datafoot:null)) ;
+			$table_html = paracrm_queries_template_makeTable($table_store['table_columns'],$table_dataPage,($lastPage?$table_store['table_datafoot']:null)) ;
 			$dom_table = new DOMDocument();
 			@$dom_table->loadHTML( '<?xml encoding="UTF-8"><html>'.$table_html.'</html>' ) ;
 			$node_table = $dom_table->getElementsByTagName("table")->item(0);
