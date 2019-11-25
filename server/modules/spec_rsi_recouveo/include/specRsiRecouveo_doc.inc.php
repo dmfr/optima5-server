@@ -311,6 +311,19 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE, $stopAsHtm
 		'acc_id' => $accFile_record['acc_id']
 	)) ;
 	$account_record = $ttmp['data'] ;
+	$account_record['inv_amount_due'] = 0 ;
+	$account_record['inv_amount_due_over'] = 0 ;
+	foreach( $account_record['files'] as $accFile_record_iter ) {
+		foreach( $accFile_record_iter['records'] as $accRecord_record_iter ) {
+			if( $accRecord_record_iter['letter_is_confirm'] ) {
+				continue ;
+			}
+			$account_record['inv_amount_due']+= $accRecord_record_iter['amount'] ;
+			if( !$accRecord_record_iter['is_pending'] ) {
+				$account_record['inv_amount_due_over']+= $accRecord_record_iter['amount'] ;
+			}
+		}
+	}
 	
 	
 	// ******** Current user *************
@@ -342,7 +355,7 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE, $stopAsHtm
 	// ******** Current user *************
 	$json = specRsiRecouveo_config_getSocs(array()) ;
 	$data_socs = $json['data'] ;
-	if( $GLOBALS['_tmp_soc_id'] = $accFile_record['soc_id'] ) {
+	if( $GLOBALS['_tmp_soc_id'] = $account_record['soc_id'] ) {
 		$search = array_filter(
 			$data_socs,
 			function ($e) {
@@ -393,8 +406,8 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE, $stopAsHtm
 	$map_mkey_value += array(
 		'header_barcode_img' => '<img src="data:image/jpeg;base64,'.base64_encode(specRsiRecouveo_lib_getBarcodePng($new_ref_mail,20)).'" />',
 		'header_ref_file' => $accFile_record['id_ref'],
-		'header_ref_client' => $accFile_record['acc_id'],
-		'header_ref_forpayment' => $accFile_record['acc_id'].'EC',
+		'header_ref_client' => $account_record['acc_id'],
+		'header_ref_forpayment' => $account_record['acc_id'].'EC',
 		'header_cr_fullname' => $cfg_user['user_fullname'],
 		'header_cr_jobtitle' => $cfg_user['user_jobtitle'],
 		'header_cr_email' => $cfg_user['user_email'],
@@ -407,25 +420,25 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE, $stopAsHtm
 	);
 	$map_mkey_value += array(
 		'footer_ref_file' => $accFile_record['id_ref'],
-		'footer_ref_client' => $accFile_record['acc_id'],
-		'footer_ref_forpayment' => $accFile_record['acc_id'].'EC',
-		'footer_balance' => number_format($accFile_record['inv_amount_due'],2).'&nbsp;'.'€',
+		'footer_ref_client' => $account_record['acc_id'],
+		'footer_ref_forpayment' => $account_record['acc_id'].'EC',
+		'footer_balance' => number_format($account_record['inv_amount_due_over'],2).'&nbsp;'.'€',
 		
 		'footer_barcode_img' => '<img src="data:image/jpeg;base64,'.base64_encode(specRsiRecouveo_lib_getBarcodePng($accFile_record['id_ref'],50)).'" />'
 	);
 	$map_mkey_value += array(
-		'body_balance' => number_format($accFile_record['inv_amount_due'],2),
+		'body_balance' => number_format($account_record['inv_amount_due_over'],2),
 		'body_date_sql' => date('Y-m-d'),
 		'body_date' => date('d/m/Y'),
 		'body_now' => date('d/m/Y').' à '.date('H:i')
 	);
 	$map_mkey_value += array(
-		'payment_ref_client' => $accFile_record['acc_id'],
-		'payment_ref_forpayment' => $accFile_record['acc_id'].'EC'
+		'payment_ref_client' => $account_record['acc_id'],
+		'payment_ref_forpayment' => $account_record['acc_id'].'EC'
 	);
 	$map_mkey_value += array(
-		'table_refcli' => $accFile_record['acc_id'],
-		'table_txtcli' => $accFile_record['acc_txt']
+		'table_refcli' => $account_record['acc_id'],
+		'table_txtcli' => $account_record['acc_txt']
 	);
 	if( !$p_recordsFilerecordIds ) {
 		$map_mkey_value += array(
@@ -448,7 +461,7 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE, $stopAsHtm
 	foreach( $cfg_atr as $atr_record ) {
 		$atr_id = $atr_record['atr_id'] ;
 		$mkey = $atr_record['atr_field'] ;
-		$map_mkey_value[$mkey] = $accFile_record[$mkey] ;
+		$map_mkey_value[$mkey] = $account_record[$mkey] ;
 	}
 	foreach( $map_mkey_value as $mkey => $mvalue ) {
 		if( isset($map_mkey_value[$mvalue]) ) {
