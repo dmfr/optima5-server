@@ -1,41 +1,8 @@
 <?php
 $GLOBALS['__specDbsTracy_lib_TMS_URL'] = 'https://services.schenkerfrance.fr/gateway_PPD/rest/ship/v1/label/create' ;
+$GLOBALS['__specDbsTracy_lib_TMS_LABELAPI'] = 'http://api.labelary.com/v1/printers/8dpmm/labels/4x6/0/' ;
 
-function specDbsTracy_lib_TMS_doLabelCreate( $row_trspt ) {
-	global $_opDB ;
-	$_STORE_DATE = date('Y-m-d H:i:s') ;
-	$_STORE_PEER = 'DBS_CREATELABEL' ;
-	
-	$request_filerecordId = NULL ;
-	$response_filerecordId = NULL ;
-	$response_success = NULL ;
-	$preview_filerecordId = NULL ;
-	
-	// Query EDI parameters
-	$edi_record = paracrm_lib_data_getRecord('bible_entry','CFG_EDI','TRSPT_API') ;
-	if( !$edi_record ) {
-		return array(
-			'success'=>false,
-			'error_cls' => 'TRACY',
-			'error_txt' => 'API token/cfg'
-		) ;
-	}
-	$edi_params = array() ;
-	foreach( explode(';',$edi_record['field_OUT_PARAMS']) as $keyval ) {
-		$ttmp = explode('=',$keyval,2) ;
-		$mkey = trim($ttmp[0]) ;
-		$mval = trim($ttmp[1]) ;
-		$edi_params[$mkey] = $mval ;
-	}
-	if( !$edi_params || !$edi_params['TOKEN'] ) {
-		return array(
-			'success'=>false,
-			'error_cls' => 'TRACY',
-			'error_txt' => 'API token/cfg'
-		) ;
-	}
-	$_token = $edi_params['TOKEN'] ;
-	
+function specDbsTracy_lib_TMS_doLabelCreateObj( $row_trspt ) {
 	// Query LIST_CARRIERPROD
 	if( !$row_trspt['mvt_carrier_prod'] ) {
 		return array(
@@ -154,6 +121,47 @@ function specDbsTracy_lib_TMS_doLabelCreate( $row_trspt ) {
 		),
 		"size" => "SIZE_8_4"
 	) ;
+
+	return $json ;
+}
+function specDbsTracy_lib_TMS_doLabelCreate( $row_trspt, $obj_request=NULL ) {
+	global $_opDB ;
+	$_STORE_DATE = date('Y-m-d H:i:s') ;
+	$_STORE_PEER = 'DBS_CREATELABEL' ;
+	
+	$request_filerecordId = NULL ;
+	$response_filerecordId = NULL ;
+	$response_success = NULL ;
+	$preview_filerecordId = NULL ;
+	
+	// Query EDI parameters
+	$edi_record = paracrm_lib_data_getRecord('bible_entry','CFG_EDI','TRSPT_API') ;
+	if( !$edi_record ) {
+		return array(
+			'success'=>false,
+			'error_cls' => 'TRACY',
+			'error_txt' => 'API token/cfg'
+		) ;
+	}
+	$edi_params = array() ;
+	foreach( explode(';',$edi_record['field_OUT_PARAMS']) as $keyval ) {
+		$ttmp = explode('=',$keyval,2) ;
+		$mkey = trim($ttmp[0]) ;
+		$mval = trim($ttmp[1]) ;
+		$edi_params[$mkey] = $mval ;
+	}
+	if( !$edi_params || !$edi_params['TOKEN'] ) {
+		return array(
+			'success'=>false,
+			'error_cls' => 'TRACY',
+			'error_txt' => 'API token/cfg'
+		) ;
+	}
+	$_token = $edi_params['TOKEN'] ;
+	
+	if( !$obj_request ) {
+		$obj_request = specDbsTracy_lib_TMS_doLabelCreateObj($row_trspt) ;
+	}
 	
 	$arr_ins = array() ;
 	$arr_ins['field_TRSPT_ID'] = $row_trspt['trspt_filerecord_id'] ;
@@ -164,7 +172,7 @@ function specDbsTracy_lib_TMS_doLabelCreate( $row_trspt ) {
 		$_domain_id = DatabaseMgr_Base::dbCurrent_getDomainId() ;
 		$_sdomain_id = DatabaseMgr_Sdomain::dbCurrent_getSdomainId() ;
 		media_contextOpen( $_sdomain_id ) ;
-		$tmp_media_id = media_bin_processBuffer( json_encode($json,JSON_PRETTY_PRINT) ) ;
+		$tmp_media_id = media_bin_processBuffer( json_encode($obj_request,JSON_PRETTY_PRINT) ) ;
 		media_bin_move( $tmp_media_id , media_bin_toolFile_getId('TMS_STORE',$request_filerecordId) ) ;
 		media_contextClose() ;
 	}
@@ -173,7 +181,7 @@ function specDbsTracy_lib_TMS_doLabelCreate( $row_trspt ) {
 		$post_url = $GLOBALS['__specDbsTracy_lib_TMS_URL'] ;
 		$params = array('http' => array(
 		'method' => 'POST',
-		'content' => json_encode($json),
+		'content' => json_encode($obj_request),
 		'timeout' => 600,
 		'ignore_errors' => true,
 		'header'=>"Authorization: {$_token}\r\n"."accept: application/json\r\n"."Content-Type: application/json\r\n"
@@ -208,15 +216,129 @@ function specDbsTracy_lib_TMS_doLabelCreate( $row_trspt ) {
 			break ;
 		}
 		
+		
+		
+		// RESULT_PREVIEW ?
+		$binary_zpl = base64_decode($json['labelData']) ;
+		$post_url = $GLOBALS['__specDbsTracy_lib_TMS_LABELAPI'] ;
+		$params = array('http' => array(
+		'method' => 'POST',
+		'content' => $binary_zpl,
+		'timeout' => 600,
+		'ignore_errors' => true,
+		'header'=>"Accept: image/png\r\n"
+		));
+		$ctx = stream_context_create($params);
+		$fp = fopen($post_url, 'rb', false, $ctx);
+		if( !$fp ) {
+			break ;
+		}
+		$status_line = $http_response_header[0] ;
+		preg_match('{HTTP\/\S*\s(\d{3})}', $status_line, $match);
+		$status = $match[1];
+		$response_success = ($status == 200) ;
+		
+		if( $response_success ) {
+			$arr_ins = array() ;
+			$arr_ins['field_TRSPT_ID'] = $row_trspt['trspt_filerecord_id'] ;
+			$arr_ins['field_STORE_DATE'] = $_STORE_DATE ;
+			$arr_ins['field_STORE_PEER'] = $_STORE_PEER ;
+			$arr_ins['field_STORE_TAG'] = 'RESULT_PNG' ;
+			$arr_ins['field_STORE_HTTP_STATUS'] = $status ;
+			$resultpng_filerecordId = paracrm_lib_data_insertRecord_file( 'TMS_STORE', 0, $arr_ins ) ;
+			
+			$binary_png = stream_get_contents($fp) ;
+			
+			$_domain_id = DatabaseMgr_Base::dbCurrent_getDomainId() ;
+			$_sdomain_id = DatabaseMgr_Sdomain::dbCurrent_getSdomainId() ;
+			media_contextOpen( $_sdomain_id ) ;
+			$tmp_media_id = media_bin_processBuffer( $binary_png ) ;
+			media_bin_move( $tmp_media_id , media_bin_toolFile_getId('TMS_STORE',$resultpng_filerecordId) ) ;
+			media_contextClose() ;
+		} else {
+			echo stream_get_contents($fp) ;
+		}
+		
+		
 		print_r($json) ;
 	
 		break ;
 	}
+	
+	
+	
+	
+	return $trsptevent_filerecord_id ;
 }
 
-function specDbsTracy_lib_TMS_getLabel( $trspt_filerecord_id, $trsptevent_filerecord_id=null, $force_create=false ) {
+function specDbsTracy_lib_TMS_getLabelEventId( $trspt_filerecord_id, $force_create=false ) {
+	$json = specDbsTracy_trspt_getRecords(array(
+		'filter_trsptFilerecordId_arr' => json_encode(array($trspt_filerecord_id))
+	)) ;
+	if( $json['success'] && (count($json['data'])==1) && ($json['data'][0]['trspt_filerecord_id']==$trspt_filerecord_id) ) {
+		$row_trspt = $json['data'][0] ;
+	}
+	
+	$obj_request = specDbsTracy_lib_TMS_doLabelCreateObj( $row_trspt ) ;
+	$json_request = json_encode($obj_request) ;
+	
+	while( !$force_create ) {
+		$query = "SELECT te.filerecord_id as trsptevent_filerecord_id
+				, te.field_EVENTLINK_IDS_JSON as tmsstore_link_json
+				FROM view_file_TRSPT_EVENT te
+				WHERE filerecord_parent_id='{$trspt_filerecord_id}'
+				AND field_EVENTLINK_FILE='TMS_STORE'
+				ORDER BY te.filerecord_id DESC LIMIT 1" ;
+		$result = $_opDB->query($query) ;
+		if( $_opDB->num_rows($result) != 1 ) {
+			break ;
+		}
+		
+		$arr = $_opDB->fetch_row($result) ;
+		$trsptevent_filerecord_id = $arr[0] ;
+		$tmsstore_link_json = json_decode($arr[1],true) ;
+			
+		$tmsstore_request_filerecord_id = ( $tmsstore_link_json['REQUEST'] ? $tmsstore_link_json['REQUEST'] : reset($tmsstore_link_json) );
+		if( !$tmsstore_request_filerecord_id ) {
+			break ;
+		}
+		
+		$_domain_id = DatabaseMgr_Base::dbCurrent_getDomainId() ;
+		$_sdomain_id = DatabaseMgr_Sdomain::dbCurrent_getSdomainId() ;
+		media_contextOpen( $_sdomain_id ) ;
+		$binary_json = media_bin_getBinary( media_bin_toolFile_getId('TMS_STORE',$tmsstore_request_filerecord_id) ) ;
+		$binary_json = json_encode(json_decode($binary_json,true)) ;
+		media_contextClose() ;
+		
+		if( $binary_json!=json_encode($obj_request) ) {
+			break ;
+		}
+		
+		$sql_filerecordIds = $_opDB->makeSQLlist(array_values($tmsstore_link_json)) ;
+		$query = "SELECT count(*) FROM view_file_TMS_STORE
+					WHERE filerecord_id IN {$sql_filerecordIds}
+					AND field_STORE_TAG='RESPONSE_OK'" ;
+		if( $_opDB->query_uniqueValue($query) != 1 ) {
+			break ;
+		}
+		
+		$reuse_trsptevent_filerecord_id = $trsptevent_filerecord_id ;
+		break ;
+	}
+	if( $reuse_trsptevent_filerecord_id ) {
+		return $reuse_trsptevent_filerecord_id ;
+	}
+	if( !$reuse_trsptevent_filerecord_id ) {
+		
+	
+	}
+	
+	return NULL ;
+}
+function specDbsTracy_lib_TMS_getLabelData( $trsptevent_filerecord_id ) {
 	
 	
+	return ;
 }
 
 /*

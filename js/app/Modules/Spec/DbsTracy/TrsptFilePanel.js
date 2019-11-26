@@ -102,6 +102,13 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 						scope:this
 					}]
 				}]
+			},{
+				icon: 'images/modules/dbstracy-label-16.png',
+				text: '<b>Generate Label</b>',
+				handler: function() {
+					this.handleDoLabel() ;
+				},
+				scope:this
 			}],
 			items:[{
 				flex: 2,
@@ -1535,5 +1542,13 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 		
 		popupPanel.show();
 		popupPanel.getEl().alignTo(this.getEl(), 'c-c?');
+	},
+	
+	handleDoLabel: function() {
+		// save + TMS
+		// then open
+	},
+	openLabelPanel: function(trspteventFilerecordId) {
+		
 	}
 });

@@ -20,7 +20,26 @@ $_SESSION['login_data']['mysql_db'] = 'op5_'.$_domain_id.'_prod' ;
 $_SESSION['login_data']['login_domain'] = $_domain_id.'_prod' ;
 $_sdomain_id = DatabaseMgr_Sdomain::dbCurrent_getSdomainId() ;
 
-$test_trsptFilerecordId = 1066106 ;
+
+$test_trsptRef = 'MBD/191104050' ;
+$query = "SELECT filerecord_id FROM view_file_TRSPT WHERE field_ID_DOC='{$test_trsptRef}'" ;
+$test_trsptFilerecordId = $_opDB->query_uniqueValue($query) ;
+
+
+/*
+echo specDbsTracy_lib_TMS_getLabel($test_trsptFilerecordId) ;
+die() ;
+*/
+
+/*
+echo $test_trsptFilerecordId ;
+
+echo "\n" ;
+die() ;
+*/
+
+
+//$test_trsptFilerecordId = 1066106 ;
 
 $ttmp = specDbsTracy_trspt_getRecords( array('filter_trsptFilerecordId_arr'=>json_encode(array($test_trsptFilerecordId))) ) ;
 //print_r($ttmp) ;
