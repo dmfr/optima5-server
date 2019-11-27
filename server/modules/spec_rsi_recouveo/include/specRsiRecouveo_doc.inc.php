@@ -624,6 +624,13 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE, $stopAsHtm
 			);
 		}
 	}
+	if( $p_recordsFilerecordIds ) {
+		$table_datafoot[] = array(
+			'record_ref' => 'Total',
+			'amount_tot' => '<div width="100%" style="text-align:right;">'.number_format($amount,2).'</div>',
+			'amount_due' => '<b>'.number_format($amount,2).'</b>'
+		);
+	}
 	$has_recordTxt = FALSE ;
 	foreach( $table_data as $row_table ) {
 		if( trim($row_table['record_txt']) && $row_table['record_txt']!=$row_table['record_ref'] ) {
