@@ -201,6 +201,7 @@ Ext.define('RsiRecouveoNotificationTplModel',{ // TO: RsiRecouveoNotificationMod
 		{name: 'notification_filerecord_id', type:'int'},
 		{name: 'acc_id', type:'string'},
 		{name: 'acc_txt', type:'string'},
+		{name: 'acc_amount_due', type:'number'},
 		{name: 'date_notification', type:'date', dateFormat:'Y-m-d H:i:s'},
 		{name: 'txt_notification', type:'string'}
 	]

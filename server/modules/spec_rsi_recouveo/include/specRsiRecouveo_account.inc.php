@@ -614,9 +614,15 @@ function specRsiRecouveo_account_getNotifications( $post_data ) {
 	}
 	
 	global $_opDB ;
-	$query = "SELECT la.treenode_key as soc_id, n.*, la.field_ACC_NAME as acc_txt
+	$query = "SELECT la.treenode_key as soc_id, n.*, la.field_ACC_NAME as acc_txt, acc_amount.acc_amount_due
 				FROM view_file_NOTIFICATION n
 				JOIN view_bible_LIB_ACCOUNT_entry la ON la.entry_key=n.field_LINK_ACCOUNT
+				JOIN (
+					SELECT field_LINK_ACCOUNT as acc_id, sum(field_AMOUNT) as acc_amount_due
+					FROM view_file_RECORD
+					WHERE field_LETTER_IS_CONFIRM='0'
+					GROUP BY field_LINK_ACCOUNT
+				) acc_amount ON acc_amount.acc_id=n.field_LINK_ACCOUNT
 				WHERE 1
 				AND field_ACTIVE_IS_ON='1'" ;
 	if( $filter_soc ) {
@@ -633,6 +639,7 @@ function specRsiRecouveo_account_getNotifications( $post_data ) {
 			'soc_id' => $arr['soc_id'],
 			'acc_id' => $arr['field_LINK_ACCOUNT'],
 			'acc_txt' => $arr['acc_txt'],
+			'acc_amount_due' => $arr['acc_amount_due'],
 			'date_notification' => $arr['field_DATE_NOTIFICATION'],
 			'txt_notification' => $arr['field_TXT_NOTIFICATION']
 		) ;

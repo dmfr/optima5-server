@@ -1042,35 +1042,62 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			store: {
 				model: Optima5.Modules.Spec.RsiRecouveo.HelperCache.getNotificationModel(),
 				data: notificationsData,
+				sorters: [{
+					property: 'date_notification',
+					direction: 'ASC'
+				}],
 				proxy: {
 					type: 'memory'
 				}
 			},
-			columns: [{
-				width: 36,
-				renderer: function(v,m,r) {
-					m.tdCls += ' op5-spec-rsiveo-notification' ;
-				}
-			},{
-				flex: 1,
-				//xtype: 'datecolumn',
-				format: 'd/m/Y',
-				dataIndex: 'acc_id',
-				renderer: function(v,m,r) {
-					var txt = '<div>'+v+'</div>' ;
-					txt += '<div style="font-size: 10px; padding-left:6px">'+r.get('acc_txt')+'</div>' ;
-					return txt ;
-				}
-			},{
-				width: 110,
-				dataIndex: 'txt_notification',
-				renderer: function(v,m,r) {
-					var txt = '<div>'+v+'</div>' ;
-					txt += '<div style="font-size: 10px; padding-left:6px">'+Ext.util.Format.date(r.get('date_notification'),'d/m H:i')+'</div>' ;
-					return txt ;
-				}
-			}],
-			hideHeaders: true,
+			columns: {
+				defaults: {
+					menuDisabled: true,
+					draggable: false,
+					sortable: true,
+					hideable: false,
+					resizable: true,
+					groupable: false,
+					lockable: false
+				},
+				items: [{
+					width: 36,
+					renderer: function(v,m,r) {
+						m.tdCls += ' op5-spec-rsiveo-notification' ;
+					}
+				},{
+					flex: 1,
+					//xtype: 'datecolumn',
+					text: 'Compte',
+					format: 'd/m/Y',
+					dataIndex: 'acc_id',
+					renderer: function(v,m,r) {
+						var txt = '<div>'+v+'</div>' ;
+						txt += '<div style="font-size: 10px; padding-left:6px">'+r.get('acc_txt')+'</div>' ;
+						return txt ;
+					}
+				},{
+					width: 110,
+					text: 'Date/Action',
+					dataIndex: 'date_notification',
+					renderer: function(v,m,r) {
+						var txt = '<div>'+r.get('txt_notification')+'</div>' ;
+						txt += '<div style="font-size: 10px; padding-left:6px">'+Ext.util.Format.date(r.get('date_notification'),'d/m H:i')+'</div>' ;
+						return txt ;
+					}
+				},{
+					width: 100,
+					text: 'Encours',
+					dataIndex: 'acc_amount_due',
+					align: 'right',
+					renderer: function(v,m,r) {
+						var txt = '' ;
+						txt += '<div>'+Ext.util.Format.number(v,'0,000')+'&nbsp;€'+'</div>' ;
+						return txt ;
+					}
+				}]
+			},
+			//hideHeaders: true,
 			listeners: {
 				itemdblclick: function( view, record, itemNode, index, e ) {
 					this.handleOpenAccount(record.get('acc_id')) ;
