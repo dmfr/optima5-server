@@ -632,7 +632,7 @@ function specRsiRecouveo_lib_edi_post_adrbook($json_rows){
 		}
 		$json_row['IdCli'] = specRsiRecouveo_lib_edi_validateSocCli($json_row['IdSoc'],$json_row['IdCli']) ;
 		if( !$json_row['Lib'] ) {
-			$query = "SELECT field_ACC_NAME FROM view_bible_LIB_ACCOUNT WHERE entry_key='{$json_row['IdCli']}'" ;
+			$query = "SELECT field_ACC_NAME FROM view_bible_LIB_ACCOUNT_entry WHERE entry_key='{$json_row['IdCli']}'" ;
 			$json_row['Lib'] = $_opDB->query_uniqueValue($query) ;
 		}
 
