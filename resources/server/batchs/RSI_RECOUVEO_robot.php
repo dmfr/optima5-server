@@ -31,6 +31,18 @@ $_POST['_sdomainId'] = $_sdomain_id ;
 include("$server_root/modules/spec_rsi_recouveo/backend_spec_rsi_recouveo.inc.php");
 
 echo "Fix: LINK_DATE_OFF..." ;
+// Mode SQL
+$query = "UPDATE view_file_RECORD_LINK rl
+			SET rl.field_DATE_LINK_OFF=(
+				SELECT min(field_DATE_LINK_ON) 
+					FROM  view_file_RECORD_LINK
+					WHERE filerecord_parent_id=rl.filerecord_parent_id
+					AND filerecord_id>rl.filerecord_id
+			)
+			WHERE field_LINK_IS_ON='0' AND DATE(field_DATE_LINK_OFF)='0000-00-00'" ;
+//$_opDB->query($query) ;
+
+// Mode procédural
 $query = "SELECT filerecord_id, filerecord_parent_id
 			FROM view_file_RECORD_LINK
 			WHERE field_LINK_IS_ON='0' AND DATE(field_DATE_LINK_OFF)='0000-00-00'" ;
