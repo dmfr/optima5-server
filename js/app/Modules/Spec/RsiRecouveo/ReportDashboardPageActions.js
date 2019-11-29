@@ -70,7 +70,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageActions',{
 	buildPage: function() {
 		var tilePanel = {
 			xtype: 'panel',
-			width: 300,
+			width: 350,
 			layout: {
 				type: 'vbox',
 				align: 'stretch'
@@ -105,7 +105,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageActions',{
 			},{
 				xtype: 'panel',
 				title: 'Encaissements',
-				margin: 10,
+				margin: 16,
 				frame: true,
 				//width: 350,
 				height: 200,
@@ -119,7 +119,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageActions',{
 			},{
 				xtype: 'panel',
 				title: 'Actions',
-				margin: 10,
+				margin: 16,
 				frame: true,
 				//width: 350,
 				//height: 230,

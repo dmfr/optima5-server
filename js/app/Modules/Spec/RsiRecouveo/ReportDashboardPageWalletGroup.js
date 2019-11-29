@@ -232,7 +232,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageWalletGroup',{
 				title: 'Encours total',
 				margin: 10,
 				frame: true,
-				width: 270,
+				width: 320,
 				height: 200,
 				layout: {
 					type: 'fit',
@@ -246,7 +246,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageWalletGroup',{
 				title: 'Encours en retard',
 				margin: 10,
 				frame: true,
-				width: 270,
+				width: 320,
 				height: 200,
 				layout: {
 					type: 'fit',

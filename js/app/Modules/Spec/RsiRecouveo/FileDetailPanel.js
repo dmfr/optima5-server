@@ -2004,7 +2004,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 				},{
 					dataIndex: 'txt_short',
 					flex: 1,
-					maxWidth: 250,
+					//maxWidth: 250,
 					renderer: function(value,metaData,record,rowIndex,colIndex,store,view) {
 						while( true ) {
 							var txt ;
@@ -2411,7 +2411,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 					}
 				},{
 					dataIndex: 'log_user',
-					width: 50,
+					width: 65,
 					renderer: function(value,metaData) {
 						metaData.style += 'font-weight: bold ; text-align:center ;' ;
 						if( value.split('@').length == 2 ) {
@@ -2422,7 +2422,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 				},{
 					dataIndex: 'txt_short',
 					flex: 1,
-					maxWidth: 250,
+					//maxWidth: 250,
 					renderer: function(value,metaData,record,rowIndex,colIndex,store,view) {
 						while( true ) {
 							var txt ;

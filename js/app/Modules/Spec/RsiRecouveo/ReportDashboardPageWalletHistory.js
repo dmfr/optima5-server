@@ -65,7 +65,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageWalletHistory',{
 	buildPage: function() {
 		var tilePanel = {
 			xtype: 'panel',
-			width: 300,
+			width: 330,
 			layout: {
 				type: 'vbox',
 				align: 'center'
@@ -118,7 +118,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageWalletHistory',{
 			},{
 				xtype: 'panel',
 				title: 'Encours total',
-				margin: 10,
+				margin: 16,
 				frame: true,
 				//width: 350,
 				height: 200,
