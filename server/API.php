@@ -95,10 +95,15 @@ switch( $api_method ) {
 }
 
 $handle_in = fopen("php://input","rb") ;
-$json_return = specRsiRecouveo_lib_edi_post( $apikey_code, $api_method, $handle_in ) ;
+$handle_local = tmpfile() ;
+stream_copy_to_stream($handle_in,$handle_local) ;
 
+fseek($handle_local,0) ;
+$json_return = specRsiRecouveo_lib_edi_post( $apikey_code, $api_method, $handle_local ) ;
 
 // Logging TODO: clean
+fseek($handle_local,0) ;
+$raw_post = stream_get_contents($handle_local) ;
 $file_path = '/var/lib/optima5.API/' ;
 $file_name = time().'_'.$my_domainId.'%'.$my_sdomainId.'_'.$api_method.'.json' ;
 @file_put_contents( $file_path.'/'.$file_name, $raw_post ) ;
