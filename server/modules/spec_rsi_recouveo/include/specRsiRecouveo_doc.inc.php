@@ -460,6 +460,10 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE, $stopAsHtm
 		'table_refcli' => $account_record['acc_id'],
 		'table_txtcli' => $account_record['acc_txt']
 	);
+	if( $config_meta['print_records']=='current' ) {
+		$map_mkey_value['footer_balance'] = number_format($accFile_record['inv_amount_due'],2).'&nbsp;'.'€' ;
+		$map_mkey_value['body_balance'] = number_format($accFile_record['inv_amount_due'],2).'&nbsp;'.'€' ;
+	}
 	if( !$p_recordsFilerecordIds ) {
 		$map_mkey_value += array(
 			'table_summary' => true
