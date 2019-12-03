@@ -79,20 +79,23 @@ function oscario_interface_do( $_OSCARIO_DOMAIN, $_OSCARIO_MAG, $_OPTIMA_SOC ) {
 		if( !$prod_ref ) {
 			continue ;
 		}
-		$prod_gencod = trim(substr($line,86,12)) ;
+		$prod_gencod = trim(substr($line,86,14)) ;
 		//$prod_gencod = 0 ;
 		$prod_lib = trim(substr($line,35,40)) ;
 		//$prod_unit = trim(substr($line,
 		$uc_qte = (int)(trim(substr($line,79,7))) ;
 		$uc_qte = $uc_qte / 100 ;
+		$eq_kg = (int)(trim(substr($line,120,10))) ;
+		$eq_kg = $eq_kg / 100 ;
 		
 		$entry_key = strtoupper($_PREFIX_REF.'_'.$prod_ref) ;
 		
 		$arr_ins = array() ;
 		$arr_ins['field_PROD_ID'] = $entry_key ;
 		$arr_ins['field_PROD_TXT'] = $prod_lib ;
-		//$arr_ins['field_PROD_GENCOD'] = $prod_gencod ;
+		$arr_ins['field_PROD_GENCOD'] = $prod_gencod ;
 		$arr_ins['field_UC_QTY'] = $uc_qte ;
+		$arr_ins['field_VL_KG'] = $eq_kg ;
 		
 		$query = "SELECT count(*) FROM view_bible_PROD_entry WHERE entry_key='$entry_key'" ;
 		if( $_opDB->query_uniqueValue($query) > 0 )
@@ -151,7 +154,46 @@ function oscario_interface_do( $_OSCARIO_DOMAIN, $_OSCARIO_MAG, $_OPTIMA_SOC ) {
 			$arr_ins = array() ;
 			$arr_ins['field_PROD_ID'] = $entry_key ;
 			$arr_ins['field_PROD_TXT'] = iconv('UTF-8','ASCII//TRANSLIT',$prod_row['prod_lib']);
+			$arr_ins['field_ATR_PCLASS'] = iconv('UTF-8','ASCII//TRANSLIT',$prod_row['prodcycle_line']);
 			
+			paracrm_lib_data_updateRecord_bibleEntry( 'PROD', $entry_key, $arr_ins );
+		}
+	}
+	
+	
+	
+	if( $_OPTIMA_SOC=='EVE' ) {
+		$query = "SELECT entry_key, field_PROD_TXT FROM view_bible_PROD_entry
+					WHERE entry_key LIKE 'EVE\_%' AND field_ATR_PCLASS='Mattress'" ;
+		$result = $_opDB->query($query) ;
+		while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+			$entry_key = $arr[0] ;
+			$prod_txt = $arr[1] ;
+			
+			$calc_vol_m3 = 0 ;
+			
+			$words = explode(' ',$prod_txt) ;
+			foreach( $words as $word ) {
+				if( strlen($word) < 3 ) {
+					continue ;
+				}
+				if( !preg_match('/[x0-9]/',$word) ) {
+					continue ;
+				}
+				
+				
+				$static_h_cm = 10 ;
+				$ttmp = explode('x',$word) ;
+				if( count($ttmp)==2 && is_numeric($ttmp[0]) && is_numeric($ttmp[1]) ) {
+					$calc_vol_cm3 = (int)$ttmp[0] * (int)$ttmp[1] * $static_h_cm ;
+					$calc_vol_m3 = $calc_vol_cm3 / (1000*1000) ;
+				}
+				break ;
+			}
+			
+			$arr_ins = array() ;
+			$arr_ins['field_PROD_ID'] = $entry_key ;
+			$arr_ins['field_VL_M3'] = $calc_vol_m3 ;
 			paracrm_lib_data_updateRecord_bibleEntry( 'PROD', $entry_key, $arr_ins );
 		}
 	}
