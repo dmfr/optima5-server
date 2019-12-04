@@ -518,6 +518,9 @@ function specDbsLam_transfer_addStock( $post_data ) {
 		}
 		
 		$mvt_filerecordId = specDbsLam_lib_procMvt_addStock( $transferstep_row['whse_src'], $transferstep_row['whse_dst'], $stock_obj['stk_filerecord_id'], $stock_obj['mvt_qty'] ) ;
+		if( !$mvt_filerecordId ) {
+			continue ;
+		}
 		$query = "SELECT * FROM view_file_MVT WHERE filerecord_id='{$mvt_filerecordId}'" ;
 		$result = $_opDB->query($query) ;
 		$row_mvt = $_opDB->fetch_assoc($result) ;
