@@ -1307,7 +1307,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			authProfile = helperCache.authHelperGetProfile() ;
 		
 		if( authProfile=='CR_AFF' ) {
-			this.down('#pHeaderForm').getForm().findField('link_user').setReadOnly(true) ;
+			//TODO 2019-12-05 : auth
+			//this.down('#pHeaderForm').getForm().findField('link_user').setReadOnly(true) ;
 		}
 	},
 	
