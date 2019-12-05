@@ -693,7 +693,7 @@ function specRsiRecouveo_file_searchSuggest( $post_data ) {
 	$search_txt_mysql = $_opDB->escape_string($search_txt) ;
 	$query = "SELECT acc.entry_key, acc.field_ACC_NAME, acc.field_ACC_SIRET FROM view_bible_LIB_ACCOUNT_entry acc
 				WHERE acc.entry_key IN ({$sub_query_acc})
-				AND acc.entry_key LIKE '%{$search_txt_mysql}%' OR acc.field_ACC_SIRET LIKE '%{$search_txt_mysql}%' OR acc.field_ACC_NAME LIKE '%{$search_txt_mysql}%'
+				AND (acc.entry_key LIKE '%{$search_txt_mysql}%' OR acc.field_ACC_SIRET LIKE '%{$search_txt_mysql}%' OR acc.field_ACC_NAME LIKE '%{$search_txt_mysql}%')
 				LIMIT 10" ;
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
