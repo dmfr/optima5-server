@@ -20,6 +20,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 		'Ext.ux.chart.series.KPIGauge', 'Ext.ux.chart.axis.KPIGauge',
 		'Ext.ux.grid.filters.filter.StringList',
 		'Optima5.Modules.Spec.DbsEmbramach.CfgParamFilter',
+		'Optima5.Modules.Spec.DbsEmbramach.CfgParamButton',
 		'Optima5.Modules.Spec.DbsEmbramach.MachWarningPanel'
 	],
 	
@@ -84,7 +85,27 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 					this.doRefresh() ;
 				},
 				scope: this
-			},'->',{
+			},'-',Ext.create('Optima5.Modules.Spec.DbsEmbramach.CfgParamButton',{
+				cfgParam_id: 'SOC',
+				icon: 'images/op5img/ico_blocs_small.gif',
+				text: 'Companies',
+				itemId: 'btnSoc',
+				optimaModule: this.optimaModule,
+				listeners: {
+					change: {
+						fn: function() {
+							this.onSocSet() ;
+						},
+						scope: this
+					},
+					ready: {
+						fn: function() {
+							
+						},
+						scope: this
+					}
+				}
+			}),'->',{
 				hidden: !Optima5.Modules.Spec.DbsEmbramach.HelperCache.authHelperHasAll(),
 				itemId: 'tbUpload',
 				iconCls: 'op5-spec-mrfoxy-promorow-action-icon-attachments',
@@ -608,6 +629,11 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 		}
 	},
 	
+	onSocSet: function( socCode ) {
+		//this.updateToolbar() ;
+		this.doLoad() ;
+	},
+	
 	doLoad: function(doReset) {
 		this.autoRefreshTask.cancel() ;
 		
@@ -617,14 +643,18 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 			}
 		}) ;
 		
+		var filterParams = {
+			filter_socCode: this.down('#btnSoc').getValue()
+		};
+		
 		this.showLoadmask() ;
 		this.optimaModule.getConfiguredAjaxConnection().request({
-			params: {
+			params: Ext.apply({
 				_moduleId: 'spec_dbs_embramach',
 				_action: 'mach_getGridData',
 				flow_code: this.flowCode,
 				filters: ( this._popupMode ? Ext.JSON.encode(this._popupFilters) : null )
-			},
+			},filterParams),
 			success: function(response) {
 				var jsonResponse = Ext.JSON.decode(response.responseText) ;
 				if( jsonResponse.success != true ) {

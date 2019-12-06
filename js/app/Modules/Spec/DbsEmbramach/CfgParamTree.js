@@ -49,6 +49,25 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.CfgParamTree',{
 		}
 		var rootNode, rootChildren = [] ;
 		switch( this.cfgParam_id ) {
+			case 'SOC' :
+				data = Optima5.Modules.Spec.DbsEmbramach.HelperCache.getSocAll() ;
+				Ext.Array.each( data, function(row) {
+					rootChildren.push({
+						nodeId: row.soc_code,
+						nodeType: 'entry',
+						nodeKey: row.soc_code,
+						nodeText: row.soc_txt,
+						leaf: true
+					}) ;
+				}) ;
+				rootNode = {
+					root: true,
+					children: rootChildren,
+					nodeText: '<b>Customers</b>',
+					expanded: true
+				}
+				break ;
+				
 			case 'WARNINGCODE' :
 				data = Optima5.Modules.Spec.DbsEmbramach.HelperCache.getListData('LIST_'+this.cfgParam_id) ;
 				var map_nodeCode_rows = {} ;

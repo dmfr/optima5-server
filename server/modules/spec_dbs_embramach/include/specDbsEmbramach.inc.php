@@ -40,7 +40,7 @@ function specDbsEmbramach_cfg_getAuth( $post_data ) {
 }
 
 
-function specDbsEmbramach_cfg_getList() {
+function specDbsEmbramach_cfg_getConfig() {
 	if( isset($GLOBALS['cache_specDbsEmbramach_cfg']['getConfig']) ) {
 		return array(
 			'success'=>true,
@@ -49,6 +49,19 @@ function specDbsEmbramach_cfg_getList() {
 	}
 	
 	global $_opDB ;
+	
+	$TAB_soc = array() ;
+	$query = "SELECT * FROM view_bible_CFG_SOC_entry ORDER BY field_SOC_CODE" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		$soc_code = $arr['field_SOC_CODE'] ;
+		$record = array(
+			'soc_code' => $arr['field_SOC_CODE'],
+			'soc_txt' => $arr['field_SOC_TXT']
+		) ;
+		
+		$TAB_soc[] = $record ;
+	}
 	
 	$TAB_list = array() ;
 	$json_define = paracrm_define_getMainToolbar( array('data_type'=>'bible') , true ) ;
@@ -81,6 +94,7 @@ function specDbsEmbramach_cfg_getList() {
 	}
 	
 	$GLOBALS['cache_specDbsEmbramach_cfg']['getConfig'] = array(
+		'cfg_soc'  => $TAB_soc,
 		'cfg_list' => $TAB_list
 	);
 
@@ -148,6 +162,12 @@ function specDbsEmbramach_mach_getGridCfg_lib_getFields($flow_code) {
 	switch( $flow_code ) {
 		case 'PICKING' :
 			$arr_fields = array() ;
+			$arr_fields[] = array(
+				'dataIndex' => 'soc_id',
+				'text' => 'Soc',
+				'width' => 65,
+				'source' => array('field_SOC_ID')
+			);
 			$arr_fields[] = array(
 				'dataIndex' => 'delivery_id',
 				'text' => 'Picking',
@@ -332,6 +352,9 @@ function specDbsEmbramach_mach_getGridData( $post_data ) {
 	
 	$where_clause = '' ;
 	$where_clause.= " AND f.field_STATUS<>'DELETED'" ;
+	if( $filter_socCode = $post_data['filter_socCode'] ) {
+		$where_clause.= " AND f.field_SOC_ID='{$filter_socCode}'" ;
+	}
 	if( isset($_filter_filerecordIds) ) {
 		if( $_filter_filerecordIds ) {
 			$where_clause.= " AND f.filerecord_id IN ".$_opDB->makeSQLlist($_filter_filerecordIds) ;
@@ -611,6 +634,10 @@ function specDbsEmbramach_mach_getGridData( $post_data ) {
 	
 	
 	$TAB_gauges = array() ;
+	foreach( array_keys($json_cfg_prio) as $prio_id ) {
+		//HACK ? Init zero prios
+		$TAB_gauges[$prio_id] = 0 ;
+	}
 	foreach( $map_prioCode_spentTimesS as $prio_id => $spentTimesS ) {
 		if( !$spentTimesS ) {
 			continue ;

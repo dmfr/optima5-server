@@ -9,8 +9,8 @@ switch( $post_data['_action'] )
 {
 	case 'cfg_getAuth' :
 	return specDbsEmbramach_cfg_getAuth( $post_data ) ;
-	case 'cfg_getList' :
-	return specDbsEmbramach_cfg_getList( $post_data ) ;
+	case 'cfg_getConfig' :
+	return specDbsEmbramach_cfg_getConfig( $post_data ) ;
 	
 	case 'mach_getGridCfg' :
 	return specDbsEmbramach_mach_getGridCfg( $post_data ) ;

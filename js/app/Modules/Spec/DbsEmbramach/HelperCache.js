@@ -1,3 +1,11 @@
+Ext.define('DbsEmbramachCfgSocModel',{
+	extend: 'Ext.data.Model',
+	idProperty: 'soc_code',
+	fields: [
+		{name: 'soc_code', type:'string', useNull:true},
+		{name: 'soc_txt', type:'string'}
+	]
+});
 Ext.define('DbsEmbramachCfgListItemModel',{
 	extend: 'Ext.data.Model',
 	idProperty: 'id',
@@ -56,7 +64,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.HelperCache',{
 		var ajaxParams = {} ;
 		Ext.apply( ajaxParams, {
 			_moduleId: 'spec_dbs_embramach',
-			_action: 'cfg_getList'
+			_action: 'cfg_getConfig'
 		});
 		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: ajaxParams ,
@@ -73,6 +81,10 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.HelperCache',{
 		});
 	},
 	onLoadConfig: function( ajaxData ) {
+		this.cfgSocStore = Ext.create('Ext.data.Store',{
+			model: 'DbsEmbramachCfgSocModel',
+			data : ajaxData.data.cfg_soc
+		}) ;
 		this.cfgListStore = Ext.create('Ext.data.Store',{
 			model: 'DbsEmbramachCfgListModel',
 			data : ajaxData.data.cfg_list,
@@ -130,6 +142,14 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.HelperCache',{
 	getListData: function(listId) {
 		return this.cfgListStore.getById(listId) ? Ext.pluck(this.cfgListStore.getById(listId).records().getRange(), 'data') : null ;
 	},
+	
+	getSocAll: function() {
+		return Ext.pluck( this.cfgSocStore.getRange(), 'data' ) ;
+	},
+	getSoc: function(socCode) {
+		return this.cfgSocStore.getById(socCode) ? this.cfgSocStore.getById(socCode).getData(true) : null ;
+	},
+	
 	
 	onLibLoad: function() {
 		var me = this ;
