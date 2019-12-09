@@ -147,9 +147,17 @@ function specRsiRecouveo_copydemo() {
 	$dst_sdomain_id = 'demo' ;
 	
 	$current_db = $_opDB->query_uniqueValue("SELECT DATABASE()") ;
+	$_opDB->select_db(DatabaseMgr_Base::getBaseDb($domain_id)) ;
 	$t = new DatabaseMgr_Sdomain( $domain_id );
+	$dst_db = $t->getSdomainDb($dst_sdomain_id) ;
+	$_opDB->query("DROP DATABASE {$dst_db}") ;
+	$_opDB->query("CREATE DATABASE {$dst_db}") ;
 	try {
-		$t->sdomainDb_clone( $src_sdomain_id, $dst_sdomain_id ) ;
+		$handle = tmpfile() ;
+		$t->sdomainDump_export( $src_sdomain_id, $handle ) ;
+		fseek($handle,0) ;
+		$t->sdomainDump_import( $dst_sdomain_id, $handle ) ;
+		fclose($handle) ;
 	} catch( Exception $e ) {
 		return array('success'=>false) ;
 	}
