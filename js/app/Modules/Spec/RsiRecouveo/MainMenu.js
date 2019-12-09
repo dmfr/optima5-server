@@ -1,6 +1,7 @@
 Ext.define('RsiRecouveoMenuItemModel',{
 	extend: 'Ext.data.Model',
 	fields: [
+		{name: 'is_disabled', type: 'boolean'},
 		{name: 'type_header',  type: 'boolean'},
 		{name: 'type_separator',   type: 'boolean'},
 		{name: 'type_action',   type: 'boolean'},
@@ -71,7 +72,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MainMenu',{
 				{type_action:true, action_caption: 'Configuration', action_sendEvent:'cfg', action_iconCls:'op5-spec-rsiveo-mmenu-cfg'},
 				{type_action:true, action_caption: 'Bloc Notes', action_sendEvent:'notepad', action_iconCls:'op5-spec-rsiveo-mmenu-notepad'},
 				{type_action:true, action_caption: 'Upload / Sync', action_sendEvent:'form_upload', action_iconCls:'op5-spec-rsiveo-mmenu-upload'},
-				//{type_action:true, action_caption: 'Réinitialisation Demo', action_sendEvent:'form_copydemo', action_iconCls:'op5-spec-rsiveo-mmenu-upload'}
+				{type_action:true, action_caption: 'Réinitialisation Demo', action_sendEvent:'form_copydemo', action_iconCls:'op5-spec-rsiveo-mmenu-upload', is_disabled: !authIsDemo}
 		];
 		if( authIsExt ) {
 			menuData = [
@@ -100,7 +101,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MainMenu',{
 					{type_separator:true, separator_label: 'Administration'},
 					{type_action:true, action_caption: 'Configuration', action_sendEvent:'cfg', action_iconCls:'op5-spec-rsiveo-mmenu-cfg'},
 					{type_action:true, action_caption: 'Upload / Sync', action_sendEvent:'form_upload', action_iconCls:'op5-spec-rsiveo-mmenu-upload'},
-					//{type_action:true, action_caption: 'Réinitialisation Demo', action_sendEvent:'form_copydemo', action_iconCls:'op5-spec-rsiveo-mmenu-upload'}
+					{type_action:true, action_caption: 'Réinitialisation Demo', action_sendEvent:'form_copydemo', action_iconCls:'op5-spec-rsiveo-mmenu-upload', is_disabled: !authIsDemo}
 				];
 			} else {
 				switch( authProfile ) {
@@ -134,6 +135,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MainMenu',{
 			model:'RsiRecouveoMenuItemModel',
 			data:menuData
 		}) ;
+		itemsStore.filter('is_disabled',false) ;
 		 
 		Ext.apply(this,{
 			cls: 'op5-spec-rsiveo-mainmenu',

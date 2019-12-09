@@ -628,6 +628,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MainPanel',{
 	doCopyDemo: function() {
 		var msgbox = Ext.Msg.wait('Patientez...');
 		this.optimaModule.getConfiguredAjaxConnection().request({
+			timeout: (10 * 60 * 1000),
 			params: {
 				_moduleId: 'spec_rsi_recouveo',
 				_action: 'copydemo'

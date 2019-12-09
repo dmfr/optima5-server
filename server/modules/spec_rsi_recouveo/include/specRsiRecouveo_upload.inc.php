@@ -146,13 +146,41 @@ function specRsiRecouveo_copydemo() {
 	$src_sdomain_id = 'src' ;
 	$dst_sdomain_id = 'demo' ;
 	
+	$current_db = $_opDB->query_uniqueValue("SELECT DATABASE()") ;
 	$t = new DatabaseMgr_Sdomain( $domain_id );
 	try {
 		$t->sdomainDb_clone( $src_sdomain_id, $dst_sdomain_id ) ;
 	} catch( Exception $e ) {
 		return array('success'=>false) ;
 	}
+	$_opDB->select_db($current_db) ;
 	
+	
+	$TAB_shifts = array(
+		'view_file_FILE' => array('field_DATE_OPEN','field_DATE_LAST'),
+		'view_file_FILE_ACTION' => array('field_DATE_SCHED','field_DATE_ACTUAL'),
+		'view_file_NOTIFICATION' => array('field_DATE_NOTIFICATION'),
+		'view_file_RECORD' => array('field_DATE_LOAD','field_DATE_RECORD','field_DATE_VALUE','field_LETTER_DATE'),
+		'view_file_RECORD_LINK' => array('field_DATE_LINK_ON','field_DATE_LINK_OFF')
+	);
+	
+	$query = "SELECT max(DATE(field_DATE_ACTUAL)) FROM view_file_FILE_ACTION" ;
+	$max_dateActual = $_opDB->query_uniqueValue($query) ;
+	
+	$obj_datetime_now = new DateTime(date('Y-m-d')) ;
+	$obj_datetime_max = new DateTime($max_dateActual) ;
+	$obj_date_interval = date_diff($obj_datetime_now,$obj_datetime_max);
+	$days_toShift = $obj_date_interval->d ;
+	
+	
+	foreach( $TAB_shifts as $tableCode=>$fields ){
+		foreach( $fields as $fieldCode ) {
+			$query = "UPDATE {$tableCode} 
+					SET {$fieldCode} = DATE_ADD({$fieldCode}, INTERVAL {$days_toShift} DAY)
+					WHERE DATE({$fieldCode})<>'0000-00-00'" ;
+			$_opDB->query($query) ;
+		}
+	}
 	return array('success'=>true) ;
 }
 
