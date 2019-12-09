@@ -418,7 +418,7 @@ function specRsiRecouveo_lib_edi_post($apikey_code, $transaction, $handle) {
 		case 'account_properties' :
 		case 'record' :
 		case 'DEV_purgeall' :
-			$mapMethodJson[$transaction] = stream_get_contents($handle_in) ;
+			$mapMethodJson = array($transaction => stream_get_contents($handle_in)) ;
 			break ;
 			
 		case 'upload_COMPTES' :
@@ -559,6 +559,9 @@ function specRsiRecouveo_lib_edi_validateSocCli( $id_soc, $id_cli=NULL, $test_cl
 	if( !$id_cli ) {
 		return $id_soc ;
 	}
+	
+	// HACK! France cars 06/12/2019
+	$id_cli = str_replace("'",'',$id_cli) ;
 	
 	$orig_id_cli = $id_cli ;
 	// normalisation du id_cli (si fourni)
