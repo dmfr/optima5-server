@@ -535,13 +535,25 @@ function specRsiRecouveo_report_getGrid($post_data) {
 					$TAB[$key]['reportval_id'] = $tmp['reportval_id'] ;
 					continue ;
 				}
-				if( !$tmp['reportval_id'] ) {
+				
+				$ttmp=explode('?',$tmp['reportval_id']) ;
+				$reportval_id_base = $ttmp[0] ;
+				if( !$reportval_id_base ) {
 					continue ;
 				}
 				$dates = array(
 					'date_start' => $col['date_start'],
 					'date_end' => $col['date_end']
 				);
+				if( $reportval_id_base=='dso_avg' ) {
+					// HACK : dso_avg sur totalité de la période FILTER_DATE
+					$obj_date_interval = date_diff(
+						new DateTime($p_filters['filter_date']['date_start']),
+						new DateTime($p_filters['filter_date']['date_end'])
+					);
+					$interval_days = (int)$obj_date_interval->format('%a') ;
+					$dates['date_start'] = date('Y-m-d',strtotime("-{$interval_days} days",strtotime($dates['date_end']))) ;
+				}
 				$map_grouper_val = specRsiRecouveo_report_run_getValues($tmp['reportval_id'],$dates,$p_filters,$grouper) ;
 				//print_r($map_grouper_val) ;
 				foreach($map_grouper_val as $val ){
@@ -833,6 +845,52 @@ function specRsiRecouveo_report_run_getValues( $reportval_id, $dates, $filters, 
 	
 	
 	switch( $reportval_id ) {
+		case 'dso_avg' :
+			$select_clause = "'',avg( DATEDIFF(field_LETTER_DATE,GREATEST(field_DATE_LOAD,field_DATE_VALUE)) )" ;
+			if( $group_field ) {
+				$select_clause = $group_field.',avg( DATEDIFF(field_LETTER_DATE,GREATEST(field_DATE_LOAD,field_DATE_VALUE)) )' ;
+			}
+			
+			
+			foreach( $join_tables as $table => $torf ) {
+				if( !$torf ) {
+					continue ;
+				}
+				switch( $table ) {
+					case 'la' :
+						$join_clause.= ' JOIN view_bible_LIB_ACCOUNT_entry la ON la.entry_key=r.field_LINK_ACCOUNT' ;
+						break ;
+				}
+			}
+			
+			$where_clause.= " AND (r.field_TYPE='' AND r.field_AMOUNT>'0')" ;
+			$where_clause.= " AND field_LETTER_IS_CONFIRM='1'" ;
+			$where_clause.= " AND (DATE(r.field_LETTER_DATE) BETWEEN '{$dates['date_start']}' AND '{$dates['date_end']}')" ;
+			
+			
+			$query = "SELECT {$select_clause} 
+						FROM view_file_RECORD r
+						{$join_clause}
+						{$where_clause}" ;
+			if( $group_field ) {
+				$query.= " GROUP BY {$group_field}" ;
+			}
+			//echo $query."\n" ;
+			$result = $_opDB->query($query) ;
+			$map = array() ;
+			while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+				if( $grouper && !$arr[0] ) {
+					continue ;
+				}
+				$map[$arr[0]] = (float)$arr[1] ;
+			}
+			return $map ;
+			
+			
+			
+			
+			
+			
 		case 'cash_in' :
 			$select_clause = "'',sum( -1 * r.field_AMOUNT )" ;
 			if( $group_field ) {
@@ -853,9 +911,6 @@ function specRsiRecouveo_report_run_getValues( $reportval_id, $dates, $filters, 
 			
 			$where_clause.= " AND (r.field_TYPE<>'' OR r.field_AMOUNT<'0')" ;
 			$where_clause.= " AND (DATE(r.field_DATE_RECORD) BETWEEN '{$dates['date_start']}' AND '{$dates['date_end']}')" ;
-			if( $reportval_filterMap['wstatus'] ) {
-				$where_clause.= " AND f.field_STATUS='{$reportval_filterMap['wstatus']}'" ;
-			}
 			
 			
 			$query = "SELECT {$select_clause} 

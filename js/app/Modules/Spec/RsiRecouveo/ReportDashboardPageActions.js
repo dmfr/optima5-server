@@ -26,7 +26,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageActions',{
 		var dateStartStr = Ext.Date.format(Ext.Date.parse(filterData['filter_date']['date_start'],'Y-m-d'),"d/m/Y") ;
 		var dateEndStr = Ext.Date.format(Ext.Date.parse(filterData['filter_date']['date_end'],'Y-m-d'),"d/m/Y") ;
 		
-		return 'Actions réalisées & Encaissements du ' + dateStartStr + ' au ' + dateEndStr ;
+		return 'Actions / Encaissements / DSO du ' + dateStartStr + ' au ' + dateEndStr ;
 	},
 	
 	doLoad: function() {
@@ -51,6 +51,13 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageActions',{
 				filters: filterValuesBefore,
 				reportval_ids: ['cash_in']
 			},
+			dso: {
+				reportval_ids: ['dso_avg']
+			},
+			dso_before: {
+				filters: filterValuesBefore,
+				reportval_ids: ['dso_avg']
+			},
 			actionsauto: {
 				reportval_ids: ['actions?aclass=auto']
 			},
@@ -58,7 +65,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageActions',{
 				reportval_ids: ['actions?aclass=manual']
 			},
 			timebreak: {
-				reportval_ids: ['actions?aclass=auto','actions?aclass=manual','cash_in'],
+				reportval_ids: ['actions?aclass=auto','actions?aclass=manual','cash_in','dso_avg'],
 				axes: {
 					timebreak_is_on: true,
 					timebreak_group: this._timebreakGroup
@@ -115,6 +122,20 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageActions',{
 				},
 				items: Ext.create('Optima5.Modules.Spec.RsiRecouveo.ReportTileComponent',{
 					itemId: 'cashIn'
+				})
+			},{
+				xtype: 'panel',
+				title: 'DSO (moyenne)',
+				margin: 16,
+				frame: true,
+				//width: 350,
+				height: 200,
+				layout: {
+					type: 'fit',
+					align: 'stretch'
+				},
+				items: Ext.create('Optima5.Modules.Spec.RsiRecouveo.ReportTileComponent',{
+					itemId: 'dsoAvg'
 				})
 			},{
 				xtype: 'panel',
@@ -211,6 +232,28 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageActions',{
 		this.down('#cashIn').update(componentData) ;
 		
 		
+		var tileValue = this.getResultSet('dso')[0]['values'][0],
+			tileBeforeValue = this.getResultSet('dso_before')[0]['values'][0] ;
+		var eval_direction = '' ;
+		if( tileValue > tileBeforeValue ) {
+			eval_direction = 'more-bad' ;
+		}
+		if( tileValue < tileBeforeValue ) {
+			eval_direction = 'less-good' ;
+		}
+		var componentData = {
+			caption: 'Montant',
+			main_value: Ext.util.Format.number(tileValue, '0.0'),
+			main_suffix: 'j',
+			main_iconCls: 'op5-spec-rsiveo-reporttile-main-icon-value-amount',
+			eval_caption: 'Calculé du ' + dateBeforeStartStr + ' au ' + dateBeforeEndStr,
+			eval_value: Ext.util.Format.number(tileBeforeValue, '0.0'),
+			eval_suffix: 'j',
+			eval_direction: eval_direction
+		} ;
+		this.down('#dsoAvg').update(componentData) ;
+		
+		
 		var tileValue = this.getResultSet('actionsauto')[0]['values'][0] ;
 		var componentData = {
 			caption: 'Actions automatiques',
@@ -254,6 +297,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageActions',{
 			var reportval_txt = '',
 				reportval_code = '' ;
 			switch( row.reportval_id ) {
+				case 'dso_avg' :
+					reportval_txt = 'DSO (moyenne)' ;
+					reportval_code = 'DSO_AVG' ;
+					break ;
 				case 'cash_in' :
 					reportval_txt = 'Encaissements' ;
 					reportval_code = 'CASH' ;
@@ -298,6 +345,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageActions',{
 					if( r.get('reportval_id')=='cash_in' ) {
 						str+= ' €' ;
 					}
+					if( r.get('reportval_id')=='dso_avg' ) {
+						str = Ext.util.Format.number(v, '0.0') ;
+						str+= ' j' ;
+					}
 					return str ;
 				}
 			}) ;
@@ -320,6 +371,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageActions',{
 					if( record.get('reportval_id')=='cash_in' ) {
 						return 'op5-spec-rsiveo-dashboard-grid-bluerow' ;
 					}
+					if( record.get('reportval_id')=='dso_avg' ) {
+						return 'op5-spec-rsiveo-dashboard-grid-orangerow' ;
+					}
 				}
 			}
 		};
@@ -339,6 +393,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageActions',{
 		var xField = 'timebreak_txt' ;
 		var yFieldsBar = [], yTitlesBar = []  ;
 		var yFieldsLine = [], yTitlesLine = []  ;
+		var yFieldsLineDso = [], yTitlesLineDso = []  ;
 		
 		var groupIds = [],
 			groupTitles = [] ;
@@ -358,6 +413,11 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageActions',{
 				case 'CASH' :
 					yFieldsLine.push( mkey ) ;
 					yTitlesLine.push( row.reportval_txt ) ;
+					break ;
+				
+				case 'DSO_AVG' :
+					yFieldsLineDso.push( mkey ) ;
+					yTitlesLineDso.push( row.reportval_txt ) ;
 					break ;
 				
 			}
@@ -433,6 +493,21 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageActions',{
 						fontSize: 12
 					}
 			}, {
+					type: 'numeric',
+					hidden: true,
+					position: 'right',
+					adjustByMajorUnit: true,
+					grid: false,
+					fields: [yFieldsLineDso[0]],
+					renderer: function (v) { return Ext.util.Format.number(v,'0,000'); },
+					minimum: 0,
+			  
+					title: 'Jours',
+					label: {
+						fontFamily: 'Play, sans-serif',
+						fontSize: 12
+					}
+			}, {
 					type: 'category',
 					position: 'bottom',
 					grid: true,
@@ -478,9 +553,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageActions',{
 			},{
 					type: 'line',
 					axis: 'right',
-					title: yTitlesLine,
+					title: yTitlesLine[0],
 					xField: xField,
-					yField: yFieldsLine,
+					yField: yFieldsLine[0],
 					//stacked: true,
 					
 					smooth: true,
@@ -506,6 +581,41 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageActions',{
 							var str = '' ;
 							str+= Ext.util.Format.number(storeItem.get(item.field),'0,000') ;
 							str+= ' €' ;
+							this.setHtml(str);
+						}
+					}
+				
+			},{
+					type: 'line',
+					//axis: 'right',
+					title: yTitlesLineDso[0],
+					xField: xField,
+					yField: yFieldsLineDso[0],
+					//stacked: true,
+					
+					smooth: true,
+					style: {
+						//fill: '#A52A2A',
+						//stroke: '#A52A2A',
+						'stroke-width': 2 
+					},
+					marker: {
+						type: 'circle',
+						radius: 4,
+						lineWidth: 2,
+						fill: 'white'
+					},
+					highlight: {
+						fillStyle: 'yellow'
+					},
+					tooltip: {
+						trackMouse: true,
+						style: 'background: #fff',
+						renderer: function(storeItem, item) {
+							var groupTitle = item.series.getTitle()[Ext.Array.indexOf(item.series.getYField(), item.field)];
+							var str = 'DSO : ' ;
+							str+= Ext.util.Format.number(storeItem.get(item.field),'0.0') ;
+							str+= ' j' ;
 							this.setHtml(str);
 						}
 					}
