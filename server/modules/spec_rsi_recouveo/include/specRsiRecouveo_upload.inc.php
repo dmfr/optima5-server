@@ -170,7 +170,7 @@ function specRsiRecouveo_copydemo() {
 	$obj_datetime_now = new DateTime(date('Y-m-d')) ;
 	$obj_datetime_max = new DateTime($max_dateActual) ;
 	$obj_date_interval = date_diff($obj_datetime_now,$obj_datetime_max);
-	$days_toShift = $obj_date_interval->d ;
+	$days_toShift = (int)$obj_date_interval->format('%a') ;
 	
 	
 	foreach( $TAB_shifts as $tableCode=>$fields ){
