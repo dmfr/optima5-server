@@ -398,6 +398,8 @@ function specRsiRecouveo_lib_edi_convert_UPLFACTURES_to_mapMethodJson( $handle )
 
 
 function specRsiRecouveo_lib_edi_post($apikey_code, $transaction, $handle) {
+	$GLOBALS['_cache_specRsiRecouveo_lib_edi_mapSocStrToId'] = array() ;
+
 	$handle_in = tmpfile() ;
 	stream_copy_to_stream($handle,$handle_in) ;
 	fseek($handle_in,0) ;
@@ -546,15 +548,20 @@ function specRsiRecouveo_lib_edi_validateSocCli( $id_soc, $id_cli=NULL, $test_cl
 	if( !$id_soc ) {
 		return false ;
 	}
-
-	// test + normalisation du code société
-	$query = "SELECT field_SOC_ID FROM view_bible_LIB_ACCOUNT_tree WHERE field_SOC_NAME = '{$id_soc}' OR field_SOC_ID = '{$id_soc}'" ;
-	$result = $_opDB->query($query) ;
-	if( $_opDB->num_rows($result) < 1 ) {
-		return false ;
+	
+	if( $val=$GLOBALS['_cache_specRsiRecouveo_lib_edi_mapSocStrToId'][$id_soc] ) {
+		$id_soc = $val ;
+	} else {
+		// test + normalisation du code société
+		$query = "SELECT field_SOC_ID FROM view_bible_LIB_ACCOUNT_tree WHERE field_SOC_NAME = '{$id_soc}' OR field_SOC_ID = '{$id_soc}'" ;
+		$result = $_opDB->query($query) ;
+		if( $_opDB->num_rows($result) < 1 ) {
+			return false ;
+		}
+		$row = $_opDB->fetch_row($result) ;
+		$GLOBALS['_cache_specRsiRecouveo_lib_edi_mapSocStrToId'][$id_soc] = $row[0] ;
+		$id_soc = $row[0] ;
 	}
-	$row = $_opDB->fetch_row($result) ;
-	$id_soc = $row[0] ;
 
 	if( !$id_cli ) {
 		return $id_soc ;
