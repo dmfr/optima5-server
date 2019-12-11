@@ -54,7 +54,7 @@ if( TRUE ) {
 	$GLOBALS['maileva_TRACKEMAIL'] = $config_meta['gen_maileva_trackemail'] ;
 	$GLOBALS['maileva_TRACKPREFIX'] = $config_meta['gen_maileva_trackprefix'] ;
 }
-if( $GLOBALS['__OPTIMA_TEST'] ) {
+if( !specRsiRecouveo_util_getIsProd() ) {
 	$GLOBALS['maileva_URL'] = 'https://webservices.recette.maileva.com/java/public/connector/ConnectorWebService?wsdl' ;
 	$GLOBALS['maileva_USER'] = 'testclient' ;
 	$GLOBALS['maileva_PASS'] = 'testclient' ;

@@ -528,6 +528,19 @@ function specRsiRecouveo_util_getLogUser($no_short=FALSE) {
 	}
 	return $user_id ;
 }
+function specRsiRecouveo_util_getIsProd() {
+	if( $GLOBALS['__OPTIMA_TEST'] ) {
+		return FALSE ;
+	}
+	
+	$_domain_id = DatabaseMgr_Base::dbCurrent_getDomainId() ;
+	$_sdomain_id = DatabaseMgr_Sdomain::dbCurrent_getSdomainId() ;
+	$t = new DatabaseMgr_Sdomain( $_domain_id );
+	if( $t->sdomainDb_isOverwriteLocked($_sdomain_id) ) {
+		return TRUE ;
+	}
+	return FALSE ;
+}
 
 
 

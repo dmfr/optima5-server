@@ -25,7 +25,7 @@ $_smsapiKey = 'AE8M29NN33WNN4RNZHA6' ;
 $_label = 'RECOUVEO' ;
 $_subType = 'STANDARD' ;
 
-if( $GLOBALS['__OPTIMA_TEST'] ) {
+if( !specRsiRecouveo_util_getIsProd() ) {
 	return ;
 }
 

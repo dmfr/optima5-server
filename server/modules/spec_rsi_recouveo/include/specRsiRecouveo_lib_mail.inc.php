@@ -350,7 +350,7 @@ function specRsiRecouveo_lib_mail_doSend($email_filerecord_id) {
 		$query = "UPDATE view_file_EMAIL SET field_SRV_IS_SENT='1' WHERE filerecord_id='$email_filerecord_id'" ;
 		$_opDB->query( $query ) ;
 	}
-	if( $success && !$GLOBALS['__OPTIMA_TEST'] ) {
+	if( $success && specRsiRecouveo_util_getIsProd() ) {
 		$msg_uid = -1 ;
 		$ttmp = specRsiRecouveo_cfg_getConfig() ;
 		$cfg_email = $ttmp['data']['cfg_email'] ;
@@ -443,7 +443,7 @@ function specRsiRecouveo_lib_mail_doSendRaw($email_bin)
 
 	$ttmp = specRsiRecouveo_cfg_getConfig();
 
-	if( $GLOBALS['__OPTIMA_TEST'] ) {
+	if( !specRsiRecouveo_util_getIsProd() ) {
 		return TRUE ;
 	}
 
