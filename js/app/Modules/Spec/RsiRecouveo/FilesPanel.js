@@ -468,7 +468,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			}
 		}) ;
 		if( authProfile=='CR_AFF' ) {
-			this.down('toolbar > #btnSelection').setVisible(false) ;
+			//TODO 2019-12-05 : auth
+			//this.down('toolbar > #btnSelection').setVisible(false) ;
 		}
 	},
 	
