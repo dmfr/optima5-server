@@ -807,7 +807,7 @@ Ext.define('Optima5.Modules.Admin.SdomainsForm' ,{
 		
 		var values = {sdomain_id:me.sdomainId} ;
 		me.optimaModule.getConfiguredAjaxConnection().request({
-			timeout: (5 * 60 * 1000),
+			timeout: (10 * 60 * 1000),
 			params:Ext.apply(values,{
 				_action: 'sdomains_export'
 			}),
