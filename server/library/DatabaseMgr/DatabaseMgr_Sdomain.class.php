@@ -816,8 +816,14 @@ EOF;
 		$this->sdomainDb_delete( $dst_sdomain_id ) ;
 		$query = "CREATE DATABASE $dst_sdomain_db" ;
 		$_opDB->query($query) ;
-		DatabaseMgr_Util::clone_DB( $src_sdomain_db, $dst_sdomain_db ) ;
-		$this->sdomainDefine_buildAll($dst_sdomain_id) ;
+		
+		$this->sdomainDb_updateSchema( $dst_sdomain_id ) ;
+		
+		$handle = tmpfile() ;
+		$this->sdomainDump_export( $src_sdomain_id, $handle ) ;
+		fseek($handle,0) ;
+		$this->sdomainDump_import( $dst_sdomain_id, $handle ) ;
+		fclose($handle) ;
 	}
 	
 	
