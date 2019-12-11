@@ -741,6 +741,16 @@ EOF;
 		$query = "DROP DATABASE IF EXISTS {$sdomain_db}" ;
 		$_opDB->query($query) ;
 	}
+	public function sdomainDb_isOverwriteLocked( $sdomain_id ) {
+		$_opDB = $this->_opDB ;
+		$base_db = DatabaseMgr_Base::getBaseDb( $this->domain_id ) ;
+		
+		$query = "SELECT overwrite_is_locked FROM {$base_db}.sdomain WHERE sdomain_id='{$sdomain_id}'" ;
+		if( $_opDB->query_uniqueValue($query)=='O' ) {
+			return TRUE ;
+		}
+		return FALSE ;
+	}
 	public function sdomainDb_needUpdate( $sdomain_id ) {
 		$_opDB = $this->_opDB ;
 		$sdomain_db = $this->getSdomainDb( $sdomain_id ) ;
