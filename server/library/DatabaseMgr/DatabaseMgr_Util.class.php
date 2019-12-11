@@ -593,7 +593,7 @@ class DatabaseMgr_Util {
 		$result = $_opDB->query($query) ;
 		while( ($arr = $_opDB->fetch_row($result)) != FALSE )
 		{
-			fputcsv( $handle , $arr , ',' ,'"') ;
+			self::my_fputcsv( $handle , $arr , ',' ,'"') ;
 		}
 	}
 	
@@ -626,7 +626,7 @@ class DatabaseMgr_Util {
 		// integration du fichier CSV
 		while( !feof($handle) )
 		{
-			$arrcsv = fgetcsv($handle) ;
+			$arrcsv = fgetcsv($handle,0,',','"',chr(27)) ;
 			if( !$arrcsv )
 				continue ;
 			
@@ -634,11 +634,10 @@ class DatabaseMgr_Util {
 			{
 				if( $tmpfname ) {
 					fclose($handle_infile) ;
-					$tmpfname = str_replace('\\','/',$tmpfname) ;
 					$query = "LOAD DATA LOCAL INFILE '{$tmpfname}' INTO TABLE {$dst_db}.{$current_table} 
 						FIELDS TERMINATED BY ','
 						OPTIONALLY ENCLOSED BY '\"'
-						ESCAPED BY '\\\\'
+						ESCAPED BY ''
 						LINES TERMINATED BY '\n'" ;
 					$_opDB->query($query) ;
 					unlink($tmpfname) ;
@@ -651,7 +650,7 @@ class DatabaseMgr_Util {
 				$current_table = $tarr[1] ;
 				
 				// plan de la table dans le csv ?
-				$map_csv = fgetcsv($handle) ;
+				$map_csv = fgetcsv($handle,0,',','"',chr(27)) ;
 				
 				
 				
@@ -701,16 +700,15 @@ class DatabaseMgr_Util {
 			foreach( $map as $csv_pos ) {
 				$arrcsv_infile[] = $arrcsv[$csv_pos] ;
 			}
-			fputcsv($handle_infile,$arrcsv_infile) ;
+			self::my_fputcsv($handle_infile,$arrcsv_infile,',','"') ;
 		}
 
 		if( $tmpfname ) {
 			fclose($handle_infile) ;
-			$tmpfname = str_replace('\\','/',$tmpfname) ;
 			$query = "LOAD DATA LOCAL INFILE '{$tmpfname}' INTO TABLE {$dst_db}.{$current_table} 
 				FIELDS TERMINATED BY ','
 				OPTIONALLY ENCLOSED BY '\"'
-				ESCAPED BY '\\\\'
+				ESCAPED BY ''
 				LINES TERMINATED BY '\n'" ;
 			$_opDB->query($query) ;
 			unlink($tmpfname) ;
@@ -741,5 +739,21 @@ class DatabaseMgr_Util {
 		}
 	}
 	
+	public static function my_fputcsv($handle, $fields, $delimiter = ',', $enclosure = '"')
+	{
+		$output = array();
+		
+		foreach((array) $fields as $field)
+		{
+			if( $field == '' ) {
+				$output[] = '' ;
+				continue ;
+			}
+			$field = str_replace($enclosure, $enclosure.$enclosure, $field);
+			$output[] = $enclosure . $field . $enclosure;
+		}
+		
+		fwrite($handle, join($delimiter, $output) . PHP_EOL);
+	}
 }
 ?>
