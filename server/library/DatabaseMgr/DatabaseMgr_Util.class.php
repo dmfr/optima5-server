@@ -444,7 +444,7 @@ class DatabaseMgr_Util {
 					//continue 
 					continue ;
 				}
-				if( $desc_field_existing[1] != $desc_field_model[1] || $desc_field_existing[2] != $desc_field_model[2] || $desc_field_existing[5] != $desc_field_model[5] )
+				if( $desc_field_existing[1] != $desc_field_model[1] || $desc_field_existing[2] != $desc_field_model[2] )
 				{
 					$query = "ALTER TABLE {$mysql_db}.{$db_table} CHANGE `{$desc_field_existing[0]}` `{$desc_field_model[0]}` $desc_field_model[1]" ;
 					if( strtoupper($desc_field_model[2]) == 'NO' )
