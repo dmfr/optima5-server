@@ -817,7 +817,14 @@ function specRsiRecouveo_lib_edi_post_record( $json_rows) {
 		'LetterDate' => 'field_LETTER_DATE',
 		'NonFactType' => 'field_TYPE',
 		'XeCurrencyAmount' => 'field_XE_CURRENCY_AMOUNT',
-		'XeCurrencyCode' => 'field_XE_CURRENCY_CODE'
+		'XeCurrencyCode' => 'field_XE_CURRENCY_CODE',
+		
+		// 02/2019 : update to Wiki
+		'IdRecord' => 'field_RECORD_ID',
+		'NumRecord' => 'field_RECORD_REF',
+		'LibRecord' => 'field_RECORD_TXT',
+		'DateRecord' => 'field_DATE_RECORD',
+		'DateExpire' => 'field_DATE_VALUE'
 	);
 	$count_success = 0;
 	$ret_errors = array() ;
