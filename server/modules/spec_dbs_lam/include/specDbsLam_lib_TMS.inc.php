@@ -117,6 +117,9 @@ function specDbsLam_lib_TMS_getTrsptId($rowExtended_transferCdePack, $pack_id_tr
 		case 'GAC' :
 			return 'GAC-'.$rowExtended_transferCdePack['id_nocolis'] ;
 		
+		case 'AGD' :
+			return specDbsLam_lib_TMS_AGD_getId($rowExtended_transferCdePack) ;
+		
 		case 'DPDG' :
 			return specDbsLam_lib_TMS_DPDG_getId($rowExtended_transferCdePack['cde']['soc_code']) ;
 		
@@ -141,6 +144,10 @@ function specDbsLam_lib_TMS_getTrsptZplBuffer($rowExtended_transferCdePack, $pac
 			
 		case 'GAC' :
 			$zebra_buffer.= specDbsLam_lib_TMS_GAC_getZplBuffer($rowExtended_transferCdePack) ;
+			break ;
+			
+		case 'AGD' :
+			$zebra_buffer.= specDbsLam_lib_TMS_AGD_getZplBuffer($rowExtended_transferCdePack,$pack_id_trspt_id) ;
 			break ;
 			
 		case 'DPDG' :
@@ -1453,6 +1460,314 @@ function specDbsLam_lib_TMS_GAC_getZplBuffer( $rowExtended_transferCdePack ) {
 	return $buffer ;
 }
 
+function specDbsLam_lib_TMS_AGD_getId( $rowExtended_transferCdePack ) {
+	$ttmp = explode(' ',specDbsLam_lib_TMS_getValueStatic( 'WHSE_VILLE' )) ;
+	$whse_cp = $ttmp[0] ;
+	
+	$barcode = '' ;
+	$barcode.= '1141' ;
+	$barcode.= '01264' ;
+	$barcode.= $whse_cp.str_pad( (string)$rowExtended_transferCdePack['cde']['cde_filerecord_id'], 16-strlen($whse_cp), '0', STR_PAD_LEFT ) ;
+	$barcode.= str_pad($rowExtended_transferCdePack['calc_folio_idx'],3,'0',STR_PAD_LEFT) ;
+	
+	return $barcode ;
+}
+function specDbsLam_lib_TMS_AGD_getZplBuffer( $rowExtended_transferCdePack,$pack_id_trspt_id ) {
+	$soc_code = $rowExtended_transferCdePack['cde']['soc_code'] ;
+	
+	$adr_full = trim($rowExtended_transferCdePack['cde']['adr_full']) ;
+	$arr_adr = explode("\n",$adr_full) ;
+	array_pop($arr_adr) ;
+	$last_lig = array_pop($arr_adr) ;
+	$ttmp = explode(' ',$last_lig,2) ;
+	$destination['nom'] = trim($arr_adr[0]);
+	$destination['adr1'] = substr(trim($arr_adr[1]), 0,35 );
+	$destination['adr2'] = substr(trim($arr_adr[2]), 0,35 );
+	$destination['cp'] = $rowExtended_transferCdePack['cde']['adr_cp'] ;
+	$destination['ville'] = substr($ttmp[1], 0,35 );
+	foreach( $destination as &$str ) {
+		$str=iconv('UTF-8','ASCII//TRANSLIT',$str);
+	}
+	unset($str) ;
+	
+	
+	
+	
+	
+	
+	
+	$print_no_bl = $whse_cp.str_pad( (string)$rowExtended_transferCdePack['cde']['cde_filerecord_id'], 16-strlen($whse_cp), '0', STR_PAD_LEFT ) ;
+	$print_no_cde = $rowExtended_transferCdePack['cde']['cde_ref'] ;
+	
+	
+	
+	
+	
+	//print_r($rowExtended_transferCdePack) ;
+	
+	$mvt_lig = reset($rowExtended_transferCdePack['ligs']) ;
+	$stk_prod = $mvt_lig['stk_prod'] ;
+	$print_prod = $stk_prod ;
+	if( strpos($print_prod,$mvt_lig['soc_code'].'_')===0 ) {
+		$print_prod = substr($print_prod,strlen($mvt_lig['soc_code'])+1) ;
+	}
+	
+	$map_prodId_prodTxt = array() ;
+	foreach( $rowExtended_transferCdePack['cde']['ligs'] as $cde_lig ) {
+		$map_prodId_prodTxt[$cde_lig['stk_prod']] = $cde_lig['stk_prod_txt'] ;
+	}
+	$print_prodTxt = $map_prodId_prodTxt[$stk_prod] ;
+	
+	$print_date = date('d/m/Y') ;
 
+	
+	
+	
+	$print_routage = $rowExtended_transferCdePack['cde']['adr_country'].' '.'441' ;
+	
+	
+	
+	
+	
+	
+	
+	
+	$h = 125 ;
+	
+	$h_block = 200 ;
+	$zebra_buffer.= "^FO50,{$h}^GB350,{$h_block},2^FS";
+	$zebra_buffer.= "^FO398,{$h}^GB350,{$h_block},2^FS";
+	$zebra_buffer.= "^FO630,{$h}^GB0,{$h_block},2^FS";
+		
+		
+		$legend_w = 60 ;
+		$legend_h = $h+20 ;
+		$zebra_buffer.= "^FO{$legend_w},{$legend_h},0^APN^FD".'EXPEDITEUR'."^FS";
+		
+		$legend_h+=35 ;
+		
+		$zebra_buffer.= "^FO{$legend_w},{$legend_h},0^AQN^FD".specDbsLam_lib_TMS_getValueStatic( 'SOC_'.$soc_code.'_NOM' )."^FS";
+		$legend_h+=22 ;
+		$zebra_buffer.= "^FO{$legend_w},{$legend_h},0^AQN^FD".specDbsLam_lib_TMS_getValueStatic( 'WHSE_NOM' )."^FS";
+		$legend_h+=22 ;
+		$zebra_buffer.= "^FO{$legend_w},{$legend_h},0^AQN^FD".specDbsLam_lib_TMS_getValueStatic( 'WHSE_RUE' )."^FS";
+		$legend_h+=22 ;
+		$zebra_buffer.= "^FO{$legend_w},{$legend_h},0^AQN^FD".specDbsLam_lib_TMS_getValueStatic( 'WHSE_LOCALITE' )."^FS";
+		$legend_h+=22 ;
+		$zebra_buffer.= "^FO{$legend_w},{$legend_h},0^AQN^FD".specDbsLam_lib_TMS_getValueStatic( 'WHSE_VILLE' )."^FS";
+		
+		
+		
+	
+		$legend_w = 410 ;
+		$legend_h = $h+20 ;
+		$zebra_buffer.= "^FO{$legend_w},{$legend_h},0^APN^FD".'LIVRAISON PLATEFORME'."^FS";
+		
+		$legend_h+=35 ;
+		
+		$zebra_buffer.= "^FO{$legend_w},{$legend_h},0^AQN^FD".specDbsLam_lib_TMS_getValueStatic( 'SOC_'.$soc_code.'_NOM' )."^FS";
+		$legend_h+=22 ;
+		
+		
+		
+		
+		$legend_w = 640 ;
+		$legend_h = $h+20 ;
+		$zebra_buffer.= "^FO{$legend_w},{$legend_h},0^APN^FD".'ACTIVITE'."^FS";
+		
+		$legend_w = 640 ;
+		$legend_h = $h+60 ;
+		$zebra_buffer.= "^FO{$legend_w},{$legend_h},0^AUN^FD".'ABC'."^FS";
+		
+	
+	$h+= $h_block ;
+	
+	
+	$h_block = 200 ;
+	$zebra_buffer.= "^FO50,{$h}^GB350,{$h_block},2^FS";
+	$zebra_buffer.= "^FO398,{$h}^GB350,{$h_block},2^FS";
+	
+	
+		$legend_w = 60 ;
+		$legend_h = $h+60 ;
+		
+		$zebra_buffer.= "^FO{$legend_w},{$legend_h},0^APN^FD".'Date'."^FS";
+		$legend_h+=35 ;
+		$zebra_buffer.= "^FO{$legend_w},{$legend_h},0^APN^FD".'Article'."^FS";
+		$legend_h+=35 ;
+		$zebra_buffer.= "^FO{$legend_w},{$legend_h},0^APN^FD".'Desc.'."^FS";
+		
+		$legend_w = 120 ;
+		$legend_h = $h+56 ;
+		
+		$zebra_buffer.= "^FO{$legend_w},{$legend_h},0^AQN^FD".$print_date."^FS";
+		$legend_h+=35 ;
+		$zebra_buffer.= "^FO{$legend_w},{$legend_h},0^AQN^FD".$print_prod."^FS";
+		$legend_h+=35 ;
+		$zebra_buffer.= "^FO{$legend_w},{$legend_h},0^APN^FD".substr($print_prodTxt,0,35)."^FS";
+		
+		
+		
+		
+		
+		
+		$legend_w = 410 ;
+		$legend_h = $h+20 ;
+		$zebra_buffer.= "^FO{$legend_w},{$legend_h},0^APN^FD".'DESTINATAIRE FINAL'."^FS";
+		
+		$legend_h+=30 ;
+		
+		$zebra_buffer.= "^FO{$legend_w},{$legend_h},0^AQN^FD".$destination['nom']."^FS";
+		$legend_h+=22 ;
+		$zebra_buffer.= "^FO{$legend_w},{$legend_h},0^AQN^FD".$destination['adr1']."^FS";
+		$legend_h+=22 ;
+		$zebra_buffer.= "^FO{$legend_w},{$legend_h},0^AQN^FD".$destination['adr2']."^FS";
+		$legend_h+=22 ;
+		$zebra_buffer.= "^FO{$legend_w},{$legend_h},0^AQN^FD".$destination['cp'].' '.$destination['ville']."^FS";
+		$legend_h+=25 ;
+		$zebra_buffer.= "^FO{$legend_w},{$legend_h},0^ARN^FD".$rowExtended_transferCdePack['cde']['CDE_ATR_CDE_D_TEL']."^FS";
+		
+	
+	$h+= $h_block ;
+	
+	
+	
+	
+	
+	$h_block = 350 ;
+	$zebra_buffer.= "^FO50,{$h}^GB350,{$h_block},2^FS";
+	$zebra_buffer.= "^FO398,{$h}^GB350,{$h_block},2^FS";
+	
+	
+		$legend_w = 60 ;
+		$legend_h = $h+60 ;
+		
+		$zebra_buffer.= "^FO{$legend_w},{$legend_h},0^APN^FD".'No BL'."^FS";
+		$legend_h+=35 ;
+		$zebra_buffer.= "^FO{$legend_w},{$legend_h},0^APN^FD".'No Commande'."^FS";
+		$legend_h+=70 ;
+		$legend_w = 90 ;
+		$zebra_buffer.= "^FO{$legend_w},{$legend_h},0^APN^FD".'No de colis / Nb total de colis.'."^FS";
+		
+		$legend_w = 190 ;
+		$legend_h = $h+56 ;
+		
+		$zebra_buffer.= "^FO{$legend_w},{$legend_h},0^AQN^FD".$print_no_bl."^FS";
+		$legend_h+=35 ;
+		$zebra_buffer.= "^FO{$legend_w},{$legend_h},0^AQN^FD".$print_no_cde."^FS";
+		$legend_h+=120 ;
+		$legend_w = 145 ;
+		$zebra_buffer.= "^FO{$legend_w},{$legend_h},0^AUN^FD".$rowExtended_transferCdePack['calc_folio_idx'].' / '.$rowExtended_transferCdePack['calc_folio_sum']."^FS";
+		
+	
+	
+	
+		$legend_w = 450 ;
+		$legend_h = $h+100 ;
+		$zebra_buffer.= "^FO{$legend_w},{$legend_h},0^AVN^FD".$print_routage."^FS";
+	
+	
+	
+	
+	
+	
+	$h+= $h_block ;
+	
+	
+	
+	
+	
+	$h_block = 200 ;
+	$zebra_buffer.= "^FO50,{$h}^GB700,{$h_block},2^FS";
+	
+		$barcode_print = '>;'.$pack_id_trspt_id ;
+		$legend_w = 120 ;
+		$legend_h = $h+40 ;
+		$zebra_buffer.= "^FO{$legend_w},{$legend_h}^BY3^BCN,100,Y,N^FD".$barcode_print."^FS";
+	
+	$h+= $h_block ;
+	
+		
+	
+	
+	
+	
+	
+	return $zebra_buffer ;
+	
+	$zebra_buffer.= "^FO50,{$h}^GB200,200,2^FS";
+	$zebra_buffer.= "^FO250,{$h}^GB500,200,2^FS";
+	
+		$legend_w = 60 ;
+		$legend_h = $h+20 ;
+		$zebra_buffer.= "^FO{$legend_w},{$legend_h},0^ARN^FD".'PartNumber'."^FS";
+		
+		$legend_w = 290 ;
+		$legend_h = $h+30 ;
+		$zebra_buffer.= "^FO{$legend_w},{$legend_h}^BY2^BCN,100,Y,N^FD".$prod_txt."^FS";
+	
+	$h+= 200 ;
+	
+	$zebra_buffer.= "^FO50,{$h}^GB200,150,2^FS";
+	$zebra_buffer.= "^FO250,{$h}^GB500,150,2^FS";
+	
+		$legend_w = 60 ;
+		$legend_h = $h+20 ;
+		$zebra_buffer.= "^FO{$legend_w},{$legend_h},0^ARN^FD".'Description'."^FS";
+	
+	
+		$legend_w = 290 ;
+		$legend_h = $h+20 ;
+		$zebra_buffer.= "^FO{$legend_w},{$legend_h},0^ASN^FD".$arr_prod['entry_key']."^FS";
+		$legend_h = $h+70 ;
+		$zebra_buffer.= "^FO{$legend_w},{$legend_h},0^ARN^FD".$arr_prod['field_PROD_TXT']."^FS";
+	
+	$h+= 150 ;
+	
+	$zebra_buffer.= "^FO50,{$h}^GB200,100,2^FS";
+	$zebra_buffer.= "^FO250,{$h}^GB500,100,2^FS";
+	
+	if( $soc_row['prodspec_is_batch'] ) {
+		$legend_w = 60 ;
+		$legend_h = $h+20 ;
+		$zebra_buffer.= "^FO{$legend_w},{$legend_h},0^ARN^FD".'Batch code'."^FS";
+	
+		$legend_w = 290 ;
+		$legend_h = $h+20 ;
+		$zebra_buffer.= "^FO{$legend_w},{$legend_h},0^ATN^FD".strtoupper($arr_stk['field_SPEC_BATCH'])."^FS";
+	}
+	$h+= 100 ;
+	
+	$zebra_buffer.= "^FO50,{$h}^GB200,100,2^FS";
+	$zebra_buffer.= "^FO250,{$h}^GB500,100,2^FS";
+	
+		$legend_w = 60 ;
+		$legend_h = $h+20 ;
+		$zebra_buffer.= "^FO{$legend_w},{$legend_h},0^ARN^FD".'Quantity'."^FS";
+	
+		$legend_w = 290 ;
+		$legend_h = $h+20 ;
+		$zebra_buffer.= "^FO{$legend_w},{$legend_h},0^ATN^FD".(float)($arr_stk['field_QTY_IN']+$arr_stk['field_QTY_AVAIL']+$arr_stk['field_QTY_OUT'])."^FS";
+		
+	$h+= 100 ;
+	
+	$zebra_buffer.= "^FO50,{$h}^GB200,250,2^FS";
+	$zebra_buffer.= "^FO250,{$h}^GB500,250,2^FS";
+	
+		$legend_w = 60 ;
+		$legend_h = $h+20 ;
+		$zebra_buffer.= "^FO{$legend_w},{$legend_h},0^ARN^FD".'Position'."^FS";
+	
+		$legend_w = 290 ;
+		$legend_h = $h+30 ;
+		$zebra_buffer.= "^FO{$legend_w},{$legend_h},0^AUN^FD".$arr_stk['field_ADR_ID']."^FS";
+		$legend_h = $h+120 ;
+		$zebra_buffer.= "^FO{$legend_w},{$legend_h}^BY2^BCN,80,Y,N^FD".$arr_stk['field_ADR_ID']."^FS";
+		
+	$h+= 200 ;
+
+
+	return $zebra_buffer ;
+}
 
 ?>
