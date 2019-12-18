@@ -131,6 +131,7 @@ function specDbsLam_lib_proc_findAdr( $mvt_obj, $whse_dest, $to_picking=NULL, $t
 				if( $_opDB->query_uniqueValue($query) > 0 ) {
 					return NULL ;
 				} else {
+					specDbsLam_prods_setPickStaticAdr($mvt_obj['stk_prod'],$pickingAdrStatic) ;
 					return $pickingAdrStatic ;
 				}
 			}
