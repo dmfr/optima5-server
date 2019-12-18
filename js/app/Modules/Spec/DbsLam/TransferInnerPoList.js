@@ -113,7 +113,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferInnerPoList',{
 				editorTpl: {
 					xtype: 'numberfield',
 					allowBlank: false,
-					minValue: 1
+					minValue: 0
 				}
 			},{
 				dataIndex: 'qty_input',
