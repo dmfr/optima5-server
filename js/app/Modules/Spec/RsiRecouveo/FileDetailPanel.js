@@ -91,7 +91,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		'Optima5.Modules.Spec.RsiRecouveo.AdrbookEntityPanel',
 		'Optima5.Modules.Spec.RsiRecouveo.FileCreateForm',
 		'Optima5.Modules.Spec.RsiRecouveo.RecordTempForm',
-		'Optima5.Modules.Spec.RsiRecouveo.AgreeComparePanel'
+		'Optima5.Modules.Spec.RsiRecouveo.AgreeComparePanel',
+		
+		'Optima5.Modules.Spec.RsiRecouveo.FileDetailSubReportingPanel'
 	],
 	
 	_readonlyMode: false,
@@ -924,321 +926,334 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 					}]
 				}]
 			},{xtype: 'splitter', cls: 'op5-spec-rsiveo-splitter'},{
-				itemId: 'pRecordsPanel',
-				tbar:[{
-					xtype: 'checkbox',
-					boxLabel: 'Afficher dossiers clôturés',
-					itemId: 'chkShowClosed',
-					hideLabel: true,
-					margin: '0 10 0 10',
-					inputValue: 'true',
-					value: 'false',
-					listeners: {
-						change: function (cb, newValue, oldValue) {
-							this._showClosed = newValue ;
-							this.doReload();
-						},
-						scope: this
-					}
-				},'-',{
-					xtype: 'checkbox',
-					boxLabel: 'Grouper lettrages',
-					itemId: 'chkShowLetterGroup',
-					hideLabel: true,
-					margin: '0 10 0 10',
-					inputValue: 'true',
-					value: 'false',
-					listeners: {
-						change: function (cb, newValue, oldValue) {
-							this._showLetterGroup = newValue ;
-							this.doReload();
-						},
-						scope: this
-					}
-				}],
 				flex: 1,
-				bodyCls: 'ux-noframe-bg',
-				title: 'Factures',
-				layout: {
-					type: 'vbox',
-					align: 'stretch'
-				},
-				dockedItems: [{
-					itemId: 'windowsBar',
-					xtype: 'toolbar',
-					hidden: true,
-					dock: 'bottom',
-					items: []
-				}],
+				xtype: 'tabpanel',
+				activeTab: 0,
 				items: [{
-					height: 65,
-					itemId: 'pRecordsHeader',
-					xtype:'component',
-					hidden: true,
-					tpl: [
-						'<div class="op5-spec-dbspeople-realvalidhdr">',
-							'<div class="op5-spec-dbspeople-realvalidhdr-inline-tbl">',
-								'<div class="op5-spec-dbspeople-realvalidhdr-inline-elem op5-spec-rsiveo-factureheader-icon">',
-								'</div>',
-								'<div class="op5-spec-dbspeople-realvalidhdr-inline-elem">',
-									'<table class="op5-spec-dbspeople-realvalidhdr-tbl">',
-									'<tr>',
-										'<td class="op5-spec-dbspeople-realvalidhdr-tdlabel">Nb Factures :</td>',
-										'<td class="op5-spec-dbspeople-realvalidhdr-tdvalue">{inv_nb_open}</td>',
-									'</tr>',
-									'<tr>',
-										'<td class="op5-spec-dbspeople-realvalidhdr-tdlabel">Encours total:</td>',
-										'<td class="op5-spec-dbspeople-realvalidhdr-tdvalue">{inv_amount_due}&#160;€</td>',
-									'</tr>',
-									'<tr>',
-										'<td class="op5-spec-dbspeople-realvalidhdr-tdlabel">Encours overdue :</td>',
-										'<td class="op5-spec-dbspeople-realvalidhdr-tdvalue">{inv_amount_due_over}&#160;€</td>',
-									'</tr>',
-									'</table>',
-								'</div>',
-							'</div>',
-						'</div>',
-						{
-							disableFormats: true
-						}
-					]
-				},{
-					height: 65,
-					itemId: 'pRecordsHeaderCreateFile',
-					xtype:'component',
-					hidden: true,
-					tpl: [
-						'<div class="op5-spec-dbspeople-realvalidhdr">',
-							'<div class="op5-spec-dbspeople-realvalidhdr-inline-tbl">',
-								'<div class="op5-spec-dbspeople-realvalidhdr-inline-elem op5-spec-rsiveo-factureheader-icon">',
-								'</div>',
-								'<div class="op5-spec-dbspeople-realvalidhdr-inline-elem">',
-									'<table class="op5-spec-dbspeople-realvalidhdr-tbl">',
-									'<tr>',
-										'<td class="op5-spec-dbspeople-realvalidhdr-tdlabel">Action de traitement :</td>',
-										'<td class="op5-spec-dbspeople-realvalidhdr-tdvalue">',
-										'<div style="position:relative;padding-left:24px">',
-										'<div style="position:absolute;margin:auto;top:0;bottom:0;left:0;width:16px;height:16px;background-color:{action_color}"></div>',
-										'{action_txt}',
-										'<div style="position:relative;padding-left:24px">',
-										'</td>',
-									'</tr>',
-									'<tr>',
-										'<td class="op5-spec-dbspeople-realvalidhdr-tdlabel">Nb pièces :</td>',
-										'<td class="op5-spec-dbspeople-realvalidhdr-tdvalue">{inv_nb}</td>',
-									'</tr>',
-									'<tr>',
-										'<td class="op5-spec-dbspeople-realvalidhdr-tdlabel">Montant total:</td>',
-										'<td class="op5-spec-dbspeople-realvalidhdr-tdvalue">{inv_amount}&#160;€</td>',
-									'</tr>',
-									'</table>',
-								'</div>',
-							'</div>',
-						'</div>',
-						{
-							disableFormats: true
-						}
-					]
-				},{
-					height: 55,
-					itemId: 'pRecordsBalage',
-					hidden: true,
-					xtype:'grid',
-					scrollable: false,
-					columns: {
-						defaults: {
-							menuDisabled: true,
-							draggable: false,
-							sortable: false,
-							hideable: false,
-							resizable: false,
-							groupable: false,
-							lockable: false,
-							flex: 1
-						},
-						items: balageColumns
-					},
-					store: {
-						fields: balageFields,
-						data: [],
-						proxy: {
-							type: 'memory',
-							reader: {
-								type: 'json'
-							}
-						}
-					}
-				},{
-					flex: 1,
-					itemId: 'pRecordsTree',
-					xtype: 'treepanel',
-					store: {
-						model: this.tmpTreeModelName,
-						root: {children:[]},
-						proxy: {
-							type: 'memory' ,
-							reader: {
-								type: 'json'
-							}
-						}
-					},
-					displayField: 'nodeText',
-					rootVisible: false,
-					useArrows: true,
-					columns: treeColumns,
-					selModel: {
-						mode: 'SINGLE'
-					},
-					listeners: {
-						checkchange: this.createFileOnCheckChange,
-						itemclick: this.onRecordsTreeItemClick,
-						itemcontextmenu: this.onRecordsTreeContextMenu,
-						scope: this
-					},
-					viewConfig: {
-						getRowClass: function(r) {
-							if( r.isRoot() ) {
-								return '' ;
-							}
-							var parentNode = r ;
-							while( parentNode.parentNode && !parentNode.parentNode.isRoot() ) {
-								parentNode = parentNode.parentNode ;
-							}
-							if( parentNode.get('file_focus') ) {
-								return 'op5-spec-rsiveo-pis' ;
-							}
-						},
-						plugins: {
-							ptype: 'treeviewdragdrop',
-							ddGroup: 'RsiRecouveoFileDetailRecordsTreeDD',
-							dragText: 'Glisser factures pour ajouter au dossier',
-							appendOnly: true,
-							containerScroll: true
-						},
-						listeners: {
-							beforedrop: this.onRecordsTreeDrop,
-							scope: this
-						}
-					},
+					xtype: 'panel',
+					itemId: 'pRecordsPanel',
 					tbar:[{
-						hidden: true,
-						itemId: 'tbNewSelectAll',
-						icon: 'images/op5img/ico_sprite_plus.png',
-						handler: function() {
-							this.createFileSelect(true) ;
-						},
-						scope: this
-					},{
-						hidden: true,
-						itemId: 'tbNewSelectNone',
-						icon: 'images/op5img/ico_sprite_minus.png',
-						handler: function() {
-							this.createFileSelect(false) ;
-						},
-						scope: this
-					},{
-						xtype: 'tbseparator',
-						itemId: 'tbNewSeparator'
-					},{
-						hidden: true,
-						itemId: 'tbNewSubmit',
-						icon: 'images/modules/rsiveo-ok-16.gif',
-						text: '<b>Valider</b>',
-						handler: function() {
-							this.createFileSubmit() ;
-						},
-						scope: this
-					},{
-						hidden: true,
-						itemId: 'tbNewAbort',
-						icon: 'images/modules/rsiveo-cancel-16.gif',
-						text: '<b>Annuler</b>',
-						handler: function() {
-							this.createFileAbort() ;
-						},
-						scope: this
-					},{
-						itemId: 'tbNew',
-						icon: 'images/modules/rsiveo-bookmark-16.png',
-						text: '<b>Action de traitement</b>',
-						menu:[{
-							iconCls: 'icon-bible-new',
-							text: 'Ouverture dossier',
-							handler: function() {
-								this.createFileSetMode('BUMP') ;
-							},
-							scope: this
-						},{
-							hidden: Ext.Array.contains(disabledActions,'AGREE_START'),
-							iconCls: 'op5-spec-rsiveo-action-agree',
-							text: 'Promesse règlement',
-							handler: function() {
-								this.createFileSetMode('AGREE_START') ;
-							},
-							scope: this
-						},{
-							hidden: Ext.Array.contains(disabledActions,'LITIG_START'),
-							iconCls: 'op5-spec-rsiveo-action-litig',
-							text: 'Demande d\'action externe',
-							handler: function() {
-								this.createFileSetMode('LITIG_START') ;
-							},
-							scope: this
-						},{
-							hidden: Ext.Array.contains(disabledActions,'JUDIC_START'),
-							iconCls: 'op5-spec-rsiveo-action-litig',
-							text: 'Action judiciaire',
-							handler: function() {
-								this.createFileSetMode('JUDIC_START') ;
-							},
-							scope: this
-						},{
-							hidden: Ext.Array.contains(disabledActions,'TRSFR_START'),
-							iconCls: 'op5-spec-rsiveo-action-litig',
-							text: 'Transmission Recouveo',
-							handler: function() {
-								this.createFileSetMode('TRSFR_START') ;
-							},
-							scope: this
-						},{
-							hidden: Ext.Array.contains(disabledActions,'CLOSE_ASK'),
-							iconCls: 'op5-spec-rsiveo-action-close',
-							text: 'Demande de clôture',
-							handler: function() {
-								this.createFileSetMode('CLOSE_ASK') ;
-							},
-							scope: this
-						}]
-					},'->',{
-						hidden: !Ext.isEmpty(Optima5.Modules.Spec.RsiRecouveo.HelperCache.getMetagenValue('gen_uimode_saas')),
-						itemId: 'tbRecordTemp',
-						icon: 'images/modules/rsiveo-quickopen-16.png',
-						text: '<b>Ajustement comptable temporaire</b>',
-						handler: function() {
-							this.handleCreateRecord() ;
-						},
-						scope: this
-					},{
-						hidden: true,
-						itemId: 'tbRecordSearchIcon',
-						icon: 'images/op5img/ico_loupe_16.png',
-						_visibleIfWhse: true
-					},{
-						hidden: true,
-						xtype: 'textfield',
-						itemId: 'tbRecordSearchTxt',
-						width: 150,
+						xtype: 'checkbox',
+						boxLabel: 'Afficher dossiers clôturés',
+						itemId: 'chkShowClosed',
+						hideLabel: true,
+						margin: '0 10 0 10',
+						inputValue: 'true',
+						value: 'false',
 						listeners: {
-							change: {
-								fn: function(field) {
-									this.onRecordsSearch() ;
-								},
-								scope: this,
-								buffer: 500
+							change: function (cb, newValue, oldValue) {
+								this._showClosed = newValue ;
+								this.doReload();
 							},
 							scope: this
 						}
+					},'-',{
+						xtype: 'checkbox',
+						boxLabel: 'Grouper lettrages',
+						itemId: 'chkShowLetterGroup',
+						hideLabel: true,
+						margin: '0 10 0 10',
+						inputValue: 'true',
+						value: 'false',
+						listeners: {
+							change: function (cb, newValue, oldValue) {
+								this._showLetterGroup = newValue ;
+								this.doReload();
+							},
+							scope: this
+						}
+					}],
+					flex: 1,
+					bodyCls: 'ux-noframe-bg',
+					title: 'Pièces',
+					layout: {
+						type: 'vbox',
+						align: 'stretch'
+					},
+					dockedItems: [{
+						itemId: 'windowsBar',
+						xtype: 'toolbar',
+						hidden: true,
+						dock: 'bottom',
+						items: []
+					}],
+					items: [{
+						height: 65,
+						itemId: 'pRecordsHeader',
+						xtype:'component',
+						hidden: true,
+						tpl: [
+							'<div class="op5-spec-dbspeople-realvalidhdr">',
+								'<div class="op5-spec-dbspeople-realvalidhdr-inline-tbl">',
+									'<div class="op5-spec-dbspeople-realvalidhdr-inline-elem op5-spec-rsiveo-factureheader-icon">',
+									'</div>',
+									'<div class="op5-spec-dbspeople-realvalidhdr-inline-elem">',
+										'<table class="op5-spec-dbspeople-realvalidhdr-tbl">',
+										'<tr>',
+											'<td class="op5-spec-dbspeople-realvalidhdr-tdlabel">Nb Factures :</td>',
+											'<td class="op5-spec-dbspeople-realvalidhdr-tdvalue">{inv_nb_open}</td>',
+										'</tr>',
+										'<tr>',
+											'<td class="op5-spec-dbspeople-realvalidhdr-tdlabel">Encours total:</td>',
+											'<td class="op5-spec-dbspeople-realvalidhdr-tdvalue">{inv_amount_due}&#160;€</td>',
+										'</tr>',
+										'<tr>',
+											'<td class="op5-spec-dbspeople-realvalidhdr-tdlabel">Encours overdue :</td>',
+											'<td class="op5-spec-dbspeople-realvalidhdr-tdvalue">{inv_amount_due_over}&#160;€</td>',
+										'</tr>',
+										'</table>',
+									'</div>',
+								'</div>',
+							'</div>',
+							{
+								disableFormats: true
+							}
+						]
+					},{
+						height: 65,
+						itemId: 'pRecordsHeaderCreateFile',
+						xtype:'component',
+						hidden: true,
+						tpl: [
+							'<div class="op5-spec-dbspeople-realvalidhdr">',
+								'<div class="op5-spec-dbspeople-realvalidhdr-inline-tbl">',
+									'<div class="op5-spec-dbspeople-realvalidhdr-inline-elem op5-spec-rsiveo-factureheader-icon">',
+									'</div>',
+									'<div class="op5-spec-dbspeople-realvalidhdr-inline-elem">',
+										'<table class="op5-spec-dbspeople-realvalidhdr-tbl">',
+										'<tr>',
+											'<td class="op5-spec-dbspeople-realvalidhdr-tdlabel">Action de traitement :</td>',
+											'<td class="op5-spec-dbspeople-realvalidhdr-tdvalue">',
+											'<div style="position:relative;padding-left:24px">',
+											'<div style="position:absolute;margin:auto;top:0;bottom:0;left:0;width:16px;height:16px;background-color:{action_color}"></div>',
+											'{action_txt}',
+											'<div style="position:relative;padding-left:24px">',
+											'</td>',
+										'</tr>',
+										'<tr>',
+											'<td class="op5-spec-dbspeople-realvalidhdr-tdlabel">Nb pièces :</td>',
+											'<td class="op5-spec-dbspeople-realvalidhdr-tdvalue">{inv_nb}</td>',
+										'</tr>',
+										'<tr>',
+											'<td class="op5-spec-dbspeople-realvalidhdr-tdlabel">Montant total:</td>',
+											'<td class="op5-spec-dbspeople-realvalidhdr-tdvalue">{inv_amount}&#160;€</td>',
+										'</tr>',
+										'</table>',
+									'</div>',
+								'</div>',
+							'</div>',
+							{
+								disableFormats: true
+							}
+						]
+					},{
+						height: 55,
+						itemId: 'pRecordsBalage',
+						hidden: true,
+						xtype:'grid',
+						scrollable: false,
+						columns: {
+							defaults: {
+								menuDisabled: true,
+								draggable: false,
+								sortable: false,
+								hideable: false,
+								resizable: false,
+								groupable: false,
+								lockable: false,
+								flex: 1
+							},
+							items: balageColumns
+						},
+						store: {
+							fields: balageFields,
+							data: [],
+							proxy: {
+								type: 'memory',
+								reader: {
+									type: 'json'
+								}
+							}
+						}
+					},{
+						flex: 1,
+						itemId: 'pRecordsTree',
+						xtype: 'treepanel',
+						store: {
+							model: this.tmpTreeModelName,
+							root: {children:[]},
+							proxy: {
+								type: 'memory' ,
+								reader: {
+									type: 'json'
+								}
+							}
+						},
+						displayField: 'nodeText',
+						rootVisible: false,
+						useArrows: true,
+						columns: treeColumns,
+						selModel: {
+							mode: 'SINGLE'
+						},
+						listeners: {
+							checkchange: this.createFileOnCheckChange,
+							itemclick: this.onRecordsTreeItemClick,
+							itemcontextmenu: this.onRecordsTreeContextMenu,
+							scope: this
+						},
+						viewConfig: {
+							getRowClass: function(r) {
+								if( r.isRoot() ) {
+									return '' ;
+								}
+								var parentNode = r ;
+								while( parentNode.parentNode && !parentNode.parentNode.isRoot() ) {
+									parentNode = parentNode.parentNode ;
+								}
+								if( parentNode.get('file_focus') ) {
+									return 'op5-spec-rsiveo-pis' ;
+								}
+							},
+							plugins: {
+								ptype: 'treeviewdragdrop',
+								ddGroup: 'RsiRecouveoFileDetailRecordsTreeDD',
+								dragText: 'Glisser factures pour ajouter au dossier',
+								appendOnly: true,
+								containerScroll: true
+							},
+							listeners: {
+								beforedrop: this.onRecordsTreeDrop,
+								scope: this
+							}
+						},
+						tbar:[{
+							hidden: true,
+							itemId: 'tbNewSelectAll',
+							icon: 'images/op5img/ico_sprite_plus.png',
+							handler: function() {
+								this.createFileSelect(true) ;
+							},
+							scope: this
+						},{
+							hidden: true,
+							itemId: 'tbNewSelectNone',
+							icon: 'images/op5img/ico_sprite_minus.png',
+							handler: function() {
+								this.createFileSelect(false) ;
+							},
+							scope: this
+						},{
+							xtype: 'tbseparator',
+							itemId: 'tbNewSeparator'
+						},{
+							hidden: true,
+							itemId: 'tbNewSubmit',
+							icon: 'images/modules/rsiveo-ok-16.gif',
+							text: '<b>Valider</b>',
+							handler: function() {
+								this.createFileSubmit() ;
+							},
+							scope: this
+						},{
+							hidden: true,
+							itemId: 'tbNewAbort',
+							icon: 'images/modules/rsiveo-cancel-16.gif',
+							text: '<b>Annuler</b>',
+							handler: function() {
+								this.createFileAbort() ;
+							},
+							scope: this
+						},{
+							itemId: 'tbNew',
+							icon: 'images/modules/rsiveo-bookmark-16.png',
+							text: '<b>Action de traitement</b>',
+							menu:[{
+								iconCls: 'icon-bible-new',
+								text: 'Ouverture dossier',
+								handler: function() {
+									this.createFileSetMode('BUMP') ;
+								},
+								scope: this
+							},{
+								hidden: Ext.Array.contains(disabledActions,'AGREE_START'),
+								iconCls: 'op5-spec-rsiveo-action-agree',
+								text: 'Promesse règlement',
+								handler: function() {
+									this.createFileSetMode('AGREE_START') ;
+								},
+								scope: this
+							},{
+								hidden: Ext.Array.contains(disabledActions,'LITIG_START'),
+								iconCls: 'op5-spec-rsiveo-action-litig',
+								text: 'Demande d\'action externe',
+								handler: function() {
+									this.createFileSetMode('LITIG_START') ;
+								},
+								scope: this
+							},{
+								hidden: Ext.Array.contains(disabledActions,'JUDIC_START'),
+								iconCls: 'op5-spec-rsiveo-action-litig',
+								text: 'Action judiciaire',
+								handler: function() {
+									this.createFileSetMode('JUDIC_START') ;
+								},
+								scope: this
+							},{
+								hidden: Ext.Array.contains(disabledActions,'TRSFR_START'),
+								iconCls: 'op5-spec-rsiveo-action-litig',
+								text: 'Transmission Recouveo',
+								handler: function() {
+									this.createFileSetMode('TRSFR_START') ;
+								},
+								scope: this
+							},{
+								hidden: Ext.Array.contains(disabledActions,'CLOSE_ASK'),
+								iconCls: 'op5-spec-rsiveo-action-close',
+								text: 'Demande de clôture',
+								handler: function() {
+									this.createFileSetMode('CLOSE_ASK') ;
+								},
+								scope: this
+							}]
+						},'->',{
+							hidden: !Ext.isEmpty(Optima5.Modules.Spec.RsiRecouveo.HelperCache.getMetagenValue('gen_uimode_saas')),
+							itemId: 'tbRecordTemp',
+							icon: 'images/modules/rsiveo-quickopen-16.png',
+							text: '<b>Ajustement comptable temporaire</b>',
+							handler: function() {
+								this.handleCreateRecord() ;
+							},
+							scope: this
+						},{
+							hidden: true,
+							itemId: 'tbRecordSearchIcon',
+							icon: 'images/op5img/ico_loupe_16.png',
+							_visibleIfWhse: true
+						},{
+							hidden: true,
+							xtype: 'textfield',
+							itemId: 'tbRecordSearchTxt',
+							width: 150,
+							listeners: {
+								change: {
+									fn: function(field) {
+										this.onRecordsSearch() ;
+									},
+									scope: this,
+									buffer: 500
+								},
+								scope: this
+							}
+						}]
 					}]
+				},Ext.create('Optima5.Modules.Spec.RsiRecouveo.FileDetailSubReportingPanel',{
+					title: 'Statistiques',
+					_parentCmp: this
+				}),{
+					xtype: 'panel',
+					title: 'Analyse risque',
+					layout: 'fit'
 				}]
 			},{xtype: 'splitter', cls: 'op5-spec-rsiveo-splitter'},{
 				flex: 1,
@@ -1340,6 +1355,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 	
 	loadAccount: function( accId, filterAtr, focusFileFilerecordId, showClosed ) {
 		this.showLoadmask() ;
+		this.fireEvent('doreload',this,accId) ;
 		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: {
 				_moduleId: 'spec_rsi_recouveo',
