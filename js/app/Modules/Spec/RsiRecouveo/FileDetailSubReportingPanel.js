@@ -10,12 +10,62 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailSubReportingPanel',{
 				align: 'stretch'
 			},
 			items: [{
-				flex: 1,
-				title: 'Stats'
+				xtype: 'container' ,
+				layout: {
+					type: 'hbox',
+					align: 'stretch'
+				},
+				cls: 'ux-noframe-bg',
+				items: [{
+					xtype: 'box',
+					cls: 'op5-spec-rsiveo-factureheader-icon',
+					width: 72,
+				},{
+					xtype: 'form',
+					layout: 'anchor',
+					cls: 'op5-spec-rsiveo-displayform',
+					bodyCls: 'ux-noframe-bg',
+					fieldDefaults: {
+						anchor: '100%',
+						labelWidth: 100
+					},
+					items: [{
+						xtype: 'combobox',
+						fieldLabel: 'Intervalle',
+						forceSelection: true,
+						editable: false,
+						store: {
+							fields: ['timerange_intmonth','timerange_txt'],
+							data : [
+								{ timerange_intmonth: '6', timerange_txt: '6 mois' },
+								{ timerange_intmonth: '24', timerange_txt: '2 ans' }
+							]
+						},
+						queryMode: 'local',
+						displayField: 'timerange_txt',
+						valueField: 'timerange_intmonth',
+						value: '6'
+					},{
+						xtype: 'displayfield',
+						fieldLabel: 'Actions Auto.'+'&#160;',
+						value: 'Texte exemple'
+					},{
+						xtype: 'displayfield',
+						fieldLabel: 'Actions Man.'+'&#160;',
+						value: 'Texte exemple'
+					},{
+						xtype: 'displayfield',
+						fieldLabel: 'DSO (moyenne)'+'&#160;',
+						value: 'Texte exemple',
+						style: {
+							'margin-top' : '6px'  
+						}
+					}]
+				}]
 			},{
 				flex: 2,
 				itemId: 'cntChartHistory',
-				title: 'History',
+				title: 'Historique',
 				layout: 'fit',
 				items: {
 					xtype: 'box',

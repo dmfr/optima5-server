@@ -1106,3 +1106,20 @@
 .op5-spec-rsiveo-dashboard-grid-orangerow .x-grid-cell-inner {
     background-color: #ffc143 ;
 }
+
+.op5-spec-rsiveo-displayform {
+	padding: 6px 2px ;
+}
+.op5-spec-rsiveo-displayform .x-form-item-label {
+	min-height: 0px !important;
+	font-weight: bold ;
+}
+.op5-spec-rsiveo-displayform .x-form-item-body {
+	min-height: 0px !important;
+}
+.op5-spec-rsiveo-displayform .x-form-display-field {
+	min-height: 0px !important;
+}
+.op5-spec-rsiveo-displayform .x-form-item {
+	margin-bottom: 0px !important;
+}
