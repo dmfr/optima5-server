@@ -364,6 +364,17 @@ function specRsiRecouveo_report_getGrid($post_data) {
 	$cfg_atr = $ttmp['data']['cfg_atr'] ;
 	$cfg_status = $ttmp['data']['cfg_status'] ;
 	$cfg_opt = $ttmp['data']['cfg_opt'] ;
+	
+	// Default dates
+	if( !$p_filters['filter_date'] ) {
+		$p_filters['filter_date']['date_start'] = $p_filters['filter_date']['date_end'] = NULL ;
+	}
+	if( !$p_filters['filter_date']['date_end'] ) {
+		$p_filters['filter_date']['date_end'] = date('Y-m-d') ;
+	}
+	if( !$p_filters['filter_date']['date_start'] ) {
+		$p_filters['filter_date']['date_start'] = $p_filters['filter_date']['date_end'] ;
+	}
 
 	$map_user = array() ;
 	foreach( $cfg_user as $user ) {
@@ -545,6 +556,7 @@ function specRsiRecouveo_report_getGrid($post_data) {
 					'date_start' => $col['date_start'],
 					'date_end' => $col['date_end']
 				);
+				/*
 				if( $reportval_id_base=='dso_avg' ) {
 					// HACK : dso_avg sur totalité de la période FILTER_DATE
 					$obj_date_interval = date_diff(
@@ -554,6 +566,7 @@ function specRsiRecouveo_report_getGrid($post_data) {
 					$interval_days = (int)$obj_date_interval->format('%a') ;
 					$dates['date_start'] = date('Y-m-d',strtotime("-{$interval_days} days",strtotime($dates['date_end']))) ;
 				}
+				*/
 				$map_grouper_val = specRsiRecouveo_report_run_getValues($tmp['reportval_id'],$dates,$p_filters,$grouper) ;
 				//print_r($map_grouper_val) ;
 				foreach($map_grouper_val as $val ){
@@ -732,6 +745,7 @@ function specRsiRecouveo_report_run_getValues( $reportval_id, $dates, $filters, 
 
 	$filter_atr = $filters['filter_atr'];
 	$filter_soc = $filters['filter_soc'];
+	$filter_account = $filters['filter_account'];
 	$filter_user = $filters['filter_user'];
 	$ttmp = specRsiRecouveo_cfg_getConfig();
 	$cfg_atr = $ttmp['data']['cfg_atr'];
@@ -774,6 +788,10 @@ function specRsiRecouveo_report_run_getValues( $reportval_id, $dates, $filters, 
 	if ($filter_soc) {
 		$join_tables['la'] = TRUE ;
 		$where_clause.= " AND la.treenode_key IN " . $_opDB->makeSQLlist($filter_soc);
+	}
+	if ($filter_account) {
+		$join_tables['la'] = TRUE ;
+		$where_clause.= " AND la.entry_key IN " . $_opDB->makeSQLlist($filter_account);
 	}
 	if ($filter_user) {
 		$join_tables['la'] = TRUE ;
@@ -846,9 +864,15 @@ function specRsiRecouveo_report_run_getValues( $reportval_id, $dates, $filters, 
 	
 	switch( $reportval_id ) {
 		case 'dso_avg' :
-			$select_clause = "'',avg( DATEDIFF(field_LETTER_DATE,GREATEST(field_DATE_LOAD,field_DATE_VALUE)) )" ;
+			$dso_dateEnd = $dates['date_end'] ;
+			$dso_dateStart = date('Y-m-d',strtotime('-1 year',strtotime($dates['date_end']))) ;
+		
+			//$dateWord_recBegin = 'GREATEST(field_DATE_LOAD,field_DATE_VALUE)' ;
+			$dateWord_recBegin = 'field_DATE_VALUE' ;
+			
+			$select_clause = "'',avg( DATEDIFF(field_LETTER_DATE,{$dateWord_recBegin}) )" ;
 			if( $group_field ) {
-				$select_clause = $group_field.',avg( DATEDIFF(field_LETTER_DATE,GREATEST(field_DATE_LOAD,field_DATE_VALUE)) )' ;
+				$select_clause = $group_field.",avg( DATEDIFF(field_LETTER_DATE,{$dateWord_recBegin}) )" ;
 			}
 			
 			
@@ -865,7 +889,7 @@ function specRsiRecouveo_report_run_getValues( $reportval_id, $dates, $filters, 
 			
 			$where_clause.= " AND (r.field_TYPE='' AND r.field_AMOUNT>'0')" ;
 			$where_clause.= " AND field_LETTER_IS_CONFIRM='1'" ;
-			$where_clause.= " AND (DATE(r.field_LETTER_DATE) BETWEEN '{$dates['date_start']}' AND '{$dates['date_end']}')" ;
+			$where_clause.= " AND (DATE(r.field_LETTER_DATE) BETWEEN '{$dso_dateStart}' AND '{$dso_dateEnd}')" ;
 			
 			
 			$query = "SELECT {$select_clause} 

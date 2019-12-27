@@ -183,6 +183,8 @@ switch( $post_data['_action'] )
 		return specRsiRecouveo_report_getTiles( $post_data ) ;
 	case 'report_getGrid' :
 		return specRsiRecouveo_report_getGrid( $post_data ) ;
+	case 'report_getFileElements' :
+		return specRsiRecouveo_report_getFileElements( $post_data ) ;
 	
 	case 'edi_getApiKeys' :
 		return specRsiRecouveo_edi_getApiKeys( $post_data ) ;

@@ -22,6 +22,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailSubReportingPanel',{
 					width: 72,
 				},{
 					xtype: 'form',
+					itemId: 'formSummary',
 					layout: 'anchor',
 					cls: 'op5-spec-rsiveo-displayform',
 					bodyCls: 'ux-noframe-bg',
@@ -31,31 +32,41 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailSubReportingPanel',{
 					},
 					items: [{
 						xtype: 'combobox',
+						itemId: 'paramTimerangeMonths',
 						fieldLabel: 'Intervalle',
 						forceSelection: true,
 						editable: false,
 						store: {
-							fields: ['timerange_intmonth','timerange_txt'],
+							fields: ['timerange_intmonths','timerange_txt'],
 							data : [
-								{ timerange_intmonth: '6', timerange_txt: '6 mois' },
-								{ timerange_intmonth: '24', timerange_txt: '2 ans' }
+								{ timerange_intmonths: '6', timerange_txt: '6 mois' },
+								{ timerange_intmonths: '24', timerange_txt: '2 ans' }
 							]
 						},
 						queryMode: 'local',
 						displayField: 'timerange_txt',
-						valueField: 'timerange_intmonth',
-						value: '6'
+						valueField: 'timerange_intmonths',
+						value: '6',
+						listeners: {
+							select: function() {
+								this.doReload() ;
+							},
+							scope: this
+						}
 					},{
 						xtype: 'displayfield',
+						name: 'display_action_auto',
 						fieldLabel: 'Actions Auto.'+'&#160;',
 						value: 'Texte exemple'
 					},{
 						xtype: 'displayfield',
+						name: 'display_action_man',
 						fieldLabel: 'Actions Man.'+'&#160;',
 						value: 'Texte exemple'
 					},{
 						xtype: 'displayfield',
-						fieldLabel: 'DSO (moyenne)'+'&#160;',
+						name: 'display_dsoavg',
+						fieldLabel: 'DSO (à date)'+'&#160;',
 						value: 'Texte exemple',
 						style: {
 							'margin-top' : '6px'  
@@ -67,67 +78,73 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailSubReportingPanel',{
 				itemId: 'cntChartHistory',
 				title: 'Historique',
 				layout: 'fit',
-				items: {
-					xtype: 'box',
-					cls:'op5-waiting'
-				}
+				items: []
 			}]
 		}) ;
 		
 		this.callParent() ;
 		if( this._parentCmp ) {
 			this.optimaModule = this._parentCmp.optimaModule ;
+			//this._accId = this._parentCmp._accId ;
 			this.mon(this._parentCmp,'doreload',this.onDoReload,this) ;
 		}
 	},
 	onDoReload: function(parentCmp,accId) {
-		console.dir(this);
-		console.dir(arguments) ;
-		
-		this.doLoadElements() ;
+		this.doLoadElements(accId) ;
 	},
 	
-	doLoadElements: function() {
+	doReload: function() {
+		this.doLoadElements(this._accId) ;
+	},
+	doLoadElements: function(accId) {
+		this._accId = accId ;
+		
+		
+		this.down('#formSummary').getForm().setValues({
+			display_dsoavg: '-',
+			display_action_man: '-',
+			display_action_auto: '-',
+		}) ;
+		this.down('#cntChartHistory').removeAll();
+		this.down('#cntChartHistory').add({
+			xtype: 'box',
+			cls:'op5-waiting'
+		});
+		
+		
+		var paramTimerangeMonths = parseInt(this.down('#formSummary').down('#paramTimerangeMonths').getValue()) ;
 		
 		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: {
 				_moduleId: 'spec_rsi_recouveo',
-				_action: 'report_getGrid',
-				filters:       Ext.JSON.encode({
-					filter_date: {
-						date_period: 'month',
-						date_start:  '2019-06-01',
-						date_end:    '2019-11-31'
-					}
-				}),
-				axes:          Ext.JSON.encode({
-					timebreak_is_on: true,
-					timebreak_group: "MONTH",
-					groupby_is_on: true,
-					groupby_key: "status"
-				}),
-				reportval_ids: Ext.JSON.encode(["wallet?wvalue=amount"])
+				_action: 'report_getFileElements',
+				acc_id: accId,
+				timerange_months: paramTimerangeMonths
 			},
 			success: function(response) {
 				var ajaxResponse = Ext.decode(response.responseText) ;
 				if( ajaxResponse.success == false ) {
 					return ;
 				}
-				this.onLoadChartHistory(ajaxResponse) ;
+				this.onLoadElements(ajaxResponse.data) ;
 			},
 			scope: this
 		}) ;
 	},
 	
-	onLoadChartHistory: function(tableData) {
-		//console.dir(ajaxData) ;
-		// return ;
-		
-		
-		
-		
-		
-		
+	onLoadElements: function(ajaxData) {
+		this.onLoadFormSummary( ajaxData.form_summary ) ;
+		this.onLoadChartHistory( ajaxData.chart_history, ajaxData.chart_dso ) ;
+	},
+	onLoadFormSummary: function(formTable) {
+		var dataRow = formTable.data[0] ;
+		this.down('#formSummary').getForm().setValues({
+			display_dsoavg: Ext.util.Format.number(dataRow['v_dso_avg'],'0,000.0')+'&#160;'+'j',
+			display_action_man: Ext.util.Format.number(dataRow['v_actions?aclass=manual'],'0,000'),
+			display_action_auto: Ext.util.Format.number(dataRow['v_actions?aclass=auto'],'0,000')
+		}) ;
+	},
+	onLoadChartHistory: function(historyTable, dsoTable) {
 		var fields = [{
 			name: 'timebreak_id',
 			string: 'string'
@@ -137,13 +154,14 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailSubReportingPanel',{
 		}] ;
 		var xField = 'timebreak_txt' ;
 		var yFields = [], yTitles = [], yColors = [] ;
+		var yFieldsLineDso = [], yTitlesLineDso = [] ;
 		
 		var groupIds = [],
 			groupTitles = [] ;
-		Ext.Array.sort( tableData.data, function(a,b) {
+		Ext.Array.sort( historyTable.data, function(a,b) {
 			return !!(a.group_id<b.group_id) ? -1 : 1 ;
 		});
-		Ext.Array.each( tableData.data, function(row) {
+		Ext.Array.each( historyTable.data, function(row) {
 			var mkey = 'g_'+row.group_id ;
 			fields.push({
 				name: mkey,
@@ -155,10 +173,20 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailSubReportingPanel',{
 				yColors.push( row.group_color ) ;
 			}
 		}) ;
+		Ext.Array.each( dsoTable.data, function(rowDso) {
+			var mkey = 'val_dso' ;
+			fields.push({
+				name: mkey,
+				type: 'number'
+			}) ;
+			yFieldsLineDso.push( mkey ) ;
+			yTitlesLineDso.push( 'DSO' ) ;
+			yColors.push( '#00aa80' ) ;
+		}) ;
 		
 		var chartData = [],
 			chartRow ;
-		Ext.Array.each( tableData.columns, function(col) {
+		Ext.Array.each( historyTable.columns, function(col) {
 			if( Ext.isEmpty(col.date_end) ) {
 				return ;
 			}
@@ -166,9 +194,13 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailSubReportingPanel',{
 				timebreak_id: col.dataIndex,
 				timebreak_txt: Ext.Date.format(Ext.Date.parse(col.date_end,'Y-m-d'),"d/m/Y")
 			};
-			Ext.Array.each( tableData.data, function(row) {
+			Ext.Array.each( historyTable.data, function(row) {
 				var mkey = 'g_'+row.group_id ;
 				chartRow[mkey] = (row[col.dataIndex] > 0 ? row[col.dataIndex] : 0);
+			});
+			Ext.Array.each( dsoTable.data, function(rowDso) {
+				var mkey = 'val_dso' ;
+				chartRow[mkey] = (rowDso[col.dataIndex] > 0 ? rowDso[col.dataIndex] : 0);
 			});
 			chartData.push(chartRow) ;
 		}) ;
@@ -223,6 +255,21 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailSubReportingPanel',{
 						fontSize: 12
 					}
 			}, {
+					type: 'numeric',
+					//hidden: true,
+					position: 'right',
+					adjustByMajorUnit: true,
+					grid: false,
+					fields: [yFieldsLineDso[0]],
+					renderer: function (v) { return Ext.util.Format.number(v,'0,000'); },
+					minimum: 0,
+			  
+					title: 'Jours',
+					label: {
+						fontFamily: 'Play, sans-serif',
+						fontSize: 12
+					}
+			},{
 					type: 'category',
 					position: 'bottom',
 					grid: true,
@@ -265,6 +312,41 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailSubReportingPanel',{
 							this.setHtml(str);
 						}
 					}
+			},{
+					type: 'line',
+					//axis: 'right',
+					title: yTitlesLineDso[0],
+					xField: xField,
+					yField: yFieldsLineDso[0],
+					//stacked: true,
+					
+					smooth: true,
+					style: {
+						//fill: '#A52A2A',
+						'stroke': '#00aa80',
+						'stroke-width': 2 
+					},
+					marker: {
+						type: 'circle',
+						radius: 4,
+						lineWidth: 2,
+						fill: 'white'
+					},
+					highlight: {
+						fillStyle: 'yellow'
+					},
+					tooltip: {
+						trackMouse: true,
+						style: 'background: #fff',
+						renderer: function(storeItem, item) {
+							var groupTitle = item.series.getTitle()[Ext.Array.indexOf(item.series.getYField(), item.field)];
+							var str = 'DSO : ' ;
+							str+= Ext.util.Format.number(storeItem.get(item.field),'0.0') ;
+							str+= ' j' ;
+							this.setHtml(str);
+						}
+					}
+				
 			}]
 		} ;
 		if( yColors.length>0 ) {
