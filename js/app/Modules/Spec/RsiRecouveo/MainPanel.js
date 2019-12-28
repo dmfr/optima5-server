@@ -19,13 +19,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MainPanel',{
 		'Optima5.Modules.Spec.RsiRecouveo.UploadForm',
 		'Optima5.Modules.Spec.RsiRecouveo.InboxPanel',
 		'Optima5.Modules.Spec.RsiRecouveo.ProfilePasswdPanel',
-
-		'Optima5.Modules.Spec.RsiRecouveo.ReportsPanel',
-		'Optima5.Modules.Spec.RsiRecouveo.ReportPopupPanel',
-		'Optima5.Modules.Spec.RsiRecouveo.ReportFilesPanel',
-		'Optima5.Modules.Spec.RsiRecouveo.ReportTilesPanel',
-		'Optima5.Modules.Spec.RsiRecouveo.ReportChartsPanel',
-		'Optima5.Modules.Spec.RsiRecouveo.ReportTilePopup',
 		
 		'Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPanel'
 	],
@@ -108,10 +101,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MainPanel',{
 		switch( actionCode ) {
 			case 'files' :
 				return me.openFiles() ;
-			case 'reports' :
-				return me.openReports() ;
-			case 'tmp_reporting':
-				return me.openReportPopup() ;
 			case 'bank' :
 				return me.openBank() ;
 			case 'cfg' :
@@ -132,14 +121,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MainPanel',{
 				return me.extOpenHelpWiki() ;
 			case 'passwd' :
 				return me.openPasswdPopup() ;
-			case 'tiles':
-				return me.openTilesPanel();
 			case 'dashboard':
 				return me.openDashboardPanel();
-			case 'charts':
-				return me.openChartsPanel();
-			case 'analyse':
-				return me.openAnalysePanel() ;
 			default :
 				return ;
 		}
@@ -183,80 +166,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MainPanel',{
 			default: break ;
 		}
 	},
-	openAnalysePanel: function(){
-		var doOpen = true ;
-		this.eachPanel(function(pnl){
-			if( !(pnl instanceof Optima5.Modules.Spec.RsiRecouveo.ReportFilesPanel) ) {
-				return true ;
-			}
-			this.focusPanel(pnl) ;
-			doOpen = false ;
-			return false ;
-		},this) ;
-		if( !doOpen ) {
-			return ;
-		}
-
-		//open
-		var pnl = Ext.create('Optima5.Modules.Spec.RsiRecouveo.ReportFilesPanel',{
-			optimaModule: this.optimaModule,
-			title: 'Analyse dossiers',
-			closable: true
-		}) ;
-		this.addPanel(pnl) ;
-		this.focusPanel(pnl) ;
-		this.minimizeWin() ;
-	},
-
-	openChartsPanel: function(){
-		var doOpen = true ;
-		this.eachPanel(function(pnl){
-			if( !(pnl instanceof Optima5.Modules.Spec.RsiRecouveo.ReportChartsPanel) ) {
-				return true ;
-			}
-			this.focusPanel(pnl) ;
-			doOpen = false ;
-			return false ;
-		},this) ;
-		if( !doOpen ) {
-			return ;
-		}
-
-		//open
-		var pnl = Ext.create('Optima5.Modules.Spec.RsiRecouveo.ReportChartsPanel',{
-			optimaModule: this.optimaModule,
-			title: 'Encaissement',
-			closable: true
-		}) ;
-		this.addPanel(pnl) ;
-		this.focusPanel(pnl) ;
-		this.minimizeWin() ;
-	},
-	openTilesPanel: function(){
-		var doOpen = true ;
-		this.eachPanel(function(pnl){
-			if( !(pnl instanceof Optima5.Modules.Spec.RsiRecouveo.ReportTilesPanel) ) {
-				return true ;
-			}
-			this.focusPanel(pnl) ;
-			doOpen = false ;
-			return false ;
-		},this) ;
-		if( !doOpen ) {
-			return ;
-		}
-
-		//open
-		var pnl = Ext.create('Optima5.Modules.Spec.RsiRecouveo.ReportTilesPanel',{
-			optimaModule: this.optimaModule,
-			title: 'Dashboard',
-			closable: true,
-			scrollable: true,
-		}) ;
-		this.addPanel(pnl) ;
-		this.focusPanel(pnl) ;
-		this.minimizeWin() ;
-	},
+	
 	openDashboardPanel: function(){
 		var doOpen = true ;
 		this.eachPanel(function(pnl){
@@ -280,16 +190,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MainPanel',{
 		}) ;
 		this.addPanel(pnl) ;
 		this.focusPanel(pnl) ;
-		this.minimizeWin() ;
 	},
-
-	minimizeWin: function(){
-		this.optimaModule.eachWindow(function(win){
-			if (win instanceof Optima5.Modules.Spec.RsiRecouveo.ReportPopupPanel){
-				win.minimize() ;
-			}
-		},this) ;
-	},
+	
 	openFiles: function() {
 		// recherche d'une fenetre deja ouverte
 		var doOpen = true ;
@@ -450,31 +352,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MainPanel',{
 		this.addPanel(pnl) ;
 		this.focusPanel(pnl) ;
 	},
-	openReports: function() {
-		// recherche d'une fenetre deja ouverte
-		var doOpen = true ;
-		this.eachPanel(function(pnl){
-			if( !(pnl instanceof Optima5.Modules.Spec.RsiRecouveo.ReportsPanel) ) {
-				return true ;
-			}
-			this.focusPanel(pnl) ;
-			doOpen = false ;
-			return false ;
-		},this) ;
-		if( !doOpen ) {
-			return ;
-		}
-		
-		//open
-		var pnl = Ext.create('Optima5.Modules.Spec.RsiRecouveo.ReportsPanel',{
-			optimaModule: this.optimaModule,
-			
-			title: 'Reporting',
-			closable: true
-		}) ;
-		this.addPanel(pnl) ;
-		this.focusPanel(pnl) ;
-	},
 	
 	openUploadPopup: function() {
 		this.getEl().mask() ;
@@ -507,42 +384,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MainPanel',{
 		createPanel.getEl().alignTo(this.getEl(), 'c-c?');
 	},
 	
-
-	openReportPopup: function(){
-		var doOpen = true ;
-		var me = this ;
-		this.optimaModule.eachWindow(function(win){
-			if( win instanceof Optima5.Modules.Spec.RsiRecouveo.ReportPopupPanel) {
-				win.show() ;
-				win.focus() ;
-				doOpen = false ;
-				return false ;
-			}
-		},this) ;
-		if( !doOpen ) {
-			return ;
-		}
-
-		// new window
-		this.optimaModule.createWindow({
-			title: 'Select. onglet',
-			width:500,
-			height:250,
-			iconCls: 'op5-crmbase-dataformwindow-icon',
-			animCollapse:true,
-			resizable: false,
-			itemId: "reportPopup",
-			optimaModule: this.optimaModule,
-			listeners: {
-				candestroy: function(w) {
-					w.close() ;
-				},
-				actionclick: function( view, actionCode ) {
-					me.onActionClick(actionCode) ;
-				}	,
-			}
-		},Optima5.Modules.Spec.RsiRecouveo.ReportPopupPanel) ;
-	},
 	openInboxPopup: function() {
 		// recherche d'une fenetre deja ouverte
 		var doOpen = true ;
