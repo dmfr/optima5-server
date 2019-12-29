@@ -94,12 +94,19 @@ function specDbsTracy_trspt_getRecords( $post_data ) {
 		if( !isset($TAB_trspt[$arr['filerecord_parent_id']]) ) {
 			continue ;
 		}
-		$TAB_trspt[$arr['filerecord_parent_id']]['events'][] = array(
+		
+		$row_event = array(
 			'trsptevent_filerecord_id' => $arr['filerecord_id'],
 			'event_date' => $arr['field_EVENT_DATE'],
 			'event_user' => $arr['field_EVENT_USER'],
 			'event_txt' => $arr['field_EVENT_TXT']
 		);
+		switch( $arr['field_EVENTLINK_FILE'] ) {
+			case 'TMS_STORE' :
+				$row_event['spec_tms_on'] = true ;
+				break ;
+		}
+		$TAB_trspt[$arr['filerecord_parent_id']]['events'][] = $row_event ;
 	}
 	
 	$query = "SELECT * FROM view_file_TRSPT_CDE tc" ;
@@ -1045,4 +1052,21 @@ function specDbsTracy_trspt_download( $post_data ) {
 	unlink($tmpfilename) ;
 	die() ;
 }
+
+
+
+
+
+
+
+function specDbsTracy_trspt_getLabelTMS( $post_data ) {
+	global $_opDB ;
+	
+	$p_trsptFilerecordId = $post_data['trspt_filerecord_id'] ;
+	$p_trspteventFilerecordId = $post_data['trsptevent_filerecord_id'] ;
+	
+	
+	
+}
+
 ?>

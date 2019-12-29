@@ -61,7 +61,7 @@ function specDbsTracy_lib_TMS_doLabelCreateObj( $row_trspt ) {
 				"height" => $hatparcel_iter['vol_dims'][1],
 				//"hsCode" => "string",
 				//"originCountryCode" => "string",
-				"weight" => $hatparcel_iter['vol_kg'],
+				"weight" => ceil($hatparcel_iter['vol_kg']),
 				"width" => $hatparcel_iter['vol_dims'][0]
 			) ;
 		}
@@ -95,7 +95,7 @@ function specDbsTracy_lib_TMS_doLabelCreateObj( $row_trspt ) {
 			),
 			"customsDeclaration" => array(
 				"currencyCode" => $value_currency,
-				"declaredValue" => $value_amount,
+				"declaredValue" => round($value_amount),
 				//"termsOfTrade" => "string"
 			),
 			"distanceUnit" => "CM",
@@ -128,6 +128,8 @@ function specDbsTracy_lib_TMS_doLabelCreate( $row_trspt, $obj_request=NULL ) {
 	global $_opDB ;
 	$_STORE_DATE = date('Y-m-d H:i:s') ;
 	$_STORE_PEER = 'DBS_CREATELABEL' ;
+	
+	$map_tmsTag_filerecordId = array() ;
 	
 	$request_filerecordId = NULL ;
 	$response_filerecordId = NULL ;
@@ -164,7 +166,7 @@ function specDbsTracy_lib_TMS_doLabelCreate( $row_trspt, $obj_request=NULL ) {
 	}
 	
 	$arr_ins = array() ;
-	$arr_ins['field_TRSPT_ID'] = $row_trspt['trspt_filerecord_id'] ;
+	$arr_ins['field_FILE_TRSPT_ID'] = $row_trspt['trspt_filerecord_id'] ;
 	$arr_ins['field_STORE_DATE'] = $_STORE_DATE ;
 	$arr_ins['field_STORE_PEER'] = $_STORE_PEER ;
 	$arr_ins['field_STORE_TAG'] = 'REQUEST' ;
@@ -176,6 +178,7 @@ function specDbsTracy_lib_TMS_doLabelCreate( $row_trspt, $obj_request=NULL ) {
 		media_bin_move( $tmp_media_id , media_bin_toolFile_getId('TMS_STORE',$request_filerecordId) ) ;
 		media_contextClose() ;
 	}
+	$map_tmsTag_filerecordId[$arr_ins['field_STORE_TAG']] = $request_filerecordId ;
 	
 	while(TRUE) {
 		$post_url = $GLOBALS['__specDbsTracy_lib_TMS_URL'] ;
@@ -197,7 +200,7 @@ function specDbsTracy_lib_TMS_doLabelCreate( $row_trspt, $obj_request=NULL ) {
 		$response_success = ($status == 200) ;
 		
 		$arr_ins = array() ;
-		$arr_ins['field_TRSPT_ID'] = $row_trspt['trspt_filerecord_id'] ;
+		$arr_ins['field_FILE_TRSPT_ID'] = $row_trspt['trspt_filerecord_id'] ;
 		$arr_ins['field_STORE_DATE'] = $_STORE_DATE ;
 		$arr_ins['field_STORE_PEER'] = $_STORE_PEER ;
 		$arr_ins['field_STORE_TAG'] = ($response_success ? 'RESPONSE_OK' : 'RESPONSE_NOK') ;
@@ -215,6 +218,7 @@ function specDbsTracy_lib_TMS_doLabelCreate( $row_trspt, $obj_request=NULL ) {
 		if( !$response_success ) {
 			break ;
 		}
+		$map_tmsTag_filerecordId[$arr_ins['field_STORE_TAG']] = $response_filerecordId ;
 		
 		
 		
@@ -240,7 +244,7 @@ function specDbsTracy_lib_TMS_doLabelCreate( $row_trspt, $obj_request=NULL ) {
 		
 		if( $response_success ) {
 			$arr_ins = array() ;
-			$arr_ins['field_TRSPT_ID'] = $row_trspt['trspt_filerecord_id'] ;
+			$arr_ins['field_FILE_TRSPT_ID'] = $row_trspt['trspt_filerecord_id'] ;
 			$arr_ins['field_STORE_DATE'] = $_STORE_DATE ;
 			$arr_ins['field_STORE_PEER'] = $_STORE_PEER ;
 			$arr_ins['field_STORE_TAG'] = 'RESULT_PNG' ;
@@ -256,11 +260,9 @@ function specDbsTracy_lib_TMS_doLabelCreate( $row_trspt, $obj_request=NULL ) {
 			media_bin_move( $tmp_media_id , media_bin_toolFile_getId('TMS_STORE',$resultpng_filerecordId) ) ;
 			media_contextClose() ;
 		} else {
-			echo stream_get_contents($fp) ;
+			//echo stream_get_contents($fp) ;
 		}
-		
-		
-		print_r($json) ;
+		$map_tmsTag_filerecordId[$arr_ins['field_STORE_TAG']] = $resultpng_filerecordId ;
 	
 		break ;
 	}
@@ -268,10 +270,36 @@ function specDbsTracy_lib_TMS_doLabelCreate( $row_trspt, $obj_request=NULL ) {
 	
 	
 	
+	$event_txt = '' ;
+	if( $json['labelData'] && $json['trackingNumber'] ) {
+		$event_txt.= "Label create OK\n" ;
+		$event_txt.= "Tracking no : {$json['trackingNumber']}\n" ;
+	} else {
+		$event_txt.= "Label create ERROR\n" ;
+		if( is_array($json) ) {
+			foreach( $json as $err ) {
+				if( $err['code'] && $err['description'] ) {
+					$event_txt.= "{$err['code']} : {$err['description']}\n" ;
+				}
+			}
+		}
+	}
+	//print_r($json) ;
+	
+	$arr_ins = array() ;
+	$arr_ins['field_EVENT_DATE'] = date('Y-m-d H:i:s') ;
+	$arr_ins['field_EVENT_USER'] = 'TMS' ;
+	$arr_ins['field_EVENT_TXT'] = $event_txt ;
+	$arr_ins['field_EVENTLINK_FILE'] = 'TMS_STORE' ;
+	$arr_ins['field_EVENTLINK_IDS_JSON'] = json_encode($map_tmsTag_filerecordId) ;
+	$trsptevent_filerecord_id = paracrm_lib_data_insertRecord_file( 'TRSPT_EVENT', $row_trspt['trspt_filerecord_id'], $arr_ins );
+	
 	return $trsptevent_filerecord_id ;
 }
 
 function specDbsTracy_lib_TMS_getLabelEventId( $trspt_filerecord_id, $force_create=false ) {
+	global $_opDB ;
+	
 	$json = specDbsTracy_trspt_getRecords(array(
 		'filter_trsptFilerecordId_arr' => json_encode(array($trspt_filerecord_id))
 	)) ;
@@ -329,8 +357,7 @@ function specDbsTracy_lib_TMS_getLabelEventId( $trspt_filerecord_id, $force_crea
 		return $reuse_trsptevent_filerecord_id ;
 	}
 	if( !$reuse_trsptevent_filerecord_id ) {
-		
-	
+		return specDbsTracy_lib_TMS_doLabelCreate($row_trspt,$obj_request) ;
 	}
 	
 	return NULL ;
