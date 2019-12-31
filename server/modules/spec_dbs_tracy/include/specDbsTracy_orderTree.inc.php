@@ -183,7 +183,7 @@ function specDbsTracy_orderTree_getData( $post_data ) {
 		$map_stepDataIdx_count[$mkey] = $cnt ;
 	}
 	
-	return array('success'=>root, 'dataTree'=>$root, 'dataCount'=>$map_stepDataIdx_count ) ;
+	return array('success'=>true, 'dataTree'=>$root, 'dataCount'=>$map_stepDataIdx_count ) ;
 }
 
 

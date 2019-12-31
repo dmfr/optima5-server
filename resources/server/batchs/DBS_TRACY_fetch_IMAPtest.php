@@ -105,10 +105,10 @@ if($emails) {
 				$email_subject = strtoupper(trim($overview[0]->subject)) ;
 				
 				
-				if($at[is_attachment]==1){
+				if($at['is_attachment']==1){
 					$tmpfname = tempnam( sys_get_temp_dir(), "FOO") ;
-					file_put_contents($tmpfname, $at[attachment]);
-					$arr_tmpIds = media_img_processUploaded( $tmpfname, $at[filename], $all_pages=TRUE ) ;
+					file_put_contents($tmpfname, $at['attachment']);
+					$arr_tmpIds = media_img_processUploaded( $tmpfname, $at['filename'], $all_pages=TRUE ) ;
 					foreach( $arr_tmpIds as $tmp_id ) {
 						$newrecord = array() ;
 						$newrecord['media_date'] = date('Y-m-d H:i:s') ;
@@ -252,7 +252,7 @@ if( TRUE ) {
 					$arr_update['field_CUSTOMS_DATE_CLEARED'] = date('Y-m-d H:i:s') ;
 					paracrm_lib_data_updateRecord_file( 'TRSPT', $arr_update, $trspt_filerecord_id );
 					
-					specDbsTracy_trspt_ackCustomsStatus( array('trspt_filerecord_id'=>$trspt_filerecord_id) )
+					specDbsTracy_trspt_ackCustomsStatus( array('trspt_filerecord_id'=>$trspt_filerecord_id) );
 				}
 			}
 			
