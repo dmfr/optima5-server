@@ -230,11 +230,11 @@ function specRsiRecouveo_action_execMailAutoAction( $post_data ) {
 			$scen_code = $file['scen_code'] ;
 			$scenstep_tag = $next_action['scenstep_tag'] ;
 			if( !$scen_code || !$scenstep_tag ) {
-				continue ;
+				return array('success'=>false) ;
 			}
 			$scenstep = $map_scenCode_scenstepTag_step[$scen_code][$scenstep_tag] ;
 			if( !$scenstep ) {
-				continue ;
+				return array('success'=>false) ;
 			}
 			
 			if( $scenstep['exec_is_auto'] 
@@ -274,11 +274,11 @@ function specRsiRecouveo_action_execMailAutoAction( $post_data ) {
 			$scen_code = $file['scen_code'] ;
 			$prestep_tag = $next_action['scenstep_tag'] ;
 			if( !$scen_code || !$prestep_tag ) {
-				continue ;
+				return array('success'=>false) ;
 			}
 			$prestep = $map_scenCode_prestepTab_step[$scen_code][$prestep_tag] ;
 			if( !$prestep ) {
-				continue ;
+				return array('success'=>false) ;
 			}
 			
 			if( $prestep['exec_is_auto'] 

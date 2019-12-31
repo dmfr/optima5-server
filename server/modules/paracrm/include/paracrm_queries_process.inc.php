@@ -1210,7 +1210,7 @@ function paracrm_queries_process_qmerge($arr_saisie, $debug=FALSE)
 						
 						@eval( '$val = ('.$eval_string.') ;' ) ;
 						if( $val===FALSE ) {
-							continue ;
+							break ;
 						}
 					}
 					else
@@ -1418,7 +1418,7 @@ function paracrm_queries_process_query(&$arr_saisie, $debug=FALSE)
 				$field_where['sql_file_field_code'] = $field_where['sql_file_field_code'] ;
 				$field_where['sql_arr_select'] = array() ;
 				if( !$arr_bible_trees[$arr_indexed_treefields[$tfield]['bible_code']] )
-					continue ;
+					break ;
 				$tmp_tree = $arr_bible_trees[$arr_indexed_treefields[$tfield]['bible_code']] ;
 				foreach( json_decode($field_where['condition_bible_treenodes'],true) as $trootnode )
 				{
@@ -1475,7 +1475,7 @@ function paracrm_queries_process_query(&$arr_saisie, $debug=FALSE)
 				$field_progress['sql_file_field_code'] = $field_progress['sql_file_field_code'].'_tree' ;
 				$field_progress['sql_arr_select'] = array() ;
 				if( !$arr_bible_trees[$arr_indexed_treefields[$tfield]['bible_code']] )
-					continue ;
+					break ;
 				$tmp_tree = $arr_bible_trees[$arr_indexed_treefields[$tfield]['bible_code']] ;
 				foreach( json_decode($field_progress['condition_bible_treenodes'],true) as $trootnode )
 				{

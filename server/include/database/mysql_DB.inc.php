@@ -24,16 +24,13 @@ class MySQL_DB {
 
 
 	function connect_mysql( $host, $db, $user, $pass ) {
-		$this->connection = @mysql_connect( $host, $user, $pass, TRUE ) or die( "impossible d'ouvrir la base de donn�es\n" ); 
+		$this->connection = mysqli_connect( $host, $user, $pass ) or die( "impossible d'ouvrir la base de donn�es\n" ); 
 		if( $db != NULL )
-			@mysql_select_db( $db, $this->connection ) or die( "impossible d'ouvrir la base de donn�es\n" );
+			@mysqli_select_db( $this->connection, $db ) or die( "impossible d'ouvrir la base de donn�es\n" );
 		$this->type_de_base = "MySQL" ;
 		$this->db_name = $db ;
 		
-		// echo "CONNECT !!!" ;
-		//mysql_query( "SET storage_engine=MYISAM", $this->connection ) ;
-		
-		if( $db ) {
+		if( false ) {
 			foreach( $this->db_tables(NULL) as $dbtab )
 			{
 				$query = "SELECT count(*) FROM $dbtab" ;
@@ -46,13 +43,11 @@ class MySQL_DB {
 		$this->nb_queries = 0 ;
 	}
 	function connect_mysql_nocheck( $host, $db, $user, $pass ) {
-		$this->connection = @mysql_connect( $host, $user, $pass, TRUE ) or die( "impossible d'ouvrir la base de donn�es\n" ); 
+		$this->connection = mysqli_connect( $host, $user, $pass ) or die( "impossible d'ouvrir la base de donn�es\n" ); 
 		if( $db != NULL )
-			@mysql_select_db( $db, $this->connection ) or die( "impossible d'ouvrir la base de donn�es\n" );
+			@mysqli_select_db( $this->connection, $db ) or die( "impossible d'ouvrir la base de donn�es\n" );
 		$this->type_de_base = "MySQL" ;
 		$this->db_name = $db ;
-		
-		//mysql_query( "SET storage_engine=MYISAM", $this->connection ) ;
 	}
 
 	function connect_pgsql( $host, $db, $user, $pass ) {
@@ -64,7 +59,7 @@ class MySQL_DB {
 	function disconnect() {
 		switch ($this->type_de_base) {
 			case "MySQL" :
-			mysql_close( $this->connection );
+			mysqli_close( $this->connection );
 			break;
 
 			case "PostgreSQL" :
@@ -75,7 +70,7 @@ class MySQL_DB {
 	
 	function select_db( $db_name )
 	{
-		if( @mysql_select_db( $db_name, $this->connection ) )
+		if( @mysqli_select_db( $this->connection, $db_name ) )
 			return TRUE ;
 		return FALSE ;
 	}
@@ -92,7 +87,7 @@ class MySQL_DB {
 		switch ($this->type_de_base) {
 			case "MySQL" :
 			// echo $query."<br>" ;
-			$result = mysql_query( $query, $this->connection ) ;
+			$result = mysqli_query( $this->connection, $query ) ;
 			if ( !$result && $this->is_quiet == FALSE )
 			{
 				echo("<b>ERROR&nbsp;</b>$query<br>\n");
@@ -113,7 +108,7 @@ class MySQL_DB {
 	function escape_string( $query ) {
 		switch ($this->type_de_base) {
 			case "MySQL" :
-			return mysql_real_escape_string( $query, $this->connection ) ;
+			return mysqli_real_escape_string( $this->connection, $query ) ;
 			break;
 
 			case "PostgreSQL" :
@@ -127,7 +122,7 @@ class MySQL_DB {
 		switch ($this->type_de_base) {
 			case "MySQL" :
 			//echo $query."<br>" ;
-			$result = mysql_unbuffered_query( $query, $this->connection ) ;
+			$result = mysqli_real_query( $this->connection, $query ) ;
 			if ( !$result && $this->is_quiet == FALSE )
 			{
 				echo("<b>ERROR&nbsp;</b>$query<br>\n");
@@ -296,7 +291,7 @@ class MySQL_DB {
 	function fetch_assoc( $result ) {
 		switch ($this->type_de_base) {
 			case "MySQL" :
-			$arr = mysql_fetch_assoc( $result );
+			$arr = mysqli_fetch_assoc( $result );
 			/*
 			if( $arr != FALSE )
 			{
@@ -316,7 +311,7 @@ class MySQL_DB {
 	function fetch_row( $result ) {
 		switch ($this->type_de_base) {
 			case "MySQL" :
-			return mysql_fetch_row( $result );
+			return mysqli_fetch_row( $result );
 			break ;
 
 			case "PostgreSQL" :
@@ -328,8 +323,8 @@ class MySQL_DB {
 	function reset_result( $result ) {
 		switch ($this->type_de_base) {
 			case "MySQL" :
-			if( mysql_num_rows( $result ) > 0 )
-				mysql_data_seek( $result, 0 ) ;
+			if( mysqli_num_rows( $result ) > 0 )
+				mysqli_data_seek( $result, 0 ) ;
 			break ;
 		}
 	}
@@ -338,7 +333,7 @@ class MySQL_DB {
 	function num_rows( $result ) {
 		switch ($this->type_de_base) {
 			case "MySQL" :
-			return mysql_num_rows( $result );
+			return mysqli_num_rows( $result );
 			break ;
 
 			case "PostgreSQL" :
@@ -351,7 +346,7 @@ class MySQL_DB {
 	function affected_rows( $result ) {
 		switch ($this->type_de_base) {
 			case "MySQL" :
-			return mysql_affected_rows( $this->connection );
+			return mysqli_affected_rows( $this->connection );
 			break ;
 
 			case "PostgreSQL" :
@@ -364,7 +359,7 @@ class MySQL_DB {
 	function last_error() {
 		switch ($this->type_de_base) {
 			case "MySQL" :
-			return mysql_error( $this->connection );
+			return mysqli_error( $this->connection );
 			break ;
 
 			case "PostgreSQL" :
@@ -375,7 +370,7 @@ class MySQL_DB {
 	function last_error_no() {
 		switch ($this->type_de_base) {
 			case "MySQL" :
-			return mysql_errno( $this->connection );
+			return mysqli_errno( $this->connection );
 			break ;
 
 			case "PostgreSQL" :
@@ -401,24 +396,14 @@ class MySQL_DB {
 				$db_name= $this->db_name ;
 			*/
 			$query = "SHOW COLUMNS FROM $table" ;
-			$result = mysql_query($query, $this->connection) ;
+			$result = mysqli_query($this->connection,$query) ;
 if (!$result) {
-    echo 'Could not run query: ' . mysql_error();
+    echo 'Could not run query: ' . mysqli_error($this->connection);
     }
  			$arr_fields = array() ;
-			while ($row = mysql_fetch_assoc($result)) {
+			while ($row = mysqli_fetch_assoc($result)) {
 				$arr_fields[] = $row['Field'] ;
 			}
-			return $arr_fields ;
-			
-			
-			
-			// $fields = mysql_list_fields( NULL , $table, $this->connection ) ;
-			$nb_fields = mysql_num_fields( $fields ) ;
-			$arr_fields = array();
-			for( $i=0 ; $i < $nb_fields ; $i++ )
-				array_push( $arr_fields, mysql_field_name( $fields, $i ) );
-		
 			return $arr_fields ;
 			break ;
 
@@ -452,11 +437,11 @@ if (!$result) {
 			$query = "SHOW TABLES" ;
 			if( $db_name != '' )
 				$query.= " FROM ".$db_name ;
-			$tables = mysql_query($query, $this->connection) ;
+			$tables = mysqli_query($this->connection,$query) ;
 			$arr_tables = array() ;
-			while( $table = mysql_fetch_row($tables) )
+			while( $table = mysqli_fetch_row($tables) )
 				array_push( $arr_tables, $table[0] ) ;
-			@mysql_select_db( $this->db_name, $this->connection ) ;
+			@mysqli_select_db( $this->connection, $this->db_name ) ;
 			return $arr_tables ;
 		}
 	}
@@ -469,9 +454,9 @@ if (!$result) {
 			break ;
 
 			case "MySQL" :
-			$res = mysql_list_dbs ( $this->connection ) ;
+			$res = mysqli_query( $this->connection, 'SHOW DATABASES' ) ;
 			$arr_dbs = array() ;
-			while( $arr = mysql_fetch_row($res) )
+			while( $arr = mysqli_fetch_row($res) )
 				array_push( $arr_dbs, $arr[0] ) ;
 			return $arr_dbs ;
 		}
@@ -485,10 +470,29 @@ if (!$result) {
     			$keys = join(',', array_keys($arr));
     			$values = array();
     			foreach(array_values($arr) as $value) {
-    			    $values[] = "'".mysql_real_escape_string( $value, $this->connection)."'";
+    			    $values[] = "'".mysqli_real_escape_string( $this->connection, $value )."'";
     			}
     			$values = join(',',$values);
     			$sql="INSERT INTO $table ($keys) VALUES ($values)";
+        		return $this->query_unbuf($sql);
+			break ;
+
+			case "PostgreSQL" :
+    			pg_insert( $table, $arr );
+	    		break;
+		}
+	}
+	function replace( $table, $arr) {
+		switch ($this->type_de_base) {
+			case "MySQL" :
+    			$table = trim($table);
+    			$keys = join(',', array_keys($arr));
+    			$values = array();
+    			foreach(array_values($arr) as $value) {
+    			    $values[] = "'".mysqli_real_escape_string( $this->connection, $value )."'";
+    			}
+    			$values = join(',',$values);
+    			$sql="REPLACE INTO $table ($keys) VALUES ($values)";
         		return $this->query_unbuf($sql);
 			break ;
 
@@ -501,7 +505,7 @@ if (!$result) {
 	{
 		switch ($this->type_de_base) {
 			case "MySQL" :
-			return mysql_insert_id( $this->connection ) ;
+			return mysqli_insert_id( $this->connection ) ;
 			break ;
 
 
@@ -523,7 +527,7 @@ if (!$result) {
 
             $update = '';
 			foreach ( $arr as $key => $value ) {
-				$update.= $key.' = "'.mysql_real_escape_string($value, $this->connection).'",' ;
+				$update.= $key.' = "'.mysqli_real_escape_string($this->connection, $value).'",' ;
 		    }
 			$update = $this->rm_last($update) ;
 
@@ -531,7 +535,7 @@ if (!$result) {
 			{
 			    $condition = '';
 				foreach ( $arr_condition as $key => $value ) {
-					$condition .= $key.' = "'.mysql_real_escape_string($value, $this->connection).'" AND ' ;
+					$condition .= $key.' = "'.mysqli_real_escape_string($this->connection, $value).'" AND ' ;
 				}
 				$condition = $this->rm_last($condition) ;
 				$condition = $this->rm_last($condition) ;
@@ -557,12 +561,26 @@ if (!$result) {
 	function delete( $table, $arr_condition ) {
 		switch ($this->type_de_base) {
 			case "MySQL" :
-			if ( count($arr) < 1 || count($arr) < 1 )
+			if ( !$arr_condition || count($arr_condition) < 1 )
 				return -1 ;
 
 			$table = trim( $table );
 			
-			$sql = "DELETE from $table  WHERE $condition" ;
+			if( $arr_condition != NULL && count( $arr_condition ) > 0 )
+			{
+			    $condition = '';
+				foreach ( $arr_condition as $key => $value ) {
+					$condition .= $key.' = "'.mysqli_real_escape_string($this->connection,$value).'" AND ' ;
+				}
+				$condition = $this->rm_last($condition) ;
+				$condition = $this->rm_last($condition) ;
+				$condition = $this->rm_last($condition) ;
+				$condition = $this->rm_last($condition) ;
+
+				$where_condition = " WHERE $condition" ;
+			}
+			
+			$sql = "DELETE from $table  $where_condition" ;
 			return $this->query( $sql );
 			break ;
 		}
