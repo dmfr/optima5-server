@@ -137,6 +137,10 @@ foreach( array('CLI','ENR') as $pattern ) {
 				if (!$ret["count_success"]) $ret["count_success"] = "0" ;
 				$list_of_files[$remote_filename." - ENR"] = "Success: ".$ret["count_success"]." - Erreurs: ".count($ret["errors"]) ;
 				$list_of_filenames[] = $remote_filename;
+				
+				/* 31/12/2019 : json method record_lettermissing */
+				$json = extract_ENR_RecordLetterMissing($binary,$separator) ;
+				$ret = ftp_file_upload_SEND_REQUEST(json_encode($json), "record_lettermissing") ;
 				break ;
 		}
 	}
@@ -272,6 +276,32 @@ function add_ENR_header($binary,$separator) {
 	
 	$header = array("Société","Numéro client","Date transmission","Date facture","Date échéance","Id facture","Numéro facture","Libellé","Montant HT","Montant TTC","Montant TVA","Meta:JOURNAL","Lettrage","Lettrage soldé ?","Date lettrage","Montant devise","Code devise") ;
 	return implode($separator,$header)."\n".$binary ;
+}
+function extract_ENR_RecordLetterMissing($binary,$separator) {
+	$tmp_handle_in = tmpfile() ;
+	fwrite($tmp_handle_in,$binary) ;
+
+	fseek($tmp_handle_in,0) ;
+	$arr_csv_header = fgetcsv($tmp_handle_in,0,$separator) ;
+	$map_keyIdx = array(
+		'IdSoc' => array_search("Société",$arr_csv_header),
+		'IdCli' => array_search("Numéro client",$arr_csv_header),
+		'IdFact' => array_search("Id facture",$arr_csv_header)
+	);
+	$json = array() ;
+	while( !feof($tmp_handle_in) ) {
+		$arr_csv = fgetcsv($tmp_handle_in,0,$separator) ;
+		if( !$arr_csv ) {
+			continue ;
+		}
+		
+		$json_row = array() ;
+		foreach( $map_keyIdx as $mkey => $idx ) {
+			$json_row[$mkey] = $arr_csv[$idx] ;
+		}
+		$json[] = $json_row ;
+	}
+	return $json ;
 }
 
 
