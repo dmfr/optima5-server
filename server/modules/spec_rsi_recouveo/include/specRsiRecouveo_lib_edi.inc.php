@@ -419,6 +419,7 @@ function specRsiRecouveo_lib_edi_post($apikey_code, $transaction, $handle) {
 		case 'account_txtaction' :
 		case 'account_properties' :
 		case 'record' :
+		case 'record_lettermissing' :
 		case 'DEV_purgeall' :
 			$mapMethodJson = array($transaction => stream_get_contents($handle_in)) ;
 			break ;
@@ -519,6 +520,9 @@ function specRsiRecouveo_lib_edi_postJson($apikey_code, $transaction, $json_str)
 			break ;
 		case 'record' :
 			$ret = specRsiRecouveo_lib_edi_post_record( $json_rows ) ;
+			break ;
+		case 'record_lettermissing' :
+			$ret = specRsiRecouveo_lib_edi_post_recordLetterMissing( $json_rows ) ;
 			break ;
 		case 'account_adrbookentry' :
 			$ret = specRsiRecouveo_lib_edi_post_adrbook( $json_rows ) ;
@@ -1050,6 +1054,85 @@ function specRsiRecouveo_lib_edi_post_devpurge() {
 		$_opDB->query($query) ;
 	}
 	return array("count_success" => 0, "errors" => array()) ;
+}
+
+
+
+
+function specRsiRecouveo_lib_edi_post_recordLetterMissing( $json_rows) {
+	global $_opDB;
+	
+	$mandatory = array('IdSoc', 'IdCli', 'IdFact') ; // Lib = record_txt
+	$map_json2db = array(
+		'IdCli' => 'field_LINK_ACCOUNT',
+		'IdFact' => 'field_RECORD_ID'
+	);
+	$map_soc_filerecordIds = array() ;
+	$count_success = 0;
+	$ret_errors = array() ;
+	foreach($json_rows as $idx => $json_row){
+		$missing = array() ;
+		foreach($mandatory as $field){
+			if ( !isset($json_row[$field])){
+				$missing[] = $field ;
+			}
+		}
+		if (count($missing) > 0){
+			$ret_errors[] = "ERR Idx={$idx} : missing field(s) ".implode(',',$missing) ;
+			continue ;
+		}
+
+		$txt_IdSoc = $json_row['Idsoc'] ;
+		$json_row['IdSoc'] = specRsiRecouveo_lib_edi_validateSocCli($json_row['IdSoc']) ;
+		if( !$json_row['IdSoc'] ) {
+			$ret_errors[] = "ERR Idx={$idx} : unknown IdSoc={$txt_IdSoc}" ;
+			continue ;
+		}
+		$json_row['IdCli'] = specRsiRecouveo_lib_edi_validateSocCli($json_row['IdSoc'],$json_row['IdCli']) ;
+		
+		$arr_ins = array() ;
+		foreach($map_json2db as $json_field => $db_field){
+			if( isset($json_row[$json_field]) ) {
+				$arr_ins[$db_field] = $json_row[$json_field] ;
+			}
+		}
+
+		if( !$map_soc_filerecordIds[$json_row['IdSoc']] ) {
+			$map_soc_filerecordIds[$json_row['IdSoc']] = array() ;
+		}
+		
+		$query_accId = $_opDB->escape_string($arr_ins["field_LINK_ACCOUNT"]) ;
+		$query_recordId = $_opDB->escape_string($arr_ins["field_RECORD_ID"]) ;
+		$query = "SELECT filerecord_id FROM view_file_RECORD WHERE field_RECORD_ID = '{$query_recordId}' AND field_LINK_ACCOUNT = '{$query_accId}'" ;
+		$filerecord_id = $_opDB->query_uniqueValue($query) ;
+		if( $filerecord_id ){
+			$map_soc_filerecordIds[$json_row['IdSoc']][] = $filerecord_id ;
+			$count_success++;
+		}
+	}
+	
+	foreach( $map_soc_filerecordIds as $soc => $toKeep_filerecordIds ) {
+		$existing_filerecordIds = array() ;
+		$query = "SELECT r.filerecord_id FROM view_file_RECORD r
+					INNER JOIN view_bible_LIB_ACCOUNT_entry lae ON lae.entry_key=r.field_LINK_ACCOUNT
+					WHERE lae.treenode_key='{$soc}' AND r.field_LETTER_IS_CONFIRM='0'" ;
+		$result = $_opDB->query($query) ;
+		while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+			$existing_filerecordIds[] = $arr[0] ;
+		}
+		$toDelete_filerecordIds = array_diff($existing_filerecordIds,$toKeep_filerecordIds) ;
+		foreach( $toDelete_filerecordIds as $filerecord_id ) {
+			$arr_update = array(
+				'field_LETTER_IS_CONFIRM' => 1,
+				'field_LETTER_CODE' => 'ediDelete',
+				'field_LETTER_DATE' => date('Y-m-d')
+			) ;
+			$arr_cond = array('filerecord_id'=>$filerecord_id) ;
+			$_opDB->update('view_file_RECORD',$arr_update,$arr_cond) ;
+		}
+	}
+	//print_r($map_soc_filerecordIds) ;
+	return array("count_success" => $count_success, "errors" => $ret_errors) ;
 }
 
 ?>
