@@ -21,7 +21,7 @@ $_SESSION['login_data']['login_domain'] = $_domain_id.'_prod' ;
 $_sdomain_id = DatabaseMgr_Sdomain::dbCurrent_getSdomainId() ;
 
 
-$test_trsptRef = 'MBD/191104050' ;
+$test_trsptRef = 'MBD/191202178' ;
 $query = "SELECT filerecord_id FROM view_file_TRSPT WHERE field_ID_DOC='{$test_trsptRef}'" ;
 $test_trsptFilerecordId = $_opDB->query_uniqueValue($query) ;
 
@@ -48,7 +48,9 @@ if( $row_trspt['trspt_filerecord_id'] != $test_trsptFilerecordId ) {
 	die() ;
 }
 
-specDbsTracy_lib_TMS_doLabelCreate($row_trspt) ;
+//specDbsTracy_lib_TMS_doLabelCreate($row_trspt) ;
+$trsptevent_filerecord_id = specDbsTracy_lib_TMS_getLabelEventId($row_trspt['trspt_filerecord_id']) ;
+echo $trsptevent_filerecord_id."\n" ;
 
 
 ?>
