@@ -64,6 +64,9 @@ function specRsiRecouveo_lib_mail_sync_exchange( $email_adr, $exchange_server, $
 
     for ($i = 0; $i < $count; $i++){
         $message_id = $result->ResponseMessages->FindItemResponseMessage[0]->RootFolder->Items->Message[$i]->ItemId->Id;
+        if( !$message_id ) {
+			continue ;
+        }
         if( in_array($message_id,$existing_uids) ) {
 			continue ;
         }
