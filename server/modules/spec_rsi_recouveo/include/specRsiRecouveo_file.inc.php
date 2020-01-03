@@ -1964,6 +1964,7 @@ function specRsiRecouveo_file_getScenarioLine( $post_data ) {
 	
 	$p_fileFilerecordId = $post_data['file_filerecord_id'] ;
 	$p_forceScenCode = $post_data['force_scenCode'] ;
+	$p_forceBegin = $post_data['force_begin'] ;
 	
 	if( $p_fileFilerecordId ) {
 		$json = specRsiRecouveo_file_getRecords( array(
@@ -2037,41 +2038,43 @@ function specRsiRecouveo_file_getScenarioLine( $post_data ) {
 	 - Tag next action auto ?
 	*************************************
 	*/
-	foreach( array_reverse($accFile_record['actions']) as $row_file_action ) {
-		//print_r($row_file_action) ;
-		if( !$row_file_action['scenstep_tag'] ) {
-			continue ;
-		}
-		$this_tag_idx = array_search( $row_file_action['scenstep_tag'], $tags ) ;
-		if( $this_tag_idx === FALSE ) {
-			continue ;
-		}
-		$this_tag = $tags[$this_tag_idx] ;
-		
-		
-		if( !$row_file_action['status_is_ok'] ) {
-			if( $row_file_action['fileaction_filerecord_id'] == $post_data['fileaction_filerecord_id'] ) {
-				$lastdone_tag_idx = $this_tag_idx ;
-				$lastdone_date = date('Y-m-d') ;
-				$TAB[$this_tag]['is_current'] = TRUE ; // is current
-			} else {
-				//$lastdone_tag_idx = $this_tag_idx -1 ; // HACK
-				$TAB[$this_tag]['is_selected'] = TRUE ; // is selected
-				$TAB[$this_tag]['date_sched'] = date('Y-m-d',strtotime($row_file_action['date_sched'])) ;
-			}
-		}
-		
-		if( $row_file_action['status_is_ok'] ) {
-			if( !isset($lastdone_tag_idx) ) {
-				$lastdone_tag_idx = $this_tag_idx ;
-				$lastdone_date = date('Y-m-d',strtotime($row_file_action['date_actual'])) ;
-			} elseif( $this_tag_idx > $lastdone_tag_idx ) {
+	if( !$p_forceBegin ) {
+		/* 03/01/2020 : force begin pour lancement des actions */
+		foreach( array_reverse($accFile_record['actions']) as $row_file_action ) {
+			//print_r($row_file_action) ;
+			if( !$row_file_action['scenstep_tag'] ) {
 				continue ;
 			}
-			$TAB[$this_tag]['is_before_done'] = TRUE ; // is before
-			$TAB[$this_tag]['date_actual'] = date('Y-m-d',strtotime($row_file_action['date_actual'])) ;
+			$this_tag_idx = array_search( $row_file_action['scenstep_tag'], $tags ) ;
+			if( $this_tag_idx === FALSE ) {
+				continue ;
+			}
+			$this_tag = $tags[$this_tag_idx] ;
+			
+			
+			if( !$row_file_action['status_is_ok'] ) {
+				if( $row_file_action['fileaction_filerecord_id'] == $post_data['fileaction_filerecord_id'] ) {
+					$lastdone_tag_idx = $this_tag_idx ;
+					$lastdone_date = date('Y-m-d') ;
+					$TAB[$this_tag]['is_current'] = TRUE ; // is current
+				} else {
+					//$lastdone_tag_idx = $this_tag_idx -1 ; // HACK
+					$TAB[$this_tag]['is_selected'] = TRUE ; // is selected
+					$TAB[$this_tag]['date_sched'] = date('Y-m-d',strtotime($row_file_action['date_sched'])) ;
+				}
+			}
+			
+			if( $row_file_action['status_is_ok'] ) {
+				if( !isset($lastdone_tag_idx) ) {
+					$lastdone_tag_idx = $this_tag_idx ;
+					$lastdone_date = date('Y-m-d',strtotime($row_file_action['date_actual'])) ;
+				} elseif( $this_tag_idx > $lastdone_tag_idx ) {
+					continue ;
+				}
+				$TAB[$this_tag]['is_before_done'] = TRUE ; // is before
+				$TAB[$this_tag]['date_actual'] = date('Y-m-d',strtotime($row_file_action['date_actual'])) ;
+			}
 		}
-		
 	}
 	// ** Déterminer les next 
 	if( !isset($lastdone_tag_idx) ) {

@@ -167,7 +167,8 @@ function specRsiRecouveo_lib_scenario_launchFileIfBump( $file_filerecord_id ) {
 			// next action ?
 			$json = specRsiRecouveo_file_getScenarioLine( array(
 				'file_filerecord_id' => $file_record['file_filerecord_id'],
-				'fileaction_filerecord_id' => $file_record['next_fileaction_filerecord_id']
+				'fileaction_filerecord_id' => $file_record['next_fileaction_filerecord_id'],
+				'force_begin' => true
 			)) ;
 			foreach( $json['data'] as $scenline_dot ) {
 				if( $scenline_dot['is_next'] ) {
