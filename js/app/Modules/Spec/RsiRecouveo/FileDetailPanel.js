@@ -1669,7 +1669,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			}) ;
 			
 			var statusCode = fileRecord.get('status'),
-				statusColor, statusColorNodash ;
+				statusColor, statusColorNodash, statusIsSchedLock ;
 			if( statusMap.hasOwnProperty(statusCode) ) {
 				statusColor = statusMap[statusCode]['status_color'] ;
 				statusIsSchedLock = statusMap[statusCode]['sched_lock'] ;
