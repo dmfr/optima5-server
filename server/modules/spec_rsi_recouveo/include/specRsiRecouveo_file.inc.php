@@ -1816,6 +1816,13 @@ function specRsiRecouveo_file_lib_manageActivate( $acc_id, $is_new=FALSE ) {
 				$targetFile_openHasNext = ($accountFile_record['next_fileaction_filerecord_id']>0) ;
 				break ;
 			default :
+				$cur_status = 'OTHER' ;
+				foreach( $accountFile_record['records'] as $accountFileRecord_record ) {
+					if( $accountFileRecord_record['letter_is_confirm'] ) {
+						continue ;
+					}
+					$otherStatus_hasOpen = TRUE ;
+				}
 				continue 2 ;
 		}
 		foreach( $accountFile_record['records'] as $accountFileRecord_record ) {
@@ -1883,7 +1890,7 @@ function specRsiRecouveo_file_lib_manageActivate( $acc_id, $is_new=FALSE ) {
 				'arr_recordFilerecordIds' => json_encode($toEnable_recordFilerecordIds)
 			));
 		}
-		if( !$targetFile_openHasNext && ($toBalance_sum>0) ) {
+		if( !$targetFile_openHasNext && ($toBalance_sum>0) && !$otherStatus_hasOpen ) {
 			// DONE 18/02/19 : lancement
 			$forward_post = array(
 				'file_filerecord_id' => $targetFile_openFilerecordId,
