@@ -1030,7 +1030,7 @@ function specRsiRecouveo_file_createForAction( $post_data ) {
 		$filename_target = implode('/',$filename_words) ;
 	} else {
 		$i = 1 ;
-		while( $i < 100 ) {
+		while( $i < 1000 ) {
 			$filename_prefix = implode('/',$filename_words).'/' ;
 			$filename_test = $filename_prefix.str_pad((int)$i, 2, "0", STR_PAD_LEFT) ;
 			$query = "SELECT count(*) FROM view_file_FILE WHERE field_FILE_ID='{$filename_test}'" ;
