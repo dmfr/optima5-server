@@ -68,6 +68,8 @@ switch( $post_data['_action'] )
 	case 'trspt_download' :
 	session_write_close() ;
 	return specDbsTracy_trspt_download( $post_data ) ;
+	case 'trspt_createLabelTMS' :
+	return specDbsTracy_trspt_createLabelTMS( $post_data ) ;
 	case 'trspt_getLabelTMS' :
 	return specDbsTracy_trspt_getLabelTMS( $post_data ) ;
 	

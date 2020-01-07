@@ -31,7 +31,8 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 	requires: [
 		'Ext.ux.PreviewPlugin',
 		'Optima5.Modules.Spec.DbsTracy.CfgParamField',
-		'Optima5.Modules.Spec.DbsTracy.CfgParamText'
+		'Optima5.Modules.Spec.DbsTracy.CfgParamText',
+		'Optima5.Modules.Spec.DbsTracy.TrsptLabelPanel'
 	],
 	
 	_readonlyMode: false,
@@ -1017,7 +1018,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 		}
 	},
 	
-	handleSaveHeader: function(validateStepCode, additionalData=null) {
+	handleSaveHeader: function(validateStepCode, additionalData=null, callbackCfg=null) {
 		if( this._readonlyMode ) {
 			return ;
 		}
@@ -1054,7 +1055,9 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 			}
 		}) ;
 		
-		this.showLoadmask() ;
+		if( !callbackCfg ) {
+			this.showLoadmask() ;
+		}
 		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: {
 				_moduleId: 'spec_dbs_tracy',
@@ -1077,7 +1080,10 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 						Ext.MessageBox.alert('Error',error) ;
 					return ;
 				}
-				this.onSaveHeader(ajaxResponse.id, (!Ext.isEmpty(validateStepCode)||!Ext.isEmpty(additionalData))) ;
+				this.onSaveHeader(ajaxResponse.id, (!Ext.isEmpty(validateStepCode)||!Ext.isEmpty(additionalData)||callbackCfg)) ;
+				if( callbackCfg && callbackCfg.fn ) {
+					Ext.callback( callbackCfg.fn, callbackCfg.scope||this ) ;
+				}
 			},
 			callback: function() {
 				this.hideLoadmask() ;
@@ -1547,8 +1553,86 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 	handleDoLabel: function() {
 		// save + TMS
 		// then open
+		if( this._labelMessageBox ) {
+			this._labelMessageBox.close() ;
+			this._labelMessageBox = null ;
+		}
+		this._labelMessageBox = Ext.Msg.wait('Label generation. Please Wait.')
+		this.handleSaveHeader(null,null,{
+			fn: function() {
+				this.doFetchLabel() ;
+			},
+			scope: this
+		}) 
+	},
+	doFetchLabel: function() {
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_dbs_tracy',
+				_action: 'trspt_createLabelTMS',
+				trspt_filerecord_id: this._trsptFilerecordId
+			},
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success ) {
+					this.openLabelPanel(ajaxResponse.trsptevent_filerecord_id) ;
+				} else {
+					if( this._labelMessageBox ) {
+						this._labelMessageBox.close() ;
+						this._labelMessageBox = null ;
+					}
+					var strErr = Ext.util.Format.nl2br(ajaxResponse.error) ;
+					Ext.defer(function(){Ext.MessageBox.alert('Error',strErr);},100) ;
+				}
+			},
+			callback: function() {
+				if( this._labelMessageBox ) {
+					this._labelMessageBox.close() ;
+					this._labelMessageBox = null ;
+				}
+				this.doReload() ;
+			},
+			scope: this
+		}) ;
 	},
 	openLabelPanel: function(trspteventFilerecordId) {
+		this.getEl().mask() ;
+		// Open panel
+		var createPanel = Ext.create('Optima5.Modules.Spec.DbsTracy.TrsptLabelPanel',{
+			width:100, // dummy initial size, for border layout to work
+			height:100, // ...
+			floating: true,
+			draggable: false,
+			resizable: false,
+			constrain: true,
+			renderTo: this.getEl(),
+			tools: [{
+				type: 'close',
+				handler: function(e, t, p) {
+					p.ownerCt.destroy();
+				},
+				scope: this
+			}],
+			applySizeFromParent: function(p) {
+				this.setWidth( p.getWidth() * 0.9 ) ;
+				this.setHeight( p.getHeight() * 0.9 ) ;
+				this.getEl().alignTo(p.getEl(), 'c-c?');
+			}
+		});
+		createPanel.on('destroy',function(p) {
+			this.getEl().unmask() ;
+		},this,{single:true}) ;
 		
+		createPanel.mon(this,'resize',function(p) {
+			console.dir(p) ;
+			console.dir(this) ;
+			console.log('on parent resize') ;
+			this.applySizeFromParent( p ) ;
+		},createPanel) ;
+		
+		createPanel.show();
+		createPanel.applySizeFromParent(this) ;
+		
+		createPanel.loadFromTrsptEvent( this._trsptFilerecordId, trspteventFilerecordId ) ;
 	}
 });

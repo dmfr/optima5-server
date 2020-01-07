@@ -282,6 +282,8 @@ function specDbsTracy_lib_TMS_doLabelCreate( $row_trspt, $obj_request=NULL ) {
 					$event_txt.= "{$err['code']} : {$err['description']}\n" ;
 				}
 			}
+		} else {
+			$event_txt.= "HTTP Status code : {$status}\n" ;
 		}
 	}
 	//print_r($json) ;
@@ -362,17 +364,5 @@ function specDbsTracy_lib_TMS_getLabelEventId( $trspt_filerecord_id, $force_crea
 	
 	return NULL ;
 }
-function specDbsTracy_lib_TMS_getLabelData( $trsptevent_filerecord_id ) {
-	
-	
-	return ;
-}
-
-/*
-function specDbsTracy_lib_TMS_getTransactions( $trspt_filerecord_id ) {
-
-}
-*/
-
 
 ?>
