@@ -1599,6 +1599,8 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 		this.getEl().mask() ;
 		// Open panel
 		var createPanel = Ext.create('Optima5.Modules.Spec.DbsTracy.TrsptLabelPanel',{
+			optimaModule: this.optimaModule,
+			
 			width:100, // dummy initial size, for border layout to work
 			height:100, // ...
 			floating: true,

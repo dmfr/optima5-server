@@ -1079,8 +1079,22 @@ function specDbsTracy_trspt_getLabelTMS( $post_data ) {
 	$p_trsptFilerecordId = $post_data['trspt_filerecord_id'] ;
 	$p_trspteventFilerecordId = $post_data['trsptevent_filerecord_id'] ;
 	
+	sleep(2) ;
 	
 	
+	return array(
+		'success'=>true,
+		'data'=>array(
+			'json_request' => $json_request,
+			'json_response' => $json_response,
+			'label_base64' => $label_base64,
+			'label_data' => array(
+				'date_create' => date('Y-m-d H:i:s'),
+				'date_print' => null,
+				'tracking_no' => $label_tracking
+			)
+		)
+	) ;
 }
 
 ?>
