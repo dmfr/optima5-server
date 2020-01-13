@@ -202,3 +202,7 @@
 .op5-spec-dbstracy-jsoncmp pre {
 	margin: 4px ;
 }
+
+.op5-spec-dbstracy-trsptlabelpreview-rotate {
+	transform: rotate(180deg);
+}

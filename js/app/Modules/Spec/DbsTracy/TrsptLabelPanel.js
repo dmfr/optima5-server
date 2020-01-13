@@ -6,6 +6,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptLabelJsonCmp',{
 		{
 			// XTemplate configuration:
 			disableFormats: true,
+			
 			// member functions:
 			escapeJson: function(jsonTxt){
 				if( Ext.isString(jsonTxt) ) {
@@ -82,6 +83,15 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptLabelPanel',{
 					this.createAndDownloadBlobFile( this.base64ToArrayBuffer(btn._binaryBase64), 'label-'+btn._trspteventFilerecordId+'.png' ) ;
 				},
 				scope: this
+			},'->',{
+				_rotateStatus: false,
+				icon: 'images/modules/crmbase-viewrefresh-16.png',
+				text: 'Rotate',
+				handler: function(btn) {
+					btn._rotateStatus = !btn._rotateStatus ;
+					this.down('#imgLabelPreview')[btn._rotateStatus ? 'addCls': 'removeCls']('op5-spec-dbstracy-trsptlabelpreview-rotate') ;
+				},
+				scope: this
 			}],
 			items: [{
 				xtype: 'form',
@@ -145,8 +155,9 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptLabelPanel',{
 				xtype: 'container',
 				scrollable: true,
 				items: [{
+					itemId: 'imgLabelPreview',
 					xtype: 'image',
-					style: 'width: 100% ; transform: rotate(180deg);',
+					style: 'width: 100%;',
 					src: 'data:image/jpeg;base64,' + labelData.label_png_base64
 				}]
 			}]
