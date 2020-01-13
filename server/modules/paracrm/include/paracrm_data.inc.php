@@ -183,7 +183,7 @@ function paracrm_data_getBibleTree( $post_data )
 	{
 		foreach( $arr1 as $treenode_key => $record )
 		{
-			$record['nb_children'] = count($tab_parentkey_nodes[$treenode_key]) ;
+			$record['nb_children'] = ($tab_parentkey_nodes[$treenode_key] ? count($tab_parentkey_nodes[$treenode_key]) : 0) ;
 			$record['nb_entries'] = $arr_treenode_nbEntries[$treenode_key] ;
 			$tab_parentkey_nodes[$treenode_parent_key][$treenode_key] = $record ;
 		}
