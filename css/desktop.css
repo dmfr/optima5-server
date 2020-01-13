@@ -686,3 +686,9 @@ body {    background: none repeat scroll 0 0 #F8F8F8;}
 .x-progress .x-progress-text {
 	padding: 0px 5px;
 }
+
+/* Action column disabled = hidden */
+.x-action-col-cell .x-item-disabled {
+	opacity: 0 !important;
+	cursor: default !important;
+}

@@ -1079,20 +1079,54 @@ function specDbsTracy_trspt_getLabelTMS( $post_data ) {
 	$p_trsptFilerecordId = $post_data['trspt_filerecord_id'] ;
 	$p_trspteventFilerecordId = $post_data['trsptevent_filerecord_id'] ;
 	
-	sleep(2) ;
+		
+	//sleep(2) ;
+	$row_trsptevent = paracrm_lib_data_getRecord_file('TRSPT_EVENT',$p_trspteventFilerecordId) ;
+	if( $row_trsptevent['filerecord_parent_id'] != $p_trsptFilerecordId ) {
+		return array('success'=>false) ;
+	}
+	if( $row_trsptevent['field_EVENTLINK_FILE'] != 'TMS_STORE' ) {
+		return array('success'=>false) ;
+	}
+	$map_storeIds = json_decode($row_trsptevent['field_EVENTLINK_IDS_JSON'],true) ;
 	
+	
+	$_domain_id = DatabaseMgr_Base::dbCurrent_getDomainId() ;
+	$_sdomain_id = DatabaseMgr_Sdomain::dbCurrent_getSdomainId() ;
+	media_contextOpen( $_sdomain_id ) ;
+	foreach( $map_storeIds as $mkey => $tmsstore_filerecord_id ) {
+		switch( $mkey ) {
+			case 'REQUEST' :
+				$json_request = media_bin_getBinary( media_bin_toolFile_getId('TMS_STORE',$tmsstore_filerecord_id) ) ;
+				break ;
+			case 'RESPONSE_OK' :
+			case 'RESPONSE_NOK' :
+				$json_response = media_bin_getBinary( media_bin_toolFile_getId('TMS_STORE',$tmsstore_filerecord_id) ) ;
+				if( $mkey == 'RESPONSE_OK' ) {
+					$obj_response = json_decode($json_response,true) ;
+					$label_data = array(
+						'trsptevent_filerecord_id' => $p_trspteventFilerecordId,
+						'date_create' => $row_trsptevent['field_EVENT_DATE'],
+						'date_print' => null,
+						'tracking_no' => $obj_response['trackingNumber']
+					);
+				}
+				break ;
+			case 'RESULT_PNG' :
+				$label_png_binary = media_bin_getBinary( media_bin_toolFile_getId('TMS_STORE',$tmsstore_filerecord_id) ) ;
+				$label_png_base64 = base64_encode($label_png_binary) ;
+				break ;
+		}
+	}
+	media_contextClose() ;
 	
 	return array(
-		'success'=>true,
-		'data'=>array(
+		'success' => true,
+		'data' => array(
 			'json_request' => $json_request,
 			'json_response' => $json_response,
-			'label_base64' => $label_base64,
-			'label_data' => array(
-				'date_create' => date('Y-m-d H:i:s'),
-				'date_print' => null,
-				'tracking_no' => $label_tracking
-			)
+			'label_png_base64' => $label_png_base64,
+			'label_data' => $label_data
 		)
 	) ;
 }

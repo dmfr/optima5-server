@@ -197,3 +197,8 @@
 .op5-spec-dbstracy-kpi-nok {
 	background: url('../images/op5img/ico_cancel_small.gif') no-repeat center center ;
 }
+
+
+.op5-spec-dbstracy-jsoncmp pre {
+	margin: 4px ;
+}

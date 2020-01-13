@@ -1,3 +1,22 @@
+Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptLabelJsonCmp',{
+	extend: 'Ext.Component',
+	scrollable: true,
+	tpl: [
+		'<div class="op5-spec-dbstracy-jsoncmp"><pre>{[this.escapeJson(values.json_txt)]}</pre></div>',
+		{
+			// XTemplate configuration:
+			disableFormats: true,
+			// member functions:
+			escapeJson: function(jsonTxt){
+				if( Ext.isString(jsonTxt) ) {
+					return Ext.String.htmlEncode(jsonTxt.trim()) ;
+				}
+				return '&#160;' ;
+			}
+		}
+	]
+}) ;
+
 Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptLabelPanel',{
 	extend:'Ext.panel.Panel',
 	
@@ -44,8 +63,29 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptLabelPanel',{
 				type: 'vbox',
 				align: 'stretch'
 			},
+			tbar: [{
+				icon: 'images/op5img/ico_print_16.png',
+				text: 'Print',
+				handler: function(btn) {
+					
+				},
+				scope: this
+			},{
+				_trspteventFilerecordId: labelData.label_data.trsptevent_filerecord_id,
+				_binaryBase64: labelData.label_png_base64,
+				icon: 'images/op5img/ico_save_16.gif',
+				text: 'Save as PNG',
+				handler: function(btn) {
+					//console.dir(btn) ;
+					//this.doBinaryDownload( Ext.util.Base64.decode(btn._binaryBase64), 'label-'+btn._trspteventFilerecordId+'.png', 'image/png') ;
+					
+					this.createAndDownloadBlobFile( this.base64ToArrayBuffer(btn._binaryBase64), 'label-'+btn._trspteventFilerecordId+'.png' ) ;
+				},
+				scope: this
+			}],
 			items: [{
 				xtype: 'form',
+				hidden: Ext.isEmpty(labelData.label_data),
 				bodyCls: 'ux-noframe-bg',
 				bodyPadding: 8,
 				layout: 'anchor',
@@ -55,12 +95,14 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptLabelPanel',{
 				},
 				items: [{
 					xtype: 'displayfield',
-					name: 'date_create',
-					value: 'okokook'
+					fieldLabel: 'Date create',
+					fieldStyle: 'font-weight: bold',
+					value: (labelData.label_data ? labelData.label_data.date_create : null)
 				},{
 					xtype: 'displayfield',
-					name: 'date_create',
-					value: 'okokook'
+					fieldLabel: 'Tracking #',
+					fieldStyle: 'font-weight: bold',
+					value: (labelData.label_data ? labelData.label_data.tracking_no : null)
 				}]
 			},{
 				flex: 1,
@@ -68,9 +110,21 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptLabelPanel',{
 				items: [{
 					title: 'Request',
 					xtype: 'panel',
+					layout: 'fit',
+					items: Ext.create('Optima5.Modules.Spec.DbsTracy.TrsptLabelJsonCmp',{
+						data: {
+							json_txt: labelData.json_request
+						}
+					})
 				},{
 					title: 'Response',
 					xtype: 'panel',
+					layout: 'fit',
+					items: Ext.create('Optima5.Modules.Spec.DbsTracy.TrsptLabelJsonCmp',{
+						data: {
+							json_txt: labelData.json_response
+						}
+					})
 				}]
 			}]
 		},{
@@ -78,16 +132,56 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptLabelPanel',{
 			xtype:'panel',
 			layout: 'fit',
 			items: [{
-				/* solution : position absolute 50% 50% ??
-				*  #content {
-						display: table-cell;
-						text-align: center;
-						vertical-align: middle
-					}
-					*/
-				xtype:'box',
-				html: 'SQKQPKOSDSKDQPSKDOQSOP'
+				hidden: !Ext.isEmpty(labelData.label_png_base64),
+				xtype: 'box',
+				cls: 'ux-noframe-bg',
+				html: '<div style="display:table; width: 100%; height: 100%">'
+						+'<div style="display: table-cell; text-align: center; vertical-align: middle">'
+							+'<i>No preview available></i>'
+						+'</div>'
+					+'</div>'
+			},{
+				hidden: Ext.isEmpty(labelData.label_png_base64),
+				xtype: 'container',
+				scrollable: true,
+				items: [{
+					xtype: 'image',
+					style: 'width: 100% ; transform: rotate(180deg);',
+					src: 'data:image/jpeg;base64,' + labelData.label_png_base64
+				}]
 			}]
 		});
-	}
+	},
+	
+	base64ToArrayBuffer: function(base64) {
+		var binary_string = window.atob(base64);
+		var len = binary_string.length;
+		var bytes = new Uint8Array(len);
+		for (var i = 0; i < len; i++) {
+			bytes[i] = binary_string.charCodeAt(i);
+		}
+		return bytes.buffer;
+	},
+	createAndDownloadBlobFile: function(body, filename ) {
+		var blob = new Blob([body]);
+		//var fileName = `${filename}.${extension}`;
+		if (navigator.msSaveBlob) {
+			// IE 10+
+			navigator.msSaveBlob(blob, filename);
+		} else {
+			var link = document.createElement('a');
+			// Browsers that support HTML5 download attribute
+			if (link.download !== undefined) {
+				var url = URL.createObjectURL(blob);
+				link.setAttribute('href', url);
+				link.setAttribute('download', filename);
+				link.style.visibility = 'hidden';
+				document.body.appendChild(link);
+				link.click();
+				document.body.removeChild(link);
+			}
+		}
+	},
+	
+	dummyFn: function() {}
 }) ;

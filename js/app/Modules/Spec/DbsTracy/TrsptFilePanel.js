@@ -647,6 +647,27 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 						}
 					},
 					columns: [{
+						xtype: 'actioncolumn',
+						width: 50,
+						items: [{
+							icon: 'images/modules/dbstracy-label-16.png',
+							
+							//tooltip: 'TMS',
+							handler : function(grid, rowIndex, colIndex) {
+								var record = grid.getStore().getAt(rowIndex);
+								this.openLabelPanel( record.get('trsptevent_filerecord_id') ) ;
+							},
+							scope : this,
+				
+							disabledCls: 'x-item-invisible',
+							isDisabled: function(view,rowIndex,colIndex,item,record ) {
+								if( record.get('spec_tms_on') ) {
+									return false ;
+								}
+								return true ;
+							}
+						}]
+					},{
 						text: 'Author',
 						dataIndex: 'event_user',
 						hidden: false,
@@ -1600,6 +1621,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 		// Open panel
 		var createPanel = Ext.create('Optima5.Modules.Spec.DbsTracy.TrsptLabelPanel',{
 			optimaModule: this.optimaModule,
+			title: 'Label preview',
 			
 			width:100, // dummy initial size, for border layout to work
 			height:100, // ...
