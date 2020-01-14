@@ -510,6 +510,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 			text: 'Orders',
 			align: 'left',
 			width: 100,
+			variableRowHeight: true,
 			renderer: function(v,metaData,record) {
 				var arr = [] ;
 				record.orders().each(function(orderRecord) {

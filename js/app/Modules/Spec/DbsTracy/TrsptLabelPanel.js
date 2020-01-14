@@ -72,14 +72,11 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptLabelPanel',{
 				},
 				scope: this
 			},{
-				_trspteventFilerecordId: labelData.label_data.trsptevent_filerecord_id,
+				_trspteventFilerecordId: (labelData.label_data ? labelData.label_data.trsptevent_filerecord_id : null),
 				_binaryBase64: labelData.label_png_base64,
 				icon: 'images/op5img/ico_save_16.gif',
 				text: 'Save as PNG',
 				handler: function(btn) {
-					//console.dir(btn) ;
-					//this.doBinaryDownload( Ext.util.Base64.decode(btn._binaryBase64), 'label-'+btn._trspteventFilerecordId+'.png', 'image/png') ;
-					
 					this.createAndDownloadBlobFile( this.base64ToArrayBuffer(btn._binaryBase64), 'label-'+btn._trspteventFilerecordId+'.png' ) ;
 				},
 				scope: this
