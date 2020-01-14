@@ -266,25 +266,8 @@ function paracrm_queries_qsqlTransaction_togglePublish( $post_data , &$arr_saisi
 
 	return array('success'=>true) ;
 }
-function paracrm_queries_qsqlTransaction_toggleAutorun( $post_data , &$arr_saisie )
-{
-	global $_opDB ;
-
-	$qsql_id = $arr_saisie['qsql_id'] ;
-	$is_published = ($post_data['isAutorun']=='true')?true:false ;
-	
-	$arr_update = array() ;
-	$arr_update['autorun_is_on'] = ($is_published ? 'O':'N') ;
-	$arr_cond = array() ;
-	$arr_cond['qsql_id'] = $qsql_id ;
-	$_opDB->update('qsql',$arr_update,$arr_cond) ;
-
-	return array('success'=>true) ;
-}
 function paracrm_queries_qsqlTransaction_autorunGet( $post_data , &$arr_saisie ) {
 	global $_opDB ;
-	
-	sleep(1) ;
 	
 	$qsql_id = $arr_saisie['qsql_id'] ;
 	
@@ -300,8 +283,6 @@ function paracrm_queries_qsqlTransaction_autorunGet( $post_data , &$arr_saisie )
 }
 function paracrm_queries_qsqlTransaction_autorunSet( $post_data , &$arr_saisie ) {
 	global $_opDB ;
-	
-	sleep(2) ;
 	
 	$qsql_id = $arr_saisie['qsql_id'] ;
 	$data = json_decode($post_data['data'],true) ;
