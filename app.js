@@ -284,6 +284,15 @@ Ext.onReady(function () {
 	
 	
 	/*
+	 * EXTJS-23702
+	 * https://www.sencha.com/forum/showthread.php?335344-Grid-scrolling-had-been-totally-broken-by-chrome-56-release/page2
+	 * https://www.sencha.com/forum/showthread.php?336972-Grid-scrolling-problems
+	 * https://www.sencha.com/forum/showthread.php?335344-Grid-scrolling-had-been-totally-broken-by-chrome-56-release
+	 */
+	
+	
+	
+	/*
 	 * Désactiver le drag&drop file=>browser(open)
 	 */
 	window.ondragenter = function(e) {
