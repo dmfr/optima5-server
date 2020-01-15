@@ -10,7 +10,26 @@ class SqlParser {
 	$splits = preg_split('~\([^)]*\)(*SKIP)(*F)|;~', $sql);
 	*/
 
-    public static function split_sql($sql_text) {
+    public static function split_sql($sql_text, $map_extcall_sqltxt) {
+		// Extract extcalls
+		$funcReplaceExtcalls = function($sql_text) use ($map_extcall_sqltxt, &$funcReplaceExtcalls) {
+			$sql_text = preg_replace_callback(
+				'/<qsqlcall name=\"(.+?)\"\/>/is',
+				function($matches) use ($map_extcall_sqltxt, &$funcReplaceExtcalls) {
+					$q_id = $matches[1] ;
+					//echo $q_id ;
+					$sub_sql_text = $map_extcall_sqltxt[$q_id] ;
+					//echo $sub_sql_text ;
+					return $funcReplaceExtcalls($sub_sql_text) ;
+				},
+				$sql_text
+			);
+			return $sql_text ;
+		};
+		$sql_text = $funcReplaceExtcalls($sql_text) ;
+		
+		
+		
 		// Extract procedures
 		preg_match_all('/<procedure id=\"(.+?)\">(.+?)<\/procedure>/is', $sql_text, $matches) ;
 		$keys = $matches[1] ;
@@ -62,6 +81,19 @@ class SqlParser {
 			return $statements;
 		}
 		return array();
+	}
+	
+	
+	public static function list_extcalls($sql_text) {
+		preg_match_all('/<qsqlcall name=\"(.+?)\"\/>/is', $sql_text, $matches) ;
+		$keys = $matches[1] ;
+		$arr_qsqlNames = array() ;
+		foreach( $keys as $qsql_name ) {
+			if( !in_array($qsql_name,$arr_qsqlNames) ) {
+				$arr_qsqlNames[] = $qsql_name ;
+			}
+		}
+		return $arr_qsqlNames ;
 	}
 }
 

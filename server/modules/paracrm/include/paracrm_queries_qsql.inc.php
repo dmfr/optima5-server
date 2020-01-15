@@ -470,6 +470,22 @@ function paracrm_queries_qsql_lib_getTables() {
 function paracrm_queries_qsql_lib_exec($querystring, $is_rw=FALSE, $auth_bypass=FALSE, $vars=array(), $is_superuser=FALSE) {
 	global $_opDB ;
 	
+	/** 13/01/2020 : Prepare full querystring **/
+	$map_qsqlName_sqlTxt = array() ;
+	$fetchQsql = function($qsql_name) use ($_opDB) {
+		$query = "SELECT sql_querystring FROM qsql WHERE qsql_name='{$qsql_name}'" ;
+		return $_opDB->query_uniqueValue($query) ;
+	};
+	$browseExtcalls = function($sqlTxt) use (&$map_qsqlName_sqlTxt, &$fetchQsql, &$browseExtcalls) {
+		foreach( SqlParser::list_extcalls($sqlTxt) as $q_id ) {
+			$subSqlTxt = $fetchQsql($q_id) ;
+			$map_qsqlName_sqlTxt[$q_id] = $subSqlTxt ;
+			$browseExtcalls($subSqlTxt) ;
+		}
+	};
+	$browseExtcalls($querystring) ;
+	//***
+	
 	$prefix = 'tmp' ;
 	if( $is_superuser ) {
 		if( !Auth_Manager::getInstance()->auth_is_admin() ) {
@@ -531,7 +547,7 @@ function paracrm_queries_qsql_lib_exec($querystring, $is_rw=FALSE, $auth_bypass=
 	$q=0 ;
 	// print_r( SqlParser::split_sql($querystring) ) ;
 	@ini_set('pcre.backtrack_limit', PHP_INT_MAX); // HACK
-	foreach( SqlParser::split_sql($querystring) as $query ) {
+	foreach( SqlParser::split_sql($querystring,$map_qsqlName_sqlTxt) as $query ) {
 		if( !trim($query) ) {
 			continue ;
 		}
