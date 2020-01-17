@@ -101,6 +101,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MainPanel',{
 		switch( actionCode ) {
 			case 'files' :
 				return me.openFiles() ;
+			case 'files_debug' :
+				return me.openFileDetail('XXX-XXX') ;
 			case 'bank' :
 				return me.openBank() ;
 			case 'cfg' :
