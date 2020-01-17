@@ -2,6 +2,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPage',{
 	extend: 'Ext.panel.Panel',
 	alias: 'widget.op5specrsiveoreportdashboardpage',
 	
+	requires: ['Optima5.Modules.Spec.RsiRecouveo.ReportTileComponent'],
+	
 	_dashboardPanel: null,
 	_actionTransferStepIdx: null,
 	
