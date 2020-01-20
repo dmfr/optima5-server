@@ -104,10 +104,12 @@ $binary_csv = str_replace( '""','',$binary_csv );
 //echo $binary_csv ;
 
 echo "importing STK..." ;
+$query = "TRUNCATE TABLE store_table_EMB_BLACKOUT_STK" ;
+$_opDB->query($query) ;
 $_POST['csvsrc_binary'] = $binary_csv ;
 $ret = paracrm_data_importDirect( array(
 	'data_type' => 'table',
-	'table_code' => 'EMB_BLACKOUT_STK'
+	'table_code' => $_tableCode
 )) ;
 echo " OK\n" ;
 
@@ -168,6 +170,8 @@ $binary_csv = str_replace( '""','',$binary_csv );
 //echo $binary_csv ;
 
 echo "importing CORE..." ;
+$query = "TRUNCATE TABLE store_table_EMB_BLACKOUT_CORE" ;
+$_opDB->query($query) ;
 $_POST['csvsrc_binary'] = $binary_csv ;
 $ret = paracrm_data_importDirect( array(
 	'data_type' => 'table',
@@ -175,6 +179,74 @@ $ret = paracrm_data_importDirect( array(
 )) ;
 echo " OK\n" ;
 
+
+
+
+
+
+
+
+
+
+
+
+
+$post_url = 'https://eparts-api.herokuapp.com/trackings-export' ;
+$params = array('http' => array(
+'method' => 'POST',
+'content' => http_build_query(array(
+	'token' => $_token,
+	'params' => '{"isBlackoutOrder":true,"supplier":{},"aircraft":{"model":{"id":-1,"name":"All"}},"salesOrganization":{"value":"LBG1,ALL","alias":"All"},"range":{"start":null,"end":null},"parsedFilter":["Sales Organization: All","Blackout Order: Yes","Aircraft Model: All"]}'
+)),
+'timeout' => 600,
+'ignore_errors' => true
+));
+$ctx = stream_context_create($params);
+$fp = fopen($post_url, 'rb', false, $ctx);
+if( !$fp ) {
+	$resp = stream_get_contents($fp) ;
+}
+
+$resp = stream_get_contents($fp) ;
+
+$strlen = strlen($resp) ;
+if( $strlen < 200 ) {
+	die("Error\n") ;
+}
+
+$binary_zip = $resp ;
+
+$filepath_zip = tempnam(sys_get_temp_dir(),'op5').'.zip' ;
+
+file_put_contents($filepath_zip,$binary_zip) ;
+$zip = new ZipArchive;
+if ($zip->open($filepath_zip) === TRUE) {
+    $binary_csv = $zip->getFromIndex(0);
+    $zip->close();
+} else {
+    die("Zip error\n") ;
+}
+unlink($filepath_zip) ;
+
+
+$binary_csv ;
+$binary_csv = substr( $binary_csv, strpos($binary_csv, "\n")+1 );
+$binary_csv = substr( $binary_csv, strpos($binary_csv, "\n")+1 );
+$binary_csv = substr( $binary_csv, strpos($binary_csv, "\n")+1 );
+$binary_csv = str_replace( '"="','',$binary_csv );
+$binary_csv = str_replace( '""','',$binary_csv );
+
+//echo $binary_csv ;
+
+echo "importing EXPED..." ;
+$query = "TRUNCATE TABLE store_table_EMB_BLACKOUT_EXPED" ;
+$_opDB->query($query) ;
+$_POST['csvsrc_binary'] = $binary_csv ;
+$ret = paracrm_data_importDirect( array(
+	'data_type' => 'table',
+	'table_code' => 'EMB_BLACKOUT_EXPED'
+)) ;
+echo " OK\n" ;
 
 
 
