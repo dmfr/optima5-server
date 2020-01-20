@@ -10,7 +10,7 @@ class SqlParser {
 	$splits = preg_split('~\([^)]*\)(*SKIP)(*F)|;~', $sql);
 	*/
 
-    public static function split_sql($sql_text, $map_extcall_sqltxt) {
+    public static function split_sql($sql_text, $map_extcall_sqltxt=array()) {
 		// Extract extcalls
 		$funcReplaceExtcalls = function($sql_text) use ($map_extcall_sqltxt, &$funcReplaceExtcalls) {
 			$sql_text = preg_replace_callback(

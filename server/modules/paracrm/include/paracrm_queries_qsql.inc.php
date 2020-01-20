@@ -299,18 +299,33 @@ function paracrm_queries_qsqlTransaction_autorunSet( $post_data , &$arr_saisie )
 function paracrm_queries_qsqlTransaction_tokenGet( $post_data , &$arr_saisie ) {
 	global $_opDB ;
 	
-	//sleep(1) ;
-	
 	$qsql_id = $arr_saisie['qsql_id'] ;
 	
 	$query = "SELECT * FROM qsql where qsql_id='{$qsql_id}'" ;
 	$result = $_opDB->query($query) ;
 	$arr = $_opDB->fetch_assoc($result) ;
 	$sql_querystring = $arr['sql_querystring'] ;
+	
+	/** 13/01/2020 : Prepare full querystring **/
+	$map_qsqlName_sqlTxt = array() ;
+	$fetchQsql = function($qsql_name) use ($_opDB) {
+		$query = "SELECT sql_querystring FROM qsql WHERE qsql_name='{$qsql_name}'" ;
+		return $_opDB->query_uniqueValue($query) ;
+	};
+	$browseExtcalls = function($sqlTxt) use (&$map_qsqlName_sqlTxt, &$fetchQsql, &$browseExtcalls) {
+		foreach( SqlParser::list_extcalls($sqlTxt) as $q_id ) {
+			$subSqlTxt = $fetchQsql($q_id) ;
+			$map_qsqlName_sqlTxt[$q_id] = $subSqlTxt ;
+			$browseExtcalls($subSqlTxt) ;
+		}
+	};
+	$browseExtcalls($sql_querystring) ;
+	//***
+	
 	$tpl_resultset = array() ;
 	$q = 0 ;
 	@ini_set('pcre.backtrack_limit', PHP_INT_MAX); // HACK
-	foreach( SqlParser::split_sql($sql_querystring) as $sql_sentence ) {
+	foreach( SqlParser::split_sql($sql_querystring,$map_qsqlName_sqlTxt) as $sql_sentence ) {
 		if( !trim($sql_sentence) ) {
 			continue ;
 		}
