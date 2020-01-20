@@ -5,19 +5,12 @@ $GLOBALS['__specDbsTracy_lib_TMS_LABELAPI'] = 'http://api.labelary.com/v1/printe
 function specDbsTracy_lib_TMS_doLabelCreateObj( $row_trspt ) {
 	// Query LIST_CARRIERPROD
 	if( !$row_trspt['mvt_carrier_prod'] ) {
-		return array(
-			'success'=>false,
-			'error_cls' => 'TRACY',
-			'error_txt' => 'Not carrier/int.'
-		) ;
+		throw new Exception("TRACY : Not carrier/int.");
 	}
+	$consignee_record = paracrm_lib_data_getRecord('bible_entry','LIST_CONSIGNEE',$row_trspt['atr_consignee']) ;
 	$carrierprod_record = paracrm_lib_data_getRecord('bible_entry','LIST_CARRIERPROD',$row_trspt['mvt_carrier_prod']) ;
 	if( !$carrierprod_record ) {
-		return array(
-			'success'=>false,
-			'error_cls' => 'TRACY',
-			'error_txt' => 'Carrier/int. parameters missing'
-		) ;
+		throw new Exception("TRACY : Carrier/int. parameters missing");
 	}
 	
 	// Query CFG_SOC
@@ -67,11 +60,7 @@ function specDbsTracy_lib_TMS_doLabelCreateObj( $row_trspt ) {
 		}
 	}
 	if( !$json_parcels ) {
-		return array(
-			'success'=>false,
-			'error_cls' => 'TRACY',
-			'error_txt' => 'No parcels declared'
-		) ;
+		throw new Exception("TRACY : No parcels declared");
 	}
 	
 	$json = array(
@@ -81,7 +70,8 @@ function specDbsTracy_lib_TMS_doLabelCreateObj( $row_trspt ) {
 		"shipment" => array(
 			"consignee" => array(
 				"city" => $dest_adr['TOWN'],
-				"companyName" => $row_trspt['atr_consignee'],
+				"divisionCode" => $dest_adr['STATE'],
+				"companyName" => $consignee_record ? $consignee_record['field_NAME'] : $row_trspt['atr_consignee'],
 				"contactName" => $dest_adr['CONTACT'],
 				"countryCode" => $dest_adr['COUNTRY'],
 				//"divisionCode" => "string",
@@ -89,8 +79,8 @@ function specDbsTracy_lib_TMS_doLabelCreateObj( $row_trspt ) {
 				//"mail" => "test@mirabel-sil.com",
 				"phone" => $dest_adr['PHONE'],
 				"postalCode" => $dest_adr['PCODE'],
-				"street1" => $dest_adr['ADR1'],
-				"street2" => $dest_adr['ADR2'],
+				"street1" => $dest_adr['ADR1'] ? $dest_adr['ADR1'] : $dest_adr['ADR2'],
+				"street2" => $dest_adr['ADR1'] ? $dest_adr['ADR2'] : '',
 				//"street3" => "string"
 			),
 			"customsDeclaration" => array(
@@ -139,11 +129,7 @@ function specDbsTracy_lib_TMS_doLabelCreate( $row_trspt, $obj_request=NULL ) {
 	// Query EDI parameters
 	$edi_record = paracrm_lib_data_getRecord('bible_entry','CFG_EDI','TRSPT_API') ;
 	if( !$edi_record ) {
-		return array(
-			'success'=>false,
-			'error_cls' => 'TRACY',
-			'error_txt' => 'API token/cfg'
-		) ;
+		throw new Exception("TRACY : API token/cfg");
 	}
 	$edi_params = array() ;
 	foreach( explode(';',$edi_record['field_OUT_PARAMS']) as $keyval ) {
@@ -153,16 +139,16 @@ function specDbsTracy_lib_TMS_doLabelCreate( $row_trspt, $obj_request=NULL ) {
 		$edi_params[$mkey] = $mval ;
 	}
 	if( !$edi_params || !$edi_params['TOKEN'] ) {
-		return array(
-			'success'=>false,
-			'error_cls' => 'TRACY',
-			'error_txt' => 'API token/cfg'
-		) ;
+		throw new Exception("TRACY : API token/cfg");
 	}
 	$_token = $edi_params['TOKEN'] ;
 	
 	if( !$obj_request ) {
-		$obj_request = specDbsTracy_lib_TMS_doLabelCreateObj($row_trspt) ;
+		try {
+			$obj_request = specDbsTracy_lib_TMS_doLabelCreateObj($row_trspt) ;
+		} catch( Exception $e ) {
+			throw new Exception($e->getMessage());
+		}
 	}
 	
 	$arr_ins = array() ;
@@ -309,7 +295,11 @@ function specDbsTracy_lib_TMS_getLabelEventId( $trspt_filerecord_id, $force_crea
 		$row_trspt = $json['data'][0] ;
 	}
 	
-	$obj_request = specDbsTracy_lib_TMS_doLabelCreateObj( $row_trspt ) ;
+	try {
+		$obj_request = specDbsTracy_lib_TMS_doLabelCreateObj($row_trspt) ;
+	} catch( Exception $e ) {
+		throw new Exception($e->getMessage());
+	}
 	$json_request = json_encode($obj_request) ;
 	
 	while( !$force_create ) {

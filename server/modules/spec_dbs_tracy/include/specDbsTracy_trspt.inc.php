@@ -1059,9 +1059,10 @@ function specDbsTracy_trspt_download( $post_data ) {
 
 
 function specDbsTracy_trspt_createLabelTMS( $post_data ) {
-	$trsptevent_filerecord_id = specDbsTracy_lib_TMS_getLabelEventId( $post_data['trspt_filerecord_id'] ) ;
-	if( !$trsptevent_filerecord_id ) {
-		return array('success'=>false, 'error'=>'System error') ;
+	try {
+		$trsptevent_filerecord_id = specDbsTracy_lib_TMS_getLabelEventId( $post_data['trspt_filerecord_id'] ) ;
+	} catch( Exception $e ) {
+		return array('success'=>false, 'error'=>$e->getMessage()) ;
 	}
 	$row_trsptevent = paracrm_lib_data_getRecord_file('TRSPT_EVENT',$trsptevent_filerecord_id) ;
 	$map_storeIds = json_decode($row_trsptevent['field_EVENTLINK_IDS_JSON'],true) ;
