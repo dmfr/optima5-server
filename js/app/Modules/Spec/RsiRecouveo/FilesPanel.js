@@ -456,7 +456,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			if( cfgParam_id=='USER' ) {
 				if( authProfile=='CR_AFF' ) {
 					//TODO 2019-12-05 : auth
-					//cfgParamBtn.setValue(authId,silent) ;
+					cfgParamBtn.setValue(authId,silent) ;
 				}
 				if( authIsExt != null ) {
 					cfgParamBtn.setValue(authIsExt,silent) ;
