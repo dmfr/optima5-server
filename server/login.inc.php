@@ -53,20 +53,20 @@ function op5_login_test( $userstr, $password, $http_digest=FALSE, $http_digest_r
 
 	// TEST DATABASE 
 	$GLOBALS['mysql_db'] = $GLOBALS['mysql_db_prefix'].$login_domain ;
-	$connection = @mysql_connect( $GLOBALS['mysql_host'], $GLOBALS['mysql_user'], $GLOBALS['mysql_pass']  );
+	$connection = @mysqli_connect( $GLOBALS['mysql_host'], $GLOBALS['mysql_user'], $GLOBALS['mysql_pass']  );
 	if( !$connection)
 	{
 		$error = "Base de donnée indisponible";
 		$__errors = array($error);
 		return array('done' => FALSE,'errors'=>$__errors) ;
 	}
-	if( !(@mysql_select_db($GLOBALS['mysql_db'])) )
+	if( !(@mysqli_select_db($connection, $GLOBALS['mysql_db'])) )
 	{
 		$error = "Domaine <b>$login_domain</b> inexistant";
 		$__errors = array($error);
 		return array('done' => FALSE,'errors'=>$__errors,'mysql_db'=>$GLOBALS['mysql_db']) ;
 	}
-	@mysql_close($connection) ;
+	@mysqli_close($connection) ;
 	
 	
 	
