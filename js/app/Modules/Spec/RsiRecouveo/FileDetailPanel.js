@@ -1251,6 +1251,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 					title: 'Statistiques',
 					_parentCmp: this
 				}),{
+					hidden: true,
 					xtype: 'panel',
 					title: 'Analyse risque',
 					layout: 'fit'

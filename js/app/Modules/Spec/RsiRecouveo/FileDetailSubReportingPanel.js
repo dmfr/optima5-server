@@ -205,6 +205,28 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailSubReportingPanel',{
 			chartData.push(chartRow) ;
 		}) ;
 		
+		if( false ) {
+			// 29/01/20 : debug
+			console.dir( chartData ) ;
+			console.log( 'x' ) ;
+			console.dir( xField ) ;
+			console.log( 'y' );
+			console.dir( yFields ) ;
+			console.dir( yTitles ) ;
+			console.log( 'yDso' );
+			console.dir( yFieldsLineDso ) ;
+		}
+		
+		if( true ) {
+			// 29/01/20 : hide DSO is null
+			var isDsoNull = true ;
+			Ext.Array.each( chartData, function(chartRow) {
+				if( !Ext.isEmpty(chartRow['val_dso']) && (chartRow['val_dso'] > 0) ) {
+					isDsoNull = true ;
+					return false ;
+				}
+			}) ;
+		}
 		
 		var barchart = {
 			xtype: 'cartesian',
@@ -227,7 +249,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailSubReportingPanel',{
 					position: 'left',
 					adjustByMajorUnit: true,
 					grid: true,
-					fields: [yFields[1]],
+					fields: yFields,
 					renderer: function (v) {
 						var s ;
 						if( Ext.isNumber(v) ) {
@@ -256,11 +278,11 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailSubReportingPanel',{
 					}
 			}, {
 					type: 'numeric',
-					//hidden: true,
+					hidden: isDsoNull, // 29/01/20 : hide DSO is null
 					position: 'right',
 					adjustByMajorUnit: true,
 					grid: false,
-					fields: [yFieldsLineDso[0]],
+					fields: yFieldsLineDso,
 					renderer: function (v) { return Ext.util.Format.number(v,'0,000'); },
 					minimum: 0,
 			  
