@@ -104,6 +104,19 @@ function specDbsTracy_trspt_getRecords( $post_data ) {
 		switch( $arr['field_EVENTLINK_FILE'] ) {
 			case 'TMS_STORE' :
 				$row_event['spec_tms_on'] = true ;
+				if( $load_details ) {
+					$map_storeIds = json_decode($arr['field_EVENTLINK_IDS_JSON'],true) ;
+					if( is_array($map_storeIds) && in_array('RESPONSE_OK',array_keys($map_storeIds)) ) {
+						$row_event['spec_tms_status'] = 'cancel' ;
+						$query = "SELECT max(filerecord_id) FROM view_file_TRSPT_EVENT 
+							WHERE filerecord_parent_id='{$arr['filerecord_parent_id']}' AND field_EVENTLINK_FILE='TMS_STORE'" ;
+						if( $_opDB->query_uniqueValue($query)==$row_event['trsptevent_filerecord_id'] ) {
+							$row_event['spec_tms_status'] = 'ok' ;
+						}
+					} else {
+						$row_event['spec_tms_status'] = 'error' ;
+					}
+				}
 				break ;
 		}
 		$TAB_trspt[$arr['filerecord_parent_id']]['events'][] = $row_event ;
@@ -1091,6 +1104,12 @@ function specDbsTracy_trspt_getLabelTMS( $post_data ) {
 	}
 	$map_storeIds = json_decode($row_trsptevent['field_EVENTLINK_IDS_JSON'],true) ;
 	
+	$query = "SELECT max(filerecord_id) FROM view_file_TRSPT_EVENT 
+			WHERE filerecord_parent_id='{$p_trsptFilerecordId}' AND field_EVENTLINK_FILE='TMS_STORE'" ;
+	if( $_opDB->query_uniqueValue($query)== $p_trspteventFilerecordId ) {
+		$is_printable = TRUE ;
+	}
+	
 	
 	$_domain_id = DatabaseMgr_Base::dbCurrent_getDomainId() ;
 	$_sdomain_id = DatabaseMgr_Sdomain::dbCurrent_getSdomainId() ;
@@ -1107,6 +1126,7 @@ function specDbsTracy_trspt_getLabelTMS( $post_data ) {
 					$obj_response = json_decode($json_response,true) ;
 					$label_data = array(
 						'trsptevent_filerecord_id' => $p_trspteventFilerecordId,
+						'is_printable' => $is_printable,
 						'date_create' => $row_trsptevent['field_EVENT_DATE'],
 						'date_print' => null,
 						'tracking_no' => $obj_response['trackingNumber']

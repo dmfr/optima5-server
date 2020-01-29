@@ -140,7 +140,9 @@ Ext.define('DbsTracyFileTrsptEventModel',{
 		{name: 'trsptevent_filerecord_id', type:'int'},
 		{name: 'event_user', type:'string'},
 		{name: 'event_date', type:'date', dateFormat:'Y-m-d H:i:s'},
-		{name: 'event_txt', type:'string'}
+		{name: 'event_txt', type:'string'},
+		{name: 'spec_tms_on', type:'boolean'},
+		{name: 'spec_tms_status', type:'string'}
 	]
 });
 

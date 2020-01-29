@@ -201,10 +201,10 @@ function specDbsTracy_lib_TMS_doLabelCreate( $row_trspt, $obj_request=NULL ) {
 			media_bin_move( $tmp_media_id , media_bin_toolFile_getId('TMS_STORE',$response_filerecordId) ) ;
 			media_contextClose() ;
 		}
+		$map_tmsTag_filerecordId[$arr_ins['field_STORE_TAG']] = $response_filerecordId ;
 		if( !$response_success ) {
 			break ;
 		}
-		$map_tmsTag_filerecordId[$arr_ins['field_STORE_TAG']] = $response_filerecordId ;
 		
 		
 		

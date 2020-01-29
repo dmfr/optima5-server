@@ -206,3 +206,16 @@
 .op5-spec-dbstracy-trsptlabelpreview-rotate {
 	transform: rotate(180deg);
 }
+
+.op5-spec-dbstracy-label {
+	background: url('../images/modules/dbstracy-label-16.png') no-repeat center center ;
+}
+.op5-spec-dbstracy-label-ok {
+	background: url('../images/modules/dbstracy-label-ok-16.png') no-repeat center center ;
+}
+.op5-spec-dbstracy-label-cancel {
+	background: url('../images/modules/dbstracy-label-cancel-16.png') no-repeat center center ;
+}
+.op5-spec-dbstracy-label-error {
+	background: url('../images/modules/dbstracy-label-error-16.png') no-repeat center center ;
+}

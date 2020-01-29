@@ -104,7 +104,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 					}]
 				}]
 			},{
-				icon: 'images/modules/dbstracy-label-16.png',
+				iconCls: 'op5-spec-dbstracy-label',
 				text: '<b>Generate Label</b>',
 				handler: function() {
 					this.handleDoLabel() ;
@@ -650,7 +650,17 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 						xtype: 'actioncolumn',
 						width: 50,
 						items: [{
-							icon: 'images/modules/dbstracy-label-16.png',
+							//iconCls: 'op5-spec-dbstracy-label',
+							getClass: function(v,m,record) {
+								switch( record.get('spec_tms_status') ) {
+									case 'ok' :
+									case 'cancel' :
+									case 'error' :
+										return 'op5-spec-dbstracy-label-'+record.get('spec_tms_status') ;
+									default:
+										return '' ;
+								}
+							},
 							
 							//tooltip: 'TMS',
 							handler : function(grid, rowIndex, colIndex) {
