@@ -42,7 +42,7 @@ Ext.define('Ext.ux.PreviewPlugin', {
 
                     var getAdditionalData = Ext.grid.feature.RowBody.prototype.getAdditionalData,
                         additionalData = {
-                            rowBody: data[bodyField],
+                            rowBody: Ext.isString(data[bodyField]) ? Ext.util.Format.nl2br(data[bodyField]) : '&#160;',
                             rowBodyCls: grid.getView().previewExpanded ? '' : hideBodyCls
                         };
 
