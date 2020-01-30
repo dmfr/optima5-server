@@ -1580,6 +1580,9 @@ function specRsiRecouveo_file_lib_managePre( $acc_id ) {
 	$data_scenarios = $json['data'] ;
 	
 	$json = specRsiRecouveo_account_open(array('acc_id'=>$acc_id, 'filter_archiveIsOff'=>true)) ;
+	if( !$json['success'] ) {
+		return ;
+	}
 	$account_row = $json['data'] ;
 	foreach( $account_row['files'] as $accountFile_row ) {
 		$file_filerecord_id = $accountFile_row['file_filerecord_id'] ;
@@ -1802,6 +1805,9 @@ function specRsiRecouveo_file_lib_manageActivate( $acc_id, $is_new=FALSE ) {
 	$targetFile_preFilerecordId = $targetFile_openFilerecordId = NULL ;
 	
 	$json = specRsiRecouveo_account_open(array('acc_id'=>$acc_id)) ;
+	if( !$json['success'] ) {
+		return ;
+	}
 	$account_record = $json['data'] ;
 	foreach( $account_record['files'] as $accountFile_record ) {
 		switch( $accountFile_record['status'] ) {
