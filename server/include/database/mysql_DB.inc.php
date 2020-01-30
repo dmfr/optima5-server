@@ -441,7 +441,7 @@ if (!$result) {
 			$arr_tables = array() ;
 			while( $table = mysqli_fetch_row($tables) )
 				array_push( $arr_tables, $table[0] ) ;
-			@mysqli_select_db( $this->connection, $this->db_name ) ;
+			//@mysqli_select_db( $this->connection, $this->db_name ) ;
 			return $arr_tables ;
 		}
 	}
