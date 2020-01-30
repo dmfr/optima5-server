@@ -67,11 +67,64 @@ function specRsiRecouveo_report_getUsers( $post_data ) {
 	$p_filters = json_decode($post_data['filters'],true) ;
 	
 	
+	
+	
+	
+	
+	
+	
+	// filter post parameters
+	$filter_atr = $p_filters['filter_atr'];
+	$filter_soc = $p_filters['filter_soc'];
+	$filter_account = $p_filters['filter_account'];
+	$filter_user = $p_filters['filter_user'];
+	$filter_date = $p_filters['filter_date'];
+	$ttmp = specRsiRecouveo_cfg_getConfig();
+	$cfg_atr = $ttmp['data']['cfg_atr'];
+	
+	// build filter on account
+	$where_clause = '' ;
+	if ($filter_atr) {
+		foreach ($cfg_atr as $atr_record) {
+			$atr_id = $atr_record['atr_id'];
+			$atr_dbfield = 'field_' . $atr_record['atr_field'];
+			switch ($atr_record['atr_type']) {
+				case 'account' :
+					$atr_dbalias = 'la';
+					break;
+				default :
+					continue 2;
+			}
+			$join_tables['la'] = TRUE ;
+			if ($filter_atr[$atr_id]) {
+				$mvalue = $filter_atr[$atr_id];
+				$where_clause.= " AND {$atr_dbalias}.{$atr_dbfield} IN " . $_opDB->makeSQLlist($mvalue);
+			}
+		}
+	}
+	if ($filter_soc) {
+		$join_tables['la'] = TRUE ;
+		$where_clause.= " AND la.treenode_key IN " . $_opDB->makeSQLlist($filter_soc);
+	}
+	if ($filter_account) {
+		$join_tables['la'] = TRUE ;
+		$where_clause.= " AND la.entry_key IN " . $_opDB->makeSQLlist($filter_account);
+	}
+	
+	
+	
+	
+	
+	
 	$TAB_userId_row = array() ;
 	
 	$query = "SELECT entry_key,field_USER_ID, field_USER_FULLNAME
 				FROM view_bible_USER_entry
-				ORDER BY entry_key" ;
+				WHERE 1 AND field_STATUS_IS_EXT<>'1'" ;
+	if( $filter_user ) {
+		$where_clause.= " AND field_USER_ID IN " . $_opDB->makeSQLlist($filter_user);
+	}
+	$query.= " ORDER BY entry_key" ;
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
 		$TAB_userId_row[$arr['entry_key']] = array(
@@ -81,63 +134,36 @@ function specRsiRecouveo_report_getUsers( $post_data ) {
 		);
 	}
 	
-	// PREP répartition dossier > collab
-	// - Nb actions : use action::log_user
-	// - Retards : use file:link_user
-	// - Resolution : coef calculé sur ensemble compte
-	$query = "DROP TABLE IF EXISTS nbactions_by_account_user" ;
-	$_opDB->query($query) ;
-	$query = "CREATE TABLE nbactions_by_account_user (
-					acc_id VARCHAR(50),
-					log_user VARCHAR(50),
-					nb_actions_account_user INT,
-					nb_actions_account INT
-				)";
-	$_opDB->query($query) ;
-	$query = "ALTER TABLE nbactions_by_account_user ADD PRIMARY KEY( acc_id, log_user )" ;
-	$_opDB->query($query) ;
-	
-	$queryBase_accountActions = "SELECT f.field_LINK_ACCOUNT as acc_id, fa.field_LOG_USER as log_user
-		FROM view_file_FILE_ACTION fa
-		JOIN view_file_FILE f ON f.filerecord_id=fa.filerecord_parent_id
-		WHERE fa.field_LOG_USER<>'' AND fa.field_STATUS_IS_OK='1' AND fa.field_LINK_ACTION<>'BUMP'" ;
-	
-	$query = "INSERT INTO nbactions_by_account_user
-			SELECT base.acc_id, base.log_user, count(*), '0'
-			FROM ($queryBase_accountActions) base
-			GROUP BY acc_id, log_user" ;
-	$_opDB->query($query) ;
-	
-	$query = "UPDATE nbactions_by_account_user JOIN (
-		SELECT base.acc_id, count(*) as cnt
-		FROM ($queryBase_accountActions) base
-		GROUP BY acc_id 
-	) nbactions_by_account
-	ON nbactions_by_account.acc_id = nbactions_by_account_user.acc_id
-	SET nbactions_by_account_user.nb_actions_account = nbactions_by_account.cnt" ;
-	$_opDB->query($query) ;
-	
 	
 	
 	
 	/*
 	 * Tables bases
 	 */
-	$view_file_FILE_ACTION = "SELECT * FROM view_file_FILE_ACTION WHERE 1" ;
-	if( $p_filters['date_start'] ) {
-		$view_file_FILE_ACTION.= " AND DATE(field_DATE_ACTUAL)>='{$p_filters['date_start']}'" ;
+	$view_file_FILE_ACTION = "SELECT fa.* FROM view_file_FILE_ACTION fa 
+						JOIN view_file_FILE f ON f.filerecord_id=fa.filerecord_parent_id
+						JOIN view_bible_LIB_ACCOUNT_entry la ON la.entry_key=f.field_LINK_ACCOUNT 
+						WHERE 1" ;
+	if( $filter_date['date_start'] ) {
+		$view_file_FILE_ACTION.= " AND DATE(fa.field_DATE_ACTUAL)>='{$filter_date['date_start']}'" ;
 	}
-	if( $p_filters['date_end'] ) {
-		$view_file_FILE_ACTION.= " AND DATE(field_DATE_ACTUAL)<='{$p_filters['date_end']}'" ;
+	if( $filter_date['date_end'] ) {
+		$view_file_FILE_ACTION.= " AND DATE(fa.field_DATE_ACTUAL)<='{$filter_date['date_end']}'" ;
 	}
+	$view_file_FILE_ACTION.= $where_clause ;
 	
-	$view_file_RECORD = "SELECT * FROM view_file_RECORD WHERE 1" ;
-	if( $p_filters['date_start'] ) {
-		$view_file_RECORD.= " AND DATE(field_DATE_RECORD)>='{$p_filters['date_start']}'" ;
+	
+	$view_file_RECORD = "SELECT r.* FROM view_file_RECORD r 
+						JOIN view_bible_LIB_ACCOUNT_entry la ON la.entry_key=r.field_LINK_ACCOUNT 
+						WHERE 1" ;
+	if( $filter_date['date_start'] ) {
+		$view_file_RECORD.= " AND DATE(r.field_DATE_RECORD)>='{$filter_date['date_start']}'" ;
 	}
-	if( $p_filters['date_end'] ) {
-		$view_file_RECORD.= " AND DATE(field_DATE_RECORD)<='{$p_filters['date_end']}'" ;
+	if( $filter_date['date_end'] ) {
+		$view_file_RECORD.= " AND DATE(r.field_DATE_RECORD)<='{$filter_date['date_end']}'" ;
 	}
+	$view_file_RECORD.= $where_clause ;
+	
 	
 	
 	
@@ -198,9 +224,11 @@ function specRsiRecouveo_report_getUsers( $post_data ) {
 	 * 
 	 *
 	 */
+	$_skip_accuser = !in_array( 'view_stat_scope_accuser', $_opDB->db_tables() ) ;
+	if( !$_skip_accuser ) {
 	$query = "SELECT map.log_user, sum(r.field_AMOUNT * (map.nb_actions_account_user / map.nb_actions_account))
 				FROM ({$view_file_RECORD}) r
-				JOIN nbactions_by_account_user map ON map.acc_id=r.field_LINK_ACCOUNT
+				JOIN view_stat_scope_accuser map ON map.acc_id=r.field_LINK_ACCOUNT
 				WHERE r.field_TYPE IN ('LOCAL','REMOTE')
 				GROUP BY map.log_user" ;
 	$result = $_opDB->query($query) ;
@@ -222,7 +250,7 @@ function specRsiRecouveo_report_getUsers( $post_data ) {
 	
 	$query = "SELECT map.log_user, sum(r.field_AMOUNT * (map.nb_actions_account_user / map.nb_actions_account))
 				FROM ({$view_file_RECORD}) r
-				JOIN nbactions_by_account_user map ON map.acc_id=r.field_LINK_ACCOUNT
+				JOIN view_stat_scope_accuser map ON map.acc_id=r.field_LINK_ACCOUNT
 				WHERE r.field_TYPE IN ('CI','DR','STOP')
 				GROUP BY map.log_user" ;
 	$result = $_opDB->query($query) ;
@@ -244,7 +272,7 @@ function specRsiRecouveo_report_getUsers( $post_data ) {
 	
 	$query = "SELECT map.log_user, sum(r.field_AMOUNT * (map.nb_actions_account_user / map.nb_actions_account))
 				FROM ({$view_file_RECORD}) r
-				JOIN nbactions_by_account_user map ON map.acc_id=r.field_LINK_ACCOUNT
+				JOIN view_stat_scope_accuser map ON map.acc_id=r.field_LINK_ACCOUNT
 				WHERE r.field_TYPE IN (' ') AND r.field_AMOUNT<'0'
 				GROUP BY map.log_user" ;
 	$result = $_opDB->query($query) ;
@@ -263,7 +291,7 @@ function specRsiRecouveo_report_getUsers( $post_data ) {
 		}
 		$TAB_userId_row[$user_id]['res_misc'] += $amount ;
 	}
-	
+	}
 	
 	
 	/* Retards

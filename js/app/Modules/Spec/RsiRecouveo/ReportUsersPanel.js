@@ -34,139 +34,12 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportUsersPanel',{
 	initComponent: function() {
 		Ext.apply(this, {
 			layout: 'fit',
-			tbar:[{
-				hidden: this._readonlyMode,
-				icon: 'images/modules/rsiveo-back-16.gif',
-				text: '<u>Back</u>',
-				handler: function(){
-					this.doQuit() ;
-				},
-				scope: this
-			},'-',{
-				itemId: 'btnFilterDate',
-				xtype: 'button',
-				textBase: 'Filtre par date',
-				menu: [{
-					xtype: 'form',
-					bodyPadding: 6,
-					bodyCls: 'ux-noframe-bg',
-					width: 200,
-					layout: 'anchor',
-					fieldDefaults: {
-						anchor: '100%',
-						labelWidth: 75
-					},
-					items: [{
-						xtype: 'datefield',
-						format: 'Y-m-d',
-						name: 'date_start',
-						fieldLabel: 'Date début',
-						listeners: {
-							change: function() {
-								this.applyFilterDate() ;
-							},
-							scope: this
-						}
-					},{
-						xtype: 'datefield',
-						format: 'Y-m-d',
-						name: 'date_end',
-						fieldLabel: 'Date fin',
-						listeners: {
-							change: function() {
-								this.applyFilterDate() ;
-							},
-							scope: this
-						}
-					}],
-					buttons: [{
-						text: 'Appliquer',
-						handler: function(btn) {
-							var form = btn.up('form') ;
-							this.applyFilterDate() ;
-						},
-						scope: this
-					},{
-						text: 'Reset',
-						handler: function(btn) {
-							var form = btn.up('form') ;
-							form.reset() ;
-							this.applyFilterDate() ;
-						},
-						scope: this
-					}]
-				}]
-			},'->',{
-				iconCls: 'op5-spec-rsiveo-datatoolbar-refresh',
-				text: 'Refresh',
-				handler: function() {
-					this.doLoad(true) ;
-				},
-				scope: this
-			}],
-			items: [{
-				region: 'center',
-				flex: 1,
-				border: false,
-				xtype: 'panel',
-				itemId: 'pCenter',
-				layout: {
-					type: 'fit'
-				},
-				items: []
-			}]
+			items: []
 		});
 		this.callParent() ;
-		this.applyFilterDate(true) ;
 		this.tmpModelCnt = 0 ;
 		
 		this.buildViews() ;
-		this.doLoad() ;
-	},
-	applyFilterDate: function(silent) {
-		var filterDateForm = this.down('#btnFilterDate').menu.down('form'),
-			filterDateValues = filterDateForm.getForm().getFieldValues() ;
-		var filterDateBtn = this.down('#btnFilterDate') ;
-		var txt ;
-		if( !filterDateValues.date_start && !filterDateValues.date_end ) {
-			txt = filterDateBtn.textBase ;
-		} else {
-			txt = [] ;
-			if( filterDateValues.date_start ) {
-				txt.push('Du : '+Ext.Date.format(filterDateValues.date_start,'d/m/Y')) ;
-			}
-			if( filterDateValues.date_end ) {
-				txt.push('Au : '+Ext.Date.format(filterDateValues.date_end,'d/m/Y')) ;
-			}
-			txt = txt.join(' / ') ;
-		}
-		filterDateBtn.setText(txt) ;
-		
-		if( filterDateValues.date_start ) {
-			this.filters['date_start'] = Ext.Date.format(filterDateValues.date_start,'Y-m-d') ;
-		} else {
-			this.filters['date_start'] = null ;
-		}
-		if( filterDateValues.date_end ) {
-			this.filters['date_end'] = Ext.Date.format(filterDateValues.date_end,'Y-m-d') ;
-		} else {
-			this.filters['date_end'] = null ;
-		}
-		
-		if( !silent ) {
-			this.doLoad() ;
-		}
-	},
-	onCrmeventBroadcast: function(crmEvent, eventParams) {
-		switch( crmEvent ) {
-			case 'datachange' :
-				this.onDataChange() ;
-				break ;
-			default: break ;
-		}
-	},
-	onDataChange: function() {
-		this.doLoad() 
 	},
 
 	buildViews: function() {
@@ -212,8 +85,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportUsersPanel',{
 				return ''+v+'' ;
 			}
 		}
-		
-		var pCenter = this.down('#pCenter') ;
 		
 		var columns = [{
 			text: 'Collaborateur',
@@ -320,8 +191,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportUsersPanel',{
 			fields: balageFields
 		});
 		
-		pCenter.removeAll() ;
-		pCenter.add({
+		this.removeAll() ;
+		this.add({
 			xtype: 'grid',
 			itemId: 'pGrid',
 			columns: columns,
@@ -339,13 +210,19 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportUsersPanel',{
 		});
 	},
 	
+	getFilterValues: function() {
+		if( !this._dashboardPanel || !(this._dashboardPanel instanceof Optima5.Modules.Spec.RsiRecouveo.ReportFilterablePanel) ) {
+			return {};
+		}
+		return this._dashboardPanel.getFilterValues() ;
+	},
 	doLoad: function(doClearFilters) {
 		this.showLoadmask() ;
 		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: {
 				_moduleId: 'spec_rsi_recouveo',
 				_action: 'report_getUsers',
-				filters: Ext.JSON.encode(this.filters)
+				filters: Ext.JSON.encode(this.getFilterValues()),
 			},
 			success: function(response) {
 				var ajaxResponse = Ext.decode(response.responseText) ;
@@ -363,13 +240,13 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportUsersPanel',{
 			scope: this
 		}) ;
 	},
-	onLoad: function(ajaxData, doClearFilters) {
+	onLoad: function(ajaxData) {
 		// grid 
-		if( doClearFilters ) {
-			this.down('#pCenter').down('#pGrid').getStore().clearFilter() ;
-			this.down('#pCenter').down('#pGrid').getStore().sort('next_date','ASC') ;
+		if( true ) {
+			this.down('#pGrid').getStore().clearFilter() ;
+			this.down('#pGrid').getStore().sort('user_fullname','ASC') ;
 		}
-		this.down('#pCenter').down('#pGrid').getStore().loadRawData(ajaxData) ;
+		this.down('#pGrid').getStore().loadRawData(ajaxData) ;
 	},
 	
 	

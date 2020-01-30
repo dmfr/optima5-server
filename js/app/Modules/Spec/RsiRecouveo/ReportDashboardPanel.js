@@ -4,7 +4,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPanel',{
 	requires: [
 		'Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageWalletGroup',
 		'Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageWalletHistory',
-		'Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageActions'
+		'Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageActions',
+		
+		'Optima5.Modules.Spec.RsiRecouveo.ReportUsersPanel'
 	],
 	
 	dashboardPages: [{
@@ -164,12 +166,15 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPanel',{
 			flex: 1,
 			itemId: 'pagePanel'
 		})]);
-		if( pageClass == 'Optima5.Modules.Spec.RsiRecouveo.ReportUsersPanel' ) {
-			pagePanel.down('toolbar').destroy() ;
-			pagePanel.fireEvent('pagetitle',pagePanel,'Collaborateurs') ;
-		} else {
-			pagePanel.doLoad() ;
+		
+		switch( pageClass ) {
+			case 'Optima5.Modules.Spec.RsiRecouveo.ReportUsersPanel' :
+				pagePanel.fireEvent('pagetitle',pagePanel,'Collaborateurs') ;
+				break ;
+			default :
+				break ;
 		}
+		pagePanel.doLoad() ;
 	},
 	onPageTitle: function( pagePanel, pageTitleString ) {
 		this.down('#pCenter').down('#pageTitle').setData({
@@ -178,10 +183,18 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPanel',{
 	},
 	doReloadPage: function() {
 		var pagePanel = this.down('#pCenter').down('op5specrsiveoreportdashboardpage') ;
-		if( !pagePanel ) {
+		if( pagePanel ) {
+			pagePanel.doLoad() ;
 			return ;
 		}
-		pagePanel.doLoad() ;
+		
+		var legacyPanel = this.down('#pCenter').down('panel') ;
+		switch( Ext.getClassName(legacyPanel) ) {
+			case 'Optima5.Modules.Spec.RsiRecouveo.ReportUsersPanel' :
+				legacyPanel.doLoad() ;
+			default :
+				return ;
+		}
 	},
 	
 	
