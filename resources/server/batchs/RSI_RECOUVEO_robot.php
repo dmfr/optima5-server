@@ -115,7 +115,7 @@ specRsiRecouveo_lib_autorun_actions() ;
 echo "OK\n" ;
 
 echo "Build cache for stats..." ;
-specRsiRecouveo_lib_stat_build_record_scope() ;
+specRsiRecouveo_lib_stat_build() ;
 echo "OK\n" ;
 
 ?>
