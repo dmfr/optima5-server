@@ -6,7 +6,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPanel',{
 		'Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageWalletHistory',
 		'Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageActions',
 		
-		'Optima5.Modules.Spec.RsiRecouveo.ReportUsersPanel'
+		'Optima5.Modules.Spec.RsiRecouveo.ReportUsersPanel',
+		'Optima5.Modules.Spec.RsiRecouveo.ReportUserActionsPanel'
 	],
 	
 	dashboardPages: [{
@@ -29,6 +30,11 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPanel',{
 		page_title: 'Collaborateurs',
 		page_iconcls: 'op5-spec-rsiveo-dashboard-pageicon-users',
 		page_class: 'Optima5.Modules.Spec.RsiRecouveo.ReportUsersPanel'
+	},{
+		page_id: 'user_actions',
+		page_title: 'Actions<br>Collaborateurs',
+		page_iconcls: 'op5-spec-rsiveo-dashboard-pageicon-users',
+		page_class: 'Optima5.Modules.Spec.RsiRecouveo.ReportUserActionsPanel'
 	}],
 	
 	dashboardPagesStore: null,
@@ -171,6 +177,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPanel',{
 			case 'Optima5.Modules.Spec.RsiRecouveo.ReportUsersPanel' :
 				pagePanel.fireEvent('pagetitle',pagePanel,'Collaborateurs') ;
 				break ;
+			case 'Optima5.Modules.Spec.RsiRecouveo.ReportUserActionsPanel' :
+				pagePanel.fireEvent('pagetitle',pagePanel,'Détail Actions Collaborateurs') ;
+				break ;
 			default :
 				break ;
 		}
@@ -191,6 +200,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPanel',{
 		var legacyPanel = this.down('#pCenter').down('panel') ;
 		switch( Ext.getClassName(legacyPanel) ) {
 			case 'Optima5.Modules.Spec.RsiRecouveo.ReportUsersPanel' :
+			case 'Optima5.Modules.Spec.RsiRecouveo.ReportUserActionsPanel' :
 				legacyPanel.doLoad() ;
 			default :
 				return ;

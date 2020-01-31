@@ -88,8 +88,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportUsersPanel',{
 		
 		var columns = [{
 			text: 'Collaborateur',
-			width:110,
-			dataIndex: 'user_fullname'
+			width:160,
+			dataIndex: 'user_fullname',
+			locked: true
 		},{
 			tdCls: 'op5-spec-rsiveo-taupe',
 			text: 'Actions réalisées',

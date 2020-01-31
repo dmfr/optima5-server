@@ -388,8 +388,248 @@ function specRsiRecouveo_report_getUsers( $post_data ) {
 	
 	
 	
-	return array('success'=>true, 'debug'=>$TAB_userId_row, 'data'=>array_values($TAB_userId_row)) ;
+	return array('success'=>true, 'data'=>array_values($TAB_userId_row)) ;
 }
+
+
+
+function specRsiRecouveo_report_getUserActions( $post_data ) {
+	global $_opDB ;
+	
+	$p_filters = json_decode($post_data['filters'],true) ;
+	
+	
+	
+	// filter post parameters
+	$filter_atr = $p_filters['filter_atr'];
+	$filter_soc = $p_filters['filter_soc'];
+	$filter_account = $p_filters['filter_account'];
+	$filter_user = $p_filters['filter_user'];
+	$filter_date = $p_filters['filter_date'];
+	$ttmp = specRsiRecouveo_cfg_getConfig();
+	$cfg_atr = $ttmp['data']['cfg_atr'];
+	
+	// build filter on account
+	$where_clause = '' ;
+	if ($filter_atr) {
+		foreach ($cfg_atr as $atr_record) {
+			$atr_id = $atr_record['atr_id'];
+			$atr_dbfield = 'field_' . $atr_record['atr_field'];
+			switch ($atr_record['atr_type']) {
+				case 'account' :
+					$atr_dbalias = 'la';
+					break;
+				default :
+					continue 2;
+			}
+			$join_tables['la'] = TRUE ;
+			if ($filter_atr[$atr_id]) {
+				$mvalue = $filter_atr[$atr_id];
+				$where_clause.= " AND {$atr_dbalias}.{$atr_dbfield} IN " . $_opDB->makeSQLlist($mvalue);
+			}
+		}
+	}
+	if ($filter_soc) {
+		$join_tables['la'] = TRUE ;
+		$where_clause.= " AND la.treenode_key IN " . $_opDB->makeSQLlist($filter_soc);
+	}
+	if ($filter_account) {
+		$join_tables['la'] = TRUE ;
+		$where_clause.= " AND la.entry_key IN " . $_opDB->makeSQLlist($filter_account);
+	}
+	
+	
+	
+	
+	
+	
+	$TAB_userId_row = array() ;
+	
+	$query = "SELECT entry_key,field_USER_ID, field_USER_FULLNAME
+				FROM view_bible_USER_entry
+				WHERE 1 AND field_STATUS_IS_EXT<>'1'" ;
+	if( $filter_user ) {
+		$where_clause.= " AND field_USER_ID IN " . $_opDB->makeSQLlist($filter_user);
+	}
+	$query.= " ORDER BY entry_key" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		$TAB_userId_row[$arr['entry_key']] = array(
+			'user_id' => $arr['field_USER_ID'],
+			'user_fullname' => $arr['field_USER_FULLNAME'],
+			'inv_balage' => array()
+		);
+	}
+	
+	
+	
+	
+	/*
+	 * Tables bases
+	 */
+	$view_file_FILE_ACTION = "SELECT fa.* FROM view_file_FILE_ACTION fa 
+						JOIN view_file_FILE f ON f.filerecord_id=fa.filerecord_parent_id
+						JOIN view_bible_LIB_ACCOUNT_entry la ON la.entry_key=f.field_LINK_ACCOUNT 
+						WHERE 1 AND fa.field_STATUS_IS_OK='1'" ;
+	if( $filter_date['date_start'] ) {
+		$view_file_FILE_ACTION.= " AND DATE(fa.field_DATE_ACTUAL)>='{$filter_date['date_start']}'" ;
+	}
+	if( $filter_date['date_end'] ) {
+		$view_file_FILE_ACTION.= " AND DATE(fa.field_DATE_ACTUAL)<='{$filter_date['date_end']}'" ;
+	}
+	$view_file_FILE_ACTION.= $where_clause ;
+	/****/
+	
+	
+	
+	$lib_actions = array(
+		'AGREE_FOLLOW' => 'Suivi promesse',
+		'AGREE_START' => 'Création promesse',
+		'BUMP' => 'Reprise dossier',
+		'CALL_IN' => 'Appel entrant',
+		'CALL_OUT' => 'Appel sortant',
+		'CLOSE_ASK' => 'Proposition clôture',
+		'CLOSE_ACK' => 'Clotûre dossier',
+		'EMAIL_IN' => 'Email entrant',
+		'EMAIL_OUT' => 'Email sortant',
+		'JUDIC_START' => 'Action judiciaire',
+		'JUDIC_FOLLOW' => 'Suivi action judiciaire',
+		'LITIG_FOLLOW' => 'Suivi action externe',
+		'LITIG_START' => 'Action externe',
+		'MAIL_IN' => 'Courrier entrant',
+		'MAIL_OUT' => 'Courrier sortant',
+		'SMS_OUT' => 'SMS'
+	);
+	$lib_groups = array(
+		'S01' => 'En-cours',
+		'S2L_LITIG' => 'Act° ext.',
+		'SX_CLOSE' => 'Clôture',
+		'S2J_JUDIC' => 'Judiciaire',
+		'S2P_PAY' => 'Paiement'
+	);
+	
+	$map_status_group = array(
+		'S01' => array('S0_PRE','S1_OPEN','S1_SEARCH'),
+		'S2L_LITIG' => array('S2L_LITIG'),
+		'SX_CLOSE' => array('SX_CLOSE'),
+		'S2J_JUDIC' => array('S2J_JUDIC'),
+		'S2P_PAY' => array('S2P_PAY')
+	);
+	$mapReverse_status_group = array() ;
+	$tmp_actions = array() ;
+	$tmp_status_actions = array() ;
+	foreach( $map_status_group as $group_id => $statuses ) {
+		$tmp_status_actions[$group_id] = array() ;
+		foreach( $statuses as $status_code ) {
+			$mapReverse_status_group[$status_code] = $group_id ;
+		}
+	}
+	
+	$query = "SELECT fa.field_LOG_USER as user_str
+				, f.field_STATUS as status_code
+				, fa.field_LINK_ACTION as action_code
+				, count(*) as cnt 
+				FROM ($view_file_FILE_ACTION) fa
+				JOIN view_file_FILE f ON f.filerecord_id=fa.filerecord_parent_id
+				WHERE field_LINK_NEW_FILE_ID='0' AND field_STATUS_IS_OK='1' 
+				group by fa.field_LOG_USER, f.field_STATUS, fa.field_LINK_ACTION" ;
+	$result = $_opDB->query($query) ;
+	
+	$_opDB->reset_result($result) ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		$status_code = $arr['status_code'] ;
+		$action_code = $arr['action_code'] ;
+		
+		$group_id = $mapReverse_status_group[$status_code];
+		if( !$group_id ) {
+			continue ;
+		}
+		if( !isset($tmp_status_actions[$group_id]) ) {
+			$tmp_status_actions[$group_id] = array() ;
+		}
+		if( !in_array($action_code,$tmp_status_actions[$group_id]) ) {
+			$tmp_status_actions[$group_id][] = $action_code ;
+		}
+		if( !in_array($action_code,$tmp_actions) ) {
+			$tmp_actions[] = $action_code ;
+		}
+	}
+	
+	
+	$columns = array() ;
+	foreach( $tmp_status_actions as $group_id => $actions ) {
+		sort($actions) ;
+		foreach( $actions as $action_code ) {
+			$columns[] = array(
+				'group_id' => $group_id,
+				'group_txt' => $lib_groups[$group_id],
+				'col_id' => 'val_'.$group_id.'%'.$action_code,
+				'col_txt' => $lib_actions[$action_code]
+			);
+		}
+		$columns[] = array(
+			'group_id' => $group_id,
+			'group_txt' => $lib_groups[$group_id],
+			'group_sum' => true,
+			'col_id' => 'val_'.$group_id.'%'.'*',
+			'col_txt' => 'Total'.' '.$lib_groups[$group_id]
+		);
+	}
+	sort($tmp_actions) ;
+	foreach( $tmp_actions as $action_code ) {
+		$columns[] = array(
+			'group_id' => '*',
+			'group_txt' => 'Tous statuts',
+			'col_id' => 'val_'.'*'.'%'.$action_code,
+			'col_txt' => $lib_actions[$action_code]
+		);
+	}
+	$columns[] = array(
+		'group_id' => '*',
+		'group_txt' => 'Tous statuts',
+		'group_sum' => true,
+		'col_id' => 'val_'.'*'.'%'.'*',
+		'col_txt' => 'Total'
+	);
+	
+	
+	
+	$_opDB->reset_result($result) ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		$ttmp = explode('@',$arr['user_str']) ;
+		$user_id = $ttmp[0] ;
+		$status_code = $arr['status_code'] ;
+		$action_code = $arr['action_code'] ;
+		
+		$group_id = $mapReverse_status_group[$status_code];
+		if( !$group_id ) {
+			continue ;
+		}
+		
+		if( !isset($TAB_userId_row[$user_id]) ) {
+			continue ;
+		}
+		$vals = array(
+			'val_'.$group_id.'%'.$action_code,
+			'val_'.$group_id.'%'.'*',
+			'val_'.'*'.'%'.$action_code,
+			'val_'.'*'.'%'.'*'
+		) ;
+		foreach( $vals as $val ) {
+			if( !isset($TAB_userId_row[$user_id][$val]) ) {
+				$TAB_userId_row[$user_id][$val] = 0 ;
+			}
+			$TAB_userId_row[$user_id][$val] += $arr['cnt'] ;
+		}
+	}
+	
+	
+	return array('success'=>true, 'data'=>array_values($TAB_userId_row), 'columns'=>$columns) ;
+}
+
+
+
+
 
 function specRsiRecouveo_report_getCash( $post_data ) {
 	global $_opDB ;

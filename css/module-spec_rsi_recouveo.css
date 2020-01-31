@@ -118,6 +118,9 @@
 }
 
 
+.op5-spec-rsiveo-reportgrid .x-grid-item {
+	border: 0px ;
+}
 .op5-spec-rsiveo-alm .x-grid-cell {
 	background-color: rgba(255,190,121,0.4) ;
 }
@@ -126,6 +129,11 @@
 }
 .op5-spec-rsiveo-pom .x-grid-cell {
 	background-color: rgba(255,122,122,0.4) ;
+}
+.op5-spec-rsiveo-blue .x-grid-cell-inner {
+	background-color: #1437ff ;
+	color: white;
+	font-weight: bold ;
 }
 .op5-spec-rsiveo-taupe .x-grid-cell-inner {
 	background-color: rgba(220,220,220,0.4) ;
