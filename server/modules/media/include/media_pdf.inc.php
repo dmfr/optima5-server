@@ -37,7 +37,7 @@ function media_pdf_processUploaded( $tmpfilepath, $src_filename=NULL, $all_pages
 	do{
 		$tmpid = rand ( 1000000000 , 9999999999 ) ;
 	}
-	while( glob( $path.'/'.$tmpid.'*') ) ;
+	while( is_file($path.'/'.$tmpid.'.pdf') ) ;
 	
 	file_put_contents( $path.'/'.$tmpid.'.pdf', $pdf_binary ) ;
 
@@ -100,10 +100,10 @@ function media_pdf_move( $src_id , $dst_id )
 		$dst_path = $media_path.'/'.$dst_id ;
 	}
 	
-	foreach( glob($src_path.'*') as $path ) {
-		$ttmp = explode('.',basename($path),2) ;
-		$suffix = $ttmp[1] ;
-		rename( $src_path.'.'.$suffix , $dst_path.'.'.$suffix ) ;
+	$pageCount = media_pdf_getPageCount($src_id) ;
+	rename( $src_path.'.pdf' , $dst_path.'.pdf' ) ;
+	for( $i=1 ; $i<=$pageCount ; $i++ ) {
+		rename( $src_path.".thumb.{$i}.jpg" , $dst_path.".thumb.{$i}.jpg" ) ;
 	}
 }
 function media_pdf_delete( $src_id )
@@ -126,8 +126,10 @@ function media_pdf_delete( $src_id )
 		$src_path = $media_path.'/'.$src_id ;
 	}
 	
-	foreach( glob($src_path.'*') as $path ) {
-		unlink($path) ;
+	$pageCount = media_pdf_getPageCount($src_id) ;
+	unlink( $src_path.'.pdf' ) ;
+	for( $i=1 ; $i<=$pageCount ; $i++ ) {
+		unlink( $src_path.".thumb.{$i}.jpg" ) ;
 	}
 }
 function media_pdf_getPageCount( $src_id )
@@ -150,14 +152,32 @@ function media_pdf_getPageCount( $src_id )
 		$src_path = $media_path.'/'.$src_id ;
 	}
 	
+	if( $media_pdf_POPPLERpdinfo_path = media_pdf_get_pdfinfo() ) {
+		$pdf_path = $src_path.'.pdf' ;
+		$out_arr = array() ;
+		$stdout = exec( media_pdf_makeExecCmd($media_pdf_POPPLERpdinfo_path)." {$pdf_path}", $out_arr ) ;
+		foreach( $out_arr as $out_lig ) {
+			$out_lig = trim($out_lig) ;
+			$token = 'Pages:' ;
+			$cnt = 0 ;
+			if( strpos($out_lig,$token) === 0 ) {
+				$cnt = trim(substr($out_lig,strlen($token))) ;
+				return (int)$cnt ;
+			}
+		}
+		return 0 ;
+	}
+	
+	
 	$cnt = 0 ;
-	foreach( glob($src_path.'*') as $path ) {
-		$ttmp = explode('.',basename($path)) ;
-		if( $ttmp[1] == 'thumb' ) {
-			$cnt++ ;
+	while(true) {
+		$cnt++ ;
+		$thumb_path = $src_path.'.'.'thumb'.'.'.$cnt.'.jpg' ;
+		if( !is_file($thumb_path) ) {
+			break ;
 		}
 	}
-	return $cnt ;
+	return $cnt - 1 ;
 }
 
 function media_pdf_getBinary( $src_id )
@@ -204,12 +224,12 @@ function media_pdf_getPreviewsBinary( $src_id )
 		$src_path = $media_path.'/'.$src_id ;
 	}
 	
+	$pageCount = media_pdf_getPageCount($src_id) ;
+	
 	$arr_previewBinaries = array() ;
-	foreach( glob($src_path.'.*') as $path ) {
-		$ttmp = explode('.',basename($path)) ;
-		if( $ttmp[1] == 'thumb' ) {
-			$arr_previewBinaries[] = file_get_contents($path) ;
-		}
+	for( $i=1 ; $i<=$pageCount ; $i++ ) {
+		$thumb_path = $src_path.'.'.'thumb'.'.'.$i.'.jpg' ;
+		$arr_previewBinaries[] = file_get_contents($thumb_path) ;
 	}
 	return $arr_previewBinaries ;
 }
@@ -378,6 +398,13 @@ function media_pdf_get_pdftoppm() {
 		return NULL ;
 	}
 	return $media_pdf_POPPLERpdftoppm_path ;
+}
+function media_pdf_get_pdfinfo() {
+	$media_pdf_POPPLERpdftoppm_path = $GLOBALS['media_pdf_POPPLERpdftoppm_path'] ;
+	if( !$media_pdf_POPPLERpdftoppm_path || !is_executable($media_pdf_POPPLERpdftoppm_path) ) {
+		return NULL ;
+	}
+	return str_replace('pdftoppm','pdfinfo',$media_pdf_POPPLERpdftoppm_path) ;
 }
 
 function media_pdf_pdf2jpg( $pdf ) {
