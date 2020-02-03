@@ -183,6 +183,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		},{
 			xtype: 'fieldcontainer',
 			itemId: 'btnSimilar',
+			hidden: true,
 			fieldLabel: '&#160;',
 			layout: {
 				type: 'hbox',
@@ -1363,8 +1364,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 				_action: 'account_open',
 				acc_id: accId,
 				filter_atr: Ext.JSON.encode(filterAtr),
-				filter_archiveIsOff: (this._showClosed ? 0 : 1),
-				_similar: 1
+				filter_archiveIsOff: (this._showClosed ? 0 : 1)
 			},
 			success: function(response) {
 				var ajaxResponse = Ext.decode(response.responseText) ;
@@ -1448,7 +1448,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		//btnSimilar
 		var btnSimilar = this.down('#pHeaderForm').down('#btnSimilar'),
 			btnSimilarBtn = btnSimilar.down('button') ;
-		btnSimilar.setVisible( accountRecord.similar().getCount()>0 ) ;
+		btnSimilar.setVisible( false ) ;
+		this.doLoadSimilar() ;
 		
 		
 		this.down('#tpFileActions').removeAll() ;
@@ -3626,6 +3627,32 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		}) ;
 	},
 	
+	doLoadSimilar: function() {
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_rsi_recouveo',
+				_action: 'account_getSimilar',
+				acc_id: this._accId
+			},
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					ajaxResponse.data = [] ;
+				}
+				if( !this._accountRecord || !this._accountRecord.similar() ) {
+					return ;
+				}
+				this._accountRecord.similar().loadData(ajaxResponse.data) ;
+				
+				var btnSimilar = this.down('#pHeaderForm').down('#btnSimilar'),
+					btnSimilarBtn = btnSimilar.down('button') ;
+				btnSimilar.setVisible( this._accountRecord.similar().getCount()>0 ) ;
+			},
+			callback: function() {
+			},
+			scope: this
+		}) ;
+	},
 	doOpenAccSimilar: function(confirmed=false) {
 		if( !this._accountRecord || this._accountRecord.similar().getCount()==0 ) {
 			return ;

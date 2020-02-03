@@ -86,26 +86,6 @@ function specRsiRecouveo_account_open( $post_data ) {
 		}
 	}
 	
-	if( $post_data['_similar'] ) {
-		$query = "SELECT la.* FROM view_bible_LIB_ACCOUNT_entry la WHERE la.entry_key LIKE '%\-{$account_record['acc_ref']}' AND la.entry_key<>'{$p_accId}'" ;
-		$result = $_opDB->query($query) ;
-		while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
-			$account_record['similar'][] = array(
-				'soc_id' => $arr['field_SOC_ID'],
-				'soc_txt' => $arr['field_SOC_NAME'],
-				'acc_id' => $arr['field_ACC_ID'],
-				'acc_ref' => (
-					strpos($arr['field_ACC_ID'],$arr['field_SOC_ID'].'-')===0 
-					?
-					substr($arr['field_ACC_ID'],strlen($arr['field_SOC_ID'].'-'))
-					:
-					$arr['field_ACC_ID']
-				),
-				'acc_txt' => $arr['field_ACC_NAME']
-			);
-		}
-	}
-	
 	$adrbook = array() ;
 	$query = "SELECT adr.* FROM view_file_ADRBOOK adr WHERE adr.field_ACC_ID='{$p_accId}'" ;
 	$result = $_opDB->query($query) ;
@@ -313,6 +293,63 @@ function specRsiRecouveo_account_open( $post_data ) {
 		'success' => true,
 		'data' => $account_record
 	) ;
+}
+
+
+function specRsiRecouveo_account_getSimilar( $post_data ) {
+	global $_opDB ;
+	
+	$p_accId = $post_data['acc_id'] ;
+	
+	$query = "SELECT la.*, lat.field_SOC_ID, lat.field_SOC_NAME" ;
+	$query.= " FROM view_bible_LIB_ACCOUNT_entry la" ;
+	$query.= " JOIN view_bible_LIB_ACCOUNT_tree lat ON lat.treenode_key = la.treenode_key" ;
+	$query.= " WHERE la.entry_key='{$p_accId}'" ;
+	$result = $_opDB->query($query) ;
+	if( $_opDB->num_rows($result) != 1 ) {
+		return array('success'=>false) ;
+	}
+	$arr = $_opDB->fetch_assoc($result) ;
+	$account_record = array(
+		'soc_id' => $arr['field_SOC_ID'],
+		'soc_txt' => $arr['field_SOC_NAME'],
+		'acc_id' => $arr['field_ACC_ID'],
+		'acc_ref' => (
+			strpos($arr['field_ACC_ID'],$arr['field_SOC_ID'].'-')===0 
+			?
+			substr($arr['field_ACC_ID'],strlen($arr['field_SOC_ID'].'-'))
+			:
+			$arr['field_ACC_ID']
+		),
+		'acc_txt' => $arr['field_ACC_NAME'],
+		'acc_siret' => $arr['field_ACC_SIRET'],
+		'adr_postal' => $arr['field_ADR_POSTAL'],
+		'link_user' => $arr['field_LINK_USER_LOCAL'],
+		
+		'similar' => array()
+	);
+	
+	
+	$query = "SELECT la.* FROM view_bible_LIB_ACCOUNT_entry la 
+		WHERE la.entry_key LIKE '%\-{$account_record['acc_ref']}' AND la.entry_key<>'{$p_accId}'
+		AND la.entry_key IN (SELECT field_LINK_ACCOUNT FROM view_file_FILE)" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		$account_record['similar'][] = array(
+			'soc_id' => $arr['field_SOC_ID'],
+			'soc_txt' => $arr['field_SOC_NAME'],
+			'acc_id' => $arr['field_ACC_ID'],
+			'acc_ref' => (
+				strpos($arr['field_ACC_ID'],$arr['field_SOC_ID'].'-')===0 
+				?
+				substr($arr['field_ACC_ID'],strlen($arr['field_SOC_ID'].'-'))
+				:
+				$arr['field_ACC_ID']
+			),
+			'acc_txt' => $arr['field_ACC_NAME']
+		);
+	}
+	return array('success'=>true, 'data'=>$account_record['similar']) ;
 }
 
 

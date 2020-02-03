@@ -66,6 +66,8 @@ switch( $post_data['_action'] )
 	return specRsiRecouveo_account_deleteAttachment( $post_data ) ;
 	case 'account_saveNotepad' :
 	return specRsiRecouveo_account_saveNotepad( $post_data ) ;
+	case 'account_getSimilar' :
+	return specRsiRecouveo_account_getSimilar( $post_data ) ;
 	
 	case 'doc_cfg_getTpl' :
 	return specRsiRecouveo_doc_cfg_getTpl($post_data) ;
