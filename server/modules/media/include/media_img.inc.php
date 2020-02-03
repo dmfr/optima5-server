@@ -85,7 +85,7 @@ function media_img_processUploaded( $tmpfilepath, $src_filename=NULL, $all_pages
 		do{
 			$tmpid = rand ( 1000000000 , 9999999999 ) ;
 		}
-		while( glob( $path.'/'.$tmpid.'*') ) ;
+		while( is_file( $path.'/'.$tmpid.'.jpg') ) ;
 	
 	
 		$orig_w = imagesx($img_src);
