@@ -219,3 +219,8 @@
 .op5-spec-dbstracy-label-error {
 	background: url('../images/modules/dbstracy-label-error-16.png') no-repeat center center ;
 }
+
+.op5-spec-dbstracy-field-strike .x-form-display-field {
+	text-decoration:line-through;
+	font-weight: lighter !important;
+}

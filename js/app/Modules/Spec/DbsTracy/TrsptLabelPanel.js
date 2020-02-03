@@ -109,6 +109,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptLabelPanel',{
 					xtype: 'displayfield',
 					fieldLabel: 'Tracking #',
 					fieldStyle: 'font-weight: bold',
+					fieldBodyCls: ((labelData.label_data && !labelData.label_data.is_printable) ? 'op5-spec-dbstracy-field-strike' : ''),
 					value: (labelData.label_data ? labelData.label_data.tracking_no : null)
 				}]
 			},{
