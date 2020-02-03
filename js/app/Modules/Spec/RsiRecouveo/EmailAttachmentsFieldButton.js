@@ -340,7 +340,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.EmailAttachmentsFieldButton',{
 		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: {
 				_moduleId: 'spec_rsi_recouveo',
-				_action: 'mail_deleteTmpMedia',
+				_action: 'mail_deleteTmpMedias',
 				arr_media_id: Ext.JSON.encode([tmpMediaId])
 			},
 			scope: this
@@ -361,7 +361,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.EmailAttachmentsFieldButton',{
 		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: {
 				_moduleId: 'spec_rsi_recouveo',
-				_action: 'mail_deleteTmpMedia',
+				_action: 'mail_deleteTmpMedias',
 				arr_media_id: Ext.JSON.encode(tmpMediaIds)
 			},
 			scope: this

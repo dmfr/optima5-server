@@ -299,7 +299,7 @@ function specRsiRecouveo_mail_deleteTmpMedias( $post_data ) {
 	$p_arrMediaIds = json_decode($post_data['arr_media_id']) ;
 	foreach( $p_arrMediaIds as $media_id ) {
 		media_contextOpen( $_POST['_sdomainId'] ) ;
-		media_pdf_delete($media_id) ;
+		media_bin_delete($media_id) ;
 		media_contextClose() ;
 	}
 	return array('success'=>true) ;

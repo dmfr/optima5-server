@@ -2667,6 +2667,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		var fileRec = this._accountRecord.files().getById(fileFilerecordId) ;
 		if( !fileRec ) {
 			this.setActiveFileId() ;
+			return ;
 		}
 		
 		recordsTree.getRootNode().cascadeBy( function(r) {

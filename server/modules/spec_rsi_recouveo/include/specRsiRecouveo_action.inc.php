@@ -168,6 +168,17 @@ function specRsiRecouveo_action_execMailAutoPreview( $post_data ) {
 				)
 			);
 			
+			// 02/02/20 : clean attachments
+			foreach( $attachments as $attach_row ) {
+				$tmp_media_id = $attach_row['outmodel_tmp_media_id'] ;
+				
+				$_domain_id = DatabaseMgr_Base::dbCurrent_getDomainId() ;
+				$_sdomain_id = DatabaseMgr_Sdomain::dbCurrent_getSdomainId() ;
+				media_contextOpen( $_sdomain_id ) ;
+				media_bin_delete($tmp_media_id) ;
+				media_contextClose() ;
+			}
+			
 			$json = specRsiRecouveo_mail_buildEmail(array(
 				'data' => json_encode($email_record)
 			)) ;

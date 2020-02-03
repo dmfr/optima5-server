@@ -998,8 +998,27 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 			items:[Ext.create('Optima5.Modules.Spec.RsiRecouveo.EmailMessagePanel',{
 				_tmpMediaId: tmpMediaId,
 				optimaModule: this.optimaModule,
-				_modePreview: true
+				_modePreview: true,
+				listeners: {
+					destroy: function(p) {
+						var tmpMediaId = p._tmpMediaId ;
+						this.handlePreviewEmailClean(tmpMediaId);
+					},
+					scope: this
+				}
 			})]
+		}) ;
+	},
+	handlePreviewEmailClean: function( tmpMediaId ) {
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_rsi_recouveo',
+				_action: 'mail_deleteTmpMedias',
+				arr_media_id: Ext.JSON.encode([tmpMediaId])
+			},
+			success: function(response) {},
+			callback: function() {},
+			scope: this
 		}) ;
 	},
 	handlePreviewEnvelope: function() {
