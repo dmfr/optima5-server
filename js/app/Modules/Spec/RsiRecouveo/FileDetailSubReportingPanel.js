@@ -87,10 +87,19 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailSubReportingPanel',{
 			this.optimaModule = this._parentCmp.optimaModule ;
 			//this._accId = this._parentCmp._accId ;
 			this.mon(this._parentCmp,'doreload',this.onDoReload,this) ;
+			this.on('show',this.onVisible,this,{single: true}) ;
 		}
 	},
 	onDoReload: function(parentCmp,accId) {
+		if( !this._onVisibleActive ) {
+			this._onVisibleAccId = accId ;
+			return ;
+		}
 		this.doLoadElements(accId) ;
+	},
+	onVisible: function() {
+		this._onVisibleActive = true ;
+		this.doLoadElements(this._onVisibleAccId) ;
 	},
 	
 	doReload: function() {
