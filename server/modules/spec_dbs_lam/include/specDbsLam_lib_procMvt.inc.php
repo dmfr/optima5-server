@@ -561,20 +561,6 @@ function specDbsLam_lib_procMvt_rawChange($stock_filerecordId, $adjust_stk_obj, 
 		'field_SPEC_SN' => $row_stock['field_SPEC_SN'],
 		'field_MVTDIRECT_TXT' => $adjust_txt
 	);
-	if( $adjust_qty < 0 ) {
-		$row_mvt_base += array(
-			'field_SRC_FILE_STOCK_ID' => $stock_filerecordId,
-			'field_SRC_WHSE' => $whse_code,
-			'field_SRC_ADR_ID' => $row_stock['field_ADR_ID']
-		);
-	}
-	if( $adjust_qty > 0 ) {
-		$row_mvt_base += array(
-			'field_DST_FILE_STOCK_ID' => $stock_filerecordId,
-			'field_DST_WHSE' => $whse_code,
-			'field_DST_ADR_ID' => $row_stock['field_ADR_ID']
-		);
-	}
 	foreach( $json_cfg['cfg_attribute'] as $stockAttribute_obj ) {
 		if( !$stockAttribute_obj['STOCK_fieldcode'] ) {
 			continue ;
@@ -659,6 +645,13 @@ function specDbsLam_lib_procMvt_rawChange($stock_filerecordId, $adjust_stk_obj, 
 		'field_DST_ADR_ID' => $row_stock['field_ADR_ID']
 	);
 	$mvt_filerecordIds[] = paracrm_lib_data_insertRecord_file('MVT',0,$row_mvt) ;
+	
+	$row_stock = paracrm_lib_data_getRecord_file('STOCK',$stock_filerecordId) ;
+	if( !$row_stock['field_PROD_ID']
+	&& ($row_stock['field_QTY_PREIN']==0 && $row_stock['field_QTY_AVAIL']==0 && $row_stock['field_QTY_OUT']==0 ) ) {
+		
+		paracrm_lib_data_deleteRecord_file('STOCK',$stock_filerecordId) ;
+	}
 	
 	return $mvt_filerecordIds ;
 }
