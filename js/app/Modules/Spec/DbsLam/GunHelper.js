@@ -144,7 +144,8 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunHelper',{
 	},
 	doQzClose: function() {
 		if( typeof qz == 'undefined' ) {
-			reject("Qz disabled") ;
+			//Ext.MessageBox.alert('Error','Print system disabled') ;
+			return ;
 		}
 		qz.websocket.disconnect() ;
 	}
