@@ -16,7 +16,7 @@ function media_bin_processUploaded( $tmpfilepath )
 	do{
 		$tmpid = rand ( 1000000000 , 9999999999 ) ;
 	}
-	while( glob( $path.'/'.$tmpid.'*') ) ;
+	while( is_file($path.'/'.$tmpid.'.bin') ) ;
 	
 	file_put_contents( $path.'/'.$tmpid.'.bin', $binary ) ;
 	
@@ -40,7 +40,7 @@ function media_bin_processBuffer( $binary )
 	do{
 		$tmpid = rand ( 1000000000 , 9999999999 ) ;
 	}
-	while( glob( $path.'/'.$tmpid.'*') ) ;
+	while( is_file($path.'/'.$tmpid.'.bin') ) ;
 	
 	file_put_contents( $path.'/'.$tmpid.'.bin', $binary ) ;
 	
@@ -63,27 +63,23 @@ function media_bin_move( $src_id , $dst_id )
 	if( strpos($src_id,'tmp_') === 0 )
 	{
 		$ttmp = substr($src_id,4,strlen($src_id)-4) ;
-		$src_path = $media_path.'/tmp/'.$ttmp ;
+		$src_path = $media_path.'/tmp/'.$ttmp.'.bin' ;
 	}
 	else
 	{
-		$src_path = $media_path.'/'.$src_id ;
+		$src_path = $media_path.'/'.$src_id.'.bin' ;
 	}
 	if( strpos($dst_id,'tmp_') === 0 )
 	{
 		$ttmp = substr($dst_id,4,strlen($dst_id)-4) ;
-		$dst_path = $media_path.'/tmp/'.$ttmp ;
+		$dst_path = $media_path.'/tmp/'.$ttmp.'.bin' ;
 	}
 	else
 	{
-		$dst_path = $media_path.'/'.$dst_id ;
+		$dst_path = $media_path.'/'.$dst_id.'.bin' ;
 	}
 	
-	foreach( glob($src_path.'*') as $path ) {
-		$ttmp = explode('.',basename($path),2) ;
-		$suffix = $ttmp[1] ;
-		rename( $src_path.'.'.$suffix , $dst_path.'.'.$suffix ) ;
-	}
+	rename( $src_path, $dst_path ) ;
 }
 function media_bin_delete( $src_id )
 {
@@ -101,16 +97,14 @@ function media_bin_delete( $src_id )
 	if( strpos($src_id,'tmp_') === 0 )
 	{
 		$ttmp = substr($src_id,4,strlen($src_id)-4) ;
-		$src_path = $media_path.'/tmp/'.$ttmp ;
+		$src_path = $media_path.'/tmp/'.$ttmp.'.bin' ;
 	}
 	else
 	{
-		$src_path = $media_path.'/'.$src_id ;
+		$src_path = $media_path.'/'.$src_id.'.bin' ;
 	}
 	
-	foreach( glob($src_path.'*') as $path ) {
-		unlink($path) ;
-	}
+	unlink($src_path) ;
 }
 
 function media_bin_getBinary( $src_id )

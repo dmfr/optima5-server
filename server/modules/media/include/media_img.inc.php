@@ -85,7 +85,7 @@ function media_img_processUploaded( $tmpfilepath, $src_filename=NULL, $all_pages
 		do{
 			$tmpid = rand ( 1000000000 , 9999999999 ) ;
 		}
-		while( glob( $path.'/'.$tmpid.'*') ) ;
+		while( is_file( $path.'/'.$tmpid.'.jpg') ) ;
 	
 	
 		$orig_w = imagesx($img_src);
@@ -199,6 +199,45 @@ function media_img_move( $src_id , $dst_id )
 		rename( $src_path.'.jpg' , $dst_path.'.jpg' ) ;
 	if( is_file($src_path.'.thumb.jpg') )
 		rename( $src_path.'.thumb.jpg' , $dst_path.'.thumb.jpg' ) ;
+	if( is_file($dst_path.'.tmp') )
+		unlink( $dst_path.'.tmp' ) ;
+	if( is_file($dst_path.'.default') )
+		unlink( $dst_path.'.default' ) ;
+}
+function media_img_copy( $src_id , $dst_id )
+{
+	if( !$GLOBALS['_media_context'] )
+		return FALSE ;
+	$media_path = media_contextGetDirPath() ;
+	if( !$media_path )
+	{
+		return FALSE ;
+	}
+	
+	
+	if( strpos($src_id,'tmp_') === 0 )
+	{
+		$ttmp = substr($src_id,4,strlen($src_id)-4) ;
+		$src_path = $media_path.'/tmp/'.$ttmp ;
+	}
+	else
+	{
+		$src_path = $media_path.'/'.$src_id ;
+	}
+	if( strpos($dst_id,'tmp_') === 0 )
+	{
+		$ttmp = substr($dst_id,4,strlen($dst_id)-4) ;
+		$dst_path = $media_path.'/tmp/'.$ttmp ;
+	}
+	else
+	{
+		$dst_path = $media_path.'/'.$dst_id ;
+	}
+	
+	if( is_file($src_path.'.jpg') )
+		copy( $src_path.'.jpg' , $dst_path.'.jpg' ) ;
+	if( is_file($src_path.'.thumb.jpg') )
+		copy( $src_path.'.thumb.jpg' , $dst_path.'.thumb.jpg' ) ;
 	if( is_file($dst_path.'.tmp') )
 		unlink( $dst_path.'.tmp' ) ;
 	if( is_file($dst_path.'.default') )

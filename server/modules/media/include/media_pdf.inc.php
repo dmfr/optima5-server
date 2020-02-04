@@ -37,7 +37,7 @@ function media_pdf_processUploaded( $tmpfilepath, $src_filename=NULL, $all_pages
 	do{
 		$tmpid = rand ( 1000000000 , 9999999999 ) ;
 	}
-	while( glob( $path.'/'.$tmpid.'*') ) ;
+	while( is_file($path.'/'.$tmpid.'.pdf') ) ;
 	
 	file_put_contents( $path.'/'.$tmpid.'.pdf', $pdf_binary ) ;
 
@@ -100,10 +100,10 @@ function media_pdf_move( $src_id , $dst_id )
 		$dst_path = $media_path.'/'.$dst_id ;
 	}
 	
-	foreach( glob($src_path.'*') as $path ) {
-		$ttmp = explode('.',basename($path),2) ;
-		$suffix = $ttmp[1] ;
-		rename( $src_path.'.'.$suffix , $dst_path.'.'.$suffix ) ;
+	$pageCount = media_pdf_getPageCount($src_id) ;
+	rename( $src_path.'.pdf' , $dst_path.'.pdf' ) ;
+	for( $i=1 ; $i<=$pageCount ; $i++ ) {
+		rename( $src_path.".thumb.{$i}.jpg" , $dst_path.".thumb.{$i}.jpg" ) ;
 	}
 }
 function media_pdf_delete( $src_id )
@@ -126,8 +126,10 @@ function media_pdf_delete( $src_id )
 		$src_path = $media_path.'/'.$src_id ;
 	}
 	
-	foreach( glob($src_path.'*') as $path ) {
-		unlink($path) ;
+	$pageCount = media_pdf_getPageCount($src_id) ;
+	unlink( $src_path.'.pdf' ) ;
+	for( $i=1 ; $i<=$pageCount ; $i++ ) {
+		unlink( $src_path.".thumb.{$i}.jpg" ) ;
 	}
 }
 function media_pdf_getPageCount( $src_id )
@@ -150,14 +152,32 @@ function media_pdf_getPageCount( $src_id )
 		$src_path = $media_path.'/'.$src_id ;
 	}
 	
+	if( $media_pdf_POPPLERpdinfo_path = media_pdf_get_pdfinfo() ) {
+		$pdf_path = $src_path.'.pdf' ;
+		$out_arr = array() ;
+		$stdout = exec( media_pdf_makeExecCmd($media_pdf_POPPLERpdinfo_path)." {$pdf_path}", $out_arr ) ;
+		foreach( $out_arr as $out_lig ) {
+			$out_lig = trim($out_lig) ;
+			$token = 'Pages:' ;
+			$cnt = 0 ;
+			if( strpos($out_lig,$token) === 0 ) {
+				$cnt = trim(substr($out_lig,strlen($token))) ;
+				return (int)$cnt ;
+			}
+		}
+		return 0 ;
+	}
+	
+	
 	$cnt = 0 ;
-	foreach( glob($src_path.'*') as $path ) {
-		$ttmp = explode('.',basename($path)) ;
-		if( $ttmp[1] == 'thumb' ) {
-			$cnt++ ;
+	while(true) {
+		$cnt++ ;
+		$thumb_path = $src_path.'.'.'thumb'.'.'.$cnt.'.jpg' ;
+		if( !is_file($thumb_path) ) {
+			break ;
 		}
 	}
-	return $cnt ;
+	return $cnt - 1 ;
 }
 
 function media_pdf_getBinary( $src_id )
@@ -204,12 +224,12 @@ function media_pdf_getPreviewsBinary( $src_id )
 		$src_path = $media_path.'/'.$src_id ;
 	}
 	
+	$pageCount = media_pdf_getPageCount($src_id) ;
+	
 	$arr_previewBinaries = array() ;
-	foreach( glob($src_path.'*') as $path ) {
-		$ttmp = explode('.',basename($path)) ;
-		if( $ttmp[1] == 'thumb' ) {
-			$arr_previewBinaries[] = file_get_contents($path) ;
-		}
+	for( $i=1 ; $i<=$pageCount ; $i++ ) {
+		$thumb_path = $src_path.'.'.'thumb'.'.'.$i.'.jpg' ;
+		$arr_previewBinaries[] = file_get_contents($thumb_path) ;
 	}
 	return $arr_previewBinaries ;
 }
@@ -365,53 +385,100 @@ function media_pdf_html2jpg( $html ) {
 }
 
 
-function media_pdf_pdf2jpg( $pdf ) {
+function media_pdf_get_IMconvert() {
 	$media_pdf_IMconvert_path = $GLOBALS['media_pdf_IMconvert_path'] ;
 	if( !$media_pdf_IMconvert_path || !is_executable($media_pdf_IMconvert_path) ) {
 		return NULL ;
 	}
+	return $media_pdf_IMconvert_path ;
+}
+function media_pdf_get_pdftoppm() {
+	$media_pdf_POPPLERpdftoppm_path = $GLOBALS['media_pdf_POPPLERpdftoppm_path'] ;
+	if( !$media_pdf_POPPLERpdftoppm_path || !is_executable($media_pdf_POPPLERpdftoppm_path) ) {
+		return NULL ;
+	}
+	return $media_pdf_POPPLERpdftoppm_path ;
+}
+function media_pdf_get_pdfinfo() {
+	$media_pdf_POPPLERpdftoppm_path = $GLOBALS['media_pdf_POPPLERpdftoppm_path'] ;
+	if( !$media_pdf_POPPLERpdftoppm_path || !is_executable($media_pdf_POPPLERpdftoppm_path) ) {
+		return NULL ;
+	}
+	return str_replace('pdftoppm','pdfinfo',$media_pdf_POPPLERpdftoppm_path) ;
+}
+
+function media_pdf_pdf2jpg( $pdf ) {
+	if( $media_pdf_POPPLERpdftoppm_path = media_pdf_get_pdftoppm() ) {
+		$jpegs = media_pdf_pdf2jpgs($pdf) ;
+		return $jpegs[0] ;
+	}
 	
-	$img_path = tempnam( sys_get_temp_dir(), "FOO");
-	rename($img_path,$img_path.'.jpg') ;
-	$img_path.= '.jpg' ;
-	$pdf_path = tempnam( sys_get_temp_dir(), "FOO");
-	rename($pdf_path,$pdf_path.'.pdf') ;
-	$pdf_path.= '.pdf' ;
+	if( $media_pdf_IMconvert_path = media_pdf_get_IMconvert() ) {
+		$img_path = tempnam( sys_get_temp_dir(), "FOO");
+		rename($img_path,$img_path.'.jpg') ;
+		$img_path.= '.jpg' ;
+		$pdf_path = tempnam( sys_get_temp_dir(), "FOO");
+		rename($pdf_path,$pdf_path.'.pdf') ;
+		$pdf_path.= '.pdf' ;
+		
+		file_put_contents( $pdf_path, $pdf ) ;
+		exec( media_pdf_makeExecCmd($media_pdf_IMconvert_path)." -density 150 {$pdf_path}[0] -quality 100 {$img_path}" ) ;
+		$jpeg = file_get_contents($img_path) ;
+		
+		unlink($img_path) ;
+		unlink($pdf_path) ;
+		
+		return $jpeg ;
+	}
 	
-	file_put_contents( $pdf_path, $pdf ) ;
-	exec( media_pdf_makeExecCmd($GLOBALS['media_pdf_IMconvert_path'])." -density 150 {$pdf_path}[0] -quality 100 {$img_path}" ) ;
-	$jpeg = file_get_contents($img_path) ;
-	
-	unlink($img_path) ;
-	unlink($pdf_path) ;
-	
-	return $jpeg ;
+	return NULL ;
 }
 function media_pdf_pdf2jpgs( $pdf ) {
-	$media_pdf_IMconvert_path = $GLOBALS['media_pdf_IMconvert_path'] ;
-	if( !$media_pdf_IMconvert_path || !is_executable($media_pdf_IMconvert_path) ) {
-		return NULL ;
+	if( $media_pdf_POPPLERpdftoppm_path = media_pdf_get_pdftoppm() ) {
+		$img_path_base = tempnam( sys_get_temp_dir(), "FOO");
+		unlink($img_path_base) ;
+		
+		$pdf_path = tempnam( sys_get_temp_dir(), "FOO");
+		rename($pdf_path,$pdf_path.'.pdf') ;
+		$pdf_path.= '.pdf' ;
+		
+		file_put_contents( $pdf_path, $pdf ) ;
+		exec( media_pdf_makeExecCmd($media_pdf_POPPLERpdftoppm_path)." -jpeg {$pdf_path} {$img_path_base}" ) ;
+		
+		$jpegs = array() ;
+		foreach( glob("$img_path_base"."*") as $img_path ) {
+			$jpegs[] = file_get_contents($img_path) ;
+			unlink($img_path) ;
+		}
+		
+		unlink($pdf_path) ;
+		
+		return $jpegs ;
+	}
+
+	if( $media_pdf_IMconvert_path = media_pdf_get_IMconvert() ) {
+		$img_path_base = tempnam( sys_get_temp_dir(), "FOO");
+		unlink($img_path_base) ;
+		$img_path = $img_path_base.'_%02d.jpg' ;
+		$pdf_path = tempnam( sys_get_temp_dir(), "FOO");
+		rename($pdf_path,$pdf_path.'.pdf') ;
+		$pdf_path.= '.pdf' ;
+		
+		file_put_contents( $pdf_path, $pdf ) ;
+		exec( media_pdf_makeExecCmd($media_pdf_IMconvert_path)." -density 150 {$pdf_path} -quality 100 {$img_path}" ) ;
+		
+		$jpegs = array() ;
+		foreach( glob("$img_path_base"."*") as $img_path ) {
+			$jpegs[] = file_get_contents($img_path) ;
+			unlink($img_path) ;
+		}
+		
+		unlink($pdf_path) ;
+		
+		return $jpegs ;
 	}
 	
-	$img_path_base = tempnam( sys_get_temp_dir(), "FOO");
-	unlink($img_path_base) ;
-	$img_path = $img_path_base.'_%02d.jpg' ;
-	$pdf_path = tempnam( sys_get_temp_dir(), "FOO");
-	rename($pdf_path,$pdf_path.'.pdf') ;
-	$pdf_path.= '.pdf' ;
-	
-	file_put_contents( $pdf_path, $pdf ) ;
-	exec( media_pdf_makeExecCmd($GLOBALS['media_pdf_IMconvert_path'])." -density 150 {$pdf_path} -quality 100 {$img_path}" ) ;
-	
-	$jpegs = array() ;
-	foreach( glob("$img_path_base"."*") as $img_path ) {
-		$jpegs[] = file_get_contents($img_path) ;
-		unlink($img_path) ;
-	}
-	
-	unlink($pdf_path) ;
-	
-	return $jpegs ;
+	return NULL ;
 }
 function media_pdf_jpgs2pdf( $jpegs, $page_format=NULL ) {
 	$media_pdf_IMconvert_path = $GLOBALS['media_pdf_IMconvert_path'] ;
