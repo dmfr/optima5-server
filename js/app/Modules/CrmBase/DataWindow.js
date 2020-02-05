@@ -375,7 +375,7 @@ Ext.define('Optima5.Modules.CrmBase.DataWindow' ,{
 					case 'editgrid' :
 					case 'calendar' :
 					case 'gallery' :
-					case 'gmap' :
+					//case 'gmap' :
 						var viewmode = menuItemId ;
 						return me.getPanel().switchToPanel(viewmode) ;
 					default:

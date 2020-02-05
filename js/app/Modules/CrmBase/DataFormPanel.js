@@ -118,7 +118,7 @@ Ext.define('Optima5.Modules.CrmBase.DataFormPanel' ,{
 		
 		var tabitems = new Array() ;
 		
-		if( layoutFromAjax.gmap ) {
+		if( layoutFromAjax.gmap && false ) {
 			var gmaptab = Ext.create('Optima5.Modules.CrmBase.DataFormPanelGmap',{
 				title:'Adr/GMap',
 				itemId:'gmap',
