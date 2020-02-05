@@ -142,7 +142,7 @@ Ext.define('Optima5.Modules.CrmBase.FilePanel' ,{
 				listeners: {
 					
 				}
-			},{
+			},/*{
 				xtype:'op5crmbasefilegmap',
 				border:false,
 				panelType: 'gmap',
@@ -157,7 +157,7 @@ Ext.define('Optima5.Modules.CrmBase.FilePanel' ,{
 						scope:this
 					}
 				}
-			},{
+			},*/{
 				xtype:'op5crmbasefilegallery',
 				border:false,
 				optimaModule: me.optimaModule,

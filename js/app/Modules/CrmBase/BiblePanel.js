@@ -118,13 +118,13 @@ Ext.define('Optima5.Modules.CrmBase.BiblePanel' ,{
 			maintainFlex : true,
 			activeItem : 0,
 			//resizable : true ,
-			items: [this.gridpanel,{
+			items: [this.gridpanel,/*{
 				xtype:'op5crmbasebiblegmap',
 				border:false,
 				panelType: 'gmap',
 				store:this.gridstore,
 				bibleId: this.bibleId
-			},{
+			},*/{
 				xtype:'op5crmbasebiblegallery',
 				optimaModule: this.optimaModule,
 				border:false,
