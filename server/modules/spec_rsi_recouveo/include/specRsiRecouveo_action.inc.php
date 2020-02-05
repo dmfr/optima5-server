@@ -168,7 +168,11 @@ function specRsiRecouveo_action_execMailAutoPreview( $post_data ) {
 				)
 			);
 			
-			// 02/02/20 : clean attachments
+			$json = specRsiRecouveo_mail_buildEmail(array(
+				'data' => json_encode($email_record)
+			)) ;
+			
+			// 02/02/20 : clean attachments(fix 5/02/20)
 			foreach( $attachments as $attach_row ) {
 				$tmp_media_id = $attach_row['outmodel_tmp_media_id'] ;
 				
@@ -179,9 +183,6 @@ function specRsiRecouveo_action_execMailAutoPreview( $post_data ) {
 				media_contextClose() ;
 			}
 			
-			$json = specRsiRecouveo_mail_buildEmail(array(
-				'data' => json_encode($email_record)
-			)) ;
 			return $json ;
 			
 		default :
