@@ -161,7 +161,7 @@ Ext.define('Optima5.Modules.CrmBase.DataWindowToolbar' ,{
 		viewMenu.menu.child('#grid').setVisible( ajaxData.viewmode_grid ) ;
 		viewMenu.menu.child('#editgrid').setVisible( ajaxData.viewmode_editgrid ) ;
 		viewMenu.menu.child('#calendar').setVisible( ajaxData.viewmode_calendar ) ;
-		viewMenu.menu.child('#gmap').setVisible( ajaxData.viewmode_gmap ) ;
+		viewMenu.menu.child('#gmap').setVisible( false ) ;
 		viewMenu.menu.child('#gallery').setVisible( ajaxData.viewmode_gallery ) ;
 		
 		var optionsMenu = me.child('#options') ;
