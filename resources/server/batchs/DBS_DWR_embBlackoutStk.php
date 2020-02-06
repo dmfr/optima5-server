@@ -235,6 +235,8 @@ $binary_csv = substr( $binary_csv, strpos($binary_csv, "\n")+1 );
 $binary_csv = substr( $binary_csv, strpos($binary_csv, "\n")+1 );
 $binary_csv = str_replace( '"="','',$binary_csv );
 $binary_csv = str_replace( '""','',$binary_csv );
+$binary_csv = str_replace( '=','',$binary_csv );
+
 
 //echo $binary_csv ;
 
