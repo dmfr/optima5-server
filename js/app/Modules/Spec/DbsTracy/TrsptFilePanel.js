@@ -104,6 +104,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 					}]
 				}]
 			},{
+				hidden: !Optima5.Helper.getApplication().desktopGetCfgIsDev(), //TODO : API integrateurs
 				iconCls: 'op5-spec-dbstracy-label',
 				text: '<b>Generate Label</b>',
 				handler: function() {
