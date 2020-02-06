@@ -1362,6 +1362,9 @@ EOF;
 				case 'string' :
 				$field_name.= '_str' ;
 				$arrAssoc_dbField_fieldType[$field_name] = 'varchar(500)' ;
+				if( count($arr_field_type) > 50 ) {
+					$arrAssoc_dbField_fieldType[$field_name] = 'varchar(200)' ;
+				}
 				if( $field_type!='stringplus' && $arr_field_isIndex[$field_code] ) {
 					$arr_model_keys[$field_name] = array('non_unique'=>'1','arr_columns'=>array($field_name)) ;
 				}
