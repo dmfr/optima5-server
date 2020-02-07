@@ -451,7 +451,7 @@ function specDbsLam_lib_procMvt_commitUndo($mvt_filerecordId) {
 	
 	// restauration du stock orig ?
 	if( paracrm_lib_data_recoverRecord_file('STOCK',$stockSrc_filerecordId) != 0 ) {
-		throw new Exception('Cannot recover source stock entry');
+		throw new Exception("Cannot recover source stock entry (mvt={$mvt_filerecordId}, stk={$stockSrc_filerecordId})");
 	}
 	
 	
