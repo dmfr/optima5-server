@@ -202,6 +202,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPanel',{
 			case 'Optima5.Modules.Spec.RsiRecouveo.ReportUsersPanel' :
 			case 'Optima5.Modules.Spec.RsiRecouveo.ReportUserActionsPanel' :
 				legacyPanel.doLoad() ;
+				break ;
 			default :
 				return ;
 		}
@@ -217,6 +218,23 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPanel',{
 		this.callParent();
 	},
 	
+	
+	onTbarDownload: function() {
+		var pagePanel = this.down('#pCenter').down('op5specrsiveoreportdashboardpage') ;
+		if( pagePanel ) {
+			return this.demoOpenDownload() ;
+		}
+		var legacyPanel = this.down('#pCenter').down('panel') ;
+		switch( Ext.getClassName(legacyPanel) ) {
+			case 'Optima5.Modules.Spec.RsiRecouveo.ReportUsersPanel' :
+				break ;
+			case 'Optima5.Modules.Spec.RsiRecouveo.ReportUserActionsPanel' :
+				legacyPanel.handleDownload() ;
+				break ;
+			default :
+				return ;
+		}
+	},
 	
 	demoOpenDownload: function() {
 		this.getEl().mask() ;

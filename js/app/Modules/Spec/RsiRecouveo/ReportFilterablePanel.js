@@ -158,9 +158,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportFilterablePanel',{
 				itemId: 'btnDemoDownload',
 				xtype: 'button',
 				icon: 'images/op5img/ico_save_16.gif',
-				text: 'Télécharger PDF',
+				text: 'Télécharger PDF/XLS',
 				handler: function() {
-					this.demoOpenDownload() ;
+					this.onTbarDownload() ;
 				},
 				scope: this
 			}]
@@ -329,6 +329,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportFilterablePanel',{
 		this.onTbarChanged(this.getFilterValues()) ;
 	},
 	onTbarChanged: function(filterValues) {
+		// to be overriden
+	},
+	
+	onTbarDownload: function() {
 		// to be overriden
 	},
 	

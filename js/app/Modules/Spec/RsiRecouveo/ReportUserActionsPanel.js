@@ -179,6 +179,63 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportUserActionsPanel',{
 			this.loadMask.destroy() ;
 			this.loadMask = null ;
 		}
-	}
+	},
+	
+	
+	
+	handleDownload: function() {
+		var gridPanel = this.down('#pGrid') ;
+		
+		var mapFieldString = {} ;
+		Ext.Array.each( gridPanel.getStore().getModel().getFields(), function(field) {
+			mapFieldString[field.getName()] = Ext.Array.contains(['string'],field.getType()) ;
+		}) ;
+		
+		var columns = [] ;
+		var columnsKeys = [] ;
+		Ext.Array.each( gridPanel.headerCt.getGridColumns(), function(column) {
+			if( !column.isVisible(true) ) {
+				return ;
+			}
+			var txt = column.text.replace('<br>',' ') ;
+			if( column.ownerCt.isXType('gridcolumn') ) {
+				var parentColumn = column.ownerCt ;
+				txt = parentColumn.text.replace('<br>',' ') + ' - ' + txt ;
+			}
+			columns.push({
+				dataIndex: column.dataIndex,
+				dataIndexString: mapFieldString[column.dataIndex],
+				text: txt
+			});
+			columnsKeys.push( column.dataIndex ) ;
+		});
+		
+		var data = [] ;
+		gridPanel.getStore().each( function(record) {
+			var recData = record.getData(true) ;
+			
+			var exportData = {} ;
+			Ext.Array.each( columnsKeys, function(k){
+				exportData[k] = recData[k] ;
+			}) ;
+			data.push( exportData ) ;
+		}) ;
+		
+		var exportParams = this.optimaModule.getConfiguredAjaxParams() ;
+		Ext.apply(exportParams,{
+			_moduleId: 'spec_rsi_recouveo',
+			_action: 'xls_create',
+			columns: Ext.JSON.encode(columns),
+			data: Ext.JSON.encode(data),
+			exportXls: true
+		}) ;
+		Ext.create('Ext.ux.dams.FileDownloader',{
+			renderTo: Ext.getBody(),
+			requestParams: exportParams,
+			requestAction: Optima5.Helper.getApplication().desktopGetBackendUrl(),
+			requestMethod: 'POST'
+		}) ;
+	},
+	
 	
 });
