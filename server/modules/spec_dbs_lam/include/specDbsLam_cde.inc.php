@@ -66,7 +66,8 @@ function specDbsLam_cde_getGrid($post_data) {
 		$TAB[$cde_filerecord_id] = $row ;
 	}
 	
-	$query = "SELECT cl.*, p.field_PROD_TXT FROM view_file_CDE_LIG cl" ;
+	$query = "SELECT cl.*, tcl.filerecord_id as transfercdelink_filerecord_id, p.field_PROD_TXT FROM view_file_CDE_LIG cl" ;
+	$query.= " LEFT OUTER JOIN view_file_TRANSFER_CDE_LINK tcl ON tcl.field_FILE_CDELIG_ID=cl.filerecord_id" ;
 	$query.= " LEFT OUTER JOIN view_bible_PROD_entry p ON p.entry_key=cl.field_PROD_ID" ;
 	$query.= " WHERE 1" ;
 	if( $post_data['filter_cdeFilerecordId_arr'] ) {
@@ -84,7 +85,8 @@ function specDbsLam_cde_getGrid($post_data) {
 			'stk_prod' => $arr['field_PROD_ID'],
 			'stk_prod_txt' => $arr['field_PROD_TXT'],
 			'qty_comm' => (float)$arr['field_QTY_COMM'],
-			'qty_cde' => (float)$arr['field_QTY_CDE']
+			'qty_cde' => (float)$arr['field_QTY_CDE'],
+			'link_transfercdelink_filerecord_id' => $arr['transfercdelink_filerecord_id']
 		) ;
 		$TAB[$cde_filerecord_id]['ligs'][] = $row ;
 	}

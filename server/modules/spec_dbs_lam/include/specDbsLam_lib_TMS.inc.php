@@ -112,7 +112,21 @@ function specDbsLam_lib_TMS_OPTIMA_getZplBuffer( $rowExtended_transferCdePack, $
 function specDbsLam_lib_TMS_getTrsptId($rowExtended_transferCdePack, $pack_id_trspt_code) {
 	switch( $pack_id_trspt_code ) {
 		case 'MRPASHA' :
-			return '167-'.$rowExtended_transferCdePack['cde']['cde_ref'] ;
+			$cdelig_ligId = NULL ;
+			if( count($rowExtended_transferCdePack['ligs'])==1 ) {
+				$transferlig_row = reset($rowExtended_transferCdePack['ligs']) ;
+				$cdepack_transfercdelink_filerecord_id = $transferlig_row['cdepack_transfercdelink_filerecord_id'] ;
+				foreach( $rowExtended_transferCdePack['cde']['ligs'] as $cdelig_row ) {
+					if( $cdelig_row['link_transfercdelink_filerecord_id'] == $cdepack_transfercdelink_filerecord_id ) {
+						$cdelig_ligId = $cdelig_row['lig_id'] ;
+					}
+				}
+			}
+			$str = '167-'.$rowExtended_transferCdePack['cde']['cde_ref'] ;
+			if( $cdelig_ligId ) {
+				$str.= '-'.$cdelig_ligId ;
+			}
+			return $str ;
 			
 		case 'GAC' :
 			return 'GAC-'.$rowExtended_transferCdePack['id_nocolis'] ;
