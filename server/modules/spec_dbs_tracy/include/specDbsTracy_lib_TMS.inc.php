@@ -13,6 +13,12 @@ function specDbsTracy_lib_TMS_doLabelCreateObj( $row_trspt ) {
 		throw new Exception("TRACY : Carrier/int. parameters missing");
 	}
 	
+	// HACK : TNT / ZPL
+	$_out_format = 'ZPL' ;
+	if( !(strpos($carrierprod_record['field_API_PROVIDER'],'TNT')===FALSE) ) {
+		$_out_format = 'PDF' ;
+	}
+	
 	// Query CFG_SOC
 	$cfgsoc_record = paracrm_lib_data_getRecord('bible_entry','CFG_SOC',$row_trspt['id_soc']) ;
 	$cfgsoc_adr = json_decode($cfgsoc_record['field_TRSPT_ADR_ORIG'],true) ;
@@ -53,7 +59,7 @@ function specDbsTracy_lib_TMS_doLabelCreateObj( $row_trspt ) {
 				"description" => $desc_txt,
 				"height" => $hatparcel_iter['vol_dims'][1],
 				//"hsCode" => "string",
-				//"originCountryCode" => "string",
+				"originCountryCode" => $cfgsoc_adr['COUNTRY'],
 				"weight" => ceil($hatparcel_iter['vol_kg']),
 				"width" => $hatparcel_iter['vol_dims'][0]
 			) ;
@@ -64,7 +70,7 @@ function specDbsTracy_lib_TMS_doLabelCreateObj( $row_trspt ) {
 	}
 	
 	$json = array(
-		"format" => "ZPL",
+		"format" => $_out_format,
 		//"printer" => "FOO",
 		"provider" => $carrierprod_record['field_API_PROVIDER'],
 		"shipment" => array(
@@ -209,47 +215,84 @@ function specDbsTracy_lib_TMS_doLabelCreate( $row_trspt, $obj_request=NULL ) {
 		
 		
 		// RESULT_PREVIEW ?
-		$binary_zpl = base64_decode($json['labelData']) ;
-		$post_url = $GLOBALS['__specDbsTracy_lib_TMS_LABELAPI'] ;
-		$params = array('http' => array(
-		'method' => 'POST',
-		'content' => $binary_zpl,
-		'timeout' => 600,
-		'ignore_errors' => true,
-		'header'=>"Accept: image/png\r\n"
-		));
-		$ctx = stream_context_create($params);
-		$fp = fopen($post_url, 'rb', false, $ctx);
-		if( !$fp ) {
-			break ;
-		}
-		$status_line = $http_response_header[0] ;
-		preg_match('{HTTP\/\S*\s(\d{3})}', $status_line, $match);
-		$status = $match[1];
-		$response_success = ($status == 200) ;
-		
-		if( $response_success ) {
-			$arr_ins = array() ;
-			$arr_ins['field_FILE_TRSPT_ID'] = $row_trspt['trspt_filerecord_id'] ;
-			$arr_ins['field_STORE_DATE'] = $_STORE_DATE ;
-			$arr_ins['field_STORE_PEER'] = $_STORE_PEER ;
-			$arr_ins['field_STORE_TAG'] = 'RESULT_PNG' ;
-			$arr_ins['field_STORE_HTTP_STATUS'] = $status ;
-			$resultpng_filerecordId = paracrm_lib_data_insertRecord_file( 'TMS_STORE', 0, $arr_ins ) ;
+		switch( $obj_request['format'] ) {
+			case 'ZPL' :
+				$binary_zpl = base64_decode($json['labelData']) ;
+				$post_url = $GLOBALS['__specDbsTracy_lib_TMS_LABELAPI'] ;
+				$params = array('http' => array(
+				'method' => 'POST',
+				'content' => $binary_zpl,
+				'timeout' => 600,
+				'ignore_errors' => true,
+				'header'=>"Accept: image/png\r\n"
+				));
+				$ctx = stream_context_create($params);
+				$fp = fopen($post_url, 'rb', false, $ctx);
+				if( !$fp ) {
+					break 2 ;
+				}
+				$status_line = $http_response_header[0] ;
+				preg_match('{HTTP\/\S*\s(\d{3})}', $status_line, $match);
+				$status = $match[1];
+				$response_success = ($status == 200) ;
+				
+				if( $response_success ) {
+					$arr_ins = array() ;
+					$arr_ins['field_FILE_TRSPT_ID'] = $row_trspt['trspt_filerecord_id'] ;
+					$arr_ins['field_STORE_DATE'] = $_STORE_DATE ;
+					$arr_ins['field_STORE_PEER'] = $_STORE_PEER ;
+					$arr_ins['field_STORE_TAG'] = 'RESULT_PNG' ;
+					$arr_ins['field_STORE_HTTP_STATUS'] = $status ;
+					$resultpng_filerecordId = paracrm_lib_data_insertRecord_file( 'TMS_STORE', 0, $arr_ins ) ;
+					
+					$binary_png = stream_get_contents($fp) ;
+					
+					$_domain_id = DatabaseMgr_Base::dbCurrent_getDomainId() ;
+					$_sdomain_id = DatabaseMgr_Sdomain::dbCurrent_getSdomainId() ;
+					media_contextOpen( $_sdomain_id ) ;
+					$tmp_media_id = media_bin_processBuffer( $binary_png ) ;
+					media_bin_move( $tmp_media_id , media_bin_toolFile_getId('TMS_STORE',$resultpng_filerecordId) ) ;
+					media_contextClose() ;
+					
+					$map_tmsTag_filerecordId[$arr_ins['field_STORE_TAG']] = $resultpng_filerecordId ;
+				} else {
+					//echo stream_get_contents($fp) ;
+				}
+				break ;
 			
-			$binary_png = stream_get_contents($fp) ;
-			
-			$_domain_id = DatabaseMgr_Base::dbCurrent_getDomainId() ;
-			$_sdomain_id = DatabaseMgr_Sdomain::dbCurrent_getSdomainId() ;
-			media_contextOpen( $_sdomain_id ) ;
-			$tmp_media_id = media_bin_processBuffer( $binary_png ) ;
-			media_bin_move( $tmp_media_id , media_bin_toolFile_getId('TMS_STORE',$resultpng_filerecordId) ) ;
-			media_contextClose() ;
-		} else {
-			//echo stream_get_contents($fp) ;
+			case 'PDF' :
+				$binary_pdf = base64_decode($json['labelData']) ;
+				$binary_jpg = media_pdf_pdf2jpg($binary_pdf) ;
+				
+				$img_path = tempnam( sys_get_temp_dir(), "FOO");
+				rename($img_path,$img_path.'.png') ;
+				$img_path.= '.png' ;
+				imagepng(imagecreatefromstring($binary_jpg), $img_path);
+				$binary_png = file_get_contents($img_path) ;
+				unlink($img_path) ;
+				
+				$arr_ins = array() ;
+				$arr_ins['field_FILE_TRSPT_ID'] = $row_trspt['trspt_filerecord_id'] ;
+				$arr_ins['field_STORE_DATE'] = $_STORE_DATE ;
+				$arr_ins['field_STORE_PEER'] = $_STORE_PEER ;
+				$arr_ins['field_STORE_TAG'] = 'RESULT_PNG' ;
+				$arr_ins['field_STORE_HTTP_STATUS'] = $status ;
+				$resultpng_filerecordId = paracrm_lib_data_insertRecord_file( 'TMS_STORE', 0, $arr_ins ) ;
+				
+				$_domain_id = DatabaseMgr_Base::dbCurrent_getDomainId() ;
+				$_sdomain_id = DatabaseMgr_Sdomain::dbCurrent_getSdomainId() ;
+				media_contextOpen( $_sdomain_id ) ;
+				$tmp_media_id = media_bin_processBuffer( $binary_png ) ;
+				media_bin_move( $tmp_media_id , media_bin_toolFile_getId('TMS_STORE',$resultpng_filerecordId) ) ;
+				media_contextClose() ;
+				
+				$map_tmsTag_filerecordId[$arr_ins['field_STORE_TAG']] = $resultpng_filerecordId ;
+				
+				break ;
+				
+			default :
+				break ;
 		}
-		$map_tmsTag_filerecordId[$arr_ins['field_STORE_TAG']] = $resultpng_filerecordId ;
-	
 		break ;
 	}
 	
