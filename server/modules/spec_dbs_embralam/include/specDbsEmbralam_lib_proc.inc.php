@@ -88,7 +88,7 @@ function specDbsEmbralam_lib_proc_findAdr( $mvt_obj, $stockAttributes_obj, $excl
 						LEFT OUTER JOIN view_file_INV inv ON inv.field_ADR_ID = stk.entry_key
 						WHERE inv.filerecord_id IS NULL" ;
 			foreach( $attributesToCheck as $STOCK_fieldcode => $neededValue ) {
-				$query.= " AND stk.{$STOCK_fieldcode}='".mysql_real_escape_string(json_encode(array($neededValue)))."'" ;
+				$query.= " AND stk.{$STOCK_fieldcode}='".$_opDB->escape_string(json_encode(array($neededValue)))."'" ;
 			}
 			$query.= " ORDER BY stk.field_PRIO_IDX LIMIT 1" ;
 			$result = $_opDB->query($query) ;
