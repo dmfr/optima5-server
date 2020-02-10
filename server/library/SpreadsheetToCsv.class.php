@@ -32,7 +32,7 @@ class SpreadsheetToCsv {
 					foreach ($sheet->getRowIterator() as $row) {
 						foreach( $row as &$val ) {
 							if( $val instanceof DateTime ) {
-								$val = $val->format('Y-m-d') ;
+								$val = $val->format('Y-m-d H:i:s') ;
 							}
 						}
 						unset($val) ;
