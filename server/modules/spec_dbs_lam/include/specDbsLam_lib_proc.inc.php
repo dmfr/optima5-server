@@ -159,7 +159,7 @@ function specDbsLam_lib_proc_findAdr( $mvt_obj, $whse_dest, $to_picking=NULL, $t
 					WHERE inv.filerecord_id IS NULL AND adr.field_STATUS_IS_ACTIVE='1'
 					AND adr.treenode_key IN ".$_opDB->makeSQLlist($adr_treenodes) ;
 		foreach( $attributesToCheck as $STOCK_fieldcode => $neededValue ) {
-			$query.= " AND adr.{$STOCK_fieldcode}='".mysql_real_escape_string(json_encode(array($neededValue)))."'" ;
+			$query.= " AND adr.{$STOCK_fieldcode}='".$_opDB->escape_string(json_encode(array($neededValue)))."'" ;
 		}
 		if( $mvt_obj['container_type'] ) {
 			$query.= " AND adr.field_CONT_IS_ON='1' AND adr.field_CONT_TYPES LIKE '%\"{$mvt_obj['container_type']}\"%'" ;
@@ -249,7 +249,7 @@ function specDbsLam_lib_proc_validateAdr( $mvt_obj, $whse_dest, $adr_id ) {
 				WHERE inv.filerecord_id IS NULL AND adr.field_STATUS_IS_ACTIVE='1'
 				AND adr.treenode_key IN ".$_opDB->makeSQLlist($adr_treenodes) ;
 	foreach( $attributesToCheck as $STOCK_fieldcode => $neededValue ) {
-		$query.= " AND adr.{$STOCK_fieldcode}='".mysql_real_escape_string(json_encode(array($neededValue)))."'" ;
+		$query.= " AND adr.{$STOCK_fieldcode}='".$_opDB->escape_string(json_encode(array($neededValue)))."'" ;
 	}
 	if( $mvt_obj['container_type'] ) {
 		$query.= " AND adr.field_CONT_IS_ON='1' AND adr.field_CONT_TYPES LIKE '%\"{$mvt_obj['container_type']}\"%'" ;
