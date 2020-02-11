@@ -1,6 +1,10 @@
 <?php
+/*
+Doc Schenker : https://services.schenkerfrance.fr/gateway_PPD/swagger-ui.html
+*/
+
 $GLOBALS['__specDbsTracy_lib_TMS_URL'] = 'https://services.schenkerfrance.fr/gateway_PPD/rest/ship/v1/label/create' ;
-$GLOBALS['__specDbsTracy_lib_TMS_LABELAPI'] = 'http://api.labelary.com/v1/printers/8dpmm/labels/4x6/0/' ;
+$GLOBALS['__specDbsTracy_lib_TMS_LABELAPI'] = 'http://api.labelary.com/v1/printers/8dpmm/labels/4x8/0/' ;
 
 function specDbsTracy_lib_TMS_doLabelCreateObj( $row_trspt ) {
 	// Query LIST_CARRIERPROD
