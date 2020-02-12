@@ -139,6 +139,7 @@ Ext.define('DbsLamTransferOneModel',{
 		{name: 'status_is_ok', type:'boolean'},
 		{name: 'status_is_alert', type:'boolean'},
 		{name: 'status_is_closed', type:'boolean'},
+		{name: 'date_create', type:'date', dateFormat:'Y-m-d'},
 		{name: 'date_touch', type:'date', dateFormat:'Y-m-d'}
 	],
 	hasMany: [{
@@ -775,7 +776,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 						icon: this.doLoadTransfers_tool_getIconUrl(transferDoc),
 						display_txt: transferDoc.transfer_txt,
 						display_soc: (transferDoc.soc_is_multi ? '<i>multi</i>' : transferDoc.soc_code),
-						display_date: transferDoc.date_touch
+						display_date: transferDoc.date_create
 					}) ;
 					
 					if( !map_flowCode_rows.hasOwnProperty(transferDoc.transfer_tpl) ) {

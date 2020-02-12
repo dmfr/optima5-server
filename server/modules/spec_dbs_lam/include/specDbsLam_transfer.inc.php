@@ -30,6 +30,7 @@ function specDbsLam_transfer_getTransfer($post_data) {
 			'status_is_on' => !!$arr['field_STATUS_IS_ON'],
 			'status_is_ok' => !!$arr['field_STATUS_IS_OK'],
 			'status_is_alert' => !!$arr['field_STATUS_IS_ALERT'],
+			'date_create' => substr($arr['field_DATE_CREATE'],0,10),
 			'date_touch' => substr($arr['field_DATE_TOUCH'],0,10),
 			'spec_cde' => !!$arr['field_SPEC_CDE'],
 			'steps' => array(),
@@ -980,6 +981,7 @@ function specDbsLam_transfer_createDoc($post_data) {
 		'field_TRANSFER_TXT' => $form_data['transfer_txt'] ,
 		'field_SOC_CODE' => (!$form_data['soc_is_multi'] ? $form_data['soc_code'] : ''),
 		'field_SOC_IS_MULTI' => ($form_data['soc_is_multi'] ? 1 : 0),
+		'field_DATE_CREATE' => date('Y-m-d H:i:s'),
 		'field_DATE_TOUCH' => date('Y-m-d H:i:s')
 	);
 	foreach( $tpltransfer_row as $mkey=>$mvalue ) {
