@@ -1478,9 +1478,13 @@ function specDbsLam_lib_TMS_AGD_getId( $rowExtended_transferCdePack ) {
 	$ttmp = explode(' ',specDbsLam_lib_TMS_getValueStatic( 'WHSE_VILLE' )) ;
 	$whse_cp = $ttmp[0] ;
 	
+	$key_trspt = 'AGEDISS_'.$soc_code.'_TRSPT' ;
+	$id_trspt = specDbsLam_lib_TMS_getValueStatic( $key_trspt ) ;
+	$id_trspt = $id_trspt ? $id_trspt : '99999' ;
+	
 	$barcode = '' ;
 	$barcode.= '1141' ;
-	$barcode.= '01264' ;
+	$barcode.= $id_trspt ;
 	$barcode.= $whse_cp.str_pad( (string)$rowExtended_transferCdePack['cde']['cde_filerecord_id'], 16-strlen($whse_cp), '0', STR_PAD_LEFT ) ;
 	$barcode.= str_pad($rowExtended_transferCdePack['calc_folio_idx'],3,'0',STR_PAD_LEFT) ;
 	
@@ -1494,7 +1498,7 @@ function specDbsLam_lib_TMS_AGD_getPlanRow( $rowExtended_transferCdePack ) {
 		$cp = str_pad( $cp, 5, '0', STR_PAD_LEFT ) ;
 	}
 	
-	$query = "select * from trspt_agd_plan where DEPT <= '{$cp}' ORDER BY DEPT DESC LIMIT 1" ;
+	$query = "select * from op5tms_lib_trspt.trspt_agd_plan where DEPT <= '{$cp}' ORDER BY DEPT DESC LIMIT 1" ;
 	$result = $_opDB->query($query) ;
 	$arr = $_opDB->fetch_assoc($result) ;
 	return $arr ;
@@ -1521,7 +1525,14 @@ function specDbsLam_lib_TMS_AGD_getZplBuffer( $rowExtended_transferCdePack,$pack
 	if( !$agdPlan_row ) {
 		return NULL ;
 	}
-	
+	$pfadr['nom'] = $agdPlan_row['RAISON_SOCIALE'] ;
+	$pfadr['adr'] = substr($agdPlan_row['ADRESSE'], 0,35 );
+	$pfadr['cp'] = $agdPlan_row['CP'] ;
+	$pfadr['ville'] = $agdPlan_row['VILLE'] ;
+	foreach( $pfadr as &$str ) {
+		$str=iconv('UTF-8','ASCII//TRANSLIT',$str);
+	}
+	unset($str) ;
 	
 	
 	
@@ -1552,7 +1563,7 @@ function specDbsLam_lib_TMS_AGD_getZplBuffer( $rowExtended_transferCdePack,$pack
 	
 	
 	
-	$print_routage = $rowExtended_transferCdePack['cde']['adr_country'].' '.'441' ;
+	$print_routage = $rowExtended_transferCdePack['cde']['adr_country'].' '.$agdPlan_row['CODE_PF'] ;
 	
 	
 	
@@ -1592,10 +1603,13 @@ function specDbsLam_lib_TMS_AGD_getZplBuffer( $rowExtended_transferCdePack,$pack
 		$legend_h = $h+20 ;
 		$zebra_buffer.= "^FO{$legend_w},{$legend_h},0^APN^FD".'LIVRAISON PLATEFORME'."^FS";
 		
-		$legend_h+=35 ;
+		$legend_h+=45 ;
 		
-		$zebra_buffer.= "^FO{$legend_w},{$legend_h},0^AQN^FD".specDbsLam_lib_TMS_getValueStatic( 'SOC_'.$soc_code.'_NOM' )."^FS";
+		$zebra_buffer.= "^FO{$legend_w},{$legend_h},0^APN^FD".$pfadr['nom']."^FS";
 		$legend_h+=22 ;
+		$zebra_buffer.= "^FO{$legend_w},{$legend_h},0^APN^FD".$pfadr['adr']."^FS";
+		$legend_h+=22 ;
+		$zebra_buffer.= "^FO{$legend_w},{$legend_h},0^APN^FD".$pfadr['cp'].' '.$pfadr['ville']."^FS";
 		
 		
 		
@@ -1606,7 +1620,7 @@ function specDbsLam_lib_TMS_AGD_getZplBuffer( $rowExtended_transferCdePack,$pack
 		
 		$legend_w = 640 ;
 		$legend_h = $h+60 ;
-		$zebra_buffer.= "^FO{$legend_w},{$legend_h},0^AUN^FD".'ABC'."^FS";
+		$zebra_buffer.= "^FO{$legend_w},{$legend_h},0^AUN^FD".'LV2'."^FS";
 		
 	
 	$h+= $h_block ;
@@ -1722,80 +1736,6 @@ function specDbsLam_lib_TMS_AGD_getZplBuffer( $rowExtended_transferCdePack,$pack
 	
 	
 	
-	return $zebra_buffer ;
-	
-	$zebra_buffer.= "^FO50,{$h}^GB200,200,2^FS";
-	$zebra_buffer.= "^FO250,{$h}^GB500,200,2^FS";
-	
-		$legend_w = 60 ;
-		$legend_h = $h+20 ;
-		$zebra_buffer.= "^FO{$legend_w},{$legend_h},0^ARN^FD".'PartNumber'."^FS";
-		
-		$legend_w = 290 ;
-		$legend_h = $h+30 ;
-		$zebra_buffer.= "^FO{$legend_w},{$legend_h}^BY2^BCN,100,Y,N^FD".$prod_txt."^FS";
-	
-	$h+= 200 ;
-	
-	$zebra_buffer.= "^FO50,{$h}^GB200,150,2^FS";
-	$zebra_buffer.= "^FO250,{$h}^GB500,150,2^FS";
-	
-		$legend_w = 60 ;
-		$legend_h = $h+20 ;
-		$zebra_buffer.= "^FO{$legend_w},{$legend_h},0^ARN^FD".'Description'."^FS";
-	
-	
-		$legend_w = 290 ;
-		$legend_h = $h+20 ;
-		$zebra_buffer.= "^FO{$legend_w},{$legend_h},0^ASN^FD".$arr_prod['entry_key']."^FS";
-		$legend_h = $h+70 ;
-		$zebra_buffer.= "^FO{$legend_w},{$legend_h},0^ARN^FD".$arr_prod['field_PROD_TXT']."^FS";
-	
-	$h+= 150 ;
-	
-	$zebra_buffer.= "^FO50,{$h}^GB200,100,2^FS";
-	$zebra_buffer.= "^FO250,{$h}^GB500,100,2^FS";
-	
-	if( $soc_row['prodspec_is_batch'] ) {
-		$legend_w = 60 ;
-		$legend_h = $h+20 ;
-		$zebra_buffer.= "^FO{$legend_w},{$legend_h},0^ARN^FD".'Batch code'."^FS";
-	
-		$legend_w = 290 ;
-		$legend_h = $h+20 ;
-		$zebra_buffer.= "^FO{$legend_w},{$legend_h},0^ATN^FD".strtoupper($arr_stk['field_SPEC_BATCH'])."^FS";
-	}
-	$h+= 100 ;
-	
-	$zebra_buffer.= "^FO50,{$h}^GB200,100,2^FS";
-	$zebra_buffer.= "^FO250,{$h}^GB500,100,2^FS";
-	
-		$legend_w = 60 ;
-		$legend_h = $h+20 ;
-		$zebra_buffer.= "^FO{$legend_w},{$legend_h},0^ARN^FD".'Quantity'."^FS";
-	
-		$legend_w = 290 ;
-		$legend_h = $h+20 ;
-		$zebra_buffer.= "^FO{$legend_w},{$legend_h},0^ATN^FD".(float)($arr_stk['field_QTY_IN']+$arr_stk['field_QTY_AVAIL']+$arr_stk['field_QTY_OUT'])."^FS";
-		
-	$h+= 100 ;
-	
-	$zebra_buffer.= "^FO50,{$h}^GB200,250,2^FS";
-	$zebra_buffer.= "^FO250,{$h}^GB500,250,2^FS";
-	
-		$legend_w = 60 ;
-		$legend_h = $h+20 ;
-		$zebra_buffer.= "^FO{$legend_w},{$legend_h},0^ARN^FD".'Position'."^FS";
-	
-		$legend_w = 290 ;
-		$legend_h = $h+30 ;
-		$zebra_buffer.= "^FO{$legend_w},{$legend_h},0^AUN^FD".$arr_stk['field_ADR_ID']."^FS";
-		$legend_h = $h+120 ;
-		$zebra_buffer.= "^FO{$legend_w},{$legend_h}^BY2^BCN,80,Y,N^FD".$arr_stk['field_ADR_ID']."^FS";
-		
-	$h+= 200 ;
-
-
 	return $zebra_buffer ;
 }
 
