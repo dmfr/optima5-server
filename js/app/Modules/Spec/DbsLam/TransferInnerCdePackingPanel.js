@@ -201,6 +201,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferInnerCdePackingPanel',{
 					
 				case 'dst_adr' :
 					Ext.apply(col,{
+						variableRowHeight: true,
 						renderer: function(v,metaData,record) {
 							if( record.getDepth()==1 ) {
 								if( !Ext.isEmpty(record.get('pack_id_trspt_code')) ) {
