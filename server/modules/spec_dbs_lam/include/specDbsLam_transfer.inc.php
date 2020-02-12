@@ -40,7 +40,10 @@ function specDbsLam_transfer_getTransfer($post_data) {
 		if( !$TAB[$filerecord_id]['date_touch'] || $TAB[$filerecord_id]['date_touch']=='0000-00-00' ) {
 			$TAB[$filerecord_id]['date_touch'] = null ;
 		}
-		if( $TAB[$filerecord_id]['date_touch'] && ($closed_dateTouch>$TAB[$filerecord_id]['date_touch']) && $TAB[$filerecord_id]['status_is_ok'] ) {
+		if( $TAB[$filerecord_id]['date_touch'] 
+			&& ($closed_dateTouch>$TAB[$filerecord_id]['date_touch']) 
+			&& !$TAB[$filerecord_id]['status_is_on'] && $TAB[$filerecord_id]['status_is_ok'] 
+		) {
 			$TAB[$filerecord_id]['status_is_closed'] = TRUE ;
 		}
 		if( $post_data['filter_transferFilerecordId'] && !$post_data['filter_fast'] ) {
@@ -1207,15 +1210,17 @@ function specDbsLam_transfer_lib_updateStatus($transfer_filerecordId) {
 		}
 	}
 	if( $spec_cde ) {
-		$query = "SELECT count(*) FROM view_file_TRANSFER_CDE_PACK tcp
+		$query_hasCdes = "SELECT count(*) FROM view_file_TRANSFER_CDE_LINK tcn
 				WHERE filerecord_parent_id='{$transfer_filerecordId}'" ;
-		if( $_opDB->query_uniqueValue($query) == 0 ) {
+		$query_hasPacks = "SELECT count(*) FROM view_file_TRANSFER_CDE_PACK tcp
+				WHERE filerecord_parent_id='{$transfer_filerecordId}'" ;
+		if( ($_opDB->query_uniqueValue($query_hasCdes) > 0) && ($_opDB->query_uniqueValue($query_hasPacks) == 0) ) {
 			$_outPending = TRUE ;
 		}
-		$query = "SELECT count(*) FROM view_file_TRANSFER_CDE_PACK tcp
+		$query_hasPacksNotShipped = "SELECT count(*) FROM view_file_TRANSFER_CDE_PACK tcp
 				WHERE filerecord_parent_id='{$transfer_filerecordId}'
 				AND field_STATUS_IS_SHIPPED='0'" ;
-		if( $_opDB->query_uniqueValue($query) > 0 ) {
+		if( $_opDB->query_uniqueValue($query_hasPacksNotShipped) > 0 ) {
 			$_outPending = TRUE ;
 		}
 	}
