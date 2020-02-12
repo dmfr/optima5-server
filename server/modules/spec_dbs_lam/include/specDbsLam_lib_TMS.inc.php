@@ -1486,6 +1486,19 @@ function specDbsLam_lib_TMS_AGD_getId( $rowExtended_transferCdePack ) {
 	
 	return $barcode ;
 }
+function specDbsLam_lib_TMS_AGD_getPlanRow( $rowExtended_transferCdePack ) {
+	global $_opDB ;
+	
+	$cp = $rowExtended_transferCdePack['cde']['adr_cp'] ;
+	if( strlen($cp)<5 ) {
+		$cp = str_pad( $cp, 5, '0', STR_PAD_LEFT ) ;
+	}
+	
+	$query = "select * from trspt_agd_plan where DEPT <= '{$cp}' ORDER BY DEPT DESC LIMIT 1" ;
+	$result = $_opDB->query($query) ;
+	$arr = $_opDB->fetch_assoc($result) ;
+	return $arr ;
+}
 function specDbsLam_lib_TMS_AGD_getZplBuffer( $rowExtended_transferCdePack,$pack_id_trspt_id ) {
 	$soc_code = $rowExtended_transferCdePack['cde']['soc_code'] ;
 	
@@ -1504,8 +1517,10 @@ function specDbsLam_lib_TMS_AGD_getZplBuffer( $rowExtended_transferCdePack,$pack
 	}
 	unset($str) ;
 	
-	
-	
+	$agdPlan_row = specDbsLam_lib_TMS_AGD_getPlanRow($rowExtended_transferCdePack) ;
+	if( !$agdPlan_row ) {
+		return NULL ;
+	}
 	
 	
 	
