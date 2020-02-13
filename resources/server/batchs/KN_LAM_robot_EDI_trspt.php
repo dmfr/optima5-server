@@ -19,6 +19,12 @@ include("$server_root/modules/spec_dbs_lam/backend_spec_dbs_lam.inc.php");
 
 
 function do_upload_trspt( $buffer, $trspt_code, $soc_code=NULL ) {
+	if( getenv('OPTIMA_TMSLOCALDIR') ) {
+		$filename = time().'_'.$trspt_code.'.txt' ;
+		$filepath = getenv('OPTIMA_TMSLOCALDIR').'/'.$filename ;
+		file_put_contents( $filepath, $buffer ) ;
+	}
+	
 	$obj = new stdClass ;
 	switch( $trspt_code ) {
 		case 'DPDG' :
@@ -136,6 +142,13 @@ while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
 }
 
 foreach( $arr_trpsts as $id_trspt_code ) {
+	switch( $id_trspt_code ) {
+		case 'DPDG' :
+		case 'AGD' :
+			break ;
+		default :
+			continue 2 ;
+	}
 	$arr_transferCdePackFilerecordIds = array() ;
 	$query = "SELECT filerecord_id FROM view_file_TRANSFER_CDE_PACK 
 			WHERE field_STATUS_IS_SHIPPED='1' AND field_STATUS_IS_EDI<>'1' AND field_ID_TRSPT_CODE='{$id_trspt_code}'" ;
@@ -151,22 +164,36 @@ foreach( $arr_trpsts as $id_trspt_code ) {
 	) ) ;
 	$rowsExtended_transferCdePack = $json['data'] ;
 
-	$buffer.= '' ;
+	$buffer = '' ;
+	$buffer_obj = array() ;
 	foreach( $rowsExtended_transferCdePack as $rowExtended_transferCdePack ) {
-		if( !$rowExtended_transferCdePack['id_trspt_code'] || ($rowExtended_transferCdePack['id_trspt_code']!='DPDG') ) {
+		if( !$rowExtended_transferCdePack['id_trspt_code'] || ($rowExtended_transferCdePack['id_trspt_code']!=$id_trspt_code) ) {
 			continue ;
 		}
-		$buffer.= specDbsLam_lib_TMS_DPDG_getEdiPosition(
-			$rowExtended_transferCdePack,
-			$rowExtended_transferCdePack['id_trspt_id']
-		) ;
+		switch( $id_trspt_code ) {
+			case 'DPDG' :
+				$buffer.= specDbsLam_lib_TMS_DPDG_getEdiPosition(
+					$rowExtended_transferCdePack,
+					$rowExtended_transferCdePack['id_trspt_id']
+				) ;
+				break ;
+			case 'AGD' :
+				$buffer_obj[] = $rowExtended_transferCdePack ;
+				break ;
+		}
 	}
+	switch( $id_trspt_code ) {
+		case 'AGD' :
+			$buffer = specDbsLam_lib_TMS_AGD_getEdiBuffer($buffer_obj) ;
+			break ;
+	}
+	
 	
 	$success = FALSE ;
 	if($buffer) {
 		$success = do_upload_trspt($buffer,$id_trspt_code) ;
 	}
-	if( $success ) {
+	if( $success && !$GLOBALS['__OPTIMA_TEST'] ) {
 		$arr_update = array('field_STATUS_IS_EDI'=>1) ;
 		foreach( $arr_transferCdePackFilerecordIds as $transferCdePack_filerecordId ) {
 			paracrm_lib_data_updateRecord_file('TRANSFER_CDE_PACK',$arr_update,$transferCdePack_filerecordId) ;

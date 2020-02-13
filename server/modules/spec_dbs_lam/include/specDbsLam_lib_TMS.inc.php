@@ -1478,13 +1478,14 @@ function specDbsLam_lib_TMS_AGD_getId( $rowExtended_transferCdePack ) {
 	$ttmp = explode(' ',specDbsLam_lib_TMS_getValueStatic( 'WHSE_VILLE' )) ;
 	$whse_cp = $ttmp[0] ;
 	
-	$key_trspt = 'AGEDISS_'.$soc_code.'_TRSPT' ;
-	$id_trspt = specDbsLam_lib_TMS_getValueStatic( $key_trspt ) ;
-	$id_trspt = $id_trspt ? $id_trspt : '99999' ;
+	$soc_code = $rowExtended_transferCdePack['cde']['soc_code'] ;
+	$key_chargeur = 'AGEDISS_'.$soc_code.'_CHARGEUR' ;
+	$id_chargeur = specDbsLam_lib_TMS_getValueStatic( $key_chargeur ) ;
+	$id_chargeur = $id_chargeur ? $id_chargeur : '99999' ;
 	
 	$barcode = '' ;
 	$barcode.= '1141' ;
-	$barcode.= $id_trspt ;
+	$barcode.= $id_chargeur ;
 	$barcode.= $whse_cp.str_pad( (string)$rowExtended_transferCdePack['cde']['cde_filerecord_id'], 16-strlen($whse_cp), '0', STR_PAD_LEFT ) ;
 	$barcode.= str_pad($rowExtended_transferCdePack['calc_folio_idx'],3,'0',STR_PAD_LEFT) ;
 	
@@ -1737,6 +1738,183 @@ function specDbsLam_lib_TMS_AGD_getZplBuffer( $rowExtended_transferCdePack,$pack
 	
 	
 	return $zebra_buffer ;
+}
+function specDbsLam_lib_TMS_AGD_getEdiBuffer( $arr_rowsExtended_transferCdePack ) {
+	$map_cdeFilerecordId_rowCde = array() ;
+	$map_cdeFilerecordId_rowsExtendedTransferCdePack = array() ;
+	foreach( $arr_rowsExtended_transferCdePack as $rowExtended_transferCdePack ) {
+		
+		$row_cde = $rowExtended_transferCdePack['cde'] ;
+		$cde_filerecord_id = $row_cde['cde_filerecord_id'] ;
+		if( !isset($map_cdeFilerecordId_rowCde[$cde_filerecord_id]) ) {
+			$map_cdeFilerecordId_rowCde[$cde_filerecord_id] = $row_cde ;
+			$map_cdeFilerecordId_rowsExtendedTransferCdePack[$cde_filerecord_id] = array() ;
+		}
+		unset($rowExtended_transferCdePack['cde']) ;
+		
+		// HACK poids volume
+		if( $rowExtended_transferCdePack['calc_vl_kg']==0 ) {
+			$rowExtended_transferCdePack['calc_vl_kg'] = 41 ;
+		}
+		if( $rowExtended_transferCdePack['calc_vl_m3']==0 ) {
+			$rowExtended_transferCdePack['calc_vl_m3'] = 0.6 ;
+		}
+		
+		$map_cdeFilerecordId_rowsExtendedTransferCdePack[$cde_filerecord_id][] = $rowExtended_transferCdePack ;
+	}
+	
+	
+	foreach( $map_cdeFilerecordId_rowCde as $cde_filerecord_id => $row_cde ) {
+		if( count($map_cdeFilerecordId_rowsExtendedTransferCdePack[$cde_filerecord_id])==0 ) {
+			continue ;
+		}
+		
+		// Extract ADR
+		$adr_full = trim($row_cde['adr_full']) ;
+		$arr_adr = explode("\n",$adr_full) ;
+		array_pop($arr_adr) ;
+		$last_lig = array_pop($arr_adr) ;
+		$ttmp = explode(' ',$last_lig,2) ;
+		$destination['nom'] = trim($arr_adr[0]);
+		$destination['adr1'] = trim($arr_adr[1]);
+		$destination['adr2'] = trim($arr_adr[2]);
+		$destination['cp'] = $row_cde['adr_cp'] ;
+		$destination['ville'] = substr($ttmp[1], 0,35 );
+		
+		
+		$cnt = $qte = $sum_calc_kg = $sum_calc_m3 = 0 ;
+		foreach( $map_cdeFilerecordId_rowsExtendedTransferCdePack[$cde_filerecord_id] as $rowExtended_transferCdePack ) {
+			$cnt++ ;
+			$sum_calc_kg += $rowExtended_transferCdePack['calc_vl_kg'] ;
+			$sum_calc_m3 += $rowExtended_transferCdePack['calc_vl_m3'] ;
+			foreach( $rowExtended_transferCdePack['ligs'] as $row_transferlig ) {
+				$qte += $row_transferlig['mvt_qty'] ;
+			}
+		}
+		
+		
+		$soc_code = $row_cde['soc_code'] ;
+		
+		$key_chargeur = 'AGEDISS_'.$soc_code.'_CHARGEUR' ;
+		$id_chargeur = specDbsLam_lib_TMS_getValueStatic( $key_chargeur ) ;
+		$id_chargeur = $id_chargeur ? $id_chargeur : '99999' ;
+		
+		$key_presta = 'AGEDISS_'.$soc_code.'_PRESTA' ;
+		$id_presta = specDbsLam_lib_TMS_getValueStatic( $key_presta ) ;
+		$id_presta = $id_presta ? $id_presta : 'LIB0CB000' ;
+		
+		$key_typeprod = 'AGEDISS_'.$soc_code.'_TYPEPROD' ;
+		$id_typeprod = specDbsLam_lib_TMS_getValueStatic( $key_typeprod ) ;
+		$id_typeprod = $id_typeprod ? $id_typeprod : 'EVESLEEPBEDFRAME' ;
+		
+		
+		$line_E0 = array() ;
+		$line_E0[0] = 'ES1E02' ;
+		$line_E0[1] = $row_cde['cde_nr'] ;
+		$line_E0[2] = date('Ymd') ;
+		$line_E0[3] = '' ;
+		$line_E0[4] = $cnt ;
+		$line_E0[5] = round($sum_calc_kg,2) ;
+		$line_E0[6] = '' ;
+		$line_E0[7] = $destination['nom'] ; // nom
+		$line_E0[8] = '' ; // prenom
+		$line_E0[9] = '' ; // enseigne
+		$line_E0[10] = $destination['adr1'] ;
+		$line_E0[11] = $destination['adr2'] ;
+		$line_E0[12] = '' ;
+		$line_E0[13] = $destination['cp'] ;
+		$line_E0[14] = $destination['ville'] ;
+		$line_E0[15] = $row_cde['adr_country'] ;
+		$line_E0[16] = '' ; // etage
+		$line_E0[17] = '' ; // type habitation
+		$line_E0[18] = '' ; // ascenseur
+		$line_E0[19] = '' ; // facture
+		$line_E0[20] = $row_cde['cde_ref'] ;
+		$line_E0[21] = '' ; // CR
+		$line_E0[22] = '' ; // siret
+		$line_E0[23] = '' ; // valeur assurée
+		$line_E0[24] = '' ; // instruct A
+		$line_E0[25] = '' ; // instruct B
+		$line_E0[26] = $id_chargeur ;
+		$line_E0[27] = $row_cde['CDE_ATR_CDE_D_TEL'] ;
+		$line_E0[28] = '' ; // notel 2
+		$line_E0[29] = '' ; // joker 1
+		$line_E0[30] = $row_cde['CDE_ATR_CDE_D_EMAIL'] ;
+		$line_E0[31] = '' ; // digicode
+		$line_E0[32] = round($sum_calc_m3,3) ;
+		$line_E0[33] = '' ; // joker 0
+		$line_E0[34] = '' ; // temps prestation
+		$line_E0[35] = $id_presta ;
+		$line_E0[36] = '' ; // regroupement
+		$line_E0[37] = '' ; // point relais
+		$line_E0[38] = '' ; // transporteur
+		$line_E0[39] = '' ; // code destinataire
+		$line_E0[40] = '' ; // plancher
+		$line_E0[41] = '' ; // contact
+		$line_E0[42] = '' ; // BL origine
+		$line_E0[43] = '' ; // joker 2
+		$line_E0[44] = '' ; // joker 3
+		$line_E0[45] = '' ; // action
+		foreach( $line_E0 as &$val ) {
+			$val = str_replace('~',' ',$val) ;
+		}
+		unset($val) ;
+		$buffer.= implode('~',$line_E0)."\r\n" ;
+		
+		
+		$line_M0 = array() ;
+		$line_M0[0] = 'ES1M01' ;
+		$line_M0[1] = '' ;
+		$line_M0[2] = '' ;
+		$line_M0[3] = $id_typeprod ;
+		$line_M0[4] = $qte ;
+		$line_M0[5] = $cnt ;
+		$line_M0[6] = round($sum_calc_kg,2) ;
+		$line_M0[7] = round($sum_calc_m3,3) ;
+		$line_M0[8] = '' ;
+		$line_M0[9] = '' ;
+		$line_M0[10] = '' ;
+		$line_M0[11] = '' ;
+		$line_M0[12] = '' ;
+		$line_M0[13] = 'A' ;
+		foreach( $line_M0 as &$val ) {
+			$val = str_replace('~',' ',$val) ;
+		}
+		unset($val) ;
+		$buffer.= implode('~',$line_M0)."\r\n" ;
+		
+		
+		foreach( $map_cdeFilerecordId_rowsExtendedTransferCdePack[$cde_filerecord_id] as $rowExtended_transferCdePack ) {
+			$prod_id = 'MIXED' ;
+			if( count($rowExtended_transferCdePack['ligs'])==1 ) {
+				$row_transferlig = reset($rowExtended_transferCdePack['ligs']) ;
+				$prod_id = $row_transferlig['stk_prod'] ;
+				if( strpos($prod_id,$soc_code.'_')===0 ) {
+					$prod_id = substr($prod_id,strlen($soc_code.'_')) ;
+				}
+			}
+			
+			$line_C0 = array() ;
+			$line_C0[0] = 'ES1C02' ;
+			$line_C0[1] = $rowExtended_transferCdePack['id_trspt_id'] ;
+			$line_C0[2] = round($rowExtended_transferCdePack['calc_vl_kg'],2) ;
+			$line_C0[3] = '' ;
+			$line_C0[4] = round($rowExtended_transferCdePack['calc_vl_m3'],3) ;
+			$line_C0[5] = '' ;
+			$line_C0[6] = '' ;
+			$line_C0[7] = '' ;
+			$line_C0[8] = '' ;
+			$line_C0[9] = $prod_id ;
+			foreach( $line_C0 as &$val ) {
+				$val = str_replace('~',' ',$val) ;
+			}
+			unset($val) ;
+			$buffer.= implode('~',$line_C0)."\r\n" ;
+		}
+	}
+
+
+	return $buffer ;
 }
 
 ?>
