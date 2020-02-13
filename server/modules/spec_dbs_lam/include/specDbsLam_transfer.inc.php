@@ -699,6 +699,10 @@ function specDbsLam_transfer_rollback( $post_data ) {
 			break ;
 		}
 	}
+	if( $forwardToIdx ) {
+		// Update 13/02/20 : restauration du forward
+		specDbsLam_transfer_lib_advanceDoc($transfer_filerecordId) ;
+	}
 	
 	if( $transferstep_row['spec_cde_packing'] ) {
 		if( TRUE ) {
