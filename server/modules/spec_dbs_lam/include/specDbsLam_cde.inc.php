@@ -152,8 +152,7 @@ function specDbsLam_cde_oscarioCancel( $post_data ) {
 		$arr_cdeFilerecordIds[] = $arr[0] ;
 	}
 	foreach( $arr_cdeFilerecordIds as $cde_filerecord_id ) {
-		$query = "DELETE FROM view_file_CDE WHERE filerecord_id='{$cde_filerecord_id}'" ;
-		$_opDB->query($query) ;
+		paracrm_lib_data_deleteRecord_file('CDE',$cde_filerecord_id) ;
 	}
 	return array('success'=>true) ;
 }
