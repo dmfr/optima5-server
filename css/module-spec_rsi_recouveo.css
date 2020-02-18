@@ -678,6 +678,8 @@
 	margin-bottom: 4px ;
 	font-size: 14px;
 	color: #ffffff ;
+	
+	user-select: text !important;
 }
 .op5-spec-rsiveo-emailheader-captiontitle {
 	position: absolute ;
@@ -758,6 +760,9 @@
 .op5-spec-rsiveo-emailheader-action-btn-transfer {
 	background-image: url("../images/modules/rsiveo-transfer-22.png") !important;
 }
+.op5-spec-rsiveo-emailheader-action-btn-add {
+	background-image: url("../images/modules/rsiveo-useradd-16.gif") !important;
+}
 
 
 
@@ -803,6 +808,16 @@
 	background-position: center center ;
 	background-repeat: no-repeat ;
 	background-image: url("../images/op5img/ico_cancel_small.gif") !important;
+}
+.op5-spec-rsiveo-emailheadertags-icoadd {
+	position: relative ;
+	display: inline-block;
+	vertical-align: middle;
+	height: 16px ;
+	width: 16px;
+	background-position: center center ;
+	background-repeat: no-repeat ;
+	background-image: url("../images/modules/rsiveo-useradd-16.gif") !important;
 }
 .op5-spec-rsiveo-emailheadertags-text {
 	position: relative ;
