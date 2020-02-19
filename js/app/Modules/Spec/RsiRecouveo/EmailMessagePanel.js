@@ -382,7 +382,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.EmailMessagePanel',{
 			return ;
 		}
 		var adrRow = adrRecord.getData() ;
-		console.dir(adrRow) ;
 		
 		var cmpData = {} ;
 		Ext.apply(cmpData,adrRow) ;
@@ -400,8 +399,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.EmailMessagePanel',{
 				width: 400,
 				data: cmpData,
 				listeners: {
-					emailaction: this.onEmailAction,
-					adrclick: this.onAdrClick,
+					adraction: this.onAdrAction,
 					scope: this
 				}
 			}),
@@ -418,11 +416,15 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.EmailMessagePanel',{
 		modalPanel.showAt(e.getXY());
 	},
 	onAdrAction: function(cmp,action) {
+		var adrRow = cmp.getData() ;
+		if( Ext.isEmpty(adrRow) ) {
+			return ;
+		}
 		switch( action ) {
 			case 'add' :
+				this.handleAdrAdd( adrRow ) ;
 				break ;
 		}
-		console.dir(arguments) ;
 	},
 	openAttachmentsPanel: function() {
 		var attachmentsData = this._emailRecord.getData(true)['attachments'] ;
@@ -531,6 +533,19 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.EmailMessagePanel',{
 		
 		this.createPanel = createPanel ;
 	},
+	
+	handleAdrAdd: function(adrRow, confirmed=false) {
+		if( !confirmed ) {
+			Ext.MessageBox.confirm('Ajout Adr. Email','Ajouter l\'addresse &#60;'+adrRow['adr_address']+'&#62; ?', function(btn) {
+				if( btn =='yes' ) {
+					this.handleAdrAdd(adrRow, true) ;
+				}
+			},this) ;
+			return ;
+		}
+		this.fireEvent('emailaction',this,this._emailRecord,'adr_add',adrRow) ;
+	},
+	
 	onDestroyMyself: function() {
 		if( this.createPanel ) {
 			this.createPanel.destroy() ;

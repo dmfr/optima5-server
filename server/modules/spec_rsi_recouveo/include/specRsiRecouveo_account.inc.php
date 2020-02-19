@@ -353,6 +353,30 @@ function specRsiRecouveo_account_getSimilar( $post_data ) {
 }
 
 
+function specRsiRecouveo_account_addToAdrbook( $post_data ) {
+	$p_accId = $post_data['acc_id'] ;
+	$p_adrbookRow = json_decode($post_data['data'],true) ;
+	
+	$json = specRsiRecouveo_account_open( array('acc_id'=>$p_accId) ) ;
+	if( !$json['success'] ) {
+		return array('success'=>false) ;
+	}
+	$account_record = $json['data'] ;
+	
+	$forward_jsonRow = array(
+		'IdSoc' => $account_record['soc_id'],
+		'IdCli' => $account_record['acc_id'],
+		'Lib' => $p_adrbookRow['adr_entity'],
+		'AdrType' => $p_adrbookRow['adr_type'],
+		'Adr' => $p_adrbookRow['adr_txt'],
+		'AdrConfirm' => true
+	);
+	$json_return = specRsiRecouveo_lib_edi_post_adrbook(array($forward_jsonRow)) ;
+	if( !$json_return['errors'] ) {
+		return array('success'=>true) ;
+	}
+	return array('success'=>false) ;
+}
 function specRsiRecouveo_account_setAdrbook( $post_data ) {
 	global $_opDB ;
 	

@@ -3382,26 +3382,59 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			})]
 		}) ;
 	},
-	onEmailAction: function(emailMessagePanel,emailRecord,emailAction) {
+	onEmailAction: function(emailMessagePanel,emailRecord,emailAction,emailActionParam=null) {
 		if( !emailRecord ) {
 			return ;
 		}
 		var activePanel = this.down('#tpFileActions').getActiveTab(),
 			fileRecord = this._accountRecord.files().getById(activePanel._fileFilerecordId) ;
-		if( this.emailWindow ) {
-			this.emailWindow.destroy() ;
-		}
 		
 		switch( emailAction ) {
 			case 'reply' :
 			case 'reply_all' :
 			case 'transfer' :
+				if( this.emailWindow ) {
+					this.emailWindow.destroy() ;
+				}
 				this.doNewAction(fileRecord, 'EMAIL_OUT', true, {
 					reuse_emailFilerecordId: emailRecord.get('email_filerecord_id'),
 					reuse_action: emailAction
 				}) ;
 				break ;
+			case 'adr_add' :
+				var adrRow = emailActionParam ;
+				if( !adrRow || Ext.isEmpty(adrRow['adr_address']) ) {
+					break ;
+				}
+				this.onEmailActionAdrAdd(adrRow) ;
+				break ;
 		}
+	},
+	onEmailActionAdrAdd: function(adrRow) {
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_rsi_recouveo',
+				_action: 'account_addToAdrbook',
+				acc_id: this._accountRecord.get('acc_id'),
+				data: Ext.JSON.encode({
+					adr_entity: adrRow['adr_display'],
+					adr_type: 'EMAIL',
+					adr_txt: adrRow['adr_address']
+				})
+			},
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					Ext.MessageBox.alert('Error','error') ;
+					return ;
+				}
+				this.doReload() ;
+			},
+			callback: function() {
+				this.hideLoadmask() ;
+			},
+			scope: this
+		}) ;
 	},
 	
 	openAgreeCompare: function(fileFilerecordId,fileRef) {
