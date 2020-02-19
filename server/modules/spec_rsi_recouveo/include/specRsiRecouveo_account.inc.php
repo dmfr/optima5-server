@@ -713,6 +713,17 @@ function specRsiRecouveo_account_pushNotificationRecords( $post_data ) {
 	$p_accId = $post_data['acc_id'] ;
 	$p_txtNotification = $post_data['txt_notification'] ;
 	$p_recordFilerecordIds = json_decode($post_data['arr_recordFilerecordIds'],true) ;
+	if( $post_data['do_clear'] ) {
+		$p_recordFilerecordIdsList = $_opDB->makeSQLlist($p_recordFilerecordIds) ;
+		$query = "UPDATE view_file_NOTIFICATION_RECORD nr
+					JOIN view_file_NOTIFICATION n ON n.filerecord_id=nr.filerecord_parent_id
+					SET n.field_ACTIVE_IS_ON='0'
+					WHERE n.field_LINK_ACCOUNT='{$p_accId}'
+					AND nr.field_LINK_RECORD_ID IN {$p_recordFilerecordIdsList}" ;
+		$_opDB->query($query) ;
+		
+		return array('success'=>true) ;
+	}
 	
 	// doublon ?
 	$new_recordFilerecordIds = array() ;
@@ -746,6 +757,16 @@ function specRsiRecouveo_account_pushNotificationFileaction( $post_data ) {
 	$p_accId = $post_data['acc_id'] ;
 	$p_txtNotification = $post_data['txt_notification'] ;
 	$p_fileactionFilerecordId = $post_data['fileactionFilerecordId'] ;
+	if( $post_data['do_clear'] ) {
+		$query = "UPDATE view_file_NOTIFICATION_FILEACTION nfa
+					JOIN view_file_NOTIFICATION n ON n.filerecord_id=nfa.filerecord_parent_id
+					SET n.field_ACTIVE_IS_ON='0'
+					WHERE n.field_LINK_ACCOUNT='{$p_accId}'
+					AND nfa.field_LINK_FILEACTION_ID='{$p_fileactionFilerecordId}'" ;
+		$_opDB->query($query) ;
+		
+		return array('success'=>true) ;
+	}
 	
 	// doublon ?
 	$query = "SELECT filerecord_id FROM view_file_NOTIFICATION_FILEACTION WHERE field_LINK_FILEACTION_ID='{$p_fileactionFilerecordId}'" ;

@@ -2484,6 +2484,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 						tooltip: 'Vue PDF',
 						handler: function(grid, rowIndex, colIndex, item, e) {
 							var rec = grid.getStore().getAt(rowIndex);
+							if( rec.get('notification_is_on') ) {
+								this.clearNotificationFileaction( rec.get('fileaction_filerecord_id') ) ;
+							}
 							if( rec.get('link_env_filerecord_id') ) {
 								this.openEnvelope(rec.get('link_env_filerecord_id')) ;
 							}
@@ -2518,6 +2521,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 							var rec = grid.getStore().getAt(rowIndex);
 							if( rec.get('link_media_file_code') == 'EMAIL' ) {
 								var emailFilerecordId = rec.get('link_media_filerecord_id') ;
+								if( rec.get('notification_is_on') ) {
+									this.clearNotificationFileaction( rec.get('fileaction_filerecord_id') ) ;
+								}
 								this.openEmail(emailFilerecordId) ;
 							}
 						},
@@ -3652,6 +3658,27 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 					this.notificationsPanel.destroy() ;
 				}
 				this.doReload() ;
+				this.optimaModule.postCrmEvent('notificationchange',{}) ;
+			},
+			callback: function() {
+			},
+			scope: this
+		}) ;
+	},
+	clearNotificationFileaction: function(fileactionFilerecordId) {
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_rsi_recouveo',
+				_action: 'account_pushNotificationFileaction',
+				acc_id: this._accId,
+				fileactionFilerecordId: fileactionFilerecordId,
+				do_clear: 1
+			},
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					return ;
+				}
 				this.optimaModule.postCrmEvent('notificationchange',{}) ;
 			},
 			callback: function() {

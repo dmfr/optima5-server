@@ -60,6 +60,10 @@ switch( $post_data['_action'] )
 	return specRsiRecouveo_account_clearNotifications( $post_data ) ;
 	case 'account_getNotifications' :
 	return specRsiRecouveo_account_getNotifications( $post_data ) ;
+	case 'account_pushNotificationFileaction' :
+	return specRsiRecouveo_account_pushNotificationFileaction($post_data) ;
+	case 'account_pushNotificationRecords' :
+	return specRsiRecouveo_account_pushNotificationRecords($post_data) ;
 	case 'account_uploadAttachment' :
 	return specRsiRecouveo_account_uploadAttachment( $post_data ) ;
 	case 'account_downloadAttachment' :
