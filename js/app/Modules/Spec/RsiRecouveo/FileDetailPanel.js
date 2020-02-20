@@ -2448,7 +2448,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 							
 							if( !Ext.isEmpty(value) ) {
 								var arrV = value.split( Ext.util.Format.nl2brRe ) ;
-								arrV[0] = '<b>'+arrV[0]+'</b>' ;
+								arrV[0] = ''+arrV[0]+'' ;
 								txt = arrV.join('<br/>') ;
 								break ;
 							}

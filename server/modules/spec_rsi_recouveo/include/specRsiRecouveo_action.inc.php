@@ -1310,8 +1310,13 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 		$email_record = $post_form['email_record'] ;
 		$fileaction_filerecord_id ;
 		$email_filerecord_id = specRsiRecouveo_lib_mail_createEmailForAction($email_record,$fileaction_filerecord_id) ;
+		
+		$email_dbRow = paracrm_lib_data_getRecord_file('EMAIL',$email_filerecord_id) ;
+		$link_txt = "<b>A</b>: {$email_dbRow['field_EMAIL_PEER_NAME']}" ;
+		
 		if( $email_filerecord_id ) {
 			$arr_ins = array() ;
+			$arr_ins['field_LINK_TXT'] = $link_txt ;
 			$arr_ins['field_LINK_MEDIA_FILECODE'] = 'EMAIL' ;
 			$arr_ins['field_LINK_MEDIA_FILEID'] = $email_filerecord_id ;
 			paracrm_lib_data_updateRecord_file( 'FILE_ACTION', $arr_ins, $fileaction_filerecord_id);
@@ -1401,7 +1406,11 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 	}
 	if( in_array($post_form['link_action'], array('EMAIL_IN','LITIG_FOLLOW')) ) {
 		if( $post_form['email_filerecord_id'] ) {
+			$email_dbRow = paracrm_lib_data_getRecord_file('EMAIL',$post_form['email_filerecord_id']) ;
+			$link_txt = "<b>De</b>: {$email_dbRow['field_EMAIL_PEER_NAME']}" ;
+			
 			$arr_ins = array() ;
+			$arr_ins['field_LINK_TXT'] = $link_txt ;
 			$arr_ins['field_LINK_MEDIA_FILECODE'] = 'EMAIL' ;
 			$arr_ins['field_LINK_MEDIA_FILEID'] = $post_form['email_filerecord_id'] ;
 			paracrm_lib_data_updateRecord_file( 'FILE_ACTION', $arr_ins, $fileaction_filerecord_id);

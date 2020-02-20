@@ -305,7 +305,7 @@ function specRsiRecouveo_xls_create_writer($accId){
 			$result = $_opDB->query($query) ;
 			$action_txt = $_opDB->fetch_assoc($result) ;
 			$actions[$i]['Action'] = $action_txt['field_ACTION_TXT'] ;
-			$actions[$i]['Résumé'] = $action['txt_short'] ;
+			$actions[$i]['Résumé'] = strip_tags($action['txt_short']) ;
 			$actions[$i]['Compte-Rendu'] = $action['txt'] ;
 			$i += 1 ;
 		}
