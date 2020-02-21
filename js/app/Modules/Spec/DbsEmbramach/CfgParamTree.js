@@ -43,7 +43,9 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.CfgParamTree',{
 		});
 		this.callParent() ;
 		this.on('checkchange',this.onCheckChange,this) ;
-		me.startLoading() ;
+		this.on('added',function() {
+			this.startLoading() ;
+		},this,{single:true}) ;
 	},
 	startLoading: function() {
 		if( this.cfgParam_root ) {
@@ -221,9 +223,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.CfgParamTree',{
 			}
 			if( node.childNodes.length == 1 ) {
 				var uniqueChildNode = node.childNodes[0] ;
-				if( !uniqueChildNode.isLeaf() ) {
-					setValue = uniqueChildNode.getId() ;
-				}
+				setValue = uniqueChildNode.getId() ;
 			}
 			if( !node.get('expandable') ) {
 				return false ;

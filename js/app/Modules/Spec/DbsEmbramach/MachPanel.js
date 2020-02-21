@@ -20,7 +20,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 		'Ext.ux.chart.series.KPIGauge', 'Ext.ux.chart.axis.KPIGauge',
 		'Ext.ux.grid.filters.filter.StringList',
 		'Optima5.Modules.Spec.DbsEmbramach.CfgParamFilter',
-		'Optima5.Modules.Spec.DbsEmbramach.CfgParamButton',
+		'Optima5.Modules.Spec.DbsEmbramach.CfgParamSocButton',
 		'Optima5.Modules.Spec.DbsEmbramach.MachWarningPanel'
 	],
 	
@@ -85,12 +85,12 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 					this.doRefresh() ;
 				},
 				scope: this
-			},'-',Ext.create('Optima5.Modules.Spec.DbsEmbramach.CfgParamButton',{
+			},'-',Ext.create('Optima5.Modules.Spec.DbsEmbramach.CfgParamSocButton',{
 				cfgParam_id: 'SOC',
 				icon: 'images/op5img/ico_blocs_small.gif',
 				text: 'Companies',
 				itemId: 'btnSoc',
-				selectMode: 'MULTI',
+				selectMode: 'SINGLE',
 				optimaModule: this.optimaModule,
 				listeners: {
 					change: {
@@ -636,6 +636,9 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 	},
 	
 	doLoad: function(doReset) {
+		if( !this.autoRefreshTask ) {
+			return ;
+		}
 		this.autoRefreshTask.cancel() ;
 		
 		Ext.Array.each( this.down('#pGrid').getColumns(), function(column) {

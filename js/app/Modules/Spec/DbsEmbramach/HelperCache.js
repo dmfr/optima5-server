@@ -116,6 +116,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.HelperCache',{
 				}
 				else {
 					me.authPage = ajaxData.authPage ;
+					me.authSoc = ajaxData.authSoc ;
 				}
 				
 				me.onLibLoad() ;
@@ -137,6 +138,14 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.HelperCache',{
 			return true ;
 		}
 		return ( !Ext.isEmpty(me.authPage) && Ext.Array.contains( me.authPage, pageCode ) ) ;
+	},
+	authHelperQuerySoc: function( socCode ) {
+		var me = this ;
+			
+		if( me.optimaModule.getSdomainRecord().get('auth_has_all') ) {
+			return true ;
+		}
+		return ( Ext.isEmpty(me.authSoc) || Ext.Array.contains( me.authSoc, socCode ) ) ;
 	},
 	
 	getListData: function(listId) {

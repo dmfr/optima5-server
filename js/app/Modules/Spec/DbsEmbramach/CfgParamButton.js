@@ -31,11 +31,6 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.CfgParamButton' ,{
 			}
 		});
 		
-		//this.text = Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAtrHeader(this.cfgParam_id).atr_txt ;
-		this.text = this.treepanel.getRootNode().get(this.treepanel.displayField) ;
-		this.baseText = this.text ;
-		this.setText(this.baseText) ;
-		
 		this.callParent() ;
 		this.onChange(true) ;
 		
@@ -101,6 +96,10 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.CfgParamButton' ,{
 	},
 	
 	onAfterLoad: function() {
+		this.text = this.treepanel.getRootNode().get(this.treepanel.displayField) ;
+		this.baseText = this.text ;
+		this.setText(this.baseText) ;
+		
 		if( !Optima5.Modules.Spec.DbsEmbramach.HelperCache.authHelperHasAll() && !this.noAuthCheck ) {
 			this.doAuthCleanup() ;
 		}

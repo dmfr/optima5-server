@@ -33,9 +33,12 @@ function specDbsEmbramach_cfg_getAuth( $post_data ) {
 			break ;
 	}
 	
+	$authSoc = explode(',',$arr['field_LINK_SOC']) ;
+	
 	return array(
 		'success' => true,
-		'authPage' => $authPage
+		'authPage' => $authPage,
+		'authSoc' => $authSoc
 	) ;
 }
 
