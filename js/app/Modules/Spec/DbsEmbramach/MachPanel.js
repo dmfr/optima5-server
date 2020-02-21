@@ -90,6 +90,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 				icon: 'images/op5img/ico_blocs_small.gif',
 				text: 'Companies',
 				itemId: 'btnSoc',
+				selectMode: 'MULTI',
 				optimaModule: this.optimaModule,
 				listeners: {
 					change: {
@@ -643,8 +644,10 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 			}
 		}) ;
 		
+		var tbSoc = this.down('#btnSoc'),
+			tbSocsSelected = tbSoc.getLeafNodesKey() ;
 		var filterParams = {
-			filter_socCode: this.down('#btnSoc').getValue()
+			filter_soc: (tbSocsSelected ? Ext.JSON.encode(tbSocsSelected):'')
 		};
 		
 		this.showLoadmask() ;

@@ -352,8 +352,8 @@ function specDbsEmbramach_mach_getGridData( $post_data ) {
 	
 	$where_clause = '' ;
 	$where_clause.= " AND f.field_STATUS<>'DELETED'" ;
-	if( $filter_socCode = $post_data['filter_socCode'] ) {
-		$where_clause.= " AND f.field_SOC_ID='{$filter_socCode}'" ;
+	if( $filter_soc = json_decode($post_data['filter_soc'],true) ) {
+		$where_clause.= " AND f.field_SOC_ID IN ".$_opDB->makeSQLlist($filter_soc) ;
 	}
 	if( isset($_filter_filerecordIds) ) {
 		if( $_filter_filerecordIds ) {
