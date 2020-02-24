@@ -1538,7 +1538,7 @@ function specDbsLam_lib_TMS_AGD_getZplBuffer( $rowExtended_transferCdePack,$pack
 	
 	
 	
-	$print_no_bl = $whse_cp.str_pad( (string)$rowExtended_transferCdePack['cde']['cde_filerecord_id'], 16-strlen($whse_cp), '0', STR_PAD_LEFT ) ;
+	$print_no_bl = $rowExtended_transferCdePack['cde']['cde_nr'] ;
 	$print_no_cde = $rowExtended_transferCdePack['cde']['cde_ref'] ;
 	
 	
