@@ -3,6 +3,7 @@
 //ob_start() ;
 $app_root='..' ;
 $server_root='.' ;
+$resources_root=$app_root.'/resources' ;
 
 include("$server_root/include/config.inc.php");
 include("$server_root/include/toolfunctions.inc.php");
@@ -95,16 +96,51 @@ switch( $api_method ) {
 		die() ;
 }
 
+
+// ****** 01/2020 : logging **********
+$archive_path = $GLOBALS['media_storage_local_path'].'/@API' ;
+if( !is_dir($archive_path) ) {
+	mkdir($archive_path) ;
+}
+
+
+// **** 25/02/2020 : Gestion du rewrite ****
+$json = specRsiRecouveo_config_loadMeta(array()) ;
+$config_meta = $json['data'] ;
+
 $handle_in = fopen("php://input","rb") ;
 $handle_local = tmpfile() ;
 stream_copy_to_stream($handle_in,$handle_local) ;
+fclose($handle_in) ;
+$handle_in = $handle_local ;
+	// Logging TODO: clean
+	fseek($handle_in,0) ;
+	$raw_post = stream_get_contents($handle_in) ;
+	$file_name = time().'_'.$my_domainId.'%'.$my_sdomainId.'_'.$api_method.'.json' ;
+	@file_put_contents( $archive_path.'/'.$file_name, $raw_post ) ;
 
-// Logging TODO: clean
-fseek($handle_local,0) ;
-$raw_post = stream_get_contents($handle_local) ;
-$file_path = '/var/lib/optima5.API/' ;
-$file_name = time().'_'.$my_domainId.'%'.$my_sdomainId.'_'.$api_method.'.json' ;
-@file_put_contents( $file_path.'/'.$file_name, $raw_post ) ;
+if( $config_meta['APIEXT_INCLUDE'] ) {
+	$apiExt_includePath = $resources_root.'/server/batchs/'.$config_meta['APIEXT_INCLUDE'] ;
+	include($apiExt_includePath) ;
+}
+if( function_exists('apiExt_stream2stream') ) {
+	fseek($handle_in,0) ;
+	$handle_local = tmpfile() ;
+	apiExt_stream2stream($handle_in,$handle_local,$api_method) ;
+	fclose($handle_in) ;
+		// Logging TODO: clean
+		fseek($handle_local,0) ;
+		$raw_post = stream_get_contents($handle_local) ;
+		$file_name = time().'_'.$my_domainId.'%'.$my_sdomainId.'_'.$api_method.'.rewrite.json' ;
+		@file_put_contents( $archive_path.'/'.$file_name, $raw_post ) ;
+	
+} else {
+	$handle_local = $handle_in ;
+}
+// ******************
+
+
+
 
 fseek($handle_local,0) ;
 $json_return = specRsiRecouveo_lib_edi_post( $apikey_code, $api_method, $handle_local ) ;
