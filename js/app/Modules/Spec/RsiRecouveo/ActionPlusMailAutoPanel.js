@@ -76,7 +76,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusMailAutoPanel',{
 			} ;
 			tplFields.push(tplModesField) ;
 		}
-		if( true ) {
+		if( false ) {
 			var tplDeferField = {
 				xtype: 'fieldset',
 				title: 'Envoi différé',
@@ -89,8 +89,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusMailAutoPanel',{
 					fieldLabel: 'Date prévue',
 					minValue: new Date()
 				}]
-			}
-			//tplFields.push(tplDeferField) ;
+			} ;
+			tplFields.push(tplDeferField) ;
 		}
 		
 		

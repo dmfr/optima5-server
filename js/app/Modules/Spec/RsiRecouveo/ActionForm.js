@@ -823,12 +823,28 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 				file_filerecord_id: this._fileRecord.get('file_filerecord_id')
 			}) ;
 		}
-
+		
+		var tplDeferDateField = this.getForm().findField('tpl_defer_date') ;
+		if( tplDeferDateField && tplDeferDateField.isVisible(true) ) {
+			if( Ext.isEmpty(postData['tpl_defer_date']) ) {
+				var error = 'Date différée d\'exécution non renseignée' ;
+			
+				errors.push(error) ;
+				tplDeferDateField.markInvalid(error) ;
+			}
+		}
+		
+		var postDataObj = form.getFieldValues() ;
+		if( !postDataObj['scen_code_blank'] && postDataObj['tpl_defer_is_on'] ) {
+			var error = 'Envoi différé en mode <u>Hors Scénario</u> uniquement' ;
+			
+			errors.push(error) ;
+		}
+		
 		if( errors.length > 0 ) {
 			Ext.MessageBox.alert('Erreur',errors.join('<br>')) ;
 			return ;
 		}
-		
 		
 		
 		
