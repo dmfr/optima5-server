@@ -313,7 +313,8 @@ function specRsiRecouveo_action_execMailAutoAction( $post_data ) {
 		}
 	}
 	if( $p_isNoSched ) {
-		$modes = array('postal_std','email') ;
+		// DONE 26/02/2020 : select modes
+		$modes = $p_tplData['tpl_modes'] ;
 		
 		$json_file = specRsiRecouveo_file_getRecords( array(
 			'filter_fileFilerecordId_arr' => json_encode(array($p_fileFilerecordId))
@@ -721,8 +722,15 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 			break ;
 			
 		case 'MAIL_AUTO' :
+			$errors = array() ;
 			if( !$post_form['tpl_id'] ) {
-				return array('success'=>false, 'error'=>'Modèle non spécifié') ;
+				$errors[] = 'Modèle non spécifié' ;
+			}
+			if( !json_decode($post_form['tpl_modes_json'],true) ) {
+				$errors[] = 'Mode(s) d\'envoi non renseigné' ;
+			}
+			if( $errors ) {
+				return array('success'=>false, 'error'=>implode("<br>",$errors)) ;
 			}
 			$arr_ins['field_LINK_TXT'] = 'Envoi hors scénario' ;
 			$arr_ins['field_LINK_TPL'] = $post_form['tpl_id'] ;
@@ -978,7 +986,8 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 			'is_no_sched' => true,
 			'tpl_data' => json_encode(array(
 				'tpl_id' => $post_form['tpl_id'],
-				'tpl_lang' => $post_form['tpl_lang']
+				'tpl_lang' => $post_form['tpl_lang'],
+				'tpl_modes' => json_decode($post_form['tpl_modes_json'],true)
 			))
 		);
 		specRsiRecouveo_action_execMailAutoAction($forward_post) ;

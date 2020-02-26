@@ -63,6 +63,35 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusMailAutoPanel',{
 			} ;
 			tplFields.push(tplLangField) ;
 		}
+		if( true ) {
+			var tplModesField = {
+				xtype: 'fieldcontainer',
+				fieldLabel: 'Modes d\'envoi',
+				layout: 'hbox',
+				items: [{
+					flex: 1,
+					xtype: 'op5specrsiveomailfield',
+					name: 'tpl_modes_json'
+				}]
+			} ;
+			tplFields.push(tplModesField) ;
+		}
+		if( true ) {
+			var tplDeferField = {
+				xtype: 'fieldset',
+				title: 'Envoi différé',
+				checkboxName: 'tpl_defer_is_on',
+				checkboxToggle: true,
+				items: [{
+					xtype: 'datefield',
+					name: 'tpl_defer_date',
+					format: 'Y-m-d',
+					fieldLabel: 'Date prévue',
+					minValue: new Date()
+				}]
+			}
+			//tplFields.push(tplDeferField) ;
+		}
 		
 		
 		Ext.apply(this,{
@@ -73,7 +102,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusMailAutoPanel',{
 				align: 'stretch'
 			},
 			fieldDefaults: {
-				labelWidth: 80,
+				labelWidth: 100,
 				anchor: '100%'
 			},
 			items: [{

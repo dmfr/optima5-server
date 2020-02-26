@@ -578,7 +578,7 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 				$txt_short.= $file_action_row['link_txt'] ;
 			} elseif( $file_action_row['link_tpl'] ) {
 				$search_id = 'MAIL_OUT'.'_'.$file_action_row['link_tpl'] ;
-				$txt_short.= $map_actionnext[$search_id] ;
+				$txt_short.= '<b>'.$map_actionnext[$search_id].'</b>' ;
 				if( $file_action_row['link_mailin'] ) {
 					$txt_short.= '&nbsp;>>&nbsp;<font color="red">'.$map_mailin[$file_action_row['link_mailin']].'</font>' ;
 				}
