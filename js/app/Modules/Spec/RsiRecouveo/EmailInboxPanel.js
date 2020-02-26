@@ -130,8 +130,11 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.EmailInboxPanel',{
 						align: 'center',
 						dataIndex: 'link_is_on',
 						renderer: function(value, metaData, record) {
-							if( value ) {
+							if( value && !record.get('link_is_ignore') ) {
 								metaData.tdCls += ' op5-spec-rsiveo-kpi-ok' ;
+							}
+							if( value && record.get('link_is_ignore') ) {
+								metaData.tdCls += ' op5-spec-rsiveo-kpi-nok' ;
 							}
 						}
 					},{

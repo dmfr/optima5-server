@@ -64,16 +64,16 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.EmailMessageLinkPanel',{
 	},
 	setEmailRecord: function( emailRecord ) {
 		this._emailRecord = emailRecord ;
-		if( !emailRecord.get('link_is_on') ) {
-			this.buildInputForm(emailRecord) ;
+		if( !emailRecord.get('link_is_on') || emailRecord.get('link_is_ignore') ) {
+			this.buildInputForm(emailRecord.get('link_is_ignore')) ;
 		} else {
-			this.buildUnlinkForm(emailRecord) ;
+			this.buildUnlinkForm() ;
 			this.displayLink(emailRecord) ;
 		}
 	},
 	
 	
-	buildInputForm: function() {
+	buildInputForm: function(isIgnoreChecked=false) {
 		this.removeAll() ;
 		this.add([{
 			border: false,
@@ -87,18 +87,30 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.EmailMessageLinkPanel',{
 				anchor: '100%'
 			},
 			items:[{
-				height: 24,
-				xtype: 'component',
-				tpl: [
-					/*
-					'<div class="op5-spec-dbslam-livelogo">',
-						'<span>{title}</span>',
-						'<div class="op5-spec-dbslam-livelogo-left"></div>',
-						'<div class="op5-spec-dbslam-livelogo-right"></div>',
-					'</div>'
-					*/
-				],
-				data: {title: '&#160;'}
+				xtype: 'fieldcontainer',
+				layout: 'hbox',
+				items: [{
+					flex: 1,
+					xtype: 'checkboxfield',
+					boxLabel: 'Ignorer cet email',
+					name: 'link_is_ignore',
+					value: isIgnoreChecked,
+					listeners: {
+						change: this.onIgnoreChange,
+						scope: this
+					}
+				},{
+					hidden: !isIgnoreChecked,
+					xtype: 'button',
+					text: 'Valider',
+					handler: function() {
+						this.handleSubmit() ;
+					},
+					scope: this
+				}]
+			},{
+				xtype: 'box',
+				height: 10
 			},{
 				xtype:'fieldset',
 				itemId: 'cntAccount',
@@ -201,9 +213,22 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.EmailMessageLinkPanel',{
 		
 		formPanel.down('#cntAdrbook').setVisible(false);
 		formPanel.down('#cntSubmit').setVisible(false);
+		
+		if( isIgnoreChecked ) {
+			formPanel.down('#cntAccount').setVisible(false);
+			formPanel.down('#cntAdrbook').setVisible(false);
+			formPanel.down('#cntSubmit').setVisible(false);
+		}
 	},
 	
-
+	onIgnoreChange: function(chkfield, isIgnoreChecked) {
+		var formPanel = this.down('form'),
+			 form = this.down('form').getForm() ;
+		//chkfield.destroy() ;
+		Ext.defer(function() {
+			this.buildInputForm(isIgnoreChecked) ;
+		},100,this) ;
+	},
 	onAccSearchSelect: function(searchcombo,selrec) {
 		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: {
@@ -289,7 +314,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.EmailMessageLinkPanel',{
 	handleSubmit: function() {
 		var formPanel = this.down('form'),
 			 form = this.down('form').getForm() ;
-		if( !formPanel.down('#cntSubmit').isVisible() ) {
+		if( !formPanel.down('#cntSubmit').isVisible() && !(form.getFieldValues()['link_is_ignore']) ) {
 			return ;
 		}
 		if(form.isValid()){

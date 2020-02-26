@@ -59,6 +59,9 @@ function specRsiRecouveo_mail_getMboxGrid($post_data) {
 		);
 		if( $arr['field_LINK_IS_ON'] ) {
 			$record['link_is_on'] = true ;
+			if( $arr['field_LINK_FILE_ACTION_ID']==-1 ) {
+				$record['link_is_ignore'] = true ;
+			}
 			$record += array(
 				'link_soc' => $arr['link_soc'],
 				'link_soc_txt' => $arr['link_soc_txt'],
@@ -155,7 +158,7 @@ function specRsiRecouveo_mail_getEmailRecord($post_data) {
 	$query = "SELECT field_LINK_IS_ON, field_LINK_FILE_ACTION_ID FROM view_file_EMAIL WHERE filerecord_id='{$email_filerecord_id}'" ;
 	$result = $_opDB->query($query) ;
 	$arr = $_opDB->fetch_row($result) ;
-	if( $arr[0] ) {
+	if( $arr[0] && ($arr[1]>0) ) {
 		$fileaction_filerecord_id = $arr[1] ;
 		$query = "SELECT la.field_ACC_ID as link_account, la.field_ACC_NAME as link_account_txt, lat.field_SOC_ID as link_soc, lat.field_SOC_NAME as link_soc_txt
 							, f.filerecord_id as link_file_filerecord_id, f.field_FILE_ID as link_file_ref
@@ -168,6 +171,10 @@ function specRsiRecouveo_mail_getEmailRecord($post_data) {
 		$result = $_opDB->query($query) ;
 		$model['link_is_on'] = true ;
 		$model += $_opDB->fetch_assoc($result) ;
+	}
+	if( $arr[0] && ($arr[1]==-1) ) {
+		$model['link_is_on'] = true ;
+		$model['link_is_ignore'] = true ;
 	}
 	
 	return array('success'=>true, 'data'=>$model, 'mbox'=>$mbox ) ;
@@ -241,7 +248,15 @@ function specRsiRecouveo_mail_downloadEmailAttachment($post_data) {
 function specRsiRecouveo_mail_associateFile($post_data) {
 	sleep(1) ;
 	$data = json_decode($post_data['data'],true) ;
-	specRsiRecouveo_lib_mail_associateFile( $post_data['email_filerecord_id'], $data['ref_account'], ($data['adrbook_do_set'] ? $data['adrbook_entity_select'] : null), null ) ;
+	if( !$data['link_is_ignore'] ) {
+		specRsiRecouveo_lib_mail_associateFile( 
+			$post_data['email_filerecord_id'], 
+			$data['ref_account'], 
+			($data['adrbook_do_set'] ? $data['adrbook_entity_select'] : null
+		), null ) ;
+	} else {
+		specRsiRecouveo_lib_mail_associateFileIgnore($post_data['email_filerecord_id']) ;
+	}
 	
 	return array('success'=>true, 'error'=>'Test') ;
 }

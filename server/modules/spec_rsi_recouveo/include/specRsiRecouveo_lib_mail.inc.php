@@ -509,6 +509,13 @@ function specRsiRecouveo_lib_mail_doSendRaw($email_bin)
 }
 
 
+function specRsiRecouveo_lib_mail_associateFileIgnore( $src_emailFilerecordId ) {
+	$arr_ins = array() ;
+	$arr_ins['field_LINK_IS_ON'] = 1 ;
+	$arr_ins['field_LINK_FILE_ACTION_ID'] = -1 ;
+	paracrm_lib_data_updateRecord_file( 'EMAIL', $arr_ins, $src_emailFilerecordId);
+	return TRUE ;
+}
 function specRsiRecouveo_lib_mail_associateFile( $src_emailFilerecordId, $target_accId, $target_adrbookEntity, $target_fileFilerecordId=NULL ) {
 	global $_opDB ;
 	
@@ -521,7 +528,7 @@ function specRsiRecouveo_lib_mail_associateFile( $src_emailFilerecordId, $target
 	
 	$json = specRsiRecouveo_mail_getEmailRecord( array('email_filerecord_id'=>$src_emailFilerecordId) ) ;
 	$email_record = $json['data'] ;
-	if( !$email_record || $email_record['link_is_on'] ) {
+	if( !$email_record || ($email_record['link_is_on'] && !$email_record['link_is_ignore']) ) {
 		return FALSE ;
 	}
 	$peer_from_address = NULL ;

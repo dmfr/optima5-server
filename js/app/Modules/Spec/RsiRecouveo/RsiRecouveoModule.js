@@ -364,6 +364,7 @@ Ext.define('RsiRecouveoEmailListModel',{
 		{name: 'has_attachments', type:'boolean'},
 		
 		{name: 'link_is_on', type: 'boolean'},
+		{name: 'link_is_ignore', type: 'boolean'},
 		{name: 'link_account', type: 'string'},
 		{name: 'link_file_filerecord_id', type: 'int'},
 		{name: 'link_fileaction_filerecord_id', type: 'int'}
