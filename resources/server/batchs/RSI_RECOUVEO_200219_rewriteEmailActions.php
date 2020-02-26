@@ -18,7 +18,7 @@ $_opDB->connect_mysql( $mysql_host, $mysql_db, $mysql_user, $mysql_pass );
 $_opDB->query("SET NAMES UTF8") ;
 
 
-$query = "SELECT filerecord_id, field_LINK_MEDIA_FILECODE,field_LINK_MEDIA_FILEID
+$query = "SELECT filerecord_id, field_LINK_TPL, field_LINK_MEDIA_FILECODE,field_LINK_MEDIA_FILEID
 			FROM view_file_FILE_ACTION
 			WHERE field_LINK_MEDIA_FILECODE='EMAIL'" ;
 $result = $_opDB->query($query) ;
@@ -41,6 +41,10 @@ while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
 			break ;
 	}
 	$str.= $arr_email['field_EMAIL_PEER_NAME'] ;
+	
+	if( $arr['field_LINK_TPL']!='' ) {
+		$str='' ;
+	}
 	
 	$arr_update = array('field_LINK_TXT'=>$str) ;
 	$arr_cond = array('filerecord_id'=>$arr['filerecord_id']) ;
