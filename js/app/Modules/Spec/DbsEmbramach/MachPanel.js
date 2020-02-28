@@ -721,7 +721,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 		var pBannerData = {
 			flow_text: jsonResponse.flow_text,
 			maj_txt: jsonResponse.maj_date
-		}) ;
+		};
 		Ext.apply(pBannerData,{
 			soc_code: tbSocActive
 		});
