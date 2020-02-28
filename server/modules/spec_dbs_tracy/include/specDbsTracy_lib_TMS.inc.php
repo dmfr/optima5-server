@@ -4,6 +4,7 @@ Doc Schenker : https://services.schenkerfrance.fr/gateway_PPD/swagger-ui.html
 */
 
 $GLOBALS['__specDbsTracy_lib_TMS_URL'] = 'https://services.schenkerfrance.fr/gateway_PPD/rest/ship/v1/label/create' ;
+$GLOBALS['__specDbsTracy_lib_TMS_PRINTURL'] = 'https://services.schenkerfrance.fr/gateway_PPD/rest/ship/v1/print/base64' ;
 $GLOBALS['__specDbsTracy_lib_TMS_LABELAPI'] = 'http://api.labelary.com/v1/printers/8dpmm/labels/4x8/0/' ;
 
 function specDbsTracy_lib_TMS_doLabelCreateObj( $row_trspt ) {
@@ -400,6 +401,62 @@ function specDbsTracy_lib_TMS_getLabelEventId( $trspt_filerecord_id, $force_crea
 	}
 	
 	return NULL ;
+}
+
+
+
+
+
+function specDbsTracy_lib_TMS_doPrintB64( $binary_format, $binary_base64, $printer_str ) {
+	// Query EDI parameters
+	$edi_record = paracrm_lib_data_getRecord('bible_entry','CFG_EDI','TRSPT_API') ;
+	if( !$edi_record ) {
+		throw new Exception("TRACY : API token/cfg");
+	}
+	$edi_params = array() ;
+	foreach( explode(';',$edi_record['field_OUT_PARAMS']) as $keyval ) {
+		$ttmp = explode('=',$keyval,2) ;
+		$mkey = trim($ttmp[0]) ;
+		$mval = trim($ttmp[1]) ;
+		$edi_params[$mkey] = $mval ;
+	}
+	if( !$edi_params || !$edi_params['TOKEN'] ) {
+		throw new Exception("TRACY : API token/cfg");
+	}
+	$_token = $edi_params['TOKEN'] ;
+	
+	
+	
+	$post_url = $GLOBALS['__specDbsTracy_lib_TMS_PRINTURL'] ;
+	$params = array('http' => array(
+		'method' => 'POST',
+		'content' => http_build_query(array(
+			'base64' => $binary_base64,
+			'documentName' => 'TracyLabel',
+			'format' => $binary_format,
+			'host' => $printer_str
+		)),
+		'timeout' => 600,
+		'ignore_errors' => true,
+		'header'=>"Authorization: {$_token}\r\n"."accept: application/json\r\n"."Content-Type: application/json\r\n"
+	));
+	//print_r($params) ;
+	$ctx = stream_context_create($params);
+	$fp = fopen($post_url, 'rb', false, $ctx);
+	if( !$fp ) {
+		
+	}
+	$status_line = $http_response_header[0] ;
+	$resp = stream_get_contents($fp) ;
+	preg_match('{HTTP\/\S*\s(\d{3})}', $status_line, $match);
+	$status = $match[1];
+	$response_success = ($status == 200) ;
+	if( !$response_success ) {
+		//echo $resp ;
+		throw new Exception("TMS : Print error code=$status");
+	}
+	
+	return ;
 }
 
 ?>

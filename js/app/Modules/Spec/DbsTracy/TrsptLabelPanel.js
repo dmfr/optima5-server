@@ -21,6 +21,9 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptLabelJsonCmp',{
 Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptLabelPanel',{
 	extend:'Ext.panel.Panel',
 	
+	_trsptFilerecordId: null,
+	_trspteventFilerecordId: null,
+	
 	initComponent: function() {
 		Ext.apply(this,{
 			layout: {
@@ -36,6 +39,9 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptLabelPanel',{
 		this.callParent() ;
 	},
 	loadFromTrsptEvent: function(trsptFilerecordId, trspteventFilerecordId) {
+		this._trsptFilerecordId = null ;
+		this._trspteventFilerecordId = null ;
+		
 		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: {
 				_moduleId: 'spec_dbs_tracy',
@@ -56,6 +62,11 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptLabelPanel',{
 		}) ;
 	},
 	onLoadLabelData: function( labelData ) {
+		if( labelData.label_data ) {
+			this._trsptFilerecordId = labelData.label_data.trspt_filerecord_id ;
+			this._trspteventFilerecordId = labelData.label_data.trsptevent_filerecord_id ;
+		}
+		
 		this.removeAll() ;
 		this.add({
 			flex: 1,
@@ -67,10 +78,23 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptLabelPanel',{
 			tbar: [{
 				icon: 'images/op5img/ico_print_16.png',
 				text: 'Print',
-				handler: function(btn) {
-					
-				},
-				scope: this
+				handler: null,
+				menu: {
+					items:[{
+						xtype:'textfield' ,
+						width:150
+					},{
+						xtype:'button',
+						text:'Print To IP/Host',
+						handler: function(button){
+							var textfield = button.up('menu').query('textfield')[0],
+								textValue = textfield.getValue() ;
+							this.handlePrintTo( textValue ) ;
+							Ext.menu.Manager.hideAll();
+						},
+						scope:this
+					}]
+				}
 			},{
 				_trspteventFilerecordId: (labelData.label_data ? labelData.label_data.trsptevent_filerecord_id : null),
 				_binaryBase64: labelData.label_png_base64,
@@ -190,6 +214,42 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptLabelPanel',{
 				document.body.removeChild(link);
 			}
 		}
+	},
+	
+	//10.204.204.112
+	handlePrintTo: function( printerStr ) {
+		if( this._labelMessageBox ) {
+			this._labelMessageBox.close() ;
+			this._labelMessageBox = null ;
+		}
+		printerStr = printerStr || '' ;
+		if( Ext.isEmpty(printerStr.trim()) ) {
+			return ;
+		}
+		this._labelMessageBox = Ext.Msg.wait('Printing label on <b>'+printerStr+'</b>...')
+		
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_dbs_tracy',
+				_action: 'trspt_printTMS',
+				trspt_filerecord_id: this._trsptFilerecordId,
+				trsptevent_filerecord_id: this._trspteventFilerecordId
+			},
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( !ajaxResponse.success ) {
+					var strErr = 'TMS reported error:<br>'+ajaxResponse.error ;
+					Ext.defer(function(){Ext.MessageBox.alert('Error',strErr);},100) ;
+				}
+			},
+			callback: function() {
+				if( this._labelMessageBox ) {
+					this._labelMessageBox.close() ;
+					this._labelMessageBox = null ;
+				}
+			},
+			scope: this
+		}) ;
 	},
 	
 	dummyFn: function() {}

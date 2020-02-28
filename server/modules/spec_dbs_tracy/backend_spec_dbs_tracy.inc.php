@@ -72,6 +72,8 @@ switch( $post_data['_action'] )
 	return specDbsTracy_trspt_createLabelTMS( $post_data ) ;
 	case 'trspt_getLabelTMS' :
 	return specDbsTracy_trspt_getLabelTMS( $post_data ) ;
+	case 'trspt_printTMS' :
+	return specDbsTracy_trspt_printTMS( $post_data ) ;
 	
 	case 'live_stepValidate' :
 	return specDbsTracy_live_stepValidate( $post_data ) ;

@@ -1118,6 +1118,8 @@ function specDbsTracy_trspt_getLabelTMS( $post_data ) {
 		switch( $mkey ) {
 			case 'REQUEST' :
 				$json_request = media_bin_getBinary( media_bin_toolFile_getId('TMS_STORE',$tmsstore_filerecord_id) ) ;
+				$obj_request = json_decode($json_request,true) ;
+				$binary_format = $obj_request['format'] ;
 				break ;
 			case 'RESPONSE_OK' :
 			case 'RESPONSE_NOK' :
@@ -1125,12 +1127,14 @@ function specDbsTracy_trspt_getLabelTMS( $post_data ) {
 				if( $mkey == 'RESPONSE_OK' ) {
 					$obj_response = json_decode($json_response,true) ;
 					$label_data = array(
+						'trspt_filerecord_id' => $p_trsptFilerecordId,
 						'trsptevent_filerecord_id' => $p_trspteventFilerecordId,
 						'is_printable' => $is_printable,
 						'date_create' => $row_trsptevent['field_EVENT_DATE'],
 						'date_print' => null,
 						'tracking_no' => $obj_response['trackingNumber']
 					);
+					$binary_base64 = $obj_response['labelData'] ;
 				}
 				break ;
 			case 'RESULT_PNG' :
@@ -1147,9 +1151,35 @@ function specDbsTracy_trspt_getLabelTMS( $post_data ) {
 			'json_request' => $json_request,
 			'json_response' => $json_response,
 			'label_png_base64' => $label_png_base64,
-			'label_data' => $label_data
+			'label_data' => $label_data,
+			'label_binary' => $is_printable ? array(
+				'binary_format' => $binary_format,
+				'binary_base64' => $binary_base64
+			) : null
 		)
 	) ;
+}
+function specDbsTracy_trspt_printTMS( $post_data ) {
+	sleep(3) ;
+	$p_trsptFilerecordId = $post_data['trspt_filerecord_id'] ;
+	$p_trspteventFilerecordId = $post_data['trsptevent_filerecord_id'] ;
+	
+	$p_printerStr = $post_data['printer_str'] ;
+	
+	$obj_json = specDbsTracy_trspt_getLabelTMS( array(
+		'trspt_filerecord_id' => $p_trsptFilerecordId,
+		'trsptevent_filerecord_id' => $p_trspteventFilerecordId
+	));
+	if( !$obj_json['success'] || !$obj_json['data']['label_binary'] ) {
+		array('success'=>false, 'error'=>'Not printable') ;
+	}
+	$label_binary = $obj_json['data']['label_binary'] ;
+	try {
+		specDbsTracy_lib_TMS_doPrintB64($label_binary['binary_format'],$label_binary['binary_base64'],$p_printerStr) ;
+	} catch( Exception $e ) {
+		return array('success'=>false, 'error'=>$e->getMessage()) ;
+	}
+	return array('success'=>true) ;
 }
 
 ?>
