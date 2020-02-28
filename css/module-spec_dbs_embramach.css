@@ -72,6 +72,19 @@
 .op5-spec-embramach-banner-inside {
 	height: 88px ;
 }
+.op5-spec-embramach-banner-company {
+	width: 300px;
+	height: 88px;
+	
+	background-repeat: no-repeat;
+	background-position: center;
+}
+.op5-spec-embramach-banner-company-EAI {
+	background-image: url("../images/modules/dbsembramach-logo-EMBRAER.png") !important;
+}
+.op5-spec-embramach-banner-company-EAF {
+	background-image: url("../images/modules/dbsembramach-logo-YABORA.png") !important;
+}
 .op5-spec-embramach-banner-left {
 	float: left;
 }

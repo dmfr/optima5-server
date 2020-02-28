@@ -49,6 +49,11 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 							'<div class="op5-spec-embramach-banner-logo"></div>',
 							'<div class="op5-spec-embramach-banner-title">MACH<tpl if="flow_text">&#160;/&#160;{flow_text}</tpl></div>',
 						'</div>',
+						'<tpl if="soc_code">',
+						'<div class="op5-spec-embramach-banner-left">',
+							'<div class="op5-spec-embramach-banner-company op5-spec-embramach-banner-company-{soc_code}"></div>',
+						'</div>',
+						'</tpl>',
 						'<div class="op5-spec-embramach-banner-right">',
 							'<div class="op5-spec-embramach-banner-people">Update&nbsp:&nbsp;<b><font color="red">{maj_txt}</font></b></div>',
 						'</div>',
@@ -706,10 +711,17 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 			cGauge.getStore().loadData([{value: (cGauge._modeMinutes ? value * 60 : value)}]) ;
 		}) ;
 		
-		pBanner.update({
-			flow_text: jsonResponse.flow_text,
-			maj_txt: jsonResponse.maj_date
-		}) ;
+		
+		var tbSoc = this.down('#btnSoc'),
+			tbSocsSelected = tbSoc.getLeafNodesKey(),
+			tbSocActive ;
+		if( tbSocsSelected && tbSocsSelected.length==1 ) {
+			tbSocActive = tbSocsSelected[0] ;
+		}
+		var pBannerData = {
+			soc_code: tbSocActive
+		};
+		pBanner.update(pBannerData) ;
 	},
 	onRowClick: function( view, record, itemNode, index, e ) {
 		if( !(record.get('_filerecord_id') > 0) ) {
