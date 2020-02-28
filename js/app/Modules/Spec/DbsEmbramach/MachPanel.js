@@ -719,8 +719,12 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 			tbSocActive = tbSocsSelected[0] ;
 		}
 		var pBannerData = {
+			flow_text: jsonResponse.flow_text,
+			maj_txt: jsonResponse.maj_date
+		}) ;
+		Ext.apply(pBannerData,{
 			soc_code: tbSocActive
-		};
+		});
 		pBanner.update(pBannerData) ;
 	},
 	onRowClick: function( view, record, itemNode, index, e ) {
