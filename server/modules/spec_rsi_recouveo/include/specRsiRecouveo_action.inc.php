@@ -998,9 +998,22 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 			specRsiRecouveo_action_execMailAutoAction($forward_post) ;
 		}
 		if( $post_form['tpl_defer_is_on'] ) {
+			// HACK next_action
+			$next_data_json = json_encode(array(
+				'next_action' => $post_form['next_action'],
+				'next_date'   => $post_form['next_date']
+			));
+			
 			// HACK - 26/02/2020 : Parallel schedule
 			//   -- create new action deferred
-			
+			$arr_ins = array() ;
+			$arr_ins['field_LINK_STATUS'] = $post_form['link_status'] ;
+			$arr_ins['field_LINK_ACTION'] = 'MAIL_OUT' ;
+			$arr_ins['field_LINK_SCENARIO'] = NULL ; // HACK next-next
+			$arr_ins['field_SCENSTEP_TAG'] = $next_data_json ; // HACK next-next
+			$arr_ins['field_DATE_SCHED'] = $post_form['tpl_defer_date'] ;
+			$arr_ins['field_LINK_TPL'] = $tpl_data_json ;
+			$next_fileaction_filerecord_id = paracrm_lib_data_insertRecord_file( $file_code, $file_filerecord_id, $arr_ins );
 		}
 	}
 
@@ -1235,6 +1248,10 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 						break ;
 				
 					default :
+						if( $next_fileaction_filerecord_id == $file_action_record_test['fileaction_filerecord_id'] ) {
+							// NEXT anticipé : MAIL_AUTO + tpl_defer
+							break ;
+						}
 						$to_delete[] = $file_action_record_test['fileaction_filerecord_id'] ;
 						break ;
 				}
@@ -1286,6 +1303,10 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 		
 		switch( $post_form['next_action'] ) {
 			default : // BUMP, CALL, MAIL...
+				if( $next_fileaction_filerecord_id ) {
+					// NEXT anticipé : MAIL_AUTO + tpl_defer
+					break ;
+				}
 				$arr_ins = array() ;
 				$arr_ins['field_LINK_STATUS'] = $status_next ;
 				$arr_ins['field_LINK_ACTION'] = $post_form['next_action'] ;
