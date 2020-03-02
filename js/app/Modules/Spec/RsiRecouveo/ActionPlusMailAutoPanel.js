@@ -65,6 +65,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusMailAutoPanel',{
 		}
 		if( true ) {
 			var tplModesField = {
+				itemId: 'cntTplModes',
 				xtype: 'fieldcontainer',
 				fieldLabel: 'Modes d\'envoi',
 				layout: 'hbox',
@@ -76,8 +77,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusMailAutoPanel',{
 			} ;
 			tplFields.push(tplModesField) ;
 		}
-		if( false ) {
+		if( true ) {
 			var tplDeferField = {
+				itemId: 'cntTplDefer',
 				xtype: 'fieldset',
 				title: 'Envoi différé',
 				checkboxName: 'tpl_defer_is_on',

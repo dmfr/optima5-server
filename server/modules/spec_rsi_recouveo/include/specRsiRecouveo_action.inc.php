@@ -734,6 +734,9 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 			}
 			$arr_ins['field_LINK_TXT'] = 'Envoi hors scénario' ;
 			$arr_ins['field_LINK_TPL'] = $post_form['tpl_id'] ;
+			if( $post_form['tpl_defer_is_on'] ) {
+				$_do_delete_currentAction = TRUE ;
+			}
 			break ;
 
 
@@ -978,19 +981,27 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 	$file_record = $ttmp['data'][0] ;
 	
 	
-	// ****** HACK : Forward to specRsiRecouveo_action_execMailAutoAction ************
+	// ****** MAIL_AUTO = envoi hors scénario : Forward to specRsiRecouveo_action_execMailAutoAction ************
 	if( $post_form['link_action']=='MAIL_AUTO') {
-		$forward_post = array(
-			'file_filerecord_id' => $file_filerecord_id,
-			'fileaction_filerecord_id' => $fileaction_filerecord_id,
-			'is_no_sched' => true,
-			'tpl_data' => json_encode(array(
-				'tpl_id' => $post_form['tpl_id'],
-				'tpl_lang' => $post_form['tpl_lang'],
-				'tpl_modes' => json_decode($post_form['tpl_modes_json'],true)
-			))
-		);
-		specRsiRecouveo_action_execMailAutoAction($forward_post) ;
+		$tpl_data_json = json_encode(array(
+			'tpl_id' => $post_form['tpl_id'],
+			'tpl_lang' => $post_form['tpl_lang'],
+			'tpl_modes' => json_decode($post_form['tpl_modes_json'],true)
+		));
+		if( !$post_form['tpl_defer_is_on'] ) {
+			$forward_post = array(
+				'file_filerecord_id' => $file_filerecord_id,
+				'fileaction_filerecord_id' => $fileaction_filerecord_id,
+				'is_no_sched' => true,
+				'tpl_data' => $tpl_data_json
+			);
+			specRsiRecouveo_action_execMailAutoAction($forward_post) ;
+		}
+		if( $post_form['tpl_defer_is_on'] ) {
+			// HACK - 26/02/2020 : Parallel schedule
+			//   -- create new action deferred
+			
+		}
 	}
 
 	

@@ -352,7 +352,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 		
 		// Gestion du template
 		var tplField = this.getForm().findField('tpl_id'),
-			tplFieldLang = this.getForm().findField('tpl_lang') ;
+			tplFieldLang = this.getForm().findField('tpl_lang'),
+			tplModes = this.down('#cntTplModes'),
+			tplDefer = this.down('#cntTplDefer') ;
 		if( tplField ) {
 			while(true) {
 				if( this.isCurrentActionAuto() ) {
@@ -361,6 +363,12 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 					tplField.setValue( this.getCurrentTpl() ) ;
 					if( tplFieldLang ) {
 						tplFieldLang.setVisible(false) ;
+					}
+					if( tplModes ) {
+						tplModes.setVisible(false) ;
+					}
+					if( tplDefer ) {
+						tplDefer.setVisible(false) ;
 					}
 					break ;
 				} 
