@@ -573,6 +573,11 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 		
 		
 		foreach( $file_row['actions'] as &$file_action_row ) {
+			if( $tpl_data = json_decode($file_action_row['link_tpl'],true) ) {
+				$file_action_row['link_tpl'] = $tpl_data['tpl_id'] ;
+				$file_action_row['link_tpl_data'] = $tpl_data ;
+			}
+			
 			$txt_short = '' ;
 			if( $file_action_row['link_txt'] ) {
 				$txt_short.= $file_action_row['link_txt'] ;

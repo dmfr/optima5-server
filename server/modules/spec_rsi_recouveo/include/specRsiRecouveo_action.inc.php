@@ -192,7 +192,7 @@ function specRsiRecouveo_action_execMailAutoPreview( $post_data ) {
 	return array('success'=>false) ;
 }
 
-function specRsiRecouveo_action_execMailAutoAction( $post_data ) {
+function specRsiRecouveo_action_execMailAutoAction( $post_data, $_noRedirect=FALSE ) {
 	$file_code = 'FILE_ACTION' ;
 	$p_fileFilerecordId = $post_data['file_filerecord_id'] ;
 	$p_fileActionFilerecordId = $post_data['fileaction_filerecord_id'] ;
@@ -234,6 +234,16 @@ function specRsiRecouveo_action_execMailAutoAction( $post_data ) {
 				if( $action['fileaction_filerecord_id'] == $nextaction_filerecord_id ) {
 					$next_action = $action ;
 				}
+			}
+			if( $next_action['link_tpl_data'] && !$_noRedirect ) {
+				// 26/02 : tpl_defer, mode hors scenario
+				$forward_post = array(
+					'file_filerecord_id' => $p_fileFilerecordId,
+					'fileaction_filerecord_id' => $p_fileActionFilerecordId,
+					'is_no_sched' => true,
+					'tpl_data' => json_encode($next_action['link_tpl_data'])
+				);
+				return specRsiRecouveo_action_execMailAutoAction($forward_post,$_noRedirect=TRUE) ;
 			}
 			if( !$next_action ) {
 				return array('success'=>false) ;
@@ -418,9 +428,24 @@ function specRsiRecouveo_action_execMailAutoAction( $post_data ) {
 		}
 	}
 	
+	if( $p_isNoSched && ($nextNextAction_data = json_decode($next_action['scenstep_tag'],true)) ) {
+		// HACK : tpl_defer, next_params encodés dans scenstep_tag
+		
+		// delete cur action ?
+		paracrm_lib_data_deleteRecord_file($file_code,$p_fileActionFilerecordId) ;
+		
+		// create next-next
+		$arr_ins = array() ;
+		$arr_ins['field_LINK_STATUS'] = $next_action['link_status'] ;
+		$arr_ins['field_LINK_ACTION'] = $nextNextAction_data['next_action'] ;
+		$arr_ins['field_LINK_SCENARIO'] = NULL ;
+		$arr_ins['field_SCENSTEP_TAG'] = NULL ;
+		$arr_ins['field_DATE_SCHED'] = $nextNextAction_data['next_date'] ;
+		paracrm_lib_data_insertRecord_file( $file_code, $p_fileFilerecordId, $arr_ins );
+	}
 	if( !$action_sent || $p_isNoSched ) {
 		// pas d'envoi
-		return array('success'=>true) ;
+		return array('success'=>true, 'debug'=>'NO_SCHED') ;
 	}
 	
 	if( !$file['status_is_schednone'] ) {
