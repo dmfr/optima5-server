@@ -143,6 +143,7 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 			'status_color' => $map_status[$arr['field_STATUS']]['status_color'],
 			'status_closed_void' => ($arr['field_STATUS_CLOSED_VOID']==1),
 			'status_closed_end' => ($arr['field_STATUS_CLOSED_END']==1),
+			'status_substatus' => $arr['field_CACHE_SUBSTATUS'],
 			
 			'date_open' => $arr['field_DATE_OPEN'],
 			'date_last' => $arr['field_DATE_LAST'],

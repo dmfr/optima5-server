@@ -496,6 +496,21 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE, $stopAsHtm
 	// ************ DONNEES Tableau ***********************
 	$records = array();
 	foreach( $account_record['files'] as $accountFile_record ) {
+		if( is_array($tplData['cfg_values_obj']['table_excludeStatus']) ) {
+			$arr_targets = $tplData['cfg_values_obj']['table_excludeStatus'] ;
+			
+			$arr_values = array() ;
+			if( $accountFile_record['status'] ) {
+				$arr_values[] = $accountFile_record['status'] ;
+			}
+			if( $accountFile_record['status_substatus'] ) {
+				$arr_values[] = $accountFile_record['status_substatus'] ;
+			}
+			if( array_intersect($arr_values,$arr_targets) ) {
+				continue ;
+			}
+		}
+		
 		if( $config_meta['print_records']=='current' ) {
 			if( $accountFile_record['file_filerecord_id'] != $p_fileFilerecordId ) {
 				continue ;
