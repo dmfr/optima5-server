@@ -141,6 +141,7 @@ function specRsiRecouveo_action_execMailAutoPreview( $post_data ) {
 				}
 				if( $probe_lang_atrField && $account ) {
 					$_lang_code = $account[$probe_lang_atrField] ;
+					$_lang_code = strtoupper(substr($_lang_code,0,2)) ;
 				}
 				if( $_lang_code ) {
 					$doc = new DOMDocument();
