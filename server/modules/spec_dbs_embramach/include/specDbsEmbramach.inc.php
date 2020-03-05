@@ -189,6 +189,13 @@ function specDbsEmbramach_mach_getGridCfg_lib_getFields($flow_code) {
 				'source' => array('field_LINE_COUNT')
 			);
 			$arr_fields[] = array(
+				'dataIndex' => 'calc_lateness',
+				'text' => 'TimeLeft',
+				'width' => 90,
+				'widthBig' => true,
+				'renderer' => 'lateness'
+			);
+			$arr_fields[] = array(
 				'dataIndex' => 'priority_code',
 				'text' => 'Priority',
 				'width' => 60,
@@ -416,6 +423,10 @@ function specDbsEmbramach_mach_getGridData( $post_data ) {
 		$row['calc_lateness_blank'] = TRUE ;
 		
 		foreach( $json_cfg['data']['fields'] as $field_idx => $field_cfg ) {
+			if( !$field_cfg['source'] ) {
+				continue ;
+			}
+			
 			$dataIndex = 'field_'.$field_idx ;
 			
 			$value = array() ;
@@ -673,9 +684,13 @@ function specDbsEmbramach_mach_getGridData_sort( $row1, $row2 ) {
 		return strcmp($row2['date_closed'],$row1['date_closed']) ;
 	}
 	
+	/*
+	03/2020 : Sort by lateness
 	if( $row1['priority_code'] != $row2['priority_code'] ) {
 		return $row1['priority_code'] - $row2['priority_code'] ;
 	}
+	*/
+	
 	if( $row1['calc_lateness_blank'] != $row2['calc_lateness_blank'] ) {
 		return $row1['calc_lateness_blank'] - $row2['calc_lateness_blank'] ;
 	}

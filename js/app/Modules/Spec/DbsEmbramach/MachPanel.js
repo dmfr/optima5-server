@@ -1,17 +1,18 @@
 Ext.define('DbsEmbramachMachFlowRowModel', {
     extend: 'Ext.data.Model',
     fields: [
-        {name: '_filerecord_id', type: 'int'},
-		  {name: 'priority_code', type: 'string'},
-		  {name: 'feedback_txt', type: 'string'},
-		  {name: 'step_warning', type: 'string'},
-		  {name: 'step_code', type: 'string'},
-		  {name: 'step_txt', type: 'string'},
-		  {name: 'status_closed', type: 'boolean'},
+		{name: '_filerecord_id', type: 'int'},
+		{name: 'priority_code', type: 'string'},
+		{name: 'feedback_txt', type: 'string'},
+		{name: 'step_warning', type: 'string'},
+		{name: 'step_code', type: 'string'},
+		{name: 'step_txt', type: 'string'},
+		{name: 'status_closed', type: 'boolean'},
+		{name: 'calc_lateness', type: 'string'},
 		  
-			{name: 'warning_is_on', type: 'boolean', allowNull: true},
-			{name: 'warning_code', type: 'string'},
-			{name: 'warning_txt', type: 'string'}
+		{name: 'warning_is_on', type: 'boolean', allowNull: true},
+		{name: 'warning_code', type: 'string'},
+		{name: 'warning_txt', type: 'string'},
 	]
 });
 Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
@@ -364,6 +365,29 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 								return '<font color="' + prioData.prio_color + '">' + prioData.prio_code + '</font>' ;
 							}
 							return '?' ;
+						} ;
+						break ;
+					case 'lateness' :
+						renderer = function(v,metaData,r) {
+							var str='' ;
+							if( !r.get('status_closed') ) {
+								if( r.get('calc_lateness') < 0 ) {
+									var s = (r.get('calc_lateness') * -1),
+										color = ( s>(15*60) ? '#00aa00' : '#ff8000') ;
+									
+									var s = (r.get('calc_lateness') * -1), strHMS = '', idx ;
+									strHMS += ((idx=Math.floor(s/3600))>0) ? idx.toString()+' h ' : '' ;
+									s=s%3600 ;
+									strHMS += ((idx=Math.floor(s/60))>0) ? idx.toString()+' m ' : '' ;
+									s=s%60 ;
+									
+									str+= '<font color="' + color + '"><b>' + strHMS + '</b></font>' ;
+								}
+								if( r.get('calc_lateness') > 0 ) {
+									str+= '<font color="red"><b>KO</b></font>' ;
+								}
+							}
+							return str ;
 						} ;
 						break ;
 					default :
