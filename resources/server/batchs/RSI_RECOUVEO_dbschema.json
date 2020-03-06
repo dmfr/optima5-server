@@ -728,6 +728,18 @@
         },
         {
             "bible_code": "TPL",
+            "tree_field_code": "CFG_VALUES",
+            "tree_field_is_key": "",
+            "tree_field_index": "2",
+            "tree_field_lib": "Cfg values JSON",
+            "tree_field_type": "stringplus",
+            "tree_field_linktype": "",
+            "tree_field_linkbible": "",
+            "tree_field_is_header": "",
+            "tree_field_is_highlight": "O"
+        },
+        {
+            "bible_code": "TPL",
             "tree_field_code": "TPL_GROUP",
             "tree_field_is_key": "O",
             "tree_field_index": "1",

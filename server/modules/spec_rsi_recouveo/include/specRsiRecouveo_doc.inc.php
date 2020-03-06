@@ -9,6 +9,17 @@ function specRsiRecouveo_doc_cfg_getTpl( $post_data ) {
 	$resources_root=$app_root.'/resources' ;
 	$templates_dir=$resources_root.'/server/templates' ;
 	
+	$map_treenode_row = array() ;
+	$query = "SELECT * from view_bible_TPL_tree WHERE 1" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		$treenode_key = $arr['treenode_key'] ;
+		$map_treenode_row[$treenode_key] = array(
+			'tpl_group' => $arr['field_TPL_GROUP'],
+			'cfg_values_obj' => json_decode($arr['field_CFG_VALUES'],true)
+		);
+	}
+	
 	$data = array() ;
 	$query = "SELECT * from view_bible_TPL_entry WHERE 1" ;
 	if( $post_data['tpl_id'] ) {
@@ -18,7 +29,8 @@ function specRsiRecouveo_doc_cfg_getTpl( $post_data ) {
 	}
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
-		$data[] = array(
+		$treenode_key = $arr['treenode_key'] ;
+		$row = array(
 			'tpl_id' => $arr['field_TPL_ID'],
 			'tpl_name' => $arr['field_TPL_NAME'],
 			'manual_is_on' => $arr['field_MANUAL_IS_ON'],
@@ -30,6 +42,13 @@ function specRsiRecouveo_doc_cfg_getTpl( $post_data ) {
 			'html_title' => $arr['field_HTML_TITLE'],
 			'cfg_values_obj' => json_decode($arr['field_CFG_VALUES'],true)
 		);
+		if( !$row['cfg_values_obj'] ) {
+			$row['cfg_values_obj'] = array() ;
+		}
+		if( ($treenode_row = $map_treenode_row[$treenode_key]) && is_array($treenode_row['cfg_values_obj']) ) {
+			$row['cfg_values_obj'] += $treenode_row['cfg_values_obj'] ;
+		}
+		$data[] = $row ;
 	}
 	if( !$p_tplBinary ) {
 		return array('success'=>true, 'data'=>$data) ;
