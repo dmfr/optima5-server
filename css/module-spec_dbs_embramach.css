@@ -144,6 +144,11 @@
 	font-size: 16px;
 	line-height: 18px;
 }
+.op5-spec-dbsembramach-bigcolumn-inner { 
+	font-weight: bold;
+	font-size: 16px;
+	line-height: 18px;
+}
 
 .op5-spec-dbsembramach-gridcell-green .x-grid-cell-inner { 
 	background-color: #2AFF00;
