@@ -596,6 +596,33 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhPanel',{
 		menu.down('#grid-groupby').setVisible( !Ext.isEmpty(menu.activeHeader._groupBy) ) ;
 	},
 	
+	reloadPeople: function( peopleCode ) {
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			timeout: (300 * 1000),
+			params: {
+				_moduleId: 'spec_dbs_people',
+				_action: 'RH_getGrid',
+				filter_peopleCode: peopleCode
+			},
+			success: function( response ) {
+				var json = Ext.JSON.decode(response.responseText) ;
+				if( json.success ) {
+					var peopleRow = json.data[0],
+						peopleRecord = Ext.ux.dams.ModelManager.create(this.tmpModelName,peopleRow),
+						peopleCode = peopleRecord.getId() ;
+					
+					var existingRecord = this.down('grid').getStore().getById(peopleCode) ;
+					if( existingRecord ) {
+						existingRecord.set(peopleRecord.getData()) ;
+					} else {
+						this.down('grid').getStore().add(peopleRecord) ;
+					}
+				}
+			},
+			scope: this
+		});
+	},
+	
 	reload: function(filterChanged,doFetchCalc) {
 		if( !this.isReady ) {
 			return ;
@@ -839,7 +866,10 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhPanel',{
 			listeners: {
 				saved: function(rhFormPanel) {
 					this.setFormRecord(null);
-					this.reload() ;
+					var peopleCode = rhFormPanel.peopleRecord.getId() ;
+					if( peopleCode ) {
+						this.reloadPeople(peopleCode) ;
+					}
 				},
 				scope:me
 			}

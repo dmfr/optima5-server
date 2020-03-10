@@ -41,7 +41,7 @@ function specDbsPeople_Real_lib_getActivePeople( $date_start, $date_end ) {
 	}
 	return $TAB ;
 }
-function specDbsPeople_Real_lib_getJoinCache( $date_start, $date_end ) {
+function specDbsPeople_Real_lib_getJoinCache( $date_start, $date_end, $filter_peopleCode=NULL ) {
 	global $_opDB ;
 	$return_peopleCode_dateSql_fieldCode = array() ;
 	
@@ -68,6 +68,9 @@ function specDbsPeople_Real_lib_getJoinCache( $date_start, $date_end ) {
 		$map_peopleCode_dateSql_value = array() ;
 		$query = "SELECT field_PPL_CODE, DATE(field_DATE_APPLY), {$target_field} FROM {$view} 
 					WHERE DATE(field_DATE_APPLY) BETWEEN '{$date_start}' AND '{$date_end}'" ;
+		if($filter_peopleCode) {
+			$query.= " AND field_PPL_CODE='{$filter_peopleCode}'" ;
+		}
 		$result = $_opDB->query($query) ;
 		while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
 			$map_peopleCode_dateSql_value[$arr[0]][$arr[1]] = $arr[2] ;
@@ -76,8 +79,11 @@ function specDbsPeople_Real_lib_getJoinCache( $date_start, $date_end ) {
 		$queriesMap_field_peopleCode_dateSql_value[$field_code] = $map_peopleCode_dateSql_value ;
 	}
 	
-	
-	$cacheMap_peopleCode_isActive = specDbsPeople_Real_lib_getActivePeople($date_start,$date_end) ;
+	if( !$filter_peopleCode ) {
+		$cacheMap_peopleCode_isActive = specDbsPeople_Real_lib_getActivePeople($date_start,$date_end) ;
+	} else {
+		$cacheMap_peopleCode_isActive[$filter_peopleCode] = TRUE ;
+	}
 	
 	
 	/*
