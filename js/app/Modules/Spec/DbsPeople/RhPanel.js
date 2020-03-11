@@ -509,6 +509,9 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhPanel',{
 							if( values.rows.length == 0 ) {
 								return '' ;
 							}
+							if( Ext.isEmpty(values.rows[0].data[values.groupField]) ) {
+								return 'Non défini' ;
+							}
 							switch( values.groupField ) {
 								case 'whse_code' :
 									return values.rows[0].data.whse_txt ;

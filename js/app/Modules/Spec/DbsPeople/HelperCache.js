@@ -104,7 +104,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.HelperCache',{
 			record = me.cfgStores[type].getById(xCode),
 			undefinedData = {
 				id:'',
-				text:'Non défini'
+				text:''
 			};
 		return ( record==null ? undefinedData : record.data ) ;
 	},

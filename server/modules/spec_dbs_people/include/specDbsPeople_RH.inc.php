@@ -77,11 +77,22 @@ function specDbsPeople_RH_getGrid($post_data) {
 					$row[$mkey] = ( $mvalue != NULL ? $mvalue : '_' ) ;
 				}
 			}
-		} elseif( !$filter_peopleCode && $filter_peopleOff ) {
-			continue ;
+		} elseif( !$filter_peopleOff || $filter_peopleCode ) {
+			$fake_row = array() ;
+			$fake_row['PEOPLEDAY']['field_DATE'] = date('Y-m-d') ;
+			$fake_row['PEOPLEDAY']['field_PPL_CODE'] = $arr['entry_key'] ;
+			paracrm_lib_file_joinQueryRecord( 'PEOPLEDAY', $fake_row ) ;
+			
+			$join_map = array() ;
+			$join_map['field_STD_CONTRACT'] = 'contract_code' ;
+			$join_map['field_STD_WHSE'] = 'whse_code' ;
+			$join_map['field_STD_TEAM'] = 'team_code' ;
+			$join_map['field_STD_ROLE'] = 'role_code' ;
+			foreach( $join_map as $src => $dest ) {
+				$val = $fake_row['PEOPLEDAY'][$src] ;
+				$row[$dest] = ( $val != NULL ? $val : '_' ) ;
+			}
 		}
-		
-		
 		
 		// Next event
 		
@@ -94,6 +105,9 @@ function specDbsPeople_RH_getGrid($post_data) {
 		
 		// Status:Out
 		if( $row['contract_code'] && !isset($cfg_contracts[$row['contract_code']]) ) {
+			$row['status_out'] = TRUE ;
+		}
+		if( !$row['contract_code'] ) {
 			$row['status_out'] = TRUE ;
 		}
 		
