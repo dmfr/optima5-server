@@ -278,7 +278,7 @@ function specDbsPeople_RH_setPeople( $post_data ) {
 	}
 	specDbsPeople_RH_resyncPeopleEvents($people_code) ;
 	
-	return array('success'=>true) ;
+	return array('success'=>true, 'people_code'=>$people_code) ;
 }
 
 function specDbsPeople_RH_resyncPeopleEvents( $people_code ) {

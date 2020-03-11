@@ -371,7 +371,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhFormPanel',{
 					Ext.MessageBox.alert('Problem','Event not saved !') ;
 					return ;
 				}
-				this.fireEvent('saved',this) ;
+				this.fireEvent('saved',this,ajaxResponse.people_code) ;
 			},
 			scope: this
 		}) ;

@@ -606,7 +606,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhPanel',{
 			},
 			success: function( response ) {
 				var json = Ext.JSON.decode(response.responseText) ;
-				if( json.success ) {
+				if( json.success && json.data && json.data.length==1 ) {
 					var peopleRow = json.data[0],
 						peopleRecord = Ext.ux.dams.ModelManager.create(this.tmpModelName,peopleRow),
 						peopleCode = peopleRecord.getId() ;
@@ -864,9 +864,8 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhPanel',{
 			optimaModule: me.optimaModule,
 			peopleRecord: peopleRecord,
 			listeners: {
-				saved: function(rhFormPanel) {
+				saved: function(rhFormPanel,peopleCode) {
 					this.setFormRecord(null);
-					var peopleCode = rhFormPanel.peopleRecord.getId() ;
 					if( peopleCode ) {
 						this.reloadPeople(peopleCode) ;
 					}
