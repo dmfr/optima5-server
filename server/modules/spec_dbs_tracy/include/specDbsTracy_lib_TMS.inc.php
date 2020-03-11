@@ -4,7 +4,7 @@ Doc Schenker : https://services.schenkerfrance.fr/gateway_PPD/swagger-ui.html
 */
 
 $GLOBALS['__specDbsTracy_lib_TMS_URL'] = 'https://services.schenkerfrance.fr/gateway_PPD/rest/ship/v1/label/create' ;
-$GLOBALS['__specDbsTracy_lib_TMS_PRINTURL'] = 'https://services.schenkerfrance.fr/gateway_PPD/rest/ship/v1/print/base64' ;
+$GLOBALS['__specDbsTracy_lib_TMS_PRINTURL'] = 'https://services.schenkerfrance.fr/gateway_PPD/rest/ship/v1/print' ;
 $GLOBALS['__specDbsTracy_lib_TMS_LABELAPI'] = 'http://api.labelary.com/v1/printers/8dpmm/labels/4x8/0/' ;
 
 function specDbsTracy_lib_TMS_doLabelCreateObj( $row_trspt ) {
@@ -427,18 +427,17 @@ function specDbsTracy_lib_TMS_doPrintB64( $binary_format, $binary_base64, $print
 	
 	
 	
-	$post_url = $GLOBALS['__specDbsTracy_lib_TMS_PRINTURL'] ;
+	$post_url = $GLOBALS['__specDbsTracy_lib_TMS_PRINTURL'].'?'.http_build_query(array(
+		'documentName' => 'TracyLabel',
+		'format' => $binary_format,
+		'host' => $printer_str
+	)) ;
 	$params = array('http' => array(
 		'method' => 'POST',
-		'content' => http_build_query(array(
-			'base64' => $binary_base64,
-			'documentName' => 'TracyLabel',
-			'format' => $binary_format,
-			'host' => $printer_str
-		)),
+		'content' => base64_decode($binary_base64),
 		'timeout' => 600,
 		'ignore_errors' => true,
-		'header'=>"Authorization: {$_token}\r\n"."accept: application/json\r\n"."Content-Type: application/json\r\n"
+		'header'=>"Authorization: {$_token}\r\n".""."Content-Type: application/octet-stream\r\n"
 	));
 	//print_r($params) ;
 	$ctx = stream_context_create($params);
@@ -450,7 +449,7 @@ function specDbsTracy_lib_TMS_doPrintB64( $binary_format, $binary_base64, $print
 	$resp = stream_get_contents($fp) ;
 	preg_match('{HTTP\/\S*\s(\d{3})}', $status_line, $match);
 	$status = $match[1];
-	$response_success = ($status == 200) ;
+	$response_success = (($status == 200) || ($status == 404)) ;
 	if( !$response_success ) {
 		//echo $resp ;
 		throw new Exception("TMS : Print error code=$status");
