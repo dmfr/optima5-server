@@ -233,7 +233,8 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptLabelPanel',{
 				_moduleId: 'spec_dbs_tracy',
 				_action: 'trspt_printTMS',
 				trspt_filerecord_id: this._trsptFilerecordId,
-				trsptevent_filerecord_id: this._trspteventFilerecordId
+				trsptevent_filerecord_id: this._trspteventFilerecordId,
+				printer_str: printerStr
 			},
 			success: function(response) {
 				var ajaxResponse = Ext.decode(response.responseText) ;
