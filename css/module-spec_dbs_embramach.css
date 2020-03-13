@@ -67,7 +67,7 @@
 
 
 .op5-spec-embramach-banner {
-	background-color: white;
+	background-color: #0068b1;
 }
 .op5-spec-embramach-banner-inside {
 	height: 88px ;
@@ -80,9 +80,13 @@
 	background-position: center;
 }
 .op5-spec-embramach-banner-company-EAI {
+	background-repeat: no-repeat;
+	background-position: center;
 	background-image: url("../images/modules/dbsembramach-logo-EMBRAER.png") !important;
 }
 .op5-spec-embramach-banner-company-EAF {
+	background-repeat: no-repeat;
+	background-position: center;
 	background-image: url("../images/modules/dbsembramach-logo-YABORA.png") !important;
 }
 .op5-spec-embramach-banner-left {
@@ -96,7 +100,6 @@
 .op5-spec-embramach-banner-logo {
 	width: 270px;
 	height: 48px;
-	background-color: white;
 	background-image: url("../images/modules/dbsembramach-logo.png") !important;
 	background-position: center center ;
 	background-repeat: no-repeat;
@@ -117,6 +120,7 @@
 	height: 56px;
 	padding-left: 56px;
 	padding-top: 16px;
+	background-color: white;
 	background-image: url("../images/modules/dbsembramach-people-48.png") !important;
 	background-position: 0 center ;
 	background-repeat: no-repeat;
