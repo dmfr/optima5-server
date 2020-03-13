@@ -8,6 +8,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.CfgParamButton' ,{
 			optimaModule: this.optimaModule,
 			cfgParam_id: this.cfgParam_id,
 			selectMode: this.selectMode, // SINGLE / MULTI
+			allValues: this.allValues || false,
 			width:250,
 			height:300,
 			listeners: {
@@ -53,6 +54,15 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.CfgParamButton' ,{
 		if( Ext.isEmpty(selectedValue) ) {
 			this.removeCls( 'op5-spec-dbspeople-cfgparambtn-bold' ) ;
 			this.setText( this.baseText ) ;
+		} else if( this.allValues ) {
+			var vals = [] ;
+			cfgParamTree.getRootNode().cascadeBy(function(node) {
+				if( node.get('checked')===true ) {
+					vals.push( cfgParamTree.getStore().getNodeById(node.getId()).get(cfgParamTree.displayField) ) ;
+					return false ;
+				}
+			},this);
+			this.setText( '<b>Filter:</b>&#160;'+vals.join('&#160;'+'/'+'&#160;') ) ;
 		} else {
 			this.addCls( 'op5-spec-dbspeople-cfgparambtn-bold' ) ;
 			if( this.selectMode == 'MULTI' && selectedValue.length > 1 ) {

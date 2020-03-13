@@ -8,7 +8,9 @@ Ext.define('DbsEmbramachMachFlowRowModel', {
 		{name: 'step_code', type: 'string'},
 		{name: 'step_txt', type: 'string'},
 		{name: 'status_closed', type: 'boolean'},
+		
 		{name: 'calc_lateness', type: 'number'},
+		{name: 'calc_success', type: 'boolean'},
 		  
 		{name: 'warning_is_on', type: 'boolean', allowNull: true},
 		{name: 'warning_code', type: 'string'},
@@ -101,7 +103,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 				listeners: {
 					change: {
 						fn: function() {
-							this.onSocSet() ;
+							this.onFilterSet() ;
 						},
 						scope: this
 					},
@@ -112,8 +114,31 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 						scope: this
 					}
 				}
-			}),'->',{
-				hidden: !Optima5.Modules.Spec.DbsEmbramach.HelperCache.authHelperHasAll(),
+			}),'->',Ext.create('Optima5.Modules.Spec.DbsEmbramach.CfgParamButton',{
+				cfgParam_id: 'FILTER_LATENESS',
+				icon: 'images/op5img/ico_zoom_16.png',
+				text: 'Filter status',
+				itemId: 'btnStatus',
+				selectMode: 'MULTI',
+				allValues: true,
+				optimaModule: this.optimaModule,
+				listeners: {
+					change: {
+						fn: function() {
+							this.onFilterSet() ;
+						},
+						scope: this
+					},
+					ready: {
+						fn: function() {
+							
+						},
+						scope: this
+					}
+				}
+			}),{
+				//hidden: !Optima5.Modules.Spec.DbsEmbramach.HelperCache.authHelperHasAll(),
+				hidden: true,
 				itemId: 'tbUpload',
 				iconCls: 'op5-spec-mrfoxy-promorow-action-icon-attachments',
 				text: '<b>Upload Document</b>',
@@ -389,6 +414,16 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 								if( r.get('calc_lateness') > 0 ) {
 									str+= '<font color="red"><b>KO</b></font>' ;
 								}
+							} else {
+								switch( r.get('filter_status') ) {
+									case 'CLOSED_YES' :
+										str+= '<font color="#00aa00"><b>YES</b></font>' ;
+										break ;
+									case 'CLOSED_KO' :
+										str+= '<font color="red"><b>KO</b></font>' ;
+										break ;
+								}
+								
 							}
 							return str ;
 						} ;
@@ -660,6 +695,8 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 		pCenter.add( tmpGridCfg ) ;
 		pEast.removeAll() ;
 		pEast.add( tmpGaugesCfg ) ;
+		
+		this.down('#btnStatus').setValue('ACTIVE',true) ;
 		this.doLoad() ;
 		
 		
@@ -674,7 +711,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 		}
 	},
 	
-	onSocSet: function( socCode ) {
+	onFilterSet: function() {
 		//this.updateToolbar() ;
 		this.doLoad() ;
 	},
@@ -685,16 +722,13 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 		}
 		this.autoRefreshTask.cancel() ;
 		
-		Ext.Array.each( this.down('#pGrid').getColumns(), function(column) {
-			if( column.filter && column.filter.type == 'stringlist' && !column.filter.active ) {
-				column.filter.resetList() ; // HACK!
-			}
-		}) ;
-		
 		var tbSoc = this.down('#btnSoc'),
 			tbSocsSelected = tbSoc.getLeafNodesKey() ;
+		var tbStatus = this.down('#btnStatus'),
+			tbStatusSelected = tbStatus.getLeafNodesKey() ;
 		var filterParams = {
-			filter_soc: (tbSocsSelected ? Ext.JSON.encode(tbSocsSelected):'')
+			filter_soc: (tbSocsSelected ? Ext.JSON.encode(tbSocsSelected):''),
+			filter_status: (tbStatusSelected ? Ext.JSON.encode(tbStatusSelected):'')
 		};
 		
 		this.showLoadmask() ;
@@ -727,6 +761,12 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 			pBanner = this.down('#pBanner'),
 			pGridStore = pGrid.getStore() ;
 		if( doReset ) {
+			Ext.Array.each( this.down('#pGrid').getColumns(), function(column) {
+				if( column.filter && column.filter.type == 'stringlist' && !column.filter.active ) {
+					column.filter.resetList() ; // HACK!
+				}
+			}) ;
+		
 			pGridStore.sorters.clear() ;
 			pGridStore.clearFilter() ;
 			pGrid.filters.clearFilters() ;

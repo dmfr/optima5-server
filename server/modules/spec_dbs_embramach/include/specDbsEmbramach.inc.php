@@ -635,6 +635,8 @@ function specDbsEmbramach_mach_getGridData( $post_data ) {
 			$arr_ins['field_STAT_TAT_H'] = $total_spent_time_s / 3600 ;
 			$_opDB->update("view_file_FLOW_{$flow_code}",$arr_ins, array('filerecord_id'=>$filerecord_id)) ;
 			//paracrm_lib_data_updateRecord_file( "FLOW_{$flow_code}", $arr_ins, $filerecord_id ) ;
+			
+			$row['calc_success'] = ($total_spent_time_s <= $thisRow_baseTAT_s) ;
 		}
 		
 		if( !$row['status_closed'] ) {
@@ -647,9 +649,44 @@ function specDbsEmbramach_mach_getGridData( $post_data ) {
 		if( $row['status_closed'] ) {
 			$row['calc_lateness'] = -1*pow(10,10);
 		}
+		
+		$row['filter_status'] = null ;
+		if( $row['status_closed'] ) {
+			if( $row['calc_success'] ) {
+				$row['filter_status'] = 'CLOSED_YES' ;
+			} else {
+				$row['filter_status'] = 'CLOSED_KO' ;
+			}
+		} else {
+			if( $row['calc_lateness_blank'] ) {
+				$row['filter_status'] = 'ACTIVE_GREEN' ;
+			} elseif( $row['calc_lateness'] > 0 ) {
+				$row['filter_status'] = 'ACTIVE_RED' ;
+			} elseif( (-1*$row['calc_lateness']) < (15*60) ) {
+				$row['filter_status'] = 'ACTIVE_ORANGE' ;
+			} else {
+				$row['filter_status'] = 'ACTIVE_GREEN' ;
+			}
+		}
+		
+		
+		if( $filter_status = json_decode($post_data['filter_status'],true) ) {
+		}
 	}
 	unset($row) ;
 	usort($TAB,'specDbsEmbramach_mach_getGridData_sort') ;
+	
+	
+	if( $filter_status = json_decode($post_data['filter_status'],true) ) {
+		$newTAB = array() ;
+		foreach( $TAB as $mkey=>$row ) {
+			if( !in_array($row['filter_status'],$filter_status) ) {
+				continue ;
+			}
+			$newTAB[$mkey] = $row ;
+		}
+		$TAB = $newTAB ;
+	}
 	
 	
 	$TAB_gauges = array() ;

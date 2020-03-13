@@ -6,6 +6,7 @@ Ext.define('DbsEmbramachCfgParamTreeModel', {
 		  {name: 'nodeType', type: 'string'},
 		  {name: 'nodeKey',  type: 'string'},
         {name: 'nodeText',   type: 'string'},
+		  {name: 'nodeCls',  type: 'string'},
 		  {name: 'leaf_only', type:'boolean'}
      ]
 });
@@ -54,6 +55,55 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.CfgParamTree',{
 		}
 		var rootNode, rootChildren = [] ;
 		switch( this.cfgParam_id ) {
+			case 'FILTER_LATENESS' :
+				rootNode = {
+					root: true,
+					children: [{
+						nodeId: 'ACTIVE',
+						nodeText: 'In-process',
+						expanded: true,
+						children: [{
+							nodeId: 'ACTIVE_RED',
+							nodeText: 'KO',
+							iconCls: 'op5-spec-dbsembramach-gridcell-red-legend',
+							icon:Ext.BLANK_IMAGE_URL,
+							leaf: true
+						},{
+							nodeId: 'ACTIVE_ORANGE',
+							nodeText: 'At risk',
+							iconCls: 'op5-spec-dbsembramach-gridcell-orange-legend',
+							icon:Ext.BLANK_IMAGE_URL,
+							leaf: true
+						},{
+							nodeId: 'ACTIVE_GREEN',
+							nodeText: 'Ongoing',
+							iconCls: 'op5-spec-dbsembramach-gridcell-green-legend',
+							icon:Ext.BLANK_IMAGE_URL,
+							leaf: true
+						}]
+					},{
+						nodeId: 'CLOSED',
+						nodeText: 'Closed (< 24h)',
+						expanded: true,
+						children: [{
+							nodeId: 'CLOSED_KO',
+							nodeText: 'KO',
+							iconCls: 'op5-spec-dbsembramach-gridcell-red-legend',
+							icon:Ext.BLANK_IMAGE_URL,
+							leaf: true
+						},{
+							nodeId: 'CLOSED_YES',
+							nodeText: 'YES',
+							iconCls: 'op5-spec-dbsembramach-gridcell-green-legend',
+							icon:Ext.BLANK_IMAGE_URL,
+							leaf: true
+						}]
+					}],
+					nodeText: '<b>Filter status</b>',
+					expanded: true
+				}
+				break ;
+				
 			case 'SOC' :
 				data = Optima5.Modules.Spec.DbsEmbramach.HelperCache.getSocAll() ;
 				Ext.Array.each( data, function(row) {
@@ -206,7 +256,15 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.CfgParamTree',{
 			},this) ;
 		} else {
 			this.getRootNode().cascadeBy(function(node) {
-				node.set('checked', (node.getId()==this.value) );
+				if( node.getId()==this.value ) {
+					node.set('checked', true );
+					node.cascadeBy(function(lnode) {
+						lnode.set('checked',true);
+					});
+					return false ;
+				} else {
+					node.set('checked', false );
+				}
 			},this);
 		}
 		
