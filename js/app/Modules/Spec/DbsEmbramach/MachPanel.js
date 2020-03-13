@@ -8,7 +8,7 @@ Ext.define('DbsEmbramachMachFlowRowModel', {
 		{name: 'step_code', type: 'string'},
 		{name: 'step_txt', type: 'string'},
 		{name: 'status_closed', type: 'boolean'},
-		{name: 'calc_lateness', type: 'string'},
+		{name: 'calc_lateness', type: 'number'},
 		  
 		{name: 'warning_is_on', type: 'boolean', allowNull: true},
 		{name: 'warning_code', type: 'string'},
@@ -338,6 +338,9 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 		
 		Ext.Array.each( jsonResponse.data.fields, function(fieldCfg, fieldIdx) {
 			var dataIndex = 'field_'+fieldIdx ;
+			if( Ext.isEmpty(fieldCfg.source) ) {
+				dataIndex = fieldCfg.dataIndex ;
+			}
 			var filter, renderer ;
 			if( fieldCfg.filter ) {
 				switch( fieldCfg.filter.type ) {
@@ -394,12 +397,24 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 						break ;
 				}
 			}
+			var tdCls ;
+			switch( fieldCfg.widthBig ) {
+				case 'big' :
+					tdCls = 'op5-spec-dbsembramach-bigcolumn' ;
+					break ;
+				case 'med' :
+					tdCls = 'op5-spec-dbsembramach-medcolumn' ;
+					break ;
+				default :
+					tdCls = '' ;
+					break ;
+			}
 			columns.push({
 				dataIndex: dataIndex,
 				text: fieldCfg.text,
 				width: fieldCfg.width,
 				align: 'center',
-				tdCls: (fieldCfg.widthBig ? 'op5-spec-dbsembramach-bigcolumn' : ''),
+				tdCls: tdCls,
 				filter: filter,
 				renderer: renderer
 			}) ;

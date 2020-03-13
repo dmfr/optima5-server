@@ -175,7 +175,7 @@ function specDbsEmbramach_mach_getGridCfg_lib_getFields($flow_code) {
 				'dataIndex' => 'delivery_id',
 				'text' => 'Picking',
 				'width' => 130,
-				'widthBig' => true,
+				'widthBig' => 'big',
 				'filter' => array(
 					'type' => 'string'
 				),
@@ -190,16 +190,17 @@ function specDbsEmbramach_mach_getGridCfg_lib_getFields($flow_code) {
 			);
 			$arr_fields[] = array(
 				'dataIndex' => 'calc_lateness',
+				'type' => 'number',
 				'text' => 'TimeLeft',
 				'width' => 90,
-				'widthBig' => true,
+				'widthBig' => 'med',
 				'renderer' => 'lateness'
 			);
 			$arr_fields[] = array(
 				'dataIndex' => 'priority_code',
 				'text' => 'Priority',
 				'width' => 60,
-				'widthBig' => true,
+				'widthBig' => 'big',
 				'renderer' => 'priority',
 				'filter' => array(
 					'type' => 'bible',
@@ -211,7 +212,7 @@ function specDbsEmbramach_mach_getGridCfg_lib_getFields($flow_code) {
 				'dataIndex' => 'flow',
 				'text' => 'Flow',
 				'width' => 70,
-				'widthBig' => true,
+				'widthBig' => 'big',
 				'filter' => array(
 					'type' => 'stringlist'
 				),
@@ -233,7 +234,7 @@ function specDbsEmbramach_mach_getGridCfg_lib_getFields($flow_code) {
 			$arr_fields[] = array(
 				'text' => 'Doc Ref',
 				'width' => 130,
-				'widthBig' => true,
+				'widthBig' => 'big',
 				'type' => 'number',
 				'filter' => array(
 					'type' => 'string'
@@ -243,7 +244,7 @@ function specDbsEmbramach_mach_getGridCfg_lib_getFields($flow_code) {
 			$arr_fields[] = array(
 				'text' => 'Type',
 				'width' => 80,
-				'widthBig' => true,
+				'widthBig' => 'big',
 				'filter' => array(
 					'type' => 'stringlist'
 				),
@@ -641,6 +642,10 @@ function specDbsEmbramach_mach_getGridData( $post_data ) {
 				$map_prioCode_count[$row['priority_code']] = 0 ;
 			}
 			$map_prioCode_count[$row['priority_code']]++;
+		}
+		
+		if( $row['status_closed'] ) {
+			$row['calc_lateness'] = -1*pow(10,10);
 		}
 	}
 	unset($row) ;
