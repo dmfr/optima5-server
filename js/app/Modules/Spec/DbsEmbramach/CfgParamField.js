@@ -68,6 +68,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.CfgParamField',{
 		});
 		
 		this.callParent() ;
+		this.cfgParamTree.startLoading() ;
 	},
 	setRootNode: function(rootNode) {
 		var cfgParamTree = this.cfgParamTree ;
