@@ -619,6 +619,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 				text = ' (minutes)' ;
 				modeMinutes = true ;
 			}
+			var displayMax = (prio.tat_hour * coef * 2) ;
 			gaugesSubPanels.push( {
 				flex: 1,
 				xtype:'panel',
@@ -639,13 +640,14 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 						data: [{value:0}]
 					},
 					_modeMinutes: modeMinutes,
+					_displayMax: displayMax,
 					insetPadding: 25,
 					flex: 1,
 					axes: [{
 						type: 'kpigauge',
 						position: 'left',
 						minimum: 0,
-						maximum: (prio.tat_hour * coef * 2),
+						maximum: displayMax,
 						steps: Ext.Array.min([10,(prio.tat_hour * coef * 2)]),
 						margin: 0,
 						label: {
@@ -792,7 +794,11 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 			}
 			
 			var cGauge = pGauge.down('chart') ;
-			cGauge.getStore().loadData([{value: (cGauge._modeMinutes ? value * 60 : value)}]) ;
+			
+			var value = (cGauge._modeMinutes ? value * 60 : value) ;
+			value = (cGauge._modeMinutes ? Math.round( value ) : Math.round( value * 10 ) / 10) ;
+			value = (value > cGauge._displayMax ? cGauge._displayMax : value) ;
+			cGauge.getStore().loadData([{value: value}]) ;
 		}) ;
 		
 		
