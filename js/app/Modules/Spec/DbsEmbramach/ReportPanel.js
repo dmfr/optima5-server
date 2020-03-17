@@ -117,9 +117,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.ReportPanel',{
 		
 		this.tmpModelName = 'DbsEmbramachReportRowModel-' + this.getId() ;
 		this.on('beforedestroy',function(p) {
-			if( p._displayModalPanel ) {
-				this._displayModalPanel.destroy() ;
-			}
+			p.displayModalEmpty(false) ;
 		}) ;
 		this.on('destroy',function(p) {
 			Ext.ux.dams.ModelManager.unregister( p.tmpModelName ) ;
@@ -129,6 +127,8 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.ReportPanel',{
 	},
 	
 	doConfigure: function() {
+		this.displayModalEmpty(false) ;
+		
 		//this.showLoadmask() ;
 		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: {
@@ -707,12 +707,18 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.ReportPanel',{
 	
 	
 	displayModalEmpty: function(torf) {
+		if( !this.down('grid') ) {
+			return ;
+		}
 		var gridEl = this.down('grid').getEl() ;
+		if( !gridEl ) {
+			return ;
+		}
 		if( !torf ) {
 			if( this._displayModalPanel ) {
 				this._displayModalPanel.destroy() ;
+				this._displayModalPanel = null ;
 			}
-			gridEl.unmask() ;
 			return ;
 		}
 		
@@ -739,9 +745,6 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.ReportPanel',{
 				}
 			}]
 		});
-
-		// Size + position
-		gridEl.mask() ;
 		
 		this._displayModalPanel.show();
 		this._displayModalPanel.getEl().alignTo(gridEl, 'c-c?');
