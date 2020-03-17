@@ -58,14 +58,35 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.ReportPanel',{
 					this.doQuit() ;
 				},
 				scope: this
-			},{
+			},'-',{
 				iconCls: 'op5-crmbase-datatoolbar-refresh',
 				text: 'Refresh',
 				handler: function() {
 					this.doRefresh() ;
 				},
 				scope: this
-			},{
+			},Ext.create('Optima5.Modules.Spec.DbsEmbramach.CfgParamSocButton',{
+				cfgParam_id: 'SOC',
+				icon: 'images/op5img/ico_blocs_small.gif',
+				text: 'Companies',
+				itemId: 'btnSoc',
+				selectMode: 'SINGLE',
+				optimaModule: this.optimaModule,
+				listeners: {
+					change: {
+						fn: function() {
+							this.doLoad() ;
+						},
+						scope: this
+					},
+					ready: {
+						fn: function() {
+							
+						},
+						scope: this
+					}
+				}
+			}),{
 				iconCls: 'op5-spec-dbsembramach-report-clock',
 				itemId: 'tbViewmode',
 				viewConfig: {forceFit: true},
@@ -95,6 +116,11 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.ReportPanel',{
 		this.updateToolbar() ;
 		
 		this.tmpModelName = 'DbsEmbramachReportRowModel-' + this.getId() ;
+		this.on('beforedestroy',function(p) {
+			if( p._displayModalPanel ) {
+				this._displayModalPanel.destroy() ;
+			}
+		}) ;
 		this.on('destroy',function(p) {
 			Ext.ux.dams.ModelManager.unregister( p.tmpModelName ) ;
 		}) ;
@@ -109,7 +135,8 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.ReportPanel',{
 				_moduleId: 'spec_dbs_embramach',
 				_action: 'stats_getPicking',
 				flow_code: this.flowCode,
-				cfg_date: this.viewMode
+				cfg_date: this.viewMode,
+				filter_empty: 1
 			},
 			success: function(response) {
 				var jsonResponse = Ext.JSON.decode(response.responseText) ;
@@ -120,7 +147,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.ReportPanel',{
 				this.onConfigure( jsonResponse ) ;
 			},
 			callback: function() {
-				this.hideLoadmask() ;
+				//this.hideLoadmask() ;
 			},
 			scope: this
 		}) ;
@@ -415,16 +442,28 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.ReportPanel',{
 		}) ;
 		
 		// forward
-		this.onLoad(jsonResponse) ;
+		this.doLoad() ;
 	},
 	doLoad: function() {
+		var tbSoc = this.down('#btnSoc'),
+			tbSocsSelected = tbSoc.getLeafNodesKey() ;
+		
+		if( Ext.isEmpty(tbSocsSelected) ) {
+			this.down('grid').getStore().loadData([]) ;
+			this.displayModalEmpty(true) ;
+			this.hideLoadmask() ;
+			return ;
+		}
+		this.displayModalEmpty(false) ;
+		
 		this.showLoadmask() ;
 		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: {
 				_moduleId: 'spec_dbs_embramach',
 				_action: 'stats_getPicking',
 				flow_code: this.flowCode,
-				cfg_date: this.viewMode
+				cfg_date: this.viewMode,
+				filter_soc: (tbSocsSelected ? Ext.JSON.encode(tbSocsSelected):''),
 			},
 			success: function(response) {
 				var jsonResponse = Ext.JSON.decode(response.responseText) ;
@@ -664,6 +703,48 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.ReportPanel',{
 			requestAction: Optima5.Helper.getApplication().desktopGetBackendUrl(),
 			requestMethod: 'POST'
 		}) ;
+	},
+	
+	
+	displayModalEmpty: function(torf) {
+		var gridEl = this.down('grid').getEl() ;
+		if( !torf ) {
+			if( this._displayModalPanel ) {
+				this._displayModalPanel.destroy() ;
+			}
+			gridEl.unmask() ;
+			return ;
+		}
+		
+		// this._displayModalPanel
+		var panelSize = this.getSize() ;
+		this._displayModalPanel = Ext.create('Ext.panel.Panel',{
+			width: 350,
+			height: 150,
+			
+			floating: true,
+			renderTo: gridEl,
+			
+			layout: 'fit',
+			items: [{
+				xtype:'component',
+				cls: 'ux-noframe-bg',
+				tpl: [
+					'<div class="op5-spec-dbsembramach-statempty-cnt">',
+						'<div class="op5-spec-dbsembramach-statempty">{caption}</div>',
+					'</div>'
+				],
+				data:{
+					caption: 'Set company filter'
+				}
+			}]
+		});
+
+		// Size + position
+		gridEl.mask() ;
+		
+		this._displayModalPanel.show();
+		this._displayModalPanel.getEl().alignTo(gridEl, 'c-c?');
 	},
 	
 	

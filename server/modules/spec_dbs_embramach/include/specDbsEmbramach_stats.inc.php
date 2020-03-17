@@ -3,7 +3,9 @@ function specDbsEmbramach_stats_getPicking($post_data) {
 	global $_opDB ;
 	
 	$flow_code = 'PICKING' ;
-	specDbsEmbramach_stats_sub_prepareData() ;
+	if( !$post_data['filter_empty'] ) {
+		specDbsEmbramach_stats_sub_prepareData() ;
+	}
 	
 	$params_date = array() ;
 	$cur_date = date('Y-m-d') ;
@@ -113,24 +115,29 @@ function specDbsEmbramach_stats_getPicking($post_data) {
 		'PRIORITY' => 'prio_id'
 	);
 	
-	$data = array() ;
-	// Run queries per date intervals
-	foreach( $params_date as $date_interval ) {
-		$q_id = 'Report::Picking::KPI' ;
-		$where_params = array() ;
-		$where_params['condition_date_gt'] = $date_interval['date_start'] ;
-		$where_params['condition_date_lt'] = $date_interval['date_end'] ;
-		
-		$TAB = specDbsEmbramach_stats_sub_runQuery($q_id, $where_params) ;
-		
-		foreach( $TAB as $query_row ) {
-			$row = array() ;
-			$row['time_key'] = $date_interval['time_key'] ;
-			foreach( $map_fieldCode_rowKey as $fieldCode=>$rowKey ) {
-				$row[$rowKey] = $query_row['group'][$fieldCode] ;
+	if( !$post_data['filter_empty'] ) {
+		$data = array() ;
+		// Run queries per date intervals
+		foreach( $params_date as $date_interval ) {
+			$q_id = 'Report::Picking::KPI' ;
+			$where_params = array() ;
+			$where_params['FLOW_PICKING_field_DATE_ISSUE']['condition_date_gt'] = $date_interval['date_start'] ;
+			$where_params['FLOW_PICKING_field_DATE_ISSUE']['condition_date_lt'] = $date_interval['date_end'] ;
+			if( $filter_arrSoc = json_decode($post_data['filter_soc'],true) ) {
+				$where_params['FLOW_PICKING_field_SOC_ID']['condition_bible_entries'] = $post_data['filter_soc'] ;
 			}
-			$row['value_count'] = (float)reset($query_row['values']) ;
-			$data[] = $row ;
+			
+			$TAB = specDbsEmbramach_stats_sub_runQuery($q_id, $where_params) ;
+			
+			foreach( $TAB as $query_row ) {
+				$row = array() ;
+				$row['time_key'] = $date_interval['time_key'] ;
+				foreach( $map_fieldCode_rowKey as $fieldCode=>$rowKey ) {
+					$row[$rowKey] = $query_row['group'][$fieldCode] ;
+				}
+				$row['value_count'] = (float)reset($query_row['values']) ;
+				$data[] = $row ;
+			}
 		}
 	}
 	return array(
@@ -501,8 +508,8 @@ function specDbsEmbramach_stats_sub_runQuery( $q_id, $where_params=NULL ) {
 	
 	foreach( $arr_saisie['fields_where'] as &$field_where ) {
 		foreach( $field_where as $mkey => $mvalue ) {
-			if( isset($where_params[$mkey]) ) {
-				$field_where[$mkey] = $where_params[$mkey] ;
+			if( isset($where_params[$field_where['field_code']][$mkey]) ) {
+				$field_where[$mkey] = $where_params[$field_where['field_code']][$mkey] ;
 			}
 		}
 		unset($field_where) ;
