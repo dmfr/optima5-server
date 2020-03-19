@@ -39,7 +39,6 @@ function specDbsTracy_lib_edi_robot() {
 		
 		$arr_params = $maps_ediCode_params[$edi_code] ;
 		foreach( $json_cfg['cfg_soc'] as $soc_row ) {
-			print_r($soc_row) ;
 			if( $soc_row['soc_code']==$soc_code && $soc_row['cfg_customs'] && $soc_row['cfg_customs']['params'] ) {
 				$arr_params = $soc_row['cfg_customs']['params'] + $arr_params ;
 			}
@@ -93,7 +92,6 @@ function specDbsTracy_lib_edi_robot() {
 
 function specDbsTracy_lib_edi_flow_TRSPTCUSTOMSEMAIL( $trspt_filerecord_id, $arr_params ) {
 	global $_opDB ;
-	
 	$_domain_id = DatabaseMgr_Base::dbCurrent_getDomainId() ;
 	$_sdomain_id = DatabaseMgr_Sdomain::dbCurrent_getSdomainId() ;
 	
@@ -216,10 +214,15 @@ function specDbsTracy_lib_edi_flow_TRSPTCUSTOMSEMAIL( $trspt_filerecord_id, $arr
 		media_contextOpen( $_sdomain_id ) ;
 		
 		$jpegs = array() ;
+		$jpegs_md5sums = array() ;
 		foreach( $arr_ids as $media_id ) {
 			$src_filepath = media_img_getPath( $media_id ) ;
 			if( $src_filepath && ($bin=file_get_contents($src_filepath)) ) {
-				$jpegs[] = $bin ;
+				$md5sum = md5($bin) ;
+				if( !in_array($md5sum,$jpegs_md5sums) ) {
+					$jpegs[] = $bin ;
+					$jpegs_md5sums[] = $md5sum ;
+				}
 			}
 		}
 		if( count($jpegs)>0 ) {
@@ -419,10 +422,15 @@ function specDbsTracy_lib_edi_flow_TRSPTCUSTOMSXML( $trspt_filerecord_id, $arr_p
 		media_contextOpen( $_sdomain_id ) ;
 		
 		$jpegs = array() ;
+		$jpegs_md5sums = array() ;
 		foreach( $arr_ids as $media_id ) {
 			$src_filepath = media_img_getPath( $media_id ) ;
 			if( $src_filepath && ($bin=file_get_contents($src_filepath)) ) {
-				$jpegs[] = $bin ;
+				$md5sum = md5($bin) ;
+				if( !in_array($md5sum,$jpegs_md5sums) ) {
+					$jpegs[] = $bin ;
+					$jpegs_md5sums[] = $md5sum ;
+				}
 			}
 		}
 		if( count($jpegs)>0 ) {
