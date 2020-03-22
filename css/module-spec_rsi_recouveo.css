@@ -1146,3 +1146,17 @@
 .op5-spec-rsiveo-displayform .x-form-item {
 	margin-bottom: 0px !important;
 }
+
+.op5-spec-rsiveo-scenexecpause-false {
+	background-image: url("../images/modules/rsiveo-scenexec-play-16.png") !important;
+}
+.op5-spec-rsiveo-scenexecpause-true {
+	background-position: center ;
+	background-repeat: no-repeat;
+	background-image: url("../images/modules/rsiveo-scenexec-pause-16.png") !important;
+}
+.op5-spec-rsiveo-scenexecpause-checked {
+	font-weight: bold;
+	color: red ;
+}
+

@@ -149,6 +149,7 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 			'date_last' => $arr['field_DATE_LAST'],
 			
 			'scen_code' => $arr['field_SCENARIO'],
+			'scen_exec_pause' => $arr['field_SCENARIO_EXEC_PAUSE'],
 			
 			'records' => array(),
 			'actions' => array(),
@@ -1954,6 +1955,27 @@ function specRsiRecouveo_file_lib_getNextMailNum( $file_filerecord_id ) {
 }
 
 
+
+function specRsiRecouveo_file_setScenExecPause( $post_data ) {
+	global $_opDB ;
+	
+	$p_accId = $post_data['acc_id'] ;
+	$p_isPaused = !!$post_data['scen_exec_pause'] ;
+	$json = specRsiRecouveo_account_open( array(
+		'acc_id' => $p_accId
+	)) ;
+	if( !$json['success'] ) {
+		return array('success'=>false) ;
+	}
+	$account_record = $json['data'] ;
+	foreach( $account_record['files'] as $accfile_record ) {
+		if( !$accfile_record['status_is_schedlock'] ) {
+			$arr_update = array('field_SCENARIO_EXEC_PAUSE'=>($p_isPaused?1:0)) ;
+			paracrm_lib_data_updateRecord_file( 'FILE', $arr_update, $accfile_record['file_filerecord_id']);
+		}
+	}
+	return array('success'=>true) ;
+}
 
 function specRsiRecouveo_file_setScenario( $post_data ) {
 	global $_opDB ;

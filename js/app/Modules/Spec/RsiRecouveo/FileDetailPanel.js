@@ -2269,6 +2269,32 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		
 		var tabPanel = this.down('#tpFileActions') ;
 		tabPanel.add({
+			dockedItems: [{
+				hidden: fileRecord.get('status_is_schedlock'),
+				xtype: 'toolbar',
+				cls: 'ux-noframe-bg',
+				dock: 'top',
+				items: [{
+					itemId: 'chkScenExecPause',
+					width: 200,
+					boxLabel: 'Blocage relances automatiques',
+					checkedCls: 'op5-spec-rsiveo-scenexecpause-checked x-form-cb-checked',
+					xtype: 'checkboxfield',
+					value: fileRecord.get('scen_exec_pause') || false,
+					listeners: {
+						change: function(chk) {
+							this.handleSetScenExecPause(chk.getValue()) ;
+						},
+						scope: this
+					}
+				},'->',{
+					hidden: !fileRecord.get('scen_exec_pause'),
+					xtype: 'box',
+					width: 20,
+					height: 20,
+					cls: 'op5-spec-rsiveo-scenexecpause-true'
+				}]
+			}],
 			_fileFilerecordId: fileRecord.getId(),
 			title: pFileTitle,
 			iconCls: statusIconCls,
@@ -3502,6 +3528,31 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 				acc_id: this._accountRecord.get('acc_id'),
 				file_filerecord_id: fileFilerecordId,
 				scen_code: scenCode
+			},
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					this.hideLoadmask() ;
+					var error = ajaxResponse.success || 'Error !' ;
+					Ext.MessageBox.alert('Error',error) ;
+					return ;
+				}
+				this.doReload() ;
+			},
+			callback: function() {
+				//this.hideLoadmask() ;
+			},
+			scope: this
+		}) ;
+	},
+	handleSetScenExecPause: function( isPaused ) {
+		this.showLoadmask() ;
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_rsi_recouveo',
+				_action: 'file_setScenExecPause',
+				acc_id: this._accountRecord.get('acc_id'),
+				scen_exec_pause: isPaused ? 1 : 0
 			},
 			success: function(response) {
 				var ajaxResponse = Ext.decode(response.responseText) ;
