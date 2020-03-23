@@ -149,7 +149,7 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 			'date_last' => $arr['field_DATE_LAST'],
 			
 			'scen_code' => $arr['field_SCENARIO'],
-			'scen_exec_pause' => $arr['field_SCENARIO_EXEC_PAUSE'],
+			'scen_exec_pause' => ($arr['field_SCENARIO_EXEC_PAUSE']==1),
 			
 			'records' => array(),
 			'actions' => array(),
@@ -565,6 +565,16 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 				'next_eta_range' => $next_action['calc_eta_range'],
 				'next_agenda_class' => $next_action['link_action_class']
 			);
+			
+			if( !$file_row['status_is_schedlock'] ) {
+				if( $file_row['scen_exec_pause'] ) {
+					$file_row += array('next_icon'=>'PAUSE') ;
+				} elseif( $next_action['link_action']=='BUMP' ) {
+					$file_row += array('next_icon'=>'') ;
+				} else {
+					$file_row += array('next_icon'=>'PLAY') ;
+				}
+			}
 		}
 		$inv_header['inv_amount_total'] = round($inv_header['inv_amount_total'],4) ;
 		$inv_header['inv_amount_due'] = round($inv_header['inv_amount_due'],4) ;

@@ -1148,6 +1148,8 @@
 }
 
 .op5-spec-rsiveo-scenexecpause-false {
+	background-position: center ;
+	background-repeat: no-repeat;
 	background-image: url("../images/modules/rsiveo-scenexec-play-16.png") !important;
 }
 .op5-spec-rsiveo-scenexecpause-true {

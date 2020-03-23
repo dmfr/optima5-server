@@ -224,6 +224,10 @@ function specRsiRecouveo_action_execMailAutoAction( $post_data, $_noRedirect=FAL
 		if( $file['file_filerecord_id'] != $p_fileFilerecordId ) {
 			return array('success'=>false) ;
 		}
+		if( $file['scen_exec_pause'] ) {
+			// scen_exec_pause 21/03/2020 : autoriser les actions déclenchées manuellement
+			//return array('success'=>false) ;
+		}
 		if( !$file['status_is_schednone'] ) {
 			$nextaction_filerecord_id = $file['next_fileaction_filerecord_id'] ;
 			if( $nextaction_filerecord_id != $p_fileActionFilerecordId ) {

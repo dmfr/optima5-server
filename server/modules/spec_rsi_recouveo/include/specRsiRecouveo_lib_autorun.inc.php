@@ -170,6 +170,10 @@ function specRsiRecouveo_lib_autorun_actions() {
 		)) ;
 		$file = $json_file['data'][0] ;
 		
+		if( $file['scen_exec_pause'] ) {
+			continue ;
+		}
+		
 		if( $file['status_is_schedlock'] ) {
 			continue ;
 		}

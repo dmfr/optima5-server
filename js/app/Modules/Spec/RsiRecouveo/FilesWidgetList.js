@@ -337,6 +337,21 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesWidgetList', {
 	    },{
 		    text: 'Prochaine action',
 		    columns: [{
+			    width: 24,
+			    align: 'center',
+			    dataIndex: 'next_icon',
+			    renderer: function(v,metaData,r) {
+					 switch( v ) {
+						 case 'PLAY' :
+							 metaData.tdCls += ' op5-spec-rsiveo-scenexecpause-false' ;
+							 break ;
+						 case 'PAUSE' :
+							 metaData.tdCls += ' op5-spec-rsiveo-scenexecpause-true' ;
+							 break ;
+					}
+					return '' ;
+			    }
+		    },{
 			    text: 'Action',
 			    width: 140,
 			    tdCls: 'op5-spec-dbstracy-boldcolumn',
