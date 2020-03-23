@@ -2256,7 +2256,6 @@ function specRsiRecouveo_file_allocateRecordTemp( $post_data ) {
 
 function specRsiRecouveo_file_multiAction($post_data) {
 	global $_opDB ;
-	sleep(2) ;
 	
 	$ttmp = specRsiRecouveo_cfg_getConfig() ;
 	$cfg_status = $ttmp['data']['cfg_status'] ;
