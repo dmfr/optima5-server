@@ -2331,6 +2331,21 @@ function specRsiRecouveo_file_multiAction($post_data) {
 				paracrm_lib_data_updateRecord_bibleEntry('LIB_ACCOUNT',$acc_id,$arr_update) ;
 				break ;
 				
+			case 'status_scenexecpause' :
+				switch( $p_targetForm['scen_exec_pause'] ) {
+					case 'true' :
+						$p_isPaused = true ;
+						break ;
+					case 'false' :
+						$p_isPaused = false ;
+						break ;
+					default :
+						break 2 ;
+				}
+				$arr_update = array('field_SCENARIO_EXEC_PAUSE'=>($p_isPaused?1:0)) ;
+				paracrm_lib_data_updateRecord_file( 'FILE', $arr_update, $file_record['file_filerecord_id']);
+				break ;
+				
 			case 'lock_close' :
 				if( $is_sched_lock ) {
 					break ;

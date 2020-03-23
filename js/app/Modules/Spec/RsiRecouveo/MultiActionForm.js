@@ -180,6 +180,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MultiActionForm',{
 					{ boxLabel: 'Action externe / Litige', name: 'multi_action', inputValue: 'lock_litig' },
 					{ boxLabel: 'Demande clôture', name: 'multi_action', inputValue: 'lock_close' },
 					{ boxLabel: 'Assigner collaborateur', name: 'multi_action', inputValue: 'user' },
+					{ boxLabel: 'Blocage relance automatique', name: 'multi_action', inputValue: 'status_scenexecpause' },
 					{ boxLabel: 'Exporter la sélection', name: 'multi_action', inputValue: 'export_grp'}
 				],
 				listeners: {
@@ -190,6 +191,21 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MultiActionForm',{
 					},
 					scope: this
 				}
+			},{
+				xtype: 'fieldset',
+				itemId: 'fsScenexecpause',
+				title: 'Blocage relance automatique',
+				items: [{
+					xtype: 'radiogroup',
+					allowBlank: false,
+					fieldLabel: 'Mode',
+					columns: 1,
+					vertical: true,
+					items: [
+						{ boxLabel: 'Exécution normale', name: 'scen_exec_pause', inputValue: 'false', fieldBodyCls:'op5-spec-rsiveo-scenexecpause-field-play' },
+						{ boxLabel: 'Blocage envois automatiques', name: 'scen_exec_pause', inputValue: 'true', fieldBodyCls: 'op5-spec-rsiveo-scenexecpause-field-pause' }
+					]
+				}]
 			},{
 				xtype: 'fieldset',
 				itemId: 'fsScenstep',
@@ -356,6 +372,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MultiActionForm',{
 		this.down('#fsClose').setVisible( multiMode=='lock_close' ) ;
 		this.down('#fsLitig').setVisible( multiMode=='lock_litig' ) ;
 		this.down('#fsUser').setVisible( multiMode=='user' ) ;
+		this.down('#fsScenexecpause').setVisible( multiMode=='status_scenexecpause' ) ;
 	},
 	onFormChange: function(formP, field) {
 		var form = formP.getForm() ;

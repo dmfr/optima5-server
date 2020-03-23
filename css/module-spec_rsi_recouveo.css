@@ -1157,6 +1157,18 @@
 	background-repeat: no-repeat;
 	background-image: url("../images/modules/rsiveo-scenexec-pause-16.png") !important;
 }
+.op5-spec-rsiveo-scenexecpause-field-play {
+	background-position: 0px center ;
+	background-repeat: no-repeat;
+	background-image: url("../images/modules/rsiveo-scenexec-play-16.png") !important;
+	padding-left: 24px
+}
+.op5-spec-rsiveo-scenexecpause-field-pause {
+	background-position: 0px center ;
+	background-repeat: no-repeat;
+	background-image: url("../images/modules/rsiveo-scenexec-pause-16.png") !important;
+	padding-left: 24px
+}
 .op5-spec-rsiveo-scenexecpause-checked {
 	font-weight: bold;
 	color: red ;
