@@ -23,7 +23,7 @@ Ext.define('Ext.ux.chart.series.KPIGauge', {
             seriesLabelStyle = me.seriesLabelStyle,
             cos = Math.cos,
             sin = Math.sin,
-            rendererAttributes, centerX, centerY, slice, slices, sprite, value,
+            rendererAttributes, centerX, centerY, slice, slices, sprite, value, valueDraw,
             item, ln, record, i, j, r, slice, splitAngle, rl, startAngle, endAngle, middleAngle, sliceLength, path,
             p, spriteOptions, bbox, valueAngle, pivotRadius;
         
@@ -51,6 +51,7 @@ Ext.define('Ext.ux.chart.series.KPIGauge', {
         }
         
         value = me.value;
+		  valueDraw = Math.min(value,maximum) ;
 				
 		for (r = 0, rl = ranges.length; r < rl; r++) {
 			splitFromAngle = -180 * (1 - (ranges[r].from - minimum) / (maximum - minimum));
@@ -113,7 +114,7 @@ Ext.define('Ext.ux.chart.series.KPIGauge', {
         }
 
 		if (me.needle) {
-			valueAngle = (-180 * (1 - (value - minimum) / (maximum - minimum))) * Math.PI / 180;
+			valueAngle = (-180 * (1 - (valueDraw - minimum) / (maximum - minimum))) * Math.PI / 180;
 			pivotRadius = me.needle.pivotRadius || 7
 			if (!me.needleSprite) {				
 				me.needlePivotSprite = me.chart.surface.add({
