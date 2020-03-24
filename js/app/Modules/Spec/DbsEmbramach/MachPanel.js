@@ -640,7 +640,6 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 						data: [{value:0}]
 					},
 					_modeMinutes: modeMinutes,
-					_displayMax: displayMax,
 					insetPadding: 25,
 					flex: 1,
 					axes: [{
@@ -797,7 +796,6 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 			
 			var value = (cGauge._modeMinutes ? value * 60 : value) ;
 			value = (cGauge._modeMinutes ? Math.round( value ) : Math.round( value * 10 ) / 10) ;
-			value = (value > cGauge._displayMax ? cGauge._displayMax : value) ;
 			cGauge.getStore().loadData([{value: value}]) ;
 		}) ;
 		
