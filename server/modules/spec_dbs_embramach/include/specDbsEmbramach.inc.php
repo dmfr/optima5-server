@@ -793,7 +793,7 @@ function specDbsEmbramach_mach_getGridXls( $post_data ) {
 	$ttmp = specDbsEmbramach_mach_getGridData($post_data) ;
 	$json_data = $ttmp['data_grid'] ;
 
-	
+	$p_selectFilerecordIds = json_decode($post_data['select_filerecordIds'],true);
 	//print_r($json_cfg) ;
 	//print_r($json_data) ;
 	
@@ -854,6 +854,9 @@ function specDbsEmbramach_mach_getGridXls( $post_data ) {
 	$row++ ;
 	
 	foreach( $json_data as $data_row ) {
+		if( is_array($p_selectFilerecordIds) && !in_array($data_row['_filerecord_id'],$p_selectFilerecordIds) ) {
+			continue ;
+		}
 		$col=$base_col ;
 		foreach( $columns as $column ) {
 			switch( $column['type'] ) {

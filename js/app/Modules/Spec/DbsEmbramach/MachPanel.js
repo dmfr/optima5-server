@@ -944,12 +944,20 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 	
 	doDownload: function() {
 		var me = this ;
+		var grid = this.down('#pCenter').down('grid') ;
+		var ids = [] ;
+		if( grid ) {
+			grid.getStore().each( function(rec) {
+				ids.push( rec.get('_filerecord_id') ) ;
+			}) ;
+		}
 		
 		var exportParams = me.optimaModule.getConfiguredAjaxParams() ;
 		Ext.apply(exportParams,{
 			_moduleId: 'spec_dbs_embramach',
 			_action: 'mach_getGridXls',
-			flow_code: this.flowCode
+			flow_code: this.flowCode,
+			select_filerecordIds: Ext.JSON.encode(ids)
 		}) ;
 		Ext.create('Ext.ux.dams.FileDownloader',{
 			renderTo: Ext.getBody(),
