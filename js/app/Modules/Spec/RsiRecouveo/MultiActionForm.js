@@ -197,7 +197,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MultiActionForm',{
 				title: 'Blocage relance automatique',
 				items: [{
 					xtype: 'radiogroup',
-					allowBlank: false,
 					fieldLabel: 'Mode',
 					columns: 1,
 					vertical: true,
