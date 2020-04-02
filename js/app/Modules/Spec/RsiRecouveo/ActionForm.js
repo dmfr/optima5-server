@@ -175,7 +175,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 					hasPreview = true ;
 					break ;
 				case 'SMS_OUT' :
-					nowActionClass = 'Optima5.Modules.Spec.RsiRecouveo.ActionPlusSmsOutPanel'
+					nowActionClass = 'Optima5.Modules.Spec.RsiRecouveo.ActionPlusSmsOutPanel' ;
+					hasPreview = true ;
 					break ;
 				case 'BUMP' :
 					nowActionClass = 'Optima5.Modules.Spec.RsiRecouveo.ActionPlusBumpPanel' ;
@@ -973,8 +974,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 				return this.handlePreviewEnvelope() ;
 				break ;
 			case 'SMS_OUT' :
-				//return this.handlePreviewSms() ;
-				return this.handlePreviewSmsDo(null) ;
+				return this.handlePreviewSms() ;
 				break ;
 			case 'EMAIL_OUT' :
 				return this.handlePreviewEmail() ;
@@ -982,6 +982,36 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 			default :
 				return ;
 		}
+	},
+	handlePreviewSms: function() {
+		if( this._readonlyMode ) {
+			return ;
+		}
+		
+		if( !(this.down('#formNow') instanceof Optima5.Modules.Spec.RsiRecouveo.ActionPlusSmsOutPanel) ) {
+			return ;
+		}
+		
+		var formPanel = this,
+			form = formPanel.getForm() ;
+		var postDataObj = form.getValues(false,false,false,true) ;
+		var adrTel = postDataObj['adrtel_txt'] ;
+		
+		var smsData = {
+			sms_date: Ext.Date.format(new Date(),'Y-m-d'),
+			sms_recep_num: adrTel,
+			sms_text: postDataObj['sms_content']
+		}
+		var hasError = false ;
+		Ext.Object.each( smsData, function(k,v) {
+			if( Ext.isEmpty(v) ) {
+				hasError = true ;
+			}
+		}) ;
+		if( hasError ) {
+			return ;
+		}
+		this.handlePreviewSmsDo(smsData) ;
 	},
 	handlePreviewSmsDo: function(smsData) {
 		this.optimaModule.createWindow({
