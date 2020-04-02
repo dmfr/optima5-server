@@ -18,7 +18,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 		'Optima5.Modules.Spec.RsiRecouveo.ActionPlusLitigFollowPanel',
 		'Optima5.Modules.Spec.RsiRecouveo.ActionPlusClosePanel',
 		
-		'Optima5.Modules.Spec.RsiRecouveo.AttachmentsFieldPanel'
+		'Optima5.Modules.Spec.RsiRecouveo.AttachmentsFieldPanel',
+		
+		'Optima5.Modules.Spec.RsiRecouveo.SmsPreviewPanel'
 	],
 	
 	_fileRecord: null,
@@ -72,6 +74,13 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 					text: 'Email',
 					handler: function( btn ) {
 						this.handlePreviewMulti('EMAIL') ;
+					},
+					scope: this
+				},{
+					icon: 'images/modules/rsiveo-mail-sms-16.png',
+					text: 'SMS',
+					handler: function( btn ) {
+						this.handlePreviewMulti('TEL') ;
 					},
 					scope: this
 				}],
@@ -935,6 +944,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 						case 'EMAIL' :
 							this.handlePreviewEmailDo( jsonResponse.tmp_media_id ) ;
 							break ;
+							
+						case 'TEL' :
+							this.handlePreviewSmsDo( jsonResponse.data ) ;
+							break ;
 					}
 				} else {
 					Ext.MessageBox.alert('Error',jsonResponse.error||'Print system disabled') ;
@@ -959,6 +972,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 			case 'MAIL_OUT' :
 				return this.handlePreviewEnvelope() ;
 				break ;
+			case 'SMS_OUT' :
+				//return this.handlePreviewSms() ;
+				return this.handlePreviewSmsDo(null) ;
+				break ;
 			case 'EMAIL_OUT' :
 				return this.handlePreviewEmail() ;
 				break ;
@@ -966,7 +983,22 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 				return ;
 		}
 	},
-	handlePreviewEmail: function() {
+	handlePreviewSmsDo: function(smsData) {
+		this.optimaModule.createWindow({
+			width:350,
+			height:600,
+			iconCls: 'op5-crmbase-qresultwindow-icon',
+			animCollapse:false,
+			border: false,
+			layout:'fit',
+			//title: envDataDocs[0].doc_desc,
+			items:[Ext.create('Optima5.Modules.Spec.RsiRecouveo.SmsPreviewPanel',{
+				_smsData: smsData,
+				optimaModule: this.optimaModule
+			})]
+		}) ;
+	},
+	handlePreviewEmail: function(tmpMediaId) {
 		if( this._readonlyMode ) {
 			return ;
 		}

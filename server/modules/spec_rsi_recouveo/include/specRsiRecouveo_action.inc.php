@@ -186,6 +186,32 @@ function specRsiRecouveo_action_execMailAutoPreview( $post_data ) {
 			
 			return $json ;
 			
+		case 'TEL' : // mode SMS
+			$htmls = specRsiRecouveo_doc_getMailOut(array(
+				'tpl_id' => $p_tplId,
+				'tpl_lang' => $post_data['tpl_lang'],
+				'file_filerecord_id' => $p_fileFilerecordId,
+				'record_filerecord_ids' => ($filter_recordsFilerecordIds ? json_encode($filter_recordsFilerecordIds) : null ),
+				'adr_type' => $post_data['adr_type'],
+				'input_fields' => json_encode(array())
+			),$real=FALSE,$htmlraw=TRUE) ;
+			
+			$html_body = $htmls[0] ;
+			$txt_body = strip_tags($html_body) ;
+			
+			
+			$json = array(
+				'success' => true,
+				'data' => array(
+					'sms_date' => date('Y-m-d'),
+					'sms_recep_num' => null,
+					'sms_text' => '' // $txt_body
+				)
+			);
+			
+			return $json ;
+			break ;
+			
 		default :
 			break ;
 	}
