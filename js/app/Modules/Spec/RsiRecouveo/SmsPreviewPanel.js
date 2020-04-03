@@ -14,11 +14,34 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.SmsPreviewPanel',{
 			}
 		});
 		this.callParent() ;
-		if( this._smsData ) {
+		if( this._smsFilerecordId ) {
+			Ext.defer(function(){
+				this.loadSmsData(this._smsFilerecordId) ;
+			},500,this) ;
+		}
+		else if( this._smsData ) {
 			Ext.defer(function(){
 				this.buildPreview(this._smsData) ;
-			},2000,this) ;
+			},500,this) ;
 		}
+	},
+	loadSmsData: function(smsFilerecordId) {
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_rsi_recouveo',
+				_action: 'sms_getSmsData',
+				sms_filerecord_id: smsFilerecordId
+			},
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					Ext.MessageBox.alert('Error','Error') ;
+					return ;
+				}
+				this.buildPreview(ajaxResponse.data) ;
+			},
+			scope: this
+		});
 	},
 	buildPreview: function(smsData) {
 		var elements = [{

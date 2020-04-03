@@ -2116,6 +2116,29 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 							}
 							return !passed ;
 						}
+					},{
+						icon: 'images/modules/rsiveo-mail-sms-16.png',
+						tooltip: 'SMS',
+						handler: function(grid, rowIndex, colIndex, item, e) {
+							var rec = grid.getStore().getAt(rowIndex);
+							if( rec.get('link_media_file_code') == 'SMS' ) {
+								var smsFilerecordId = rec.get('link_media_filerecord_id') ;
+								this.openSms(smsFilerecordId) ;
+							}
+						},
+						scope: this,
+						disabledCls: 'x-item-invisible',
+						isDisabled: function(view,rowIndex,colIndex,item,record ) {
+							var passed = false ;
+							switch( record.get('link_media_file_code') ) {
+								case 'SMS' :
+									passed = true ;
+									break ;
+								default :
+									break ;
+							}
+							return !passed ;
+						}
 					}]
 				}]
 			},
@@ -2559,6 +2582,29 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 							var passed = false ;
 							switch( record.get('link_media_file_code') ) {
 								case 'EMAIL' :
+									passed = true ;
+									break ;
+								default :
+									break ;
+							}
+							return !passed ;
+						}
+					},{
+						icon: 'images/modules/rsiveo-mail-sms-16.png',
+						tooltip: 'SMS',
+						handler: function(grid, rowIndex, colIndex, item, e) {
+							var rec = grid.getStore().getAt(rowIndex);
+							if( rec.get('link_media_file_code') == 'SMS' ) {
+								var smsFilerecordId = rec.get('link_media_filerecord_id') ;
+								this.openSms(smsFilerecordId) ;
+							}
+						},
+						scope: this,
+						disabledCls: 'x-item-invisible',
+						isDisabled: function(view,rowIndex,colIndex,item,record ) {
+							var passed = false ;
+							switch( record.get('link_media_file_code') ) {
+								case 'SMS' :
 									passed = true ;
 									break ;
 								default :
@@ -3152,6 +3198,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		if( this.emailWindow ) {
 			this.emailWindow.destroy() ;
 		}
+		if( this.smsWindow ) {
+			this.smsWindow.destroy() ;
+		}
 		if( this.notificationsPanel ) {
 			this.notificationsPanel.destroy() ;
 		}
@@ -3387,6 +3436,28 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 				optimaModule: this.optimaModule,
 				_mediaFileCode: mediaFileCode,
 				_mediaFilerecordId: mediaFilerecordId
+			})]
+		}) ;
+	},
+	
+	openSms: function(smsFilerecordId) {
+		this.smsWindow = this.optimaModule.createWindow({
+			width:350,
+			height:600,
+			iconCls: 'op5-crmbase-qresultwindow-icon',
+			animCollapse:false,
+			border: false,
+			layout:'fit',
+			title: 'SMS',
+			items:[Ext.create('Optima5.Modules.Spec.RsiRecouveo.SmsPreviewPanel',{
+				optimaModule: this.optimaModule,
+				_smsFilerecordId: smsFilerecordId,
+				listeners: {
+					destroy: function() {
+						this.smsWindow = null ;
+					},
+					scope: this
+				}
 			})]
 		}) ;
 	},

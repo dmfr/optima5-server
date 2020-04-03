@@ -177,6 +177,9 @@ switch( $post_data['_action'] )
 	case 'mail_buildEmail' :
 		return specRsiRecouveo_mail_buildEmail( $post_data ) ;
 		
+	case 'sms_getSmsData' :
+		return specRsiRecouveo_sms_getSmsData( $post_data ) ;
+		
 	case 'upload' :
 		return specRsiRecouveo_upload( $post_data ) ;
 	case 'copydemo' :

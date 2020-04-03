@@ -425,7 +425,6 @@ function specRsiRecouveo_action_execMailAutoAction( $post_data, $_noRedirect=FAL
 	//$arr_ins['field_LINK_ACTION'] = $post_form['link_action'] ;
 	
 	
-	
 	if( array_intersect($modes,array('postal_std','postal_rar')) ) {
 		// génération action envoi POSTAL
 		$json = specRsiRecouveo_action_execMailAutoPreview( array(
@@ -475,6 +474,32 @@ function specRsiRecouveo_action_execMailAutoAction( $post_data, $_noRedirect=FAL
 				$arr_ins = array() ;
 				$arr_ins['field_LINK_MEDIA_FILECODE'] = 'EMAIL' ;
 				$arr_ins['field_LINK_MEDIA_FILEID'] = $email_filerecord_id ;
+				paracrm_lib_data_updateRecord_file( 'FILE_ACTION', $arr_ins, $fileaction_filerecord_id);
+			}
+		}
+	}
+	if( array_intersect($modes,array('tel')) ) {
+		// génération action envoi EMAIL
+		$json = specRsiRecouveo_action_execMailAutoPreview( array(
+			'file_filerecord_id' => $p_fileFilerecordId,
+			'filesub_filerecord_id' => $filesub_filerecord_id,
+			'tpl_id' => $next_action['link_tpl'],
+			'tpl_lang' => $next_action['link_tpl_lang'],
+			'adr_type' => 'TEL'
+		));
+		if( $json['success'] ) {
+			$sms_data = $json['data'] ;
+			
+			$arr_ins = $arr_ins_base ;
+			$arr_ins['field_LINK_ACTION'] = 'SMS_OUT' ;
+			$fileaction_filerecord_id = paracrm_lib_data_insertRecord_file( $file_code, $p_fileFilerecordId, $arr_ins );
+			$action_sent = TRUE ;
+			
+			$sms_filerecord_id = specRsiRecouveo_lib_sms_createSmsForAction($sms_data['sms_recep_num'], $sms_data['sms_text'], $fileaction_filerecord_id) ;
+			if( $sms_filerecord_id ) {
+				$arr_ins = array() ;
+				$arr_ins['field_LINK_MEDIA_FILECODE'] = 'SMS' ;
+				$arr_ins['field_LINK_MEDIA_FILEID'] = $sms_filerecord_id ;
 				paracrm_lib_data_updateRecord_file( 'FILE_ACTION', $arr_ins, $fileaction_filerecord_id);
 			}
 		}
@@ -1449,7 +1474,7 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 		$sms_filerecord_id = specRsiRecouveo_lib_sms_createSmsForAction($_tel, $_smsContent, $fileaction_filerecord_id) ;
 		if ($sms_filerecord_id) {
 			$arr_ins = array() ;
-			$arr_ins['field_LINK_MEDIA_FILECODE'] = 'SMS_OUT' ;
+			$arr_ins['field_LINK_MEDIA_FILECODE'] = 'SMS' ;
 			$arr_ins['field_LINK_MEDIA_FILEID'] = $sms_filerecord_id ;
 
 			paracrm_lib_data_updateRecord_file( 'FILE_ACTION', $arr_ins, $fileaction_filerecord_id);
