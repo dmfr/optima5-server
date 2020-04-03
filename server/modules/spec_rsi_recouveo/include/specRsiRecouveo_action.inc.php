@@ -187,6 +187,22 @@ function specRsiRecouveo_action_execMailAutoPreview( $post_data ) {
 			return $json ;
 			
 		case 'TEL' : // mode SMS
+			// recherche adresse
+			$t_adrTel_name = $t_adrTel_txt = NULL ;
+			$json = specRsiRecouveo_account_open( array('acc_id'=>$file['acc_id']) ) ;
+			$account = $json['data'] ;
+			foreach( $account['adrbook'] as $adrbook ) {
+				foreach( $adrbook['adrbookentries'] as $adrbookentry ) {
+					if( $adrbookentry['adr_type']=='TEL' && $adrbookentry['status_is_priority'] && !$adrbookentry['status_is_invalid'] ) {
+						$t_adrTel_name = $adrbook['adr_entity'] ;
+						$t_adrTel_txt = $adrbookentry['adr_txt'] ;
+					}
+				}
+			}
+			if( !$t_adrTel_txt ) {
+				return array('success'=>false, 'error'=>'Pas de téléphone / GSM') ;
+			}
+			
 			$htmls = specRsiRecouveo_doc_getMailOut(array(
 				'tpl_id' => $p_tplId,
 				'tpl_lang' => $post_data['tpl_lang'],
@@ -195,22 +211,27 @@ function specRsiRecouveo_action_execMailAutoPreview( $post_data ) {
 				'adr_type' => $post_data['adr_type'],
 				'input_fields' => json_encode(array())
 			),$real=FALSE,$htmlraw=TRUE) ;
+			if( !$htmls ) {
+				return array('success'=>false, 'error'=>'Modèle SMS non prévu') ;
+			}
 			
 			$html_body = $htmls[0] ;
-			$txt_body = strip_tags($html_body) ;
 			
+			$txt_body = $html_body ;
+			$txt_body = preg_replace("/\<br\s*\/?\>/i", "\n", $txt_body);
+			$txt_body = html_entity_decode(strip_tags($txt_body)) ;
+			$txt_body = trim($txt_body) ;
 			
 			$json = array(
 				'success' => true,
 				'data' => array(
 					'sms_date' => date('Y-m-d'),
-					'sms_recep_num' => null,
-					'sms_text' => '' // $txt_body
+					'sms_recep_num' => $t_adrTel_txt,
+					'sms_text' => $txt_body,
+					'sms_html' => $html_body
 				)
 			);
-			
 			return $json ;
-			break ;
 			
 		default :
 			break ;

@@ -40,6 +40,7 @@ function specRsiRecouveo_doc_cfg_getTpl( $post_data ) {
 			'html_footer_file' => $arr['field_HTML_FOOTER_FILE'],
 			'html_body' => $arr['field_HTML_BODY'],
 			'html_title' => $arr['field_HTML_TITLE'],
+			'sms_body' => $arr['field_SMS_BODY'],
 			'cfg_values_obj' => json_decode($arr['field_CFG_VALUES'],true)
 		);
 		if( !$row['cfg_values_obj'] ) {
@@ -55,6 +56,54 @@ function specRsiRecouveo_doc_cfg_getTpl( $post_data ) {
 	}
 
 	return array('success'=>true, 'data'=>$data) ;
+}
+function specRsiRecouveo_doc_buildSMS(&$tplData, $media_type, $lang_code){
+	if( !$tplData['sms_body'] ) {
+		return NULL ;
+	}
+	
+	$sms_body = $tplData['sms_body'] ;
+	$sms_body = str_replace(array("\r\n", "\r", "\n"), "", $sms_body);
+	
+	$doc = new DOMDocument();
+	@$doc->loadHTML('<?xml encoding="UTF-8"><html>'."\r\n".'<div>'.$sms_body.'</div></html>');
+	$html = $doc->saveHTML() ;
+	
+	//echo $html ;
+	
+	// Parse new nested nodes
+	$doc = new DOMDocument();
+	@$doc->loadHTML($html);
+	
+	specRsiRecouveo_doc_replaceStyle($doc,$media_type) ;
+	specRsiRecouveo_doc_replaceLang($doc,$lang_code) ;
+	specRsiRecouveo_doc_populateStatic($doc) ;
+	
+	$elements = $doc->getElementsByTagName('qbook-value');
+	$i = $elements->length - 1;
+	while ($i > -1) {
+		$node_qbookValue = $elements->item($i); 
+		$i--; 
+		
+		$val = '' ;
+		$src_value = $node_qbookValue->attributes->getNamedItem('src_value')->value ;
+		switch( $src_value ) {
+			case 'payment_div' :
+			$paymentFileName = $templates_dir.'/'.$tplData['html_payment_file'] ;
+			$paymentBinary = file_get_contents($paymentFileName) ;
+			$html_payment = specRsiRecouveo_doc_getHtmlPayment($paymentBinary) ;
+			$new_node = $doc->createCDATASection($html_payment) ;
+			$node_qbookValue->parentNode->replaceChild($new_node,$node_qbookValue) ;
+			break ;
+
+			default :
+			break ;
+		}
+	}
+
+	$tplData['tpl_html'] = $doc->saveHTML() ;
+
+	return $tplData['tpl_html'] ;
 }
 function specRsiRecouveo_doc_buildTemplate(&$tplData, $media_type, $lang_code){
 
@@ -722,6 +771,12 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE, $stopAsHtm
 
 	// ************ TEMPLATE ***********************
 	$tplHtml = specRsiRecouveo_doc_buildTemplate($tplData,$p_adrType,$_lang_code) ;
+	if( $p_adrType=='TEL' ) {
+		$tplHtml = specRsiRecouveo_doc_buildSMS($tplData,$p_adrType,$_lang_code) ;
+		if( !$tplHtml ) {
+			return null ;
+		}
+	}
 
 	$inputTitle = $tplData['tpl_name'];
 	$inputBinary = $tplHtml;
@@ -826,9 +881,11 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE, $stopAsHtm
 		$DOM_docAnnexe_html = $DOM_docAnnexe->getElementsByTagName('html')->item(0) ;
 		
 		$DOM_docAnnexe_head = $DOM_docAnnexe->createElement('head') ;
-		$DOM_docAnnexe_styleFrag = $DOM_docAnnexe->createDocumentFragment() ;
-		$DOM_docAnnexe_styleFrag->appendXML($styleHTML) ;
-		$DOM_docAnnexe_head->appendChild($DOM_docAnnexe_styleFrag) ;
+		if( $styleHTML ) {
+			$DOM_docAnnexe_styleFrag = $DOM_docAnnexe->createDocumentFragment() ;
+			$DOM_docAnnexe_styleFrag->appendXML($styleHTML) ;
+			$DOM_docAnnexe_head->appendChild($DOM_docAnnexe_styleFrag) ;
+		}
 		$DOM_docAnnexe_html->appendChild($DOM_docAnnexe_head) ;
 		
 		$DOM_docAnnexe_body = $DOM_docAnnexe->createElement('body') ;
