@@ -784,7 +784,32 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE, $stopAsHtm
 	$doc = new DOMDocument();
 	@$doc->loadHTML($inputBinary);
 	
-	// specRsiRecouveo_doc_replaceIfset($doc,$map_mkey_value) ;
+	
+	$elements = $doc->getElementsByTagName('qbook-condition');
+	$i = $elements->length - 1;
+	while ($i > -1) {
+		$domelem = $elements->item($i);
+		$i-- ;
+		if( !$domelem->attributes->getNamedItem('value') ) {
+			continue ;
+		}
+		
+		$src_value = $domelem->attributes->getNamedItem('value')->value ;
+		
+		$prent = $domelem->parentNode;
+		if( $map_mkey_value[$src_value] && strtolower($map_mkey_value[$src_value])!='no' ) {
+			$innerHTML= '';
+			foreach ($domelem->childNodes as $child) {
+				$innerHTML .= $child->ownerDocument->saveXML( $child );
+			}
+			$frag = $doc->createDocumentFragment() ;
+			$frag->appendXML($innerHTML) ;
+			$prent->replaceChild($frag, $domelem);
+		} else {
+			$prent->removeChild($domelem);
+		}
+	}
+	
 	
 	$elements = $doc->getElementsByTagName('qbook-value');
 	$i = $elements->length - 1;
