@@ -858,14 +858,14 @@ EOF;
 		}
 		$this->sdomainDefine_buildFilesVuid( $sdomain_id ) ;
 	}
-	public function sdomainDefine_buildBible( $sdomain_id , $bible_code ) {
+	public function sdomainDefine_buildBible( $sdomain_id , $bible_code, $drop_allowed=FALSE ) {
 		$_opDB = $this->_opDB ;
 		$sdomain_db = $this->getSdomainDb( $sdomain_id ) ;
 		
-		$this->sdomainDefine_buildBible_tree( $sdomain_id , $bible_code );
-		$this->sdomainDefine_buildBible_entry( $sdomain_id , $bible_code );
+		$this->sdomainDefine_buildBible_tree( $sdomain_id , $bible_code, $drop_allowed );
+		$this->sdomainDefine_buildBible_entry( $sdomain_id , $bible_code, $drop_allowed );
 	}
-	public function sdomainDefine_buildBible_tree( $sdomain_id , $bible_code ) {
+	public function sdomainDefine_buildBible_tree( $sdomain_id , $bible_code, $drop_allowed=FALSE ) {
 		$_opDB = $this->_opDB ;
 		$sdomain_db = $this->getSdomainDb( $sdomain_id ) ;
 	
@@ -931,7 +931,7 @@ EOF;
 			$arrAssoc_crmField_dbField[$field_crm] = $field_name ;
 		}
 		
-		DatabaseMgr_Util::syncTableStructure( $sdomain_db , $db_table , $arrAssoc_dbField_fieldType , $arr_model_keys ) ;
+		DatabaseMgr_Util::syncTableStructure( $sdomain_db , $db_table , $arrAssoc_dbField_fieldType , $arr_model_keys, $drop_allowed ) ;
 		
 		$view_name = 'view_bible_'.$bible_code.'_tree' ;
 		$query = "DROP VIEW IF EXISTS {$sdomain_db}.{$view_name}" ;
@@ -953,7 +953,7 @@ EOF;
 
 		return array($db_table , $arrAssoc_dbField_fieldType , $arr_model_keys, $arrAssoc_crmField_dbField) ;
 	}
-	public function sdomainDefine_buildBible_entry( $sdomain_id , $bible_code ) {
+	public function sdomainDefine_buildBible_entry( $sdomain_id , $bible_code, $drop_allowed=FALSE ) {
 		$_opDB = $this->_opDB ;
 		$sdomain_db = $this->getSdomainDb( $sdomain_id ) ;
 	
@@ -1032,7 +1032,7 @@ EOF;
 			$arrAssoc_crmField_dbField[$field_crm] = $field_name ;
 		}
 		
-		DatabaseMgr_Util::syncTableStructure( $sdomain_db , $db_table , $arrAssoc_dbField_fieldType , $arr_model_keys ) ;
+		DatabaseMgr_Util::syncTableStructure( $sdomain_db , $db_table , $arrAssoc_dbField_fieldType , $arr_model_keys, $drop_allowed ) ;
 
 		$view_name = 'view_bible_'.$bible_code.'_entry' ;
 		$query = "DROP VIEW IF EXISTS {$sdomain_db}.{$view_name}" ;
@@ -1054,12 +1054,12 @@ EOF;
 
 		return array($db_table , $arrAssoc_dbField_fieldType , $arr_model_keys, $arrAssoc_crmField_dbField) ;
 	}
-	public function sdomainDefine_buildFile( $sdomain_id , $file_code ) {
-		$return = $this->sdomainDefine_buildFilePrivate( $sdomain_id , $file_code ) ;
+	public function sdomainDefine_buildFile( $sdomain_id , $file_code, $drop_allowed=FALSE ) {
+		$return = $this->sdomainDefine_buildFilePrivate( $sdomain_id , $file_code, $drop_allowed ) ;
 		$this->sdomainDefine_buildFilesVuid( $sdomain_id ) ;
 		return $return ;
 	}
-	private function sdomainDefine_buildFilePrivate( $sdomain_id , $file_code ) {
+	private function sdomainDefine_buildFilePrivate( $sdomain_id , $file_code, $drop_allowed=FALSE ) {
 		$_opDB = $this->_opDB ;
 		$sdomain_db = $this->getSdomainDb( $sdomain_id ) ;
 	
@@ -1207,7 +1207,7 @@ EOF;
 			$arr_model_keys['CRM_PRIMARY'] = array('non_unique'=>'1','arr_columns'=>$primaryKey_arrColumns) ;
 		}
 		
-		DatabaseMgr_Util::syncTableStructure( $sdomain_db , $db_table , $arrAssoc_dbField_fieldType , $arr_model_keys ) ;
+		DatabaseMgr_Util::syncTableStructure( $sdomain_db , $db_table , $arrAssoc_dbField_fieldType , $arr_model_keys, $drop_allowed ) ;
 		$has_autoIncrement = FALSE ;
 		$query = "SHOW COLUMNS FROM {$sdomain_db}.{$db_table} where field='filerecord_id'" ;
 		$result = $_opDB->query($query) ;
