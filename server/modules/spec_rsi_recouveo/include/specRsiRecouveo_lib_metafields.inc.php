@@ -1,6 +1,6 @@
 <?php
 
-function specRsiRecouveo_lib_metafields_build() {
+function specRsiRecouveo_lib_metafields_build($dopurge_unused=FALSE) {
 	global $_opDB ;
 	
 	$ttmp = specRsiRecouveo_cfg_getConfig() ;
@@ -77,9 +77,9 @@ function specRsiRecouveo_lib_metafields_build() {
 	
 	
 	$t = new DatabaseMgr_Sdomain( DatabaseMgr_Base::dbCurrent_getDomainId() );
-	$t->sdomainDefine_buildBible( DatabaseMgr_Sdomain::dbCurrent_getSdomainId(), 'LIB_ACCOUNT' ) ;
-	$t->sdomainDefine_buildFile( DatabaseMgr_Sdomain::dbCurrent_getSdomainId(), 'FILE' ) ;
-	$t->sdomainDefine_buildFile( DatabaseMgr_Sdomain::dbCurrent_getSdomainId(), 'RECORD' ) ;
+	$t->sdomainDefine_buildBible( DatabaseMgr_Sdomain::dbCurrent_getSdomainId(), 'LIB_ACCOUNT', $dopurge_unused ) ;
+	$t->sdomainDefine_buildFile( DatabaseMgr_Sdomain::dbCurrent_getSdomainId(), 'FILE', $dopurge_unused ) ;
+	$t->sdomainDefine_buildFile( DatabaseMgr_Sdomain::dbCurrent_getSdomainId(), 'RECORD', $dopurge_unused ) ;
 }
 
 ?>

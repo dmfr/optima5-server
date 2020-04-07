@@ -71,7 +71,7 @@ $t->sdomainDefine_buildAll( DatabaseMgr_Sdomain::dbCurrent_getSdomainId() ) ;
 
 // specRsiRecouveo_lib_metafields_build
 include("$server_root/modules/spec_rsi_recouveo/backend_spec_rsi_recouveo.inc.php");
-specRsiRecouveo_lib_metafields_build() ;
+specRsiRecouveo_lib_metafields_build($dopurge_unused=TRUE) ;
 
 die() ;
 ?>
