@@ -423,6 +423,17 @@ function specRsiRecouveo_cfg_getConfig($post_data=array('skip_filter'=>true)) {
 					$atr['filter_values'][] = $arr[0] ;
 				}
 			}
+			if( $atr['is_filter'] && $atr['atr_type']=='record' ) {
+				$atr['filter_values'] = array() ;
+				$query = "SELECT distinct field_{$atr['atr_field']} FROM view_file_RECORD" ;
+				$result = $_opDB->query($query) ;
+				while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+					if( !$arr[0] ) {
+						continue ;
+					}
+					$atr['filter_values'][] = $arr[0] ;
+				}
+			}
 		}
 		unset($atr) ;
 	}

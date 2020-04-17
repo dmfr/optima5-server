@@ -69,6 +69,35 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 		$map_atrId_values[$atr_id] = array() ;
 	}
 	
+	// 2020-04 : $filter_atr_Rsub
+	if( !isset($filter_fileFilerecordId_list) && $filter_atr ) {
+		$query_null = TRUE ;
+		$query = "SELECT distinct field_LINK_ACCOUNT FROM view_file_RECORD WHERE 1" ;
+		if( !$filter_archiveIsOn ) {
+			$query.= " AND field_LETTER_IS_CONFIRM='0'" ;
+		}
+		foreach( $cfg_atr as $atr_record ) {
+			$atr_id = $atr_record['atr_id'] ;
+			$atr_dbfield = 'field_'.$atr_record['atr_field'] ;
+			switch( $atr_record['atr_type'] ) {
+				case 'record' : break ;
+				default : continue 2 ;
+			}
+			if( $filter_atr[$atr_id] ) {
+				$mvalue = $filter_atr[$atr_id] ;
+				$query.= " AND {$atr_dbfield} IN ".$_opDB->makeSQLlist($mvalue) ;
+				$query_null = FALSE ;
+			}
+		}
+		if( !$query_null ) {
+			$query = "CREATE TEMPORARY TABLE filter_atr_Rsub AS {$query}" ;
+			$_opDB->query($query) ;
+			$query = "ALTER TABLE filter_atr_Rsub ADD PRIMARY KEY (field_LINK_ACCOUNT)" ;
+			$_opDB->query($query) ;
+			$filter_atr_Rsub = "SELECT field_LINK_ACCOUNT FROM filter_atr_Rsub" ;
+		}
+	}
+	
 	
 	$TAB_files = array() ;
 	
@@ -94,7 +123,6 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 				$atr_dbfield = 'field_'.$atr_record['atr_field'] ;
 				switch( $atr_record['atr_type'] ) {
 					case 'account' : $atr_dbalias='la' ; break ;
-					case 'record' : $atr_dbalias='f' ; break ;
 					default : continue 2 ;
 				}
 				if( $filter_atr[$atr_id] ) {
@@ -102,6 +130,9 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 					$query.= " AND {$atr_dbalias}.{$atr_dbfield} IN ".$_opDB->makeSQLlist($mvalue) ;
 				}
 			}
+		}
+		if( $filter_atr_Rsub ) {
+			$query.= " AND f.field_LINK_ACCOUNT IN ({$filter_atr_Rsub})" ;
 		}
 		if( $filter_soc ) {
 			$query.= " AND la.treenode_key IN ".$_opDB->makeSQLlist($filter_soc) ;
@@ -199,7 +230,6 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 				$atr_dbfield = 'field_'.$atr_record['atr_field'] ;
 				switch( $atr_record['atr_type'] ) {
 					case 'account' : $atr_dbalias='la' ; break ;
-					case 'record' : $atr_dbalias='f' ; break ;
 					default : continue 2 ;
 				}
 				if( $filter_atr[$atr_id] ) {
@@ -207,6 +237,9 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 					$query.= " AND {$atr_dbalias}.{$atr_dbfield} IN ".$_opDB->makeSQLlist($mvalue) ;
 				}
 			}
+		}
+		if( $filter_atr_Rsub ) {
+			$query.= " AND f.field_LINK_ACCOUNT IN ({$filter_atr_Rsub})" ;
 		}
 		if( $filter_soc ) {
 			$query.= " AND la.treenode_key IN ".$_opDB->makeSQLlist($filter_soc) ;
@@ -274,7 +307,6 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 				$atr_dbfield = 'field_'.$atr_record['atr_field'] ;
 				switch( $atr_record['atr_type'] ) {
 					case 'account' : $atr_dbalias='la' ; break ;
-					case 'record' : $atr_dbalias='f' ; break ;
 					default : continue 2 ;
 				}
 				if( $filter_atr[$atr_id] ) {
@@ -282,6 +314,9 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 					$query.= " AND {$atr_dbalias}.{$atr_dbfield} IN ".$_opDB->makeSQLlist($mvalue) ;
 				}
 			}
+		}
+		if( $filter_atr_Rsub ) {
+			$query.= " AND f.field_LINK_ACCOUNT IN ({$filter_atr_Rsub})" ;
 		}
 		if( $filter_soc ) {
 			$query.= " AND la.treenode_key IN ".$_opDB->makeSQLlist($filter_soc) ;
@@ -326,7 +361,6 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 				$atr_dbfield = 'field_'.$atr_record['atr_field'] ;
 				switch( $atr_record['atr_type'] ) {
 					case 'account' : $atr_dbalias='la' ; break ;
-					case 'record' : $atr_dbalias='f' ; break ;
 					default : continue 2 ;
 				}
 				if( $filter_atr[$atr_id] ) {
@@ -334,6 +368,9 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 					$query.= " AND {$atr_dbalias}.{$atr_dbfield} IN ".$_opDB->makeSQLlist($mvalue) ;
 				}
 			}
+		}
+		if( $filter_atr_Rsub ) {
+			$query.= " AND f.field_LINK_ACCOUNT IN ({$filter_atr_Rsub})" ;
 		}
 		if( $filter_soc ) {
 			$query.= " AND la.treenode_key IN ".$_opDB->makeSQLlist($filter_soc) ;
