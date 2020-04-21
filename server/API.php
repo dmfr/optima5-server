@@ -71,6 +71,15 @@ $apikey_code = $arr[0] ;
 
 $path_info = parse_url($_SERVER['PATH_INFO']) ;
 $ttmp = explode('/',$path_info['path']) ;
+if( $ttmp[1] == 'private' ) {
+	if( $apikey_code != 'PRIVATE' ) {
+		header('HTTP/1.0 403 Forbidden');
+		exit ;
+	}
+	$TAB = backend_specific( $_POST ) ;
+	header('Content-type: application/json');
+	die( json_encode($TAB) ) ;
+}
 if( count($ttmp) > 2 ) {
 	header("HTTP/1.0 404 Not Found");
 	die() ;
