@@ -822,6 +822,7 @@ function specRsiRecouveo_lib_edi_post_record( $json_rows) {
 		'NonFactType' => 'field_TYPE',
 		'XeCurrencyAmount' => 'field_XE_CURRENCY_AMOUNT',
 		'XeCurrencyCode' => 'field_XE_CURRENCY_CODE',
+		'XeCurrencySign' => 'field_XE_CURRENCY_SIGN',
 		
 		// 02/2019 : update to Wiki
 		'IdRecord' => 'field_RECORD_ID',
@@ -865,6 +866,9 @@ function specRsiRecouveo_lib_edi_post_record( $json_rows) {
 		}
 		if( is_string($json_row['XeCurrencyAmount']) ) {
 			$json_row['XeCurrencyAmount'] = str_replace(',','.',$json_row['XeCurrencyAmount']) ;
+		}
+		if( is_string($json_row['XeCurrencyCode']) && !$json_row['XeCurrencySign'] ) {
+			$json_row['XeCurrencySign'] = $json_row['XeCurrencyCode'] ;
 		}
 		
 		$missing = array() ;
