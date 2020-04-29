@@ -558,8 +558,15 @@ function specRsiRecouveo_report_getUserActions( $post_data ) {
 	
 	$columns = array() ;
 	foreach( $tmp_status_actions as $group_id => $actions ) {
+		if( !$lib_groups[$group_id] ) {
+			continue ;
+		}
+		
 		sort($actions) ;
 		foreach( $actions as $action_code ) {
+			if( !$lib_actions[$action_code] ) {
+				continue ;
+			}
 			$columns[] = array(
 				'group_id' => $group_id,
 				'group_txt' => $lib_groups[$group_id],
@@ -577,6 +584,9 @@ function specRsiRecouveo_report_getUserActions( $post_data ) {
 	}
 	sort($tmp_actions) ;
 	foreach( $tmp_actions as $action_code ) {
+		if( !$lib_actions[$action_code] ) {
+			continue ;
+		}
 		$columns[] = array(
 			'group_id' => '*',
 			'group_txt' => 'Tous statuts',

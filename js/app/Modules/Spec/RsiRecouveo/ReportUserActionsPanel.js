@@ -50,6 +50,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportUserActionsPanel',{
 				map_groupId_childrenCols[colDef.group_id] = [] ;
 				map_groupId_groupTxt[colDef.group_id] = colDef.group_txt ;
 			}
+			if( !colDef.col_txt ) {
+				return ;
+			}
 			map_groupId_childrenCols[colDef.group_id].push({
 				tdCls: (colDef.group_sum ? 'op5-spec-rsiveo-blue' : (color_inv ? 'op5-spec-rsiveo-taupe' : '')),
 				text: colDef.col_txt.replace(' ','<br>'),
