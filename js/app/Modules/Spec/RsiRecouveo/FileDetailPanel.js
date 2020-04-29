@@ -511,6 +511,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 					},
 					scope: this
 				},{
+					hidden: !Optima5.Helper.getApplication().desktopGetCfgIsDev(),
 					iconCls: 'op5-spec-rsiveo-action-tchat',
 					text: 'Tchat (portail externe)',
 					handler: function() {
