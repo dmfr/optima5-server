@@ -194,6 +194,21 @@
 	background-repeat: no-repeat ;
 	background-image: url("../images/modules/rsiveo-mail-out-16.png") !important;
 }
+.op5-spec-rsiveo-action-tchat {
+	background-position: center ;
+	background-repeat: no-repeat ;
+	background-image: url("../images/modules/rsiveo-mail-sms-16.png") !important;
+}
+.op5-spec-rsiveo-action-tchat-in {
+	background-position: center ;
+	background-repeat: no-repeat ;
+	background-image: url("../images/modules/rsiveo-mail-sms-16.png") !important;
+}
+.op5-spec-rsiveo-action-tchat-out {
+	background-position: center ;
+	background-repeat: no-repeat ;
+	background-image: url("../images/modules/rsiveo-mail-sms-16.png") !important;
+}
 .op5-spec-rsiveo-action-litig {
 	background-position: center ;
 	background-repeat: no-repeat ;
@@ -1178,4 +1193,10 @@
 	margin: 4px ;
 	font-size: 13px;
 	white-space: pre-wrap ;
+}
+
+.op5-spec-rsiveo-action-tchat-rowbody pre {
+	margin: 0;
+	padding: 2px 6px ;
+	font-family: sans-serif ;
 }

@@ -510,6 +510,13 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 						this.handleNewAction('EMAIL_OUT',{adrpost_default: true}) ;
 					},
 					scope: this
+				},{
+					iconCls: 'op5-spec-rsiveo-action-tchat',
+					text: 'Tchat (portail externe)',
+					handler: function() {
+						this.handleNewAction('TCHAT_OUT') ;
+					},
+					scope: this
 				},'-',{
 					iconCls: 'op5-spec-rsiveo-action-mailout',
 					text: 'Envoi hors scénario',

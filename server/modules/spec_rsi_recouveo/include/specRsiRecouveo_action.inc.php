@@ -877,7 +877,16 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 			}
 			$arr_ins['field_TXT'] = $txt ;
 			break ;
-			
+
+		case 'TCHAT_OUT' :
+			$arr_ins['field_LINK_TXT'] = "<b>Tchat sortant</b>" ;
+			$arr_ins['field_TXT'] = $post_form['tchat_txt'] ;
+			break ;
+		case 'TCHAT_IN' :
+			$arr_ins['field_LINK_TXT'] = "<b>Tchat entrant: {$post_form['tchat_title']}</b>" ;
+			$arr_ins['field_TXT'] = $post_form['tchat_txt'] ;
+			break ;
+
 		case 'BUMP' :
 			if( trim($post_form['link_txt']) || trim($post_form['txt']) ) {
 				$arr_ins['field_LINK_TXT'] = trim($post_form['link_txt']) ;
