@@ -43,7 +43,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesWidgetList', {
 			    dataIndex: atrRecord.atr_field,
 			    //rendererDataindex: atrRecord.bible_code + '_text',
 			    width:120,
-			    align: 'center'
+			    align: 'center',
+				 filter: {
+				    type: 'string'
+			    }
 		    }) ;
 	    }) ;
 
