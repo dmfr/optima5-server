@@ -837,20 +837,29 @@ function specDbsTracy_trspt_printDoc( $post_data ) {
 			case 'delivery' :
 			$buffer.= "<table border='0' cellspacing='5' cellpadding='5' width='800'>" ;
 			$buffer.= "<tr>" ;
-			$buffer.= "<td width='50%'  valign='top' style='border: 1px solid gray'>" ;
-				$buffer.= '<span class="mybig">' ;
-				$buffer.= '<b>'.'ENLEVEMENT NAVETTE :'.'</b><br>' ;
-				$buffer.= ''.'DATE :'.'<br>' ;
-				$buffer.= ''.'HEURE :'.'<br>' ;
-				$buffer.= "</span>" ;
+			$buffer.= "<td width='50%'  valign='top'>" ;
+				$cell_style = "style='border: 1px solid gray'" ;
+				$buffer.= '<table cellpadding="5" cellspacing="2" border="0" class="mybig" width="100%">' ;
+				$buffer.= "<tr><td {$cell_style} align='center' height='32'><b>ENLEVEMENT NAVETTE</b></td></tr>" ;
+				$buffer.= "<tr><td {$cell_style}  height='48'>Date :</td></tr>" ;
+				$buffer.= "<tr><td {$cell_style}  height='48'>Heure :</td></tr>" ;
+				$buffer.= '</table>' ;
+				
+				$buffer.= '<br>' ;
+				
+				$cell_style = "style='border: 1px solid gray'" ;
+				$buffer.= '<table cellpadding="5" cellspacing="2" border="0" class="mybig" width="100%">' ;
+				$buffer.= "<tr><td {$cell_style} align='center' height='32'><b>LIVRAISON</b></td></tr>" ;
+				$buffer.= "<tr><td {$cell_style}  height='48'>Date :</td></tr>" ;
+				$buffer.= "<tr><td {$cell_style}  height='48'>Heure :</td></tr>" ;
+				$buffer.= '</table>' ;
 			$buffer.= "</td>" ;
 			$buffer.= "<td>&nbsp;</td>" ;
-			$buffer.= "<td width='50%'  valign='top' style='border: 1px solid gray'>" ;
-				$buffer.= '<span class="mybig">' ;
-				$buffer.= '<b>'.'LIVRAISON :'.'</b><br>' ;
-				$buffer.= ''.'DATE :'.'<br>' ;
-				$buffer.= ''.'HEURE :'.'<br>' ;
-				$buffer.= "</span>" ;
+			$buffer.= "<td width='50%'  valign='top'>" ;
+				$cell_style = "style='border: 1px solid gray'" ;
+				$buffer.= '<table cellpadding="5" cellspacing="2" border="0" class="mybig" width="100%">' ;
+				$buffer.= "<tr><td {$cell_style} valign='top' height='144'><b>RECU PAR<br>(CACHET/NOM) :</b></td></tr>" ;
+				$buffer.= '</table>' ;
 			$buffer.= "</td>" ;
 			$buffer.= "</tr></table>" ;
 			break ;
@@ -858,17 +867,31 @@ function specDbsTracy_trspt_printDoc( $post_data ) {
 			case 'pickup' :
 			$buffer.= "<table border='0' cellspacing='5' cellpadding='5' width='800'>" ;
 			$buffer.= "<tr>" ;
-			$buffer.= "<td width='50%'  valign='top' style='border: 1px solid gray'>" ;
+			$buffer.= "<td width='50%'  valign='top'>" ;
+				/*
 				$buffer.= '<span class="mybig">' ;
 				$buffer.= '<b>'.'ENLEVEMENT TRANSPORTEUR :'.'</b><br>' ;
 				$buffer.= ''.'DATE :'.'<br>' ;
 				$buffer.= ''.'HEURE :'.'<br>' ;
 				$buffer.= ''.'NOM :'.'<br>' ;
 				$buffer.= "</span>" ;
+				*/
+				$cell_style = "style='border: 1px solid gray'" ;
+				$buffer.= '<table cellpadding="5" cellspacing="2" border="0" class="mybig" width="100%">' ;
+				$buffer.= "<tr><td {$cell_style} align='center' height='32'><b>Pickup forwarder</b></td></tr>" ;
+				$buffer.= "<tr><td {$cell_style}  height='48'>Date :</td></tr>" ;
+				$buffer.= "<tr><td {$cell_style}  height='48'>Pickup hours :</td></tr>" ;
+				$buffer.= "<tr><td {$cell_style}  height='48'>Society :</td></tr>" ;
+				$buffer.= "<tr><td {$cell_style}  height='48'>Driver's name :</td></tr>" ;
+				$buffer.= "<tr><td {$cell_style} valign='top' height='144'>Driver's signature</td></tr>" ;
+				$buffer.= '</table>' ;
 			$buffer.= "</td>" ;
 			$buffer.= "<td>&nbsp;</td>" ;
-			$buffer.= "<td width='50%'  valign='top' style='border: 1px solid gray'>" ;
-				$buffer.= "&nbsp;" ;
+			$buffer.= "<td width='50%'  valign='top'>" ;
+				$cell_style = "style='border: 1px solid gray'" ;
+				$buffer.= '<table cellpadding="5" cellspacing="2" border="0" class="mybig" width="100%">' ;
+				$buffer.= "<tr><td {$cell_style} valign='top' height='144'><b>RECU PAR<br>(CACHET/NOM) :</b></td></tr>" ;
+				$buffer.= '</table>' ;
 			$buffer.= "</td>" ;
 			$buffer.= "</tr></table>" ;
 			break ;
@@ -876,17 +899,21 @@ function specDbsTracy_trspt_printDoc( $post_data ) {
 			case 'integrateur' :
 			$buffer.= "<table border='0' cellspacing='5' cellpadding='5' width='800'>" ;
 			$buffer.= "<tr>" ;
-			$buffer.= "<td width='50%'  valign='top' style='border: 1px solid gray'>" ;
-				$buffer.= '<span class="mybig">' ;
-				$buffer.= '<b>'.'INTEGRATEUR :'.'</b><br>' ;
-				$buffer.= ''.'DATE :'.'<br>' ;
-				$buffer.= ''.'HEURE :'.'<br>' ;
-				$buffer.= ''.'NOM :'.'<br>' ;
-				$buffer.= "</span>" ;
+			$buffer.= "<td width='50%'  valign='top'>" ;
+				$cell_style = "style='border: 1px solid gray'" ;
+				$buffer.= '<table cellpadding="5" cellspacing="2" border="0" class="mybig" width="100%">' ;
+				$buffer.= "<tr><td {$cell_style} align='center' height='32'><b>INTEGRATEUR</b></td></tr>" ;
+				$buffer.= "<tr><td {$cell_style}  height='48'>Date :</td></tr>" ;
+				$buffer.= "<tr><td {$cell_style}  height='48'>Heure :</td></tr>" ;
+				$buffer.= "<tr><td {$cell_style}  height='48'>Nom :</td></tr>" ;
+				$buffer.= '</table>' ;
 			$buffer.= "</td>" ;
 			$buffer.= "<td>&nbsp;</td>" ;
-			$buffer.= "<td width='50%'  valign='top' style='border: 1px solid gray'>" ;
-				$buffer.= "&nbsp;" ;
+			$buffer.= "<td width='50%'  valign='top'>" ;
+				$cell_style = "style='border: 1px solid gray'" ;
+				$buffer.= '<table cellpadding="5" cellspacing="2" border="0" class="mybig" width="100%">' ;
+				$buffer.= "<tr><td {$cell_style} valign='top' height='144'><b>RECU PAR<br>(CACHET/NOM) :</b></td></tr>" ;
+				$buffer.= '</table>' ;
 			$buffer.= "</td>" ;
 			$buffer.= "</tr></table>" ;
 			break ;
@@ -894,18 +921,6 @@ function specDbsTracy_trspt_printDoc( $post_data ) {
 		
 		$buffer.= "<br>" ;
 		
-		$buffer.= "<table border='0' cellspacing='5' cellpadding='5' width='800'>" ;
-		$buffer.= "<tr>" ;
-		$buffer.= "<td width='50%'  valign='top'>" ;
-			$buffer.= "&nbsp;" ;
-		$buffer.= "</td>" ;
-		$buffer.= "<td>&nbsp;</td>" ;
-		$buffer.= "<td width='50%' height='75' valign='top' style='border: 1px solid gray'>" ;
-			$buffer.= '<span class="mybig">' ;
-			$buffer.= '<b>'.'RECU PAR<br>(CACHET/NOM) :'.'</b><br>' ;
-			$buffer.= "</span>" ;
-		$buffer.= "</td>" ;
-		$buffer.= "</tr></table>" ;
 	
 	
 	$app_root = $GLOBALS['app_root'] ;
