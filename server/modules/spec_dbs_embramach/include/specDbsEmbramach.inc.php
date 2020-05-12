@@ -373,6 +373,7 @@ function specDbsEmbramach_mach_getGridData( $post_data ) {
 			$where_clause.= " AND 0" ;
 		}
 	} else {
+		//$where_clause.= " AND (f.field_STATUS<>'CLOSED' OR f.field_DATE_CLOSED >= DATE_SUB(NOW(),INTERVAL 60 DAY))" ;
 		$where_clause.= " AND (f.field_STATUS<>'CLOSED' OR f.field_DATE_CLOSED >= DATE_SUB(NOW(),INTERVAL 1 DAY))" ;
 	}
 	
@@ -393,6 +394,7 @@ function specDbsEmbramach_mach_getGridData( $post_data ) {
 			case 'ACTIVE' :
 				break ;
 			case 'CLOSED' :
+				//if( !$_filter_filerecordIds && strtotime($arr['field_DATE_CLOSED']) < time() - (3600*24*60) ) {
 				if( !$_filter_filerecordIds && strtotime($arr['field_DATE_CLOSED']) < time() - (3600*24) ) {
 					continue 2 ;
 				}
