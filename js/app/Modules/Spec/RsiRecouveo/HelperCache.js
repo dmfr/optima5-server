@@ -730,7 +730,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 		return this.cfgSocTreeStore.getRootNode().copy(undefined,true) ;
 	},
 	getSocRowId: function(socId) {
-		var socNode = this.cfgSocTreeStore.getRootNode().findChild('soc_id',socId) ;
+		var socNode = this.cfgSocTreeStore.getRootNode().findChild('soc_id',socId,true) ;
 		if( socNode ) {
 			return socNode.getData() ;
 		}
