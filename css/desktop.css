@@ -692,3 +692,24 @@ body {    background: none repeat scroll 0 0 #F8F8F8;}
 	opacity: 0 !important;
 	cursor: default !important;
 }
+
+/* Chrome 83 : new UI widgets vs ExtJS 5 */
+.x-btn-inner-default-small {
+	max-width: calc(100% - 15px) !important;
+}
+.x-btn-inner-default-medium {
+	max-width: calc(100% - 23px) !important;
+}
+.x-btn-inner-default-large {
+	max-width: calc(100% - 31px) !important;
+}
+.x-btn-inner-default-toolbar-small {
+	max-width: calc(100% - 15px) !important;
+}
+.x-btn-inner-default-toolbar-medium {
+	max-width: calc(100% - 23px) !important;
+}
+.x-btn-inner-default-toolbar-large {
+	max-width: calc(100% - 31px) !important;
+}
+
