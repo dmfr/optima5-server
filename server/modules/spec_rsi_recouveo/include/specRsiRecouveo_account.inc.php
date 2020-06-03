@@ -209,6 +209,7 @@ function specRsiRecouveo_account_open( $post_data ) {
 			'type_temprec' => $arr['field_TYPE_TEMPREC'],
 			'record_id' => $arr['field_RECORD_ID'],
 			'record_ref' => $arr['field_RECORD_REF'],
+			'record_txt' => $arr['field_RECORD_TXT'],
 			'acc_id' => $arr['field_LINK_ACCOUNT'],
 			'date_load' => $arr['field_DATE_LOAD'],
 			'date_record' => $arr['field_DATE_RECORD'],
