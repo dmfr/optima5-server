@@ -159,6 +159,25 @@ function specRsiRecouveo_cfg_getConfig($post_data=array('skip_filter'=>true)) {
 	
 	global $_opDB ;
 	
+	// HACK : actions/statuts
+	paracrm_lib_data_insertRecord_bibleTreenode('CFG_ACTION','TCHAT','',array(
+		'field_ACTION_GROUP' => 'TCHAT'
+	));
+	paracrm_lib_data_insertRecord_bibleEntry('CFG_ACTION','TCHAT_IN','TCHAT',array(
+		'field_ACTION_CODE' => 'TCHAT_IN',
+		'field_ACTION_TXT' => 'Tchat entrant',
+		'field_ACTION_CLS' => 'op5-spec-rsiveo-action-mailin',
+		'field_IS_NEXT' => 0,
+		'field_IS_NEXT_SCHED' => 0,
+	));
+	paracrm_lib_data_insertRecord_bibleEntry('CFG_ACTION','TCHAT_OUT','TCHAT',array(
+		'field_ACTION_CODE' => 'TCHAT_OUT',
+		'field_ACTION_TXT' => 'Tchat sortant',
+		'field_ACTION_CLS' => 'op5-spec-rsiveo-action-mailout',
+		'field_IS_NEXT' => 1,
+		'field_IS_NEXT_SCHED' => 1,
+	));
+	
 	
 	$GLOBALS['cache_specRsiRecouveo_cfg']['getConfig'] = array();
 	
