@@ -424,7 +424,7 @@ function paracrm_queries_qsqlTransaction_resDestroy( $post_data )
 {
 	$transaction_id = $post_data['_transaction_id'] ;
 	unset($_SESSION['transactions'][$transaction_id]['arr_RES'][$post_data['RES_id']]) ;
-	return array('success'=>true, 'debug'=>count($_SESSION['transactions'][$transaction_id]['arr_RES'])) ;
+	return array('success'=>true) ;
 }
 
 

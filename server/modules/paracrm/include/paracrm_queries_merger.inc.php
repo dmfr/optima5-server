@@ -59,6 +59,10 @@ function paracrm_queries_mergerTransaction( $post_data )
 		{
 			$json =  paracrm_queries_mergerTransaction_resGet( $post_data ) ;
 		}
+		if( $post_data['_subaction'] == 'res_destroy' )
+		{
+			$json =  paracrm_queries_mergerTransaction_resDestroy( $post_data ) ;
+		}
 		if( $post_data['_subaction'] == 'exportXLS' )
 		{
 			$json =  paracrm_queries_mergerTransaction_exportXLS( $post_data , $arr_saisie ) ;
@@ -299,6 +303,12 @@ function paracrm_queries_mergerTransaction_resGet( $post_data )
 	}
 	
 	return array('success'=>true,'tabs'=>array_values($tabs)) ;
+}
+function paracrm_queries_mergerTransaction_resDestroy( $post_data )
+{
+	$transaction_id = $post_data['_transaction_id'] ;
+	unset($_SESSION['transactions'][$transaction_id]['arr_RES'][$post_data['RES_id']]) ;
+	return array('success'=>true) ;
 }
 
 

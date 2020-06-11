@@ -181,6 +181,10 @@ function paracrm_queries_qbookTransaction( $post_data )
 				paracrm_queries_qbookTransaction_exportJson( $json, $arr_saisie ) ;
 			}
 		}
+		if( $post_data['_subaction'] == 'res_destroy' )
+		{
+			$json =  paracrm_queries_qbookTransaction_resDestroy( $post_data ) ;
+		}
 		
 		if( $post_data['_subaction'] == 'end' )
 		{
@@ -589,6 +593,12 @@ function paracrm_queries_qbookTransaction_resGet( $post_data, &$arr_saisie )
 		$tabs[] = $tab ;
 	}
 	return array('success'=>true,'disable_charts'=>true,'tabs'=>$tabs) ;
+}
+function paracrm_queries_qbookTransaction_resDestroy( $post_data )
+{
+	$transaction_id = $post_data['_transaction_id'] ;
+	unset($_SESSION['transactions'][$transaction_id]['arr_RES'][$post_data['RES_id']]) ;
+	return array('success'=>true) ;
 }
 
 
