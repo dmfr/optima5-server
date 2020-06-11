@@ -443,13 +443,26 @@ function paracrm_android_query_fetchResult( $post_data ) {
 		
 		
 		case 'qsql' :
+		if( $arr_where_conditions ) {
+			$vars = array() ;
+			foreach( $arr_where_conditions as $querysrc_targetfield_ssid => $condition ) {
+				$query_fieldwhere_idx = $querysrc_targetfield_ssid - 1 ;
+				foreach( $condition as $mkey => $mvalue ) {
+					if( strpos($mkey,'condition_') === 0 ) {
+						$var_name = 'var_'.$querysrc_targetfield_ssid.'_'.$mkey ;
+						$vars[$var_name] = $mvalue ;
+					}
+				}
+			}
+		}
+		
 		$qsql_id = $_opDB->query_uniqueValue("SELECT target_qsql_id FROM input_query_src WHERE querysrc_id='$querysrc_id'") ;
 		//error_log('Qmerge_id :'.$qmerge_id) ;
 		
 		$arr_saisie = array() ;
 		paracrm_queries_qsqlTransaction_init( array('qsql_id'=>$qsql_id) , $arr_saisie ) ;
 		
-		$RES = paracrm_queries_qsql_lib_exec($arr_saisie['sql_querystring'], $is_rw=FALSE, $auth_bypass=TRUE) ;
+		$RES = paracrm_queries_qsql_lib_exec($arr_saisie['sql_querystring'], $is_rw=FALSE, $auth_bypass=TRUE, $vars) ;
 		error_log(print_r($RES,true)) ;
 		
 		if( $post_data['xls_export'] == 'true' ) {
