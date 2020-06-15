@@ -1,5 +1,34 @@
 <?php
 
+function specRsiRecouveo_account_lookup( $post_data ) {
+	$ttmp = specRsiRecouveo_cfg_getConfig() ;
+	$cfg_action_eta = $ttmp['data']['cfg_action_eta'] ;
+	$cfg_atr = $ttmp['data']['cfg_atr'] ;
+	
+	global $_opDB ;
+	
+	$atr_field = $post_data['atr_field'] ;
+	$atr_value = $post_data['atr_value'] ;
+	$atr_value_sql = $_opDB->escape_string($atr_value) ;
+	
+	$exists = FALSE ;
+	foreach( $cfg_atr as $atr_record ) {
+		if( $atr_record['atr_field'] == $atr_field ) {
+			$exists = TRUE ;
+		}
+	}
+	if( !$exists ) {
+		return array('success'=>false) ;
+	}
+	
+	$data = array() ;
+	$query = "SELECT entry_key FROM view_bible_LIB_ACCOUNT_entry WHERE field_{$atr_field}='{$atr_value_sql}'" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+		$data[] = $arr[0] ;
+	}
+	return array('success'=>true,'data'=>$data) ;
+}
 function specRsiRecouveo_account_open( $post_data ) {
 	/*
 	- Load account

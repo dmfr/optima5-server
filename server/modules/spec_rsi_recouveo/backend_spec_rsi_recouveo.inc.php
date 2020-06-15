@@ -48,6 +48,8 @@ switch( $post_data['_action'] )
 	
 	case 'account_open' :
 	return specRsiRecouveo_account_open( $post_data ) ;
+	case 'account_lookup' :
+	return specRsiRecouveo_account_lookup( $post_data ) ;
 	case 'account_getAllAtrs' :
 	return specRsiRecouveo_account_getAllAtrs( $post_data ) ;
 	case 'account_saveHeader' :
