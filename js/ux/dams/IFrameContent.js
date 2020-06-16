@@ -91,7 +91,6 @@ Ext.define('Ext.ux.dams.IFrameContent', {
 					doc.open() ;
 					doc.write(me.content) ;
 					doc.close();
-				}
 					// These events need to be relayed from the inner document (where they stop
 					// bubbling) up to the outer document. This has to be done at the DOM level so
 					// the event reaches listeners on elements like the document body. The effected
@@ -107,12 +106,13 @@ Ext.define('Ext.ux.dams.IFrameContent', {
 							scope: me
 						}
 					);
+					// We need to be sure we remove all our events from the iframe on unload or we're going to LEAK!
+					Ext.get(this.getWin()).on('beforeunload', me.cleanupListeners, me);
+				}
 			} catch(e) {
 					// cannot do this xss
 			}
 
-			// We need to be sure we remove all our events from the iframe on unload or we're going to LEAK!
-			Ext.get(this.getWin()).on('beforeunload', me.cleanupListeners, me);
 
 			this.el.unmask();
 			this.fireEvent('load', this);
