@@ -1399,7 +1399,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 			success: function(response) {
 				var jsonResponse = Ext.JSON.decode(response.responseText) ;
 				if( jsonResponse.success == true ) {
-					this.openPrintPopupDo( this.getTitle(), jsonResponse.html ) ;
+					this.openPrintPopupDo( this.getTitle(), jsonResponse.html, jsonResponse.pdf_base64 ) ;
 					this.doReload() ;
 				} else {
 					Ext.MessageBox.alert('Error','Print system disabled') ;
@@ -1411,7 +1411,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 			scope: this
 		}) ;
 	},
-	openPrintPopupDo: function(pageTitle, pageHtml) {
+	openPrintPopupDo: function(pageTitle, pageHtml, pagePdfBase64) {
 		this.optimaModule.createWindow({
 			width:850,
 			height:700,
@@ -1420,11 +1420,13 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 			border: false,
 			layout:'fit',
 			title: pageTitle,
+			_pageHtml: pageHtml,
 			items:[Ext.create('Ext.ux.dams.IFrameContent',{
 				itemId: 'uxIFrame',
-				content:pageHtml
+				src:'data:application/pdf;base64,'+pagePdfBase64
 			})],
 			tbar:[{
+				hidden: true,
 				icon: 'images/op5img/ico_print_16.png',
 				text: 'Print',
 				handler: function(btn) {
@@ -1441,13 +1443,13 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 				icon: 'images/op5img/ico_save_16.gif',
 				text: 'Save as PDF',
 				handler: function(btn) {
-					var uxIFrame = btn.up('window').down('#uxIFrame') ;
+					var jsWindow = btn.up('window') ;
 					
 					var exportParams = this.optimaModule.getConfiguredAjaxParams() ;
 					Ext.apply(exportParams,{
 						_moduleId: 'spec_dbs_lam',
 						_action: 'util_htmlToPdf',
-						html: Ext.JSON.encode(uxIFrame.content)
+						html: Ext.JSON.encode(jsWindow._pageHtml)
 					}) ;
 					Ext.create('Ext.ux.dams.FileDownloader',{
 						renderTo: Ext.getBody(),

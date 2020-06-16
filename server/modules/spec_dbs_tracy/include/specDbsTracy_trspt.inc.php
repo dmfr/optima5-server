@@ -950,7 +950,8 @@ function specDbsTracy_trspt_printDoc( $post_data ) {
 		$body_element->appendChild($doc->importNode($tpl->documentElement, TRUE)) ;
 	}
 	
-	return array('success'=>true, 'html'=>$doc->saveHTML() ) ;
+	$html = $doc->saveHTML() ;
+	return array('success'=>true, 'html'=>$html, 'pdf_base64'=>base64_encode(media_pdf_html2pdf($html,'A4')) ) ;
 }
 
 function specDbsTracy_trspt_download( $post_data ) {
