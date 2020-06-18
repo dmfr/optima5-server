@@ -278,7 +278,9 @@ if( !$TAB['success'] ) {
 	doExit() ;
 }
 
-if( $TAB['tabs'] ) {
+if( strtolower($_SERVER['PATH_INFO'])=='/data' ) {
+	$data = $TAB['data'] ;
+}elseif( $TAB['tabs'] ) {
 	$tabs = $TAB['tabs'] ;
 } elseif( $TAB['result_tab'] ) {
 	$TAB['result_tab']['tab_title'] = 'querygrid' ;
@@ -439,6 +441,11 @@ switch( strtolower($_SERVER['PATH_INFO']) ) {
 		header('Content-Type: text/csv; charset=utf-8');
 		fpassthru($handle);
 		fclose($handle) ;
+		doExit() ;
+		break ;
+	
+	case '/data' :
+		print $data ;
 		doExit() ;
 		break ;
 	

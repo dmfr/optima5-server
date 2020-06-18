@@ -70,6 +70,8 @@ switch( $post_data['_action'] )
 	return paracrm_data_editTableGrid_modify( $post_data );
 	case 'data_editTableGrid_delete' :
 	return paracrm_data_editTableGrid_delete( $post_data );
+	case 'data_getTableGrid_binary' :
+	return paracrm_data_getTableGrid_binary( $post_data );
 	
 	
 	case 'data_importTransaction' :

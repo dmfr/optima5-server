@@ -1323,5 +1323,28 @@ function paracrm_data_editTableGrid_delete($post_data) {
 	return array('success'=>true) ;
 }
 
+function paracrm_data_getTableGrid_binary($post_data) {
+	$table_code = $post_data['table_code'] ;
+	$arr_cond = json_decode($post_data['values'],true) ;
+	if( !$arr_cond ) {
+		return array('success'=>false) ;
+	}
+	
+	$_domain_id = DatabaseMgr_Base::dbCurrent_getDomainId() ;
+	$_sdomain_id = DatabaseMgr_Sdomain::dbCurrent_getSdomainId() ;
+	media_contextOpen( $_sdomain_id ) ;
+	
+	$primaryHash = paracrm_lib_data_getPrimaryHash_table($table_code,$arr_cond);
+	$binary = media_bin_getBinary( media_bin_toolFile_getId($table_code,$primaryHash) ) ;
+	
+	media_contextClose() ;
+	
+	if( !$binary ) {
+		return array('success'=>false) ;
+	}
+	
+	return array('success'=>true,'data'=>base64_encode($binary)) ;
+}
+
 
 ?>
