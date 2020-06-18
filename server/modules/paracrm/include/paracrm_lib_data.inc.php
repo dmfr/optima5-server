@@ -900,7 +900,45 @@ function paracrm_lib_data_deleteRecord_file( $file_code, $filerecord_id, $ignore
 
 
 
-
+function paracrm_lib_data_getPrimaryHash_table( $table_code, $data ) {
+	global $_opDB ;
+	
+	//chargement des champs
+	$query = "SELECT table_type FROM define_table WHERE table_code='$table_code'" ;
+	$file_type = $_opDB->query_uniqueValue($query) ;
+	switch( $file_type )
+	{
+		case 'table_primarykey' :
+		case 'table_primarykey_binary' :
+		$arr_fieldsPrimaryKey = array() ;
+		default :
+		$fields = array() ;
+		$query = "SELECT * FROM define_table_field WHERE table_code='$table_code' ORDER BY table_field_index" ;
+		$result = $_opDB->query($query) ;
+		while( ($arr = $_opDB->fetch_assoc($result)) != FALSE )
+		{
+			$fields[$arr['table_field_code']] = $arr['table_field_type'] ;
+			if( is_array($arr_fieldsPrimaryKey) && ($arr['table_field_is_primarykey'] == 'O') ) {
+				$arr_fieldsPrimaryKey[] = $arr['table_field_code'] ;
+			}
+		}
+		break ;
+	}
+	
+	if( is_array($arr_fieldsPrimaryKey) ) {
+		$arr_hash = array() ;
+		foreach( $arr_fieldsPrimaryKey as $field_primaryKey ) {
+			$datafield = $field_primaryKey ;
+			if( !isset($fields[$field_primaryKey]) )
+				continue ;
+			$dbfield_val = preg_replace("/[^A-Z0-9]/", "",strtoupper($data[$datafield])) ;
+			
+			$arr_hash[] = $dbfield_val ;
+		}
+		return implode('@@@',$arr_hash) ;
+	}
+	return NULL ;
+}
 
 
 ?>

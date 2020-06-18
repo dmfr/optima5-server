@@ -6,8 +6,11 @@ function paracrm_lib_dataImport_getTreefieldsRoot( $data_type,$store_code ) {
 	switch( $data_type ) {
 		case 'table' :
 			$table_code = $store_code ;
-			$query = "SELECT table_code FROM define_table WHERE table_code='$table_code'" ;
-			$table_lib = $_opDB->query_uniqueValue($query) ;
+			$query = "SELECT * FROM define_table WHERE table_code='$table_code'" ;
+			$result = $_opDB->query($query) ;
+			$table_row = $_opDB->fetch_assoc($result) ;
+			$table_lib = $table_row['table_code'] ;
+			$table_type = $table_row['table_type'] ;
 			
 			$treefields_root = array();
 			$treefields_root['root'] = true ;
@@ -29,6 +32,19 @@ function paracrm_lib_dataImport_getTreefieldsRoot( $data_type,$store_code ) {
 				$field['table_code'] = $table_code ;
 				$field['table_field_code'] = $arr['table_field_code'] ;
 				$field['table_field_is_primarykey'] = ($arr['table_field_is_primarykey']=='O')?true:false ;
+				$field['leaf'] = true ;
+				$tab_fields[] = $field ;
+			}
+			if( $table_type == 'table_primarykey_binary' ) {
+				$field = array() ;
+				$field['field_code'] = '_binary' ;
+				$field['field_text'] = 'Binary store' ;
+				$field['field_text_full'] = 'Binary store' ;
+				$field['field_type'] = '_binary' ;
+				$field['field_type_full'] = '_binary' ;
+				$field['table_code'] = $table_code ;
+				$field['table_field_code'] = '' ;
+				$field['table_field_is_binary'] = true ;
 				$field['leaf'] = true ;
 				$tab_fields[] = $field ;
 			}
@@ -269,8 +285,9 @@ function paracrm_lib_dataImport_commit_processHandle( $data_type,$store_code, $h
 function paracrm_lib_dataImport_commit_processStream( $treefields_root, $map_fieldCode_csvsrcIdx, $handle, $handle_delimiter, $truncate_mode ) {
 	$GLOBALS['cache_fastImport'] = TRUE ;
 	
+	global $_opDB ;
+	
 	if( $truncate_mode=='truncate' ) {
-		global $_opDB ;
 		foreach( $treefields_root['children'] as $directChild ) {
 			if( isset($directChild['file_code']) ) {
 				$file_code = $directChild['file_code'] ;
@@ -283,8 +300,28 @@ function paracrm_lib_dataImport_commit_processStream( $treefields_root, $map_fie
 			if( isset($directChild['table_code']) ) {
 				$table_code = $directChild['table_code'] ;
 				paracrm_define_truncate( array('data_type'=>'table','table_code'=>$table_code) ) ;
+				
+				$query = "SELECT file_type FROM define_table WHERE table_code='$file_code'" ;
 			}
 		}
+	}
+	
+	$do_openMedia = FALSE ;
+	foreach( $treefields_root['children'] as $directChild ) {
+		$table_code = $directChild['table_code'] ;
+		if( isset($directChild['table_code']) ) {
+			$query = "SELECT table_type FROM define_table WHERE table_code='$file_code'" ;
+			$table_type = $_opDB->query_uniqueValue($query) ;
+			if( $table_type != 'table_primarykey_binary' ) {
+				$do_openMedia = TRUE ;
+			}
+		}
+	}
+	
+	if( $do_openMedia ) {
+		$_domain_id = DatabaseMgr_Base::dbCurrent_getDomainId() ;
+		$_sdomain_id = DatabaseMgr_Sdomain::dbCurrent_getSdomainId() ;
+		media_contextOpen( $_sdomain_id ) ;
 	}
 	
 	$GLOBALS['_opDB']->query("START TRANSACTION") ;
@@ -310,6 +347,10 @@ function paracrm_lib_dataImport_commit_processStream( $treefields_root, $map_fie
 		paracrm_lib_dataImport_commit_processNode($treefields_root,$arr_srcLig,$truncate_mode, $arr_insertedFilerecordId) ;
 	}
 	$GLOBALS['_opDB']->query("COMMIT") ;
+	
+	if( $do_openMedia ) {
+		media_contextClose() ;
+	}
 	
 	if( $truncate_mode=='truncate' ) {
 		global $_opDB ;
@@ -426,7 +467,14 @@ function paracrm_lib_dataImport_commit_processNode_table( $treefields_node, $arr
 				$leaf_value = $arr_srcLig[$field] ;
 				break ;	
 		}
-		$arr_insert_table[$table_field_code] = $leaf_value ;
+		if( $table_field_code ) {
+			$arr_insert_table[$table_field_code] = $leaf_value ;
+		}
+		
+		$_binary = NULL ;
+		if( $directChild['table_field_is_binary'] ) {
+			$_binary = @base64_decode($leaf_value) ;
+		}
 	}
 	
 	$arr_ins = array() ;
@@ -435,6 +483,11 @@ function paracrm_lib_dataImport_commit_processNode_table( $treefields_node, $arr
 		$arr_ins[$mkey] = $value ;
 	}
 	$_opDB->replace('view_table_'.$table_code,$arr_ins) ;
+	if( $_binary ) {
+		$primaryHash = paracrm_lib_data_getPrimaryHash_table($table_code,$arr_ins);
+		$tmp_media_id = media_bin_processBuffer( $_binary ) ;
+		media_bin_move( $tmp_media_id , media_bin_toolFile_getId($table_code,$primaryHash) ) ;
+	}
 	return ;
 }
 function paracrm_lib_dataImport_commit_processNode_file( $treefields_node, $arr_srcLig, $filerecord_parent_id, $truncate_mode ) {

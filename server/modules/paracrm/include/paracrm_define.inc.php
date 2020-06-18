@@ -1156,7 +1156,7 @@ function paracrm_define_manageTransaction_applyTable($arr_saisie, $apply)
 		$arr_ins['table_field_index'] = $idx++ ;
 		$arr_ins['table_field_type'] = ($mfield['table_field_type'])? $mfield['table_field_type']:'string' ;
 		$arr_ins['table_field_is_index'] = ($mfield['table_field_is_index'])? 'O':'' ;
-		$arr_ins['table_field_is_primarykey'] = ($arr_saisie['arr_ent']['store_type']=='table_primarykey' && $mfield['table_field_is_primarykey'])? 'O':'' ;
+		$arr_ins['table_field_is_primarykey'] = ( strpos($arr_saisie['arr_ent']['store_type'],'table_primarykey')===0 && $mfield['table_field_is_primarykey'])? 'O':'' ;
 		$_opDB->insert('define_table_field',$arr_ins) ;
 	}
 	

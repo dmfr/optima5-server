@@ -750,12 +750,13 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 					queryMode: 'local',
 					displayField: 'storeTypeLib' ,
 					valueField: 'storeType',
-					maxWidth: 300,
+					width: 200,
 					store:{
 						fields: ['storeType', 'storeTypeLib'],
 						data: [
 							{"storeType":"","storeTypeLib":"Std / Fieldset"},
-							{"storeType":"table_primarykey","storeTypeLib":"Table w/ primarykey"}
+							{"storeType":"table_primarykey","storeTypeLib":"Table w/ primarykey"},
+							{"storeType":"table_primarykey_binary","storeTypeLib":"Table w/ primarykey + store file"}
 						]
 					},
 					//readOnly : (this.defineIsNew == false),
@@ -789,6 +790,7 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 						labelWidth: 100,
 						anchor: '100%'
 				},
+				layout: 'anchor',
 				items: formitems
 			},{
 				xtype:'tabpanel' ,
@@ -1289,6 +1291,7 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 						break ;
 						
 					case 'table_primarykey' :
+					case 'table_primarykey_binary' :
 						hideFieldsets = false ;
 						showPrimarykeyCol = true ;
 						break ;

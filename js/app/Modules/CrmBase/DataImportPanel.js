@@ -500,6 +500,11 @@ Ext.define('Optima5.Modules.CrmBase.DataImportPanel' ,{
 					} else {
 						me.getComponent('pFieldsTree').setRootNode( ajaxReponse.treefields_root ) ;
 						me.getComponent('pFieldsTree').setVisible(true);
+						me.getComponent('pFieldsTree').getRootNode().cascadeBy( function(node) {
+							if( node.get('table_field_is_binary') ) {
+								node.set('icon','images/op5img/ico_dataadd_16.gif') ;
+							}
+						}) ;
 					}
 				}
 			},

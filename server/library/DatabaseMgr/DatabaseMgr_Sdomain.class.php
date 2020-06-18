@@ -1328,6 +1328,7 @@ EOF;
 		switch( $file_type )
 		{
 			case 'table_primarykey' :
+			case 'table_primarykey_binary' :
 			$_mode_primaryKey = TRUE ;
 			$arr_field_isPrimaryKey = array() ;
 			$primaryKey_arrColumns = array() ;
@@ -1346,6 +1347,9 @@ EOF;
 				}
 			}
 			break ;
+		}
+		if( $file_type == 'table_primarykey_binary' ) {
+			$arr_media_define = $_opDB->table_fields($sdomain_db.'.'.'define_media') ;
 		}
 		
 		
@@ -1426,6 +1430,11 @@ EOF;
 			if( $_mode_primaryKey && $arr_field_isPrimaryKey[$field_code] && is_array($primaryKey_arrColumns) ) {
 				$primaryKey_arrColumns[] = $field_name ;
 			}
+		}
+		foreach( $arr_media_define as $media_field ) {
+			$media_field = 'media_'.$media_field ;
+			$arrAssoc_dbField_fieldType[$media_field] = 'varchar(100)' ;
+			$arrAssoc_crmField_dbField[$media_field] = $media_field ;
 		}
 		if( $_mode_primaryKey && is_array($primaryKey_arrColumns) && count($primaryKey_arrColumns) > 0 ) {
 			$arr_model_keys['PRIMARY'] = array('arr_columns'=>$primaryKey_arrColumns) ;
