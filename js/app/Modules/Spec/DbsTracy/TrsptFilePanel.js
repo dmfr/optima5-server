@@ -200,6 +200,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 						name: 'mvt_dest'
 					},{
 						xtype: 'op5specdbstracycfgparamtext',
+						forceSelection: true,
 						cfgParam_id: 'LIST_CARRIER',
 						fieldLabel: '<b>Carrier</b>',
 						name: 'mvt_carrier',
