@@ -914,6 +914,7 @@ function specRsiRecouveo_lib_edi_post_record( $json_rows) {
 		else{
 			$arr = $_opDB->fetch_row($result) ;
 			$filerecord_id = $arr[0] ;
+			unset($arr['field_DATE_LOAD']) ; // 24/06/2020
 			paracrm_lib_data_updateRecord_file('RECORD', $arr_ins, $filerecord_id) ;
 			$count_success++;
 		}
