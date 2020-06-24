@@ -409,7 +409,7 @@ function specRsiRecouveo_lib_edi_post($apikey_code, $transaction, $handle) {
 		// - errors TAB
 	$ret = array(
 		'count_success' => 0,
-		'count_new' => 0,
+		'idx_new' => array(),
 		'errors' => array()
 	);
 	
@@ -451,9 +451,13 @@ function specRsiRecouveo_lib_edi_post($apikey_code, $transaction, $handle) {
 		
 		if( isset($sret['count_success']) && isset($sret['errors']) ) {
 			$ret['count_success'] += $sret['count_success'] ;
-			$ret['count_new'] += $sret['count_new'] ;
 			foreach( $sret['errors'] as $err ) {
 				$ret['errors'][] = $err ;
+			}
+			if( $sret['idx_new'] ) {
+				foreach( $sret['idx_new'] as $idx ) {
+					$ret['idx_new'][] = $idx ;
+				}
 			}
 		}
 	}
@@ -834,7 +838,7 @@ function specRsiRecouveo_lib_edi_post_record( $json_rows) {
 		'DateExpire' => 'field_DATE_VALUE'
 	);
 	$count_success = 0;
-	$count_new = 0 ;
+	$count_new = array() ;
 	$ret_errors = array() ;
 	foreach($json_rows as $idx => $json_row){
 		if ($json_row['DateTrans'] == null){
@@ -913,7 +917,7 @@ function specRsiRecouveo_lib_edi_post_record( $json_rows) {
 		if ($_opDB->num_rows($result) < 1 ){
 			paracrm_lib_data_insertRecord_file( 'RECORD' , 0, $arr_ins ) ;
 			$count_success++;
-			$count_new++ ;
+			$count_new[] = $idx ;
 		}
 		else{
 			$arr = $_opDB->fetch_row($result) ;
@@ -923,7 +927,7 @@ function specRsiRecouveo_lib_edi_post_record( $json_rows) {
 			$count_success++;
 		}
 	}
-	return array("count_success" => $count_success, "count_new" => $count_new, "errors" => $ret_errors) ;
+	return array("count_success" => $count_success, "idx_new" => $count_new, "errors" => $ret_errors) ;
 }
 function specRsiRecouveo_lib_edi_post_account( $json_rows ) {
 	global $_opDB;
@@ -937,7 +941,7 @@ function specRsiRecouveo_lib_edi_post_account( $json_rows ) {
 	) ;
 	
 	$count_success = 0 ;
-	$count_new = 0 ;
+	$count_new = array() ;
 	$ret_errors = array() ;
 	foreach( $json_rows as $idx => $json_row ) {
 		$missing = array() ;
@@ -981,7 +985,7 @@ function specRsiRecouveo_lib_edi_post_account( $json_rows ) {
 		if( $_opDB->num_rows($result) < 1 ) {
 			paracrm_lib_data_insertRecord_bibleEntry("LIB_ACCOUNT", $entry_key, $json_row['IdSoc'] , $arr_ins) ;
 			$count_success++ ;
-			$count_new++ ;
+			$count_new[] = $idx ;
 		}
 		else{
 			paracrm_lib_data_updateRecord_bibleEntry("LIB_ACCOUNT", $entry_key, $arr_ins) ;
@@ -993,7 +997,7 @@ function specRsiRecouveo_lib_edi_post_account( $json_rows ) {
 
 	}
 
-	return array("count_success" => $count_success, "count_new" => $count_new, "errors" => $ret_errors) ;
+	return array("count_success" => $count_success, "idx_new" => $count_new, "errors" => $ret_errors) ;
 }
 
 function specRsiRecouveo_lib_edi_post_account_txtaction( $json_rows ) {
