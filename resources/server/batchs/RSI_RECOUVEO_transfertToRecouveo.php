@@ -22,9 +22,36 @@ $transfert_url = $config_meta["gen_transfert_url"] ;
 $transfert_apikey = $config_meta["gen_transfert_apikey"] ;
 $transfert_domain = $config_meta["gen_transfert_domain"] ;
 
+$afterPost_doNotification_accIds = array() ;
+
 $mapMethodJson = specRsiRecouveo_lib_transfert_extract_mapMethodJson() ;
 foreach ($mapMethodJson as $method => $json){
-	specRsiRecouveo_transfert_SEND_DISTANT_REQUEST($json, $method, $transfert_url, $transfert_apikey, $transfert_domain);
+	$ret = specRsiRecouveo_transfert_SEND_DISTANT_REQUEST($json, $method, $transfert_url, $transfert_apikey, $transfert_domain);
+	$json_ret = json_decode($ret,true) ;
+	
+	if( $json_ret['idx_new'] ) {
+		$json_arr = json_decode($json,true) ;
+		switch( $method ) {
+			case 'record' :
+				foreach( $json_ret['idx_new'] as $idx ) {
+					$json_row = $json_arr[$idx] ;
+					$afterPost_doNotification_accIds[] = array(
+						'IdSoc' => $json_row['IdSoc'],
+						'IdCli' => $json_row['IdCli']
+					);
+				}
+				break ;
+		}
+	}
+}
+
+if( $afterPost_doNotification_accIds ) {
+	$json_arr = array() ;
+	foreach( $afterPost_doNotification_accIds as $json_row ) {
+		$json_row['Txt'] = 'Mise à jour dossier' ;
+		$json_arr[] = $json_row ;
+	}
+	specRsiRecouveo_transfert_SEND_DISTANT_REQUEST(json_encode($json_arr), 'notification', $transfert_url, $transfert_apikey, $transfert_domain);
 }
 
 function specRsiRecouveo_transfert_SEND_DISTANT_REQUEST($binary, $method, $distant_url, $distant_apikey, $distant_domain){
