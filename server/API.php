@@ -97,6 +97,7 @@ switch( $api_method ) {
 	case 'upload_COMPTES':
 	case 'upload_FACTURES':
 	case 'account_properties':
+	case 'notification':
 		break ;
 	case 'DEV_purgeall':
 		break ;

@@ -421,6 +421,7 @@ function specRsiRecouveo_lib_edi_post($apikey_code, $transaction, $handle) {
 		case 'account_properties' :
 		case 'record' :
 		case 'record_lettermissing' :
+		case 'notification' :
 		case 'DEV_purgeall' :
 			$mapMethodJson = array($transaction => stream_get_contents($handle_in)) ;
 			break ;
@@ -538,6 +539,9 @@ function specRsiRecouveo_lib_edi_postJson($apikey_code, $transaction, $json_str)
 			break ;
 		case 'account_properties':
 			$ret = specRsiRecouveo_lib_edi_post_acc_properties( $json_rows ) ;
+			break ;
+		case 'notification':
+			$ret = specRsiRecouveo_lib_edi_post_notification( $json_rows ) ;
 			break ;
 		case 'DEV_purgeall':
 			$ret = specRsiRecouveo_lib_edi_post_devpurge( $json_rows ) ;
@@ -1043,6 +1047,45 @@ function specRsiRecouveo_lib_edi_post_account_txtaction( $json_rows ) {
 			))
 		);
 		specRsiRecouveo_action_doFileAction($forward_post) ;
+		$count_success++ ;
+	}
+
+	return array("count_success" => $count_success, "errors" => $ret_errors) ;
+}
+function specRsiRecouveo_lib_edi_post_notification($json_rows) {
+	global $_opDB;
+	
+	$mandatory = array('IdSoc','IdCli','Txt') ;
+	
+	$count_success = 0 ;
+	$ret_errors = array() ;
+	foreach( $json_rows as $idx => $json_row ) {
+		$missing = array() ;
+		foreach( $mandatory as $field ) {
+			if( !isset($json_row[$field]) ) {
+				$missing[] = $field ;
+			}
+		}
+		if( count($missing) > 0 ) {
+			$ret_errors[] = "ERR Idx={$idx} : missing field(s) ".implode(',',$missing) ;
+			continue ;
+		}
+		
+		$txt_IdSoc = $json_row['IdSoc'] ;
+		$json_row['IdSoc'] = specRsiRecouveo_lib_edi_validateSocCli($json_row['IdSoc']) ;
+		if( !$json_row['IdSoc'] ) {
+			$ret_errors[] = "ERR Idx={$idx} : unknown IdSoc={$txt_IdSoc}" ;
+			continue ;
+		}
+		
+		$json_row['IdCli'] = specRsiRecouveo_lib_edi_validateSocCli($json_row['IdSoc'],$json_row['IdCli']) ;
+		
+		specRsiRecouveo_account_pushNotificationRecords( array(
+			'acc_id' => $json_row['IdCli'],
+			'txt_notification' => $json_row['Txt'],
+			'arr_recordFilerecordIds' => json_encode(array())
+		));
+		
 		$count_success++ ;
 	}
 
