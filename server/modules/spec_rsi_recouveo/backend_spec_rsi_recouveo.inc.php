@@ -8,6 +8,8 @@ function backend_specific( $post_data )
 session_write_close() ;
 switch( $post_data['_action'] )
 {
+	case 'extPortal_getInfosConfig':
+		return specRsiRecouveo_extPortal_getInfosConfig( $post_data ) ;
 	case 'cfg_getAuth' :
 	return specRsiRecouveo_cfg_getAuth( $post_data ) ;
 	case 'cfg_getConfig' :

@@ -1,0 +1,126 @@
+{
+  "types": {
+    "0": {
+      "displayName": "Professionnel",
+      "code": "pro"
+    },
+    "1": {
+      "displayName": "Particulier",
+      "code": "part"
+    }
+  },
+  "pro": {
+    "0":{
+      "mandatory": true,
+      "displayName": "Raison sociale",
+      "labelName": "Raison sociale",
+      "code": "socName"
+    },
+    "1": {
+      "mandatory": false,
+      "displayName": "SIREN/SIRET",
+      "labelName": "SIREN/SIRET",
+      "code": "siren"
+    },
+    "2": {
+      "mandatory": true,
+      "displayName": "Identité du contact",
+      "labelName": "Identité du contact",
+      "code": "contactId"
+    },
+    "3": {
+      "mandatory": false,
+      "displayName": "Fonction du contact",
+      "labelName": "Fonction du contact",
+      "code": "contactFunction"
+    }
+  },
+  "part": {
+    "0": {
+      "mandatory": true,
+      "displayName": "Nom",
+      "labelName": "Nom",
+      "code": "lastName"
+    },
+    "1": {
+      "mandatory": true,
+      "displayName": "Prénom",
+      "labelName": "Prénom",
+      "code": "firstName"
+    },
+    "2": {
+      "mandatory": false,
+      "displayName": "Date de naissance",
+      "labelName": "Date de naissance",
+      "code": "birthDate",
+      "type": "date"
+    },
+    "3": {
+      "mandatory": false,
+      "displayName": "Lieu de naissance",
+      "labelName": "Lieu de naissance",
+      "code": "birthPlace"
+    },
+    "4": {
+      "mandatory": false,
+      "displayName": "Pays de naissance",
+      "labelName": "Pays de naissance",
+      "code": "birthCountry"
+    }
+  },
+  "both":{
+    "0":{
+      "mandatory": true,
+      "displayName": "Numéro et rue",
+      "labelName": "Numéro et rue",
+      "code": "rue"
+    },
+    "1":{
+      "mandatory": false,
+      "displayName": "Complément",
+      "labelName": "Complément",
+      "code": "compl"
+    },
+    "2": {
+      "mandatory": true,
+      "displayName": "Code postal",
+      "labelName": "Code postal",
+      "code": "postal"
+    },
+    "3": {
+      "mandatory": true,
+      "displayName": "Ville",
+      "labelName": "Ville",
+      "code": "city"
+    },
+    "4": {
+      "mandatory": true,
+      "displayName": "Pays",
+      "labelName": "Pays",
+      "code": "country"
+    },
+    "5":{
+      "mandatory": true,
+      "displayName": "Téléphone",
+      "labelName": "Téléphone",
+      "code": "tel"
+    },
+    "6": {
+      "mandatory": false,
+      "displayName": "Préférence de contact",
+      "labelName": "Préférence de contact (jour(s), horaires, moyens)",
+      "code": "prefContact"
+    },
+    "7":{
+      "mandatory": true,
+      "displayName": "Adresse email",
+      "labelName": "Adresse email",
+      "code": "email"
+    }
+  },
+  "validation": {
+    "0": "Non vérifié",
+    "1": "Vérifié"
+  }
+
+}
