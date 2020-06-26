@@ -112,7 +112,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 					fieldLabel: '<b>Consignee</b>',
 					name: 'atr_consignee',
 					allowBlank: false,
-					forceSelection: false
+					forceSelection: true
 				},{
 					xtype: 'hiddenfield',
 					name: 'atr_consignee_create'

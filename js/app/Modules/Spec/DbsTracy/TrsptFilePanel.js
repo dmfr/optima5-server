@@ -162,6 +162,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 					allowBlank: false
 				},{
 					xtype: 'op5specdbstracycfgparamtext',
+					forceSelection: true,
 					cfgParam_id: 'LIST_CONSIGNEE',
 					fieldLabel: '<b>Consignee</b>',
 					allowBlank: false,
