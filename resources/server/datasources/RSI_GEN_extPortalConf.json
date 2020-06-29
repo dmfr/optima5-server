@@ -118,9 +118,7 @@
       "code": "email"
     }
   },
-  "validation": {
-    "0": "Non vérifié",
-    "1": "Vérifié"
-  }
+  "mandatory": ["Pro/Part", "Raison sociale", "SIREN/SIRET", "Téléphone", "Adresse email", "Numéro et rue", "Complément", "Code postal", "Ville", "Pays"]
+
 
 }

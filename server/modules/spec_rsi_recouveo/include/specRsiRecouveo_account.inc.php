@@ -1,5 +1,177 @@
 <?php
 
+function specRsiRecouveo_account_saveExtData( $post_data ) {
+	global $_opDB ;
+	if ($post_data["fromRec"] === "true"){
+		$newData = specRsiRecouveo_account_convertRecData($post_data['data']) ;
+	} else $newData = $post_data["data"] ;
+	error_log("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx") ;
+	$newStr = str_replace("'", "''", $newData) ;
+
+	$query = "UPDATE view_bible_LIB_ACCOUNT_entry SET field_EXT_JSON = '{$newStr}' WHERE entry_key = '{$post_data['acc_id']}'" ;
+	error_log($query) ;
+	$res = $_opDB->query($query) ;
+	if ($res === true){
+		return array("success" => true) ;
+	}
+	return array("success" => false) ;
+}
+function specRsiRecouveo_account_convertRecData($data){
+	$jsonData = json_decode($data, 1) ;
+	$confJson = specRsiRecouveo_extPortal_getInfosConfig($post_data) ;
+	$conf = $confJson["data"] ;
+	$newArr = array() ;
+	$currentTimestamp = time() ;
+	foreach ($jsonData as $data){
+		$code = "" ;
+		if ($data["lib"] === "Pro/Part"){
+			$tmp = $data ;
+			$tmp["code"] = "propart" ;
+			if ($tmp["time"] === ""){
+				$tmp["time"] = $currentTimestamp ;
+			}
+			$newArr[] = $tmp ;
+ 			continue ;
+		}
+		foreach ($conf["both"] as $row){
+			if ($row["displayName"] === $data["lib"]){
+				$tmp = $data ;
+				$tmp["code"] = $row["code"] ;
+				if ($tmp["time"] === ""){
+					$tmp["time"] = $currentTimestamp ;
+				}
+				$newArr[] = $tmp ;
+				$code = "ok" ;
+				break ;
+			}
+		}
+		if ($code !== "") continue ;
+		foreach ($conf["part"] as $row){
+			if ($row["displayName"] === $data["lib"]){
+				$tmp = $data ;
+				$tmp["code"] = $row["code"] ;
+				if ($tmp["time"] === ""){
+					$tmp["time"] = $currentTimestamp ;
+				}
+				$newArr[] = $tmp ;
+				$code = "ok" ;
+				break ;
+			}
+		}
+		if ($code !== "") continue ;
+		foreach ($conf["pro"] as $row){
+			if ($row["displayName"] === $data["lib"]){
+				$tmp = $data ;
+				$tmp["code"] = $row["code"] ;
+				if ($tmp["time"] === ""){
+					$tmp["time"] = $currentTimestamp ;
+				}
+				$newArr[] = $tmp ;
+				break ;
+			}
+		}
+	}
+	$finalArr = specRsiRecouveo_account_removeInvalidDuplicates($newArr) ;
+	return json_encode($finalArr, JSON_UNESCAPED_UNICODE) ;
+
+}
+function specRsiRecouveo_account_removeInvalidDuplicates($data){
+	$invalidArr = [] ;
+	$validArr = [] ;
+	$dups = [] ;
+	foreach ($data as $row){
+		if ($row["statut"] === "false"){
+			$invalidArr[] = $row ;
+		} else{
+			$validArr[] = $row ;
+ 		}
+	}
+	foreach ($invalidArr as $key => $row){
+		foreach ($invalidArr as $key2 => $row2){
+			if ($row2["code"] === $row["code"] && $key !== $key2){
+				if ($row2["time"] > $row["time"]){
+					$dups[$key] = "" ;
+				} else{
+					$dups[$key2] = "" ;
+				}
+			}
+		}
+	}
+	if (count($dups) > 0){
+		foreach ($dups as $keys => $dup) {
+			array_splice($invalidArr, $keys, 1) ;
+		}
+	}
+	return array_merge($validArr, $invalidArr) ;
+}
+function specRsiRecouveo_account_autoSaveExtData($post_data) {
+	global $_opDB ;
+	$json = json_decode($post_data["data"], true) ;
+	$propart = $json["propart"] ;
+	$confJson = specRsiRecouveo_extPortal_getInfosConfig($post_data) ;
+	$conf = $confJson["data"] ;
+	$newArr = array() ;
+	$currentTimestamp = time() ;
+	foreach ($json as $key => $row){
+		if ($key === "comment"){
+			continue ;
+		}
+		if ($key === "propart"){
+			$newLib = "Pro/Part" ;
+			$newArr[] = array("lib" => $newLib, "valeur" => $json[$key] === "part" ? "Particuliers" : "Professionnel", "statut" => false, "code" => $key, "time" => $currentTimestamp) ;
+			continue ;
+		}
+		if ($key === "birthDate"){
+			$date = date_create($json[$key]);
+			if ($date !== false){
+				$json[$key] = date_format($date, 'd-m-Y');
+			} else {
+				continue ;
+			}
+		}
+		if (empty($row) !== true){
+			$newLib = "";
+
+			foreach ($conf[$propart] as $atr){
+				if ($atr["code"] === $key){
+					$newLib = $atr["displayName"] ;
+				}
+			}
+			if ($newLib === ""){
+				foreach ($conf["both"] as $atr){
+					if ($atr["code"] === $key){
+						$newLib = $atr["displayName"] ;
+					}
+				}
+			}
+			if ($newLib !== "") $newArr[] = array("lib" => $newLib, "valeur" => $json[$key], "statut" => false, "code" => $key, "time" => $currentTimestamp) ;
+		}
+	}
+	error_log("-------------------------------------------------------------------------") ;
+	$query = "SELECT field_EXT_JSON FROM view_bible_LIB_ACCOUNT_entry WHERE entry_key = '{$post_data['acc_id']}'" ;
+	$res = $_opDB->query($query) ;
+	$arr = $_opDB->fetch_assoc($res) ;
+	if (isset($arr["field_EXT_JSON"]) === true && $arr["field_EXT_JSON"] !== ""){
+		$current = json_decode($arr["field_EXT_JSON"], true) ;
+		if ($current !== "") $finalArr = 	specRsiRecouveo_account_mergeExtData($current, $newArr) ;
+		else $finalArr = $newArr ;
+		$finalJson = json_encode($finalArr, JSON_UNESCAPED_UNICODE) ;
+		return specRsiRecouveo_account_saveExtData(array("acc_id" => $post_data['acc_id'], "data" => $finalJson)) ;
+	} else {
+		return specRsiRecouveo_account_saveExtData(array("acc_id" => $post_data['acc_id'], "data" => json_encode($newArr, JSON_UNESCAPED_UNICODE))) ;
+	}
+}
+function specRsiRecouveo_account_mergeExtData($current, $new){
+	$arr = [] ;
+	foreach ($current as $row){
+		if ($row["statut"] === "true"){
+			$arr[] = $row ;
+		}
+	}
+	error_log(print_r($arr, 1)) ;
+	error_log(print_r($new, 1)) ;
+	return array_merge($arr, $new);
+}
 function specRsiRecouveo_account_lookup( $post_data ) {
 	$ttmp = specRsiRecouveo_cfg_getConfig() ;
 	$cfg_action_eta = $ttmp['data']['cfg_action_eta'] ;
@@ -78,7 +250,7 @@ function specRsiRecouveo_account_open( $post_data ) {
 		'acc_siret' => $arr['field_ACC_SIRET'],
 		'adr_postal' => $arr['field_ADR_POSTAL'],
 		'link_user' => $arr['field_LINK_USER_LOCAL'],
-		
+		'ext_data' => $arr["field_EXT_JSON"],
 		'similar' => array(),
 		'notepad' => array(),
 		'attachments' => array()

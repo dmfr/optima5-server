@@ -10,6 +10,10 @@ switch( $post_data['_action'] )
 {
 	case 'extPortal_getInfosConfig':
 		return specRsiRecouveo_extPortal_getInfosConfig( $post_data ) ;
+	case 'extPortal_postForm':
+		return specRsiRecouveo_extPortal_postForm( $post_data ) ;
+	case 'account_saveExtData':
+		return specRsiRecouveo_account_saveExtData( $post_data ) ;
 	case 'cfg_getAuth' :
 	return specRsiRecouveo_cfg_getAuth( $post_data ) ;
 	case 'cfg_getConfig' :
