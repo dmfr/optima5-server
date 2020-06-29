@@ -698,7 +698,6 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 
 function specRsiRecouveo_file_searchSuggest( $post_data ) {
 	global $_opDB ;
-	
 	$ttmp = specRsiRecouveo_cfg_getConfig() ;
 	$cfg_atr = $ttmp['data']['cfg_atr'] ;
 	
@@ -721,7 +720,10 @@ function specRsiRecouveo_file_searchSuggest( $post_data ) {
 	$sub_query_acc = "SELECT distinct field_LINK_ACCOUNT FROM view_file_FILE WHERE 1" ;
 	$sub_query_acc.= " AND field_STATUS_CLOSED_VOID='0'" ;
 	foreach( $filter_atr as $mkey => $mvalue ) {
-		$sub_query_acc.= " AND field_{$mkey} IN ".$_opDB->makeSQLlist($mvalue) ;
+		$tmp = explode("@", $mkey) ;
+		if ($tmp[0] === "record"){
+			$sub_query_acc.= " AND field_ATR_R_{$tmp[1]} IN ".$_opDB->makeSQLlist($mvalue) ;
+		}
 	}
 	if( $filter_soc ) {
 		$sub_query_acc.= " AND field_LINK_ACCOUNT IN (SELECT entry_key FROM view_bible_LIB_ACCOUNT_entry WHERE treenode_key IN ".$_opDB->makeSQLlist($filter_soc).")" ;
@@ -730,7 +732,10 @@ function specRsiRecouveo_file_searchSuggest( $post_data ) {
 	$sub_query_files = "SELECT filerecord_id FROM view_file_FILE WHERE 1" ;
 	$sub_query_files.= " AND field_STATUS_CLOSED_VOID='0'" ;
 	foreach( $filter_atr as $mkey => $mvalue ) {
-		$sub_query_files.= " AND field_{$mkey} IN ".$_opDB->makeSQLlist($mvalue) ;
+		$tmp2 = explode("@", $mkey) ;
+		if ($tmp2[0] === "record"){
+			$sub_query_files.= " AND field_ATR_R_{$tmp2[1]} IN ".$_opDB->makeSQLlist($mvalue) ;
+		}
 	}
 	if( $filter_soc ) {
 		$sub_query_files.= " AND field_LINK_ACCOUNT IN (SELECT entry_key FROM view_bible_LIB_ACCOUNT_entry WHERE treenode_key IN ".$_opDB->makeSQLlist($filter_soc).")" ;
