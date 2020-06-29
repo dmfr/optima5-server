@@ -1037,6 +1037,10 @@ function specRsiRecouveo_account_uploadAttachment( $post_data ) {
 		$accbin_filerecord_id = $_opDB->query_uniqueValue($query) ;
 		if( $accbin_filerecord_id ) {
 			media_bin_delete( media_pdf_toolFile_getId('ACC_NOTEPAD_BIN',$accbin_filerecord_id) ) ;
+			$arr_ins = array() ;
+			$arr_ins['field_BIN_DESC'] = $post_data['bin_desc'] ;
+			$arr_ins['field_BIN_FILENAME'] = $src_filename ;
+			$accbin_filerecord_id = paracrm_lib_data_updateRecord_file( 'ACC_NOTEPAD_BIN', $arr_ins, $accbin_filerecord_id );
 		}
 	}
 	if( !$accbin_filerecord_id ) {
