@@ -1043,7 +1043,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			
 			store: {
 				model: Optima5.Modules.Spec.RsiRecouveo.HelperCache.getNotificationModel(),
-				data: notificationsData,
+				data: [],
 				sorters: [{
 					property: 'date_notification',
 					direction: 'ASC'
@@ -1052,11 +1052,14 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 					type: 'memory'
 				}
 			},
+			plugins: [{
+				ptype: 'rsiveouxgridfilters'
+			}],
 			columns: {
 				defaults: {
 					menuDisabled: true,
 					draggable: false,
-					sortable: true,
+					sortable: false,
 					hideable: false,
 					resizable: true,
 					groupable: false,
@@ -1080,12 +1083,26 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 					}
 				},{
 					width: 110,
-					text: 'Date/Action',
+					text: 'Date',
 					dataIndex: 'date_notification',
+					sortable: true,
 					renderer: function(v,m,r) {
-						var txt = '<div>'+r.get('txt_notification')+'</div>' ;
+						var txt = '' ;
 						txt += '<div style="font-size: 10px; padding-left:6px">'+Ext.util.Format.date(r.get('date_notification'),'d/m H:i')+'</div>' ;
 						return txt ;
+					}
+				},{
+					width: 110,
+					text: 'Action',
+					dataIndex: 'txt_notification',
+					sortable: true,
+					menuDisabled: false,
+					renderer: function(v,m,r) {
+						var txt = '<div>'+r.get('txt_notification')+'</div>' ;
+						return txt ;
+					},
+					filter: {
+						type: 'stringlist'
 					}
 				},{
 					width: 100,
@@ -1109,7 +1126,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			
 			frame: true,
 			
-			width:400, 
+			width:510,
 			height:100,
 			floating: true,
 			draggable: false,
@@ -1144,5 +1161,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 		this.notificationsPanel.mon(this,'resize', function(p){
 			p.notificationsPanel.doResize() ;
 		},this)
+		
+		notificationsPanel.getStore().loadData(notificationsData) ;
 	}
 });
