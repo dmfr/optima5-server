@@ -39,6 +39,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPage',{
 	
 	loadResultSets: function( mapSetParams ) {
 		this.showLoadmask() ;
+		this._loadResultSetsCntOverflow=0 ;
 		Ext.Object.each( mapSetParams, function(setId,setParams) {
 			Ext.applyIf(setParams,{
 				filters: this.getFilterValues(),
@@ -46,7 +47,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPage',{
 				reportval_ids: ['wallet?wvalue=amount']
 			}) ;
 
-			this._loadResultSetsCntOverflow=0 ;
 			this._loadResultSetsCnt++ ;
 			this.optimaModule.getConfiguredAjaxConnection().request({
 				params: {
@@ -96,7 +96,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPage',{
 		// To be overriden
 		if( this._loadResultSetsCntOverflow > 0 ) {
 			Ext.MessageBox.alert('Warning'
-			,'Période trop large et/ou critère de découpe trop fin.<br>Certaines données ne seront pas affichées') ;
+			,'Période trop large et/ou critère de découpe trop fin.<br>Certaines données ne seront pas affichées.') ;
 		}
 	},
 	getResultSetRaw: function(setId) {
