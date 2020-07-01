@@ -77,6 +77,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageWalletGroup',{
 		}) ;
 	},
 	onResultSets: function() {
+		this.callParent() ;
 		if( !this._viewInstalled ) {
 			this.buildPage() ;
 		}

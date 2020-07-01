@@ -358,6 +358,8 @@ function specRsiRecouveo_report_getGrid($post_data) {
 	$p_filters = json_decode($post_data['filters'],true) ;
 	$p_axes = json_decode($post_data['axes'],true) ;
 	$p_vals = json_decode($post_data['reportval_ids'],true) ;
+	$p_limitCols = $post_data['limit_cols'] ;
+	
 	$ttmp = specRsiRecouveo_cfg_getConfig() ;
 	$cfg_soc = $ttmp['data']['cfg_soc'] ;
 	$cfg_user = $ttmp['data']['cfg_user'] ;
@@ -539,6 +541,9 @@ function specRsiRecouveo_report_getGrid($post_data) {
 
 		$TAB = array() ;
 		$grouper = null;
+		if( $p_limitCols && (count($cols) > $p_limitCols) ) {
+			return array('success'=>true, 'columns'=>$cols, 'data'=>array(), 'overflow'=>true) ;
+		}
 		foreach( $cols as $col ) {
 			foreach ($temp as $key=>$tmp){
 				if ($col['dataIndex'] == 'reportval_txt'){
@@ -660,6 +665,10 @@ function specRsiRecouveo_report_getGrid($post_data) {
 				$grouper = "STATUS_SUBSTATUS" ;
 				break ;
 		}
+	}
+	
+	if( $p_limitCols && (count($cols) > $p_limitCols) ) {
+		return array('success'=>true, 'columns'=>$cols, 'data'=>array(), 'overflow'=>true) ;
 	}
 
 	$TAB = array() ;

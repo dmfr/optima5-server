@@ -193,6 +193,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageActions',{
 	},
 	
 	onResultSets: function() {
+		this.callParent() ;
 		if( !this._viewInstalled ) {
 			this.buildPage() ;
 		}
@@ -278,6 +279,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageActions',{
 		//build Grid
 		var tableData = this.getResultSetRaw('timebreak') ;
 		//console.dir(tableData) ;
+		if( tableData.data.length==0 ) {
+			this.down('#pMain').removeAll() ;
+			return ;
+		}
 		
 		var fields = [] ;
 		fields.push({

@@ -9,6 +9,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPage',{
 	
 	_viewInstalled: false,
 	
+	_cfgLoadOverflowLimit: 10,
+	_loadResultSetsCntOverflow: 0,
 	_loadResultSetsCnt: 0,
 	_loadResultSets: {},
 	
@@ -43,7 +45,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPage',{
 				axes: [],
 				reportval_ids: ['wallet?wvalue=amount']
 			}) ;
-			
+
+			this._loadResultSetsCntOverflow=0 ;
 			this._loadResultSetsCnt++ ;
 			this.optimaModule.getConfiguredAjaxConnection().request({
 				params: {
@@ -51,7 +54,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPage',{
 					_action: 'report_getGrid',
 					filters:       Ext.JSON.encode(setParams.filters),
 					axes:          Ext.JSON.encode(setParams.axes),
-					reportval_ids: Ext.JSON.encode(setParams.reportval_ids)
+					reportval_ids: Ext.JSON.encode(setParams.reportval_ids),
+					limit_cols:    this._cfgLoadOverflowLimit
 				},
 				success: function(response) {
 					var ajaxResponse = Ext.decode(response.responseText) ;
@@ -79,6 +83,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPage',{
 		if( !ajaxData ) {
 			delete this._loadResultSets[setId] ;
 		}
+		if( ajaxData.overflow ) {
+			this._loadResultSetsCntOverflow++ ;
+		}
 		this._loadResultSets[setId] = ajaxData ;
 		if( this._loadResultSetsCnt==0 ) {
 			this.hideLoadmask() ;
@@ -86,7 +93,11 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPage',{
 		}
 	},
 	onResultSets: function() {
-		//
+		// To be overriden
+		if( this._loadResultSetsCntOverflow > 0 ) {
+			Ext.MessageBox.alert('Warning'
+			,'Période trop large et/ou critère de découpe trop fin.<br>Certaines données ne seront pas affichées') ;
+		}
 	},
 	getResultSetRaw: function(setId) {
 		if( !this._loadResultSets[setId] ) { 

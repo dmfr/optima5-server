@@ -171,6 +171,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageWalletHistory',{
 	},
 	
 	onResultSets: function() {
+		this.callParent() ;
 		if( !this._viewInstalled ) {
 			this.buildPage() ;
 		}
@@ -206,6 +207,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageWalletHistory',{
 		
 		//build Grid
 		var tableData = this.getResultSetRaw('timebreak') ;
+		if( tableData.data.length==0 ) {
+			this.down('#pMain').removeAll() ;
+			return ;
+		}
 		
 		var fields = [] ;
 		fields.push({
