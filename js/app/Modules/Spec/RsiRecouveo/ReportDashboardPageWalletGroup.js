@@ -200,6 +200,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageWalletGroup',{
 				type: 'vbox',
 				align: 'center'
 			},
+			scrollable: 'vertical',
 			items: [{
 				xtype: 'form',
 				itemId: 'cfgForm',

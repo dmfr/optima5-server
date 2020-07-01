@@ -82,6 +82,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageActions',{
 				type: 'vbox',
 				align: 'stretch'
 			},
+			scrollable: 'vertical',
 			items: [{
 				xtype: 'form',
 				itemId: 'cfgForm',

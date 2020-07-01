@@ -142,6 +142,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageWalletHistory',{
 				type: 'vbox',
 				align: 'stretch'
 			},
+			scrollable: 'vertical',
 			items: []
 		}) ;
 		
@@ -402,6 +403,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageWalletHistory',{
 			flex: 1,
 			xtype: 'panel',
 			layout: 'fit',
+			minHeight: 400,
 			items: barchart
 		} ;
 		
@@ -410,7 +412,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageWalletHistory',{
 		
 		var pMain = this.down('#pMain') ;
 		pMain.removeAll() ;
-		pMain.add(grid, chartPanel) ;
+		pMain.add(grid, {xtype: 'box', height: 16}, chartPanel) ;
 	},
 	
 	dummyFn: function() {
