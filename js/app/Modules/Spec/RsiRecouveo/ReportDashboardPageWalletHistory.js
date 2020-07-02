@@ -33,8 +33,26 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageWalletHistory',{
 	doLoad: function() {
 		this.callParent() ;
 		
-		var filterValuesBefore = this.getFilterValues() ;
-		filterValuesBefore['filter_date']['date_end'] = filterValuesBefore['filter_date']['date_start'] ;
+		/*
+		 * value main / prev : date actuelle / fin du mois/semaine/jour précédent - 1 semaine - 1 jour avant
+		 */ 
+		var filterValuesBefore = this.getFilterValues(),
+			filterValueDateBefore = Ext.Date.parse(filterValuesBefore['filter_date']['date_end'],'Y-m-d') ;
+		switch( this._timebreakGroup ) {
+			case 'MONTH' :
+				filterValueDateBefore = Ext.Date.subtract(filterValueDateBefore, Ext.Date.MONTH, 1) ;
+				break ;
+				
+			case 'WEEK' :
+				filterValueDateBefore = Ext.Date.subtract(filterValueDateBefore, Ext.Date.DAY, 7) ;
+				break ;
+				
+			case 'DAY' :
+				filterValueDateBefore = Ext.Date.subtract(filterValueDateBefore, Ext.Date.DAY, 1) ;
+				break ;
+		}
+		filterValuesBefore['filter_date']['date_end'] = Ext.Date.format(filterValueDateBefore,"Y-m-d") ;
+		
 		
 		var groupbyKey = this._groupbyKey,
 			groupbyKeyGrid = groupbyKey ;
@@ -159,6 +177,13 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageWalletHistory',{
 		this._viewInstalled = true ;
 	},
 	
+	forceCfgChange: function( values ) {
+		this._cfgChangeSilent = true ;
+		this.down('#cfgForm').getForm().setValues({
+			timebreak_group: values.timebreak_group
+		}) ;
+		this._cfgChangeSilent = false ;
+	},
 	onCfgChange: function() {
 		var form = this.down('#cfgForm').getForm(),
 			formValues = form.getFieldValues() ;
@@ -167,6 +192,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageWalletHistory',{
 		}
 		if( formValues['timebreak_group'] ) {
 			this._timebreakGroup = formValues['timebreak_group'] ;
+		}
+		if( this._cfgChangeSilent ) {
+			return ;
 		}
 		this.doLoad() ;
 	},
@@ -177,11 +205,11 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageWalletHistory',{
 			this.buildPage() ;
 		}
 		
-		var filterData = this.getFilterValues(),
-			dateValue = filterData['filter_date']['date_end'],
-			dateValuePrev = filterData['filter_date']['date_start'] ;
-		var dateValuePrevStr = Ext.Date.format(Ext.Date.parse(dateValuePrev,'Y-m-d'),"d/m/Y") ;		
+		var dateValueMain = this.getResultSetRaw('tile')['columns'][0]['date_end'],
+			dateValueMainStr = Ext.Date.format(Ext.Date.parse(dateValueMain,'Y-m-d'),"d/m/Y") ;
 		
+		var dateValuePrev = this.getResultSetRaw('tilebefore')['columns'][0]['date_end'],
+			dateValuePrevStr = Ext.Date.format(Ext.Date.parse(dateValuePrev,'Y-m-d'),"d/m/Y") ;
 		
 		var tileValue = this.getResultSet('tile')[0]['values'][0],
 			tileBeforeValue = this.getResultSet('tilebefore')[0]['values'][0] ;
@@ -193,7 +221,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageWalletHistory',{
 			eval_direction = 'less-bad' ;
 		}
 		var componentData = {
-			caption: 'Montant',
+			caption: 'Montant au '+dateValueMainStr,
 			main_value: Ext.util.Format.number(tileValue, '0,000'),
 			main_suffix: '€',
 			main_iconCls: 'op5-spec-rsiveo-reporttile-main-icon-value-amount',
@@ -235,6 +263,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageWalletHistory',{
 			}
 		}],tableData.columns) ;
 		Ext.Array.each(columns,function(col) {
+			if( col.date_end ) {
+				// données à instant T, on affiche la date de calcul
+				col.text = Ext.Date.format(Ext.Date.parse(col.date_end,'Y-m-d'),"d/m/Y") ;
+			}
 			if( Ext.isEmpty(col.reportval_id) ) {
 				return ;
 			}

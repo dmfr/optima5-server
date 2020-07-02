@@ -36,6 +36,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPage',{
 		return "Page exemple" ;
 	},
 	
+	forceCfgChange: function(values) {
+		// to be overridden
+	},
+	
 	
 	loadResultSets: function( mapSetParams ) {
 		this.showLoadmask() ;

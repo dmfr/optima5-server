@@ -142,15 +142,15 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportFilterablePanel',{
 					items: [{
 						_period: 'day',
 						icon: 'images/modules/dbsembramach-calendar-day-16.png',
-						text: 'Dernier jour'
+						text: '7 derniers jours'
 					},{
 						_period: 'week',
 						icon: 'images/modules/dbsembramach-calendar-week-16.png',
-						text: 'Dernière semaine'
+						text: '8 dernières semaines'
 					},{
 						_period: 'month',
 						icon: 'images/modules/dbsembramach-calendar-month-16.png',
-						text: 'Dernier mois'
+						text: '6 derniers mois'
 					}]
 				}
 			},'-',{
@@ -250,22 +250,26 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportFilterablePanel',{
 			var formValues = {} ;
 			switch( doPreset ) {
 				case 'month' :
+					var dateStart = Ext.Date.subtract(new Date(), Ext.Date.MONTH, 6) ;
+					dateStart.setDate(1) ;
 					formValues = {
-						date_start: Ext.Date.subtract(new Date(), Ext.Date.MONTH, 1),
+						date_start: dateStart,
 						date_end: new Date()
 					} ;
 					break ;
 					
 				case 'week' :
+					var dateStart = Ext.Date.subtract(new Date(), Ext.Date.DAY, 7*8) ;
+					dateStart.setDate(dateStart.getDate() - (dateStart.getDay() + 6) % 7);
 					formValues = {
-						date_start: Ext.Date.subtract(new Date(), Ext.Date.DAY, 7),
+						date_start: dateStart ,
 						date_end: new Date()
 					} ;
 					break ;
 					
 				case 'day' :
 					formValues = {
-						date_start: Ext.Date.subtract(new Date(), Ext.Date.DAY, 1),
+						date_start: Ext.Date.subtract(new Date(), Ext.Date.DAY, 7),
 						date_end: new Date()
 					} ;
 					break ;

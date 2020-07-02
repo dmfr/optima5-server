@@ -147,8 +147,12 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPanel',{
 			return ;
 		}
 		
+		var currentFilterValues = this.getFilterValues(),
+			datePeriod = currentFilterValues['filter_date']['date_period'] ;
+		
 		var pagePanel = Ext.create(pageClass,{
 			_dashboardPanel: this,
+			_timebreakGroup: datePeriod ? datePeriod.toUpperCase() : 'MONTH',
 			optimaModule: this.optimaModule,
 			listeners: {
 				pagetitle: this.onPageTitle,
@@ -209,6 +213,17 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPanel',{
 	},
 	
 	
+	onDateSet: function(doPreset) {
+		if( !doPreset ) {
+			return ;
+		}
+		var pagePanel = this.down('#pCenter').down('op5specrsiveoreportdashboardpage') ;
+		if( pagePanel ) {
+			//pagePanel.doLoad() ;
+			pagePanel.forceCfgChange({timebreak_group:doPreset.toUpperCase()}) ;
+		}
+		this.callParent(arguments) ;
+	},
 	
 	onTbarChanged: function( filterValues ) {
 		this.doReloadPage() ;

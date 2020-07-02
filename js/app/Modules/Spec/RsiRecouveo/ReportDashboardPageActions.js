@@ -32,30 +32,56 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageActions',{
 	doLoad: function() {
 		this.callParent() ;
 		
-		var filterValuesBefore = this.getFilterValues(),
-			dateStart = Ext.Date.parse(filterValuesBefore['filter_date']['date_start'],'Y-m-d'),
-			dateEnd = Ext.Date.parse(filterValuesBefore['filter_date']['date_end'],'Y-m-d') ;
+		var filterValuesMain = this.getFilterValues(),
+			filterValuesPrev = this.getFilterValues() ;
+				
+		var dateEnd = Ext.Date.parse(filterValuesMain['filter_date']['date_end'],'Y-m-d') ;
 			
-		var dateInterval = Ext.Date.diff(dateStart,dateEnd,Ext.Date.DAY) ;
-		dateEnd = Ext.Date.subtract(dateStart,Ext.Date.DAY,1) ;
-		dateStart = Ext.Date.subtract(dateEnd,Ext.Date.DAY,dateInterval) ;
+		var dateValueMainEnd = new Date(dateEnd),
+			dateValueMainStart,
+			dateValuePrevEnd,
+			dateValuePrevStart ;
+		switch( this._timebreakGroup ) {
+			case 'MONTH' :
+				dateValuePrevEnd = Ext.Date.subtract(dateValueMainEnd, Ext.Date.MONTH, 1) ;
+				dateValueMainStart = Ext.Date.add(dateValuePrevEnd, Ext.Date.DAY, 1) ;
+				dateValuePrevStart = Ext.Date.subtract(dateValueMainStart, Ext.Date.MONTH, 1) ;
+				break ;
+				
+			case 'WEEK' :
+				dateValuePrevEnd = Ext.Date.subtract(dateValueMainEnd, Ext.Date.DAY, 7) ;
+				dateValueMainStart = Ext.Date.add(dateValuePrevEnd, Ext.Date.DAY, 1) ;
+				dateValuePrevStart = Ext.Date.subtract(dateValueMainStart, Ext.Date.DAY, 7) ;
+				break ;
+				
+			case 'DAY' :
+				dateValueMainStart = dateValueMainEnd ;
+				dateValuePrevEnd = Ext.Date.subtract(dateValueMainEnd, Ext.Date.DAY, 1) ;
+				dateValuePrevStart = dateValuePrevEnd ;
+				break ;
+		}
 		
-		filterValuesBefore['filter_date']['date_start'] = Ext.Date.format(dateStart,'Y-m-d') ;
-		filterValuesBefore['filter_date']['date_end'] = Ext.Date.format(dateEnd,'Y-m-d') ;
+		filterValuesMain['filter_date']['date_start'] = Ext.Date.format(dateValueMainStart,'Y-m-d') ;
+		filterValuesMain['filter_date']['date_end'] = Ext.Date.format(dateValueMainEnd,'Y-m-d') ;
+		
+		filterValuesPrev['filter_date']['date_start'] = Ext.Date.format(dateValuePrevStart,'Y-m-d') ;
+		filterValuesPrev['filter_date']['date_end'] = Ext.Date.format(dateValuePrevEnd,'Y-m-d') ;
 		
 		this.loadResultSets({
 			cashin: {
+				filters: filterValuesMain,
 				reportval_ids: ['cash_in']
 			},
 			cashin_before: {
-				filters: filterValuesBefore,
+				filters: filterValuesPrev,
 				reportval_ids: ['cash_in']
 			},
 			dso: {
+				filters: filterValuesMain,
 				reportval_ids: ['dso_avg']
 			},
 			dso_before: {
-				filters: filterValuesBefore,
+				filters: filterValuesPrev,
 				reportval_ids: ['dso_avg']
 			},
 			actionsauto: {
@@ -140,7 +166,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageActions',{
 				})
 			},{
 				xtype: 'panel',
-				title: 'Actions',
+				title: 'Actions sur période complète',
 				margin: 16,
 				frame: true,
 				//width: 350,
@@ -184,11 +210,21 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageActions',{
 		this._viewInstalled = true ;
 	},
 	
+	forceCfgChange: function( values ) {
+		this._cfgChangeSilent = true ;
+		this.down('#cfgForm').getForm().setValues({
+			timebreak_group: values.timebreak_group
+		}) ;
+		this._cfgChangeSilent = false ;
+	},
 	onCfgChange: function() {
 		var form = this.down('#cfgForm').getForm(),
 			formValues = form.getFieldValues() ;
 		if( formValues['timebreak_group'] ) {
 			this._timebreakGroup = formValues['timebreak_group'] ;
+		}
+		if( this._cfgChangeSilent ) {
+			return ;
 		}
 		this.doLoad() ;
 	},
@@ -199,18 +235,16 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageActions',{
 			this.buildPage() ;
 		}
 		
-		var filterValuesBefore = this.getFilterValues(),
-			dateStart = Ext.Date.parse(filterValuesBefore['filter_date']['date_start'],'Y-m-d'),
-			dateEnd = Ext.Date.parse(filterValuesBefore['filter_date']['date_end'],'Y-m-d') ;
+		var dateValueMainEnd = this.getResultSetRaw('cashin')['columns'][0]['date_end'],
+			dateValueMainEndStr = Ext.Date.format(Ext.Date.parse(dateValueMainEnd,'Y-m-d'),"d/m/Y") ;
+		var dateValueMainStart = this.getResultSetRaw('cashin')['columns'][0]['date_start'],
+			dateValueMainStartStr = Ext.Date.format(Ext.Date.parse(dateValueMainStart,'Y-m-d'),"d/m/Y") ;
+		
+		var dateValuePrevEnd = this.getResultSetRaw('cashin_before')['columns'][0]['date_end'],
+			dateValuePrevEndStr = Ext.Date.format(Ext.Date.parse(dateValuePrevEnd,'Y-m-d'),"d/m/Y") ;
+		var dateValuePrevStart = this.getResultSetRaw('cashin_before')['columns'][0]['date_start'],
+			dateValuePrevStartStr = Ext.Date.format(Ext.Date.parse(dateValuePrevStart,'Y-m-d'),"d/m/Y") ;
 			
-		var dateInterval = Ext.Date.diff(dateStart,dateEnd,Ext.Date.DAY) ;
-		//console.dir(dateInterval) ;
-		dateEnd = Ext.Date.subtract(dateStart,Ext.Date.DAY,1) ;
-		dateStart = Ext.Date.subtract(dateEnd,Ext.Date.DAY,dateInterval) ;
-		
-		var dateBeforeStartStr = Ext.Date.format(dateStart,'d/m/Y') ;
-		var dateBeforeEndStr = Ext.Date.format(dateEnd,'d/m/Y') ;
-		
 		
 		var tileValue = this.getResultSet('cashin')[0]['values'][0],
 			tileBeforeValue = this.getResultSet('cashin_before')[0]['values'][0] ;
@@ -222,11 +256,11 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageActions',{
 			eval_direction = 'less-bad' ;
 		}
 		var componentData = {
-			caption: 'Montant',
+			caption: 'Total du ' + dateValueMainStartStr + (dateValueMainEndStr==dateValueMainStartStr ? '' : ' au ' + dateValueMainEndStr),
 			main_value: Ext.util.Format.number(tileValue, '0,000'),
 			main_suffix: '€',
 			main_iconCls: 'op5-spec-rsiveo-reporttile-main-icon-value-amount',
-			eval_caption: 'Du ' + dateBeforeStartStr + ' au ' + dateBeforeEndStr,
+			eval_caption: 'Du ' + dateValuePrevStartStr + (dateValuePrevEndStr==dateValuePrevStartStr ? '' : ' au ' + dateValuePrevEndStr),
 			eval_value: Ext.util.Format.number(tileBeforeValue, '0,000'),
 			eval_suffix: '€',
 			eval_direction: eval_direction
@@ -244,11 +278,11 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageActions',{
 			eval_direction = 'less-good' ;
 		}
 		var componentData = {
-			caption: 'Montant',
+			caption: 'Moyenne du ' + dateValueMainStartStr + (dateValueMainEndStr==dateValueMainStartStr ? '' : ' au ' + dateValueMainEndStr),
 			main_value: Ext.util.Format.number(tileValue, '0.0'),
 			main_suffix: 'j',
 			main_iconCls: 'op5-spec-rsiveo-reporttile-main-icon-value-amount',
-			eval_caption: 'Calculé du ' + dateBeforeStartStr + ' au ' + dateBeforeEndStr,
+			eval_caption: 'Moyenne du ' + dateValuePrevStartStr + (dateValuePrevEndStr==dateValuePrevStartStr ? '' : ' au ' + dateValuePrevEndStr),
 			eval_value: Ext.util.Format.number(tileBeforeValue, '0.0'),
 			eval_suffix: 'j',
 			eval_direction: eval_direction

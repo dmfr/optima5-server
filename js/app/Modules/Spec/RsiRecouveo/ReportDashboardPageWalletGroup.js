@@ -2,6 +2,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageWalletGroup',{
 	extend:'Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPage',
 	
 	_groupbyKey: 'fstatus',
+	_timebreakGroup: 'MONTH',
 	
 	initComponent: function() {
 		Ext.apply(this,{
@@ -28,8 +29,25 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageWalletGroup',{
 	doLoad: function() {
 		this.callParent() ;
 		
-		var filterValuesBefore = this.getFilterValues() ;
-		filterValuesBefore['filter_date']['date_end'] = filterValuesBefore['filter_date']['date_start'] ;
+		/*
+		 * value main / prev : date actuelle / 1 mois - 1 semaine - 1 jour avant
+		 */ 
+		var filterValuesBefore = this.getFilterValues(),
+			filterValueDateBefore = Ext.Date.parse(filterValuesBefore['filter_date']['date_end'],'Y-m-d') ;
+		switch( this._timebreakGroup ) {
+			case 'MONTH' :
+				filterValueDateBefore = Ext.Date.subtract(filterValueDateBefore, Ext.Date.MONTH, 1) ;
+				break ;
+				
+			case 'WEEK' :
+				filterValueDateBefore = Ext.Date.subtract(filterValueDateBefore, Ext.Date.DAY, 7) ;
+				break ;
+				
+			case 'DAY' :
+				filterValueDateBefore = Ext.Date.subtract(filterValueDateBefore, Ext.Date.DAY, 1) ;
+				break ;
+		}
+		filterValuesBefore['filter_date']['date_end'] = Ext.Date.format(filterValueDateBefore,"Y-m-d") ;
 		
 		var groupbyKey = this._groupbyKey,
 			groupbyKeyGrid = groupbyKey ;
@@ -82,11 +100,11 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageWalletGroup',{
 			this.buildPage() ;
 		}
 		
-		var filterData = this.getFilterValues(),
-			dateValue = filterData['filter_date']['date_end'],
-			dateValuePrev = filterData['filter_date']['date_start'] ;
-		var dateValuePrevStr = Ext.Date.format(Ext.Date.parse(dateValuePrev,'Y-m-d'),"d/m/Y") ;		
+		var dateValueMain = this.getResultSetRaw('tile')['columns'][0]['date_end'],
+			dateValueMainStr = Ext.Date.format(Ext.Date.parse(dateValueMain,'Y-m-d'),"d/m/Y") ;
 		
+		var dateValuePrev = this.getResultSetRaw('tilebefore')['columns'][0]['date_end'],
+			dateValuePrevStr = Ext.Date.format(Ext.Date.parse(dateValuePrev,'Y-m-d'),"d/m/Y") ;
 		
 		var tileValue = this.getResultSet('tile')[0]['values'][0],
 			tileBeforeValue = this.getResultSet('tilebefore')[0]['values'][0] ;
@@ -98,7 +116,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageWalletGroup',{
 			eval_direction = 'less-bad' ;
 		}
 		var componentData = {
-			caption: 'Montant',
+			caption: 'Montant au '+dateValueMainStr,
 			main_value: Ext.util.Format.number(tileValue, '0,000'),
 			main_suffix: '€',
 			main_iconCls: 'op5-spec-rsiveo-reporttile-main-icon-value-amount',
@@ -122,7 +140,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageWalletGroup',{
 			eval_direction = 'less-good' ;
 		}
 		var componentData = {
-			caption: 'Montant',
+			caption: 'Montant au '+dateValueMainStr,
 			main_value: Ext.util.Format.number(tileValue, '0,000'),
 			main_suffix: '€',
 			main_iconCls: 'op5-spec-rsiveo-reporttile-main-icon-value-count',
@@ -228,6 +246,23 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageWalletGroup',{
 					queryMode: 'local',
 					displayField: 'groupby_key_txt',
 					valueField: 'groupby_key'
+				},{
+					xtype: 'combobox',
+					name: 'timebreak_group',
+					fieldLabel: 'Périodicité',
+					forceSelection: true,
+					editable: false,
+					store: {
+						fields: ['mode','lib'],
+						data : [
+							{mode:'DAY', lib:'Quotidienne'},
+							{mode:'WEEK', lib:'Hebdomadaire'},
+							{mode:'MONTH', lib:'Mensuelle'}
+						]
+					},
+					queryMode: 'local',
+					displayField: 'lib',
+					valueField: 'mode'
 				}]
 			},{
 				xtype: 'panel',
@@ -445,6 +480,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageWalletGroup',{
 				groupHeaderTpl: '{name}',
 				ftype: 'groupingsummary'
 			}],
+			
 			columns: [{
 				width: 24,
 				renderer: function(v,m,r) {
@@ -494,7 +530,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageWalletGroup',{
 			,gridPanel) ;
 			
 		this.down('#cfgForm').getForm().setValues({
-			groupby_key: this._groupbyKey
+			groupby_key: this._groupbyKey,
+			timebreak_group: this._timebreakGroup
 		}) ;
 		this.down('#cfgForm').getForm().getFields().each(function(field) {
 			field.on('change',function(ifield){
@@ -508,11 +545,24 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageWalletGroup',{
 		this._viewInstalled = true ;
 	},
 	
+	forceCfgChange: function( values ) {
+		this._cfgChangeSilent = true ;
+		this.down('#cfgForm').getForm().setValues({
+			timebreak_group: values.timebreak_group
+		}) ;
+		this._cfgChangeSilent = false ;
+	},
 	onCfgChange: function() {
 		var form = this.down('#cfgForm').getForm(),
 			formValues = form.getFieldValues() ;
 		if( formValues['groupby_key'] ) {
 			this._groupbyKey = formValues['groupby_key'] ;
+		}
+		if( formValues['timebreak_group'] ) {
+			this._timebreakGroup = formValues['timebreak_group'] ;
+		}
+		if( this._cfgChangeSilent ) {
+			return ;
 		}
 		this.doLoad() ;
 	},

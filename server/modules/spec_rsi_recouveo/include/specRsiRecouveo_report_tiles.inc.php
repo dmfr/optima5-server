@@ -493,10 +493,12 @@ function specRsiRecouveo_report_getGrid($post_data) {
 					$month = date('m', strtotime($date_cur)) ;
 					$timeidx = $year.'-T'.ceil($month/3) ;
 					break;
+				case 'WEEK' :
+					$timeidx = date('o',strtotime($date_cur)).'-s'.date('W',strtotime($date_cur)) ;
+					break ;
 				default:
 					$timeidx = date($timetag,strtotime($date_cur)) ;
 					break ;
-
 			}
 			if( !$map_idx_dates[$timeidx] ) {
 				$map_idx_dates[$timeidx] = array() ;
@@ -618,7 +620,14 @@ function specRsiRecouveo_report_getGrid($post_data) {
 		$date_cur = $p_filters['filter_date']['date_start'] ;
 		$date_end = $p_filters['filter_date']['date_end'] ;
 		while( $date_cur <= $date_end ) {
-			$timeidx = date($timetag,strtotime($date_cur)) ;
+			switch($p_axes['timebreak_group']){
+				case 'WEEK' :
+					$timeidx = date('o',strtotime($date_cur)).'-s'.date('W',strtotime($date_cur)) ;
+					break ;
+				default:
+					$timeidx = date($timetag,strtotime($date_cur)) ;
+					break ;
+			}
 			if( !$map_idx_dates[$timeidx] ) {
 				$map_idx_dates[$timeidx] = array() ;
 			}
