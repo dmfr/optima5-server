@@ -522,11 +522,8 @@ function specRsiRecouveo_report_getGrid($post_data) {
 				'text' => $timeidx
 			);
 			$i++;
-
-
 		}
 		$temp = array() ;
-
 		foreach ($p_vals as $reportval_id){
 			$temp[] = array(
 				'dataIndex' => 'v_'.$reportval_id,
@@ -538,12 +535,21 @@ function specRsiRecouveo_report_getGrid($post_data) {
 				*/
 			);
 		}
-
+		
+		if( $p_limitCols ) {
+			$nb_limitCols = 0 ;
+			foreach( $cols as $col ) {
+				if( $col['date_start'] && $col['date_end'] ) {
+					$nb_limitCols++ ;
+				}
+			}
+			if( $nb_limitCols > $p_limitCols ) {
+				return array('success'=>true, 'columns'=>$cols, 'data'=>array(), 'overflow'=>true, 'overflow_cols'=>$cols) ;
+			}
+		}
+		
 		$TAB = array() ;
 		$grouper = null;
-		if( $p_limitCols && (count($cols) > $p_limitCols) ) {
-			return array('success'=>true, 'columns'=>$cols, 'data'=>array(), 'overflow'=>true) ;
-		}
 		foreach( $cols as $col ) {
 			foreach ($temp as $key=>$tmp){
 				if ($col['dataIndex'] == 'reportval_txt'){
@@ -667,8 +673,16 @@ function specRsiRecouveo_report_getGrid($post_data) {
 		}
 	}
 	
-	if( $p_limitCols && (count($cols) > $p_limitCols) ) {
-		return array('success'=>true, 'columns'=>$cols, 'data'=>array(), 'overflow'=>true) ;
+	if( $p_limitCols ) {
+		$nb_limitCols = 0 ;
+		foreach( $cols as $col ) {
+			if( $col['date_start'] && $col['date_end'] ) {
+				$nb_limitCols++ ;
+			}
+		}
+		if( $nb_limitCols > $p_limitCols ) {
+			return array('success'=>true, 'columns'=>$cols, 'data'=>array(), 'overflow'=>true, 'overflow_cols'=>$cols) ;
+		}
 	}
 
 	$TAB = array() ;
