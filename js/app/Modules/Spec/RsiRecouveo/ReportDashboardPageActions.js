@@ -259,7 +259,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageActions',{
 			caption: 'Total du ' + dateValueMainStartStr + (dateValueMainEndStr==dateValueMainStartStr ? '' : ' au ' + dateValueMainEndStr),
 			main_value: Ext.util.Format.number(tileValue, '0,000'),
 			main_suffix: '€',
-			main_iconCls: 'op5-spec-rsiveo-reporttile-main-icon-value-amount',
+			//main_iconCls: 'op5-spec-rsiveo-reporttile-main-icon-value-amount',
 			eval_caption: 'Du ' + dateValuePrevStartStr + (dateValuePrevEndStr==dateValuePrevStartStr ? '' : ' au ' + dateValuePrevEndStr),
 			eval_value: Ext.util.Format.number(tileBeforeValue, '0,000'),
 			eval_suffix: '€',
@@ -281,7 +281,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageActions',{
 			caption: 'Moyenne du ' + dateValueMainStartStr + (dateValueMainEndStr==dateValueMainStartStr ? '' : ' au ' + dateValueMainEndStr),
 			main_value: Ext.util.Format.number(tileValue, '0.0'),
 			main_suffix: 'j',
-			main_iconCls: 'op5-spec-rsiveo-reporttile-main-icon-value-amount',
+			//main_iconCls: 'op5-spec-rsiveo-reporttile-main-icon-value-amount',
 			eval_caption: 'Moyenne du ' + dateValuePrevStartStr + (dateValuePrevEndStr==dateValuePrevStartStr ? '' : ' au ' + dateValuePrevEndStr),
 			eval_value: Ext.util.Format.number(tileBeforeValue, '0.0'),
 			eval_suffix: 'j',
@@ -295,7 +295,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageActions',{
 			caption: 'Actions automatiques',
 			main_value: Ext.util.Format.number(tileValue, '0,000'),
 			main_suffix: '',
-			main_iconCls: 'op5-spec-rsiveo-reporttile-main-icon-value-amount',
+			//main_iconCls: 'op5-spec-rsiveo-reporttile-main-icon-value-amount',
 		} ;
 		this.down('#actionsAuto').update(componentData) ;
 		
@@ -305,7 +305,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageActions',{
 			caption: 'Actions manuelles',
 			main_value: Ext.util.Format.number(tileValue, '0,000'),
 			main_suffix: '',
-			main_iconCls: 'op5-spec-rsiveo-reporttile-main-icon-value-amount',
+			//main_iconCls: 'op5-spec-rsiveo-reporttile-main-icon-value-amount',
 		} ;
 		this.down('#actionsMan').update(componentData) ;
 		

@@ -22,7 +22,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPanel',{
 		page_class: 'Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageWalletHistory'
 	},{
 		page_id: 'actions',
-		page_title: 'Actions / Cash / DSO',
+		page_title: 'Actions<br>Cash / DSO',
 		page_iconcls: 'op5-spec-rsiveo-dashboard-pageicon-actions',
 		page_class: 'Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageActions'
 	},{
@@ -78,7 +78,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPanel',{
 					},
 					tpl:[
 						'<tpl for=".">',
-							'<div class="op5-spec-rsiveo-dashboard-pages-thumb {page_iconcls} ',
+							//'<div class="op5-spec-rsiveo-dashboard-pages-thumb {page_iconcls} ',
+							'<div class="op5-spec-rsiveo-dashboard-pages-thumb ',
 							'<tpl if="page_selected">',
 								'op5-spec-rsiveo-dashboard-pages-thumb-selected',
 							'</tpl>',

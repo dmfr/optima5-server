@@ -224,7 +224,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageWalletHistory',{
 			caption: 'Montant au '+dateValueMainStr,
 			main_value: Ext.util.Format.number(tileValue, '0,000'),
 			main_suffix: '€',
-			main_iconCls: 'op5-spec-rsiveo-reporttile-main-icon-value-amount',
+			//main_iconCls: 'op5-spec-rsiveo-reporttile-main-icon-value-amount',
 			eval_caption: 'Rappel au '+dateValuePrevStr,
 			eval_value: Ext.util.Format.number(tileBeforeValue, '0,000'),
 			eval_suffix: '€',

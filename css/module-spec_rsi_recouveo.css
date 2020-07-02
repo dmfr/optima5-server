@@ -1090,13 +1090,13 @@
 .op5-spec-rsiveo-dashboard-pages-thumb {
 		position: relative ;
 		
-    display: inline-block;
+    display: table;
     vertical-align: top;
     width: 130px;
-    min-height: 110px;
+    min-height: 75px;
     padding: 5px;
     text-align: center;
-    margin: 4px;
+    margin: 8px;
     background: #ccd8e7;
     border: 1px solid #99BBE8;
     border-radius: .5em;
@@ -1107,13 +1107,11 @@
     user-select: none;
 }
 .op5-spec-rsiveo-dashboard-pages-thumbtext {
+	display: table-cell;
 	text-align: center;
-    position: absolute;
-    bottom: 4px;
-	 left: 0;
-	 right: 0;
-	 font-size: 11px;
-	 line-height: 12px;
+	vertical-align: middle;
+	font-size: 15px;
+	line-height: 16px;
 }
 .op5-spec-rsiveo-dashboard-pages-thumb:hover {
     background-color: #999999;
