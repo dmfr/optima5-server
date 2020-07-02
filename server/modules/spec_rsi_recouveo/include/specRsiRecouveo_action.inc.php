@@ -879,11 +879,11 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 			break ;
 
 		case 'TCHAT_OUT' :
-			$arr_ins['field_LINK_TXT'] = "<b>Tchat sortant</b>" ;
+			$arr_ins['field_LINK_TXT'] = "<b>Portail sortant</b>" ;
 			$arr_ins['field_TXT'] = $post_form['tchat_txt'] ;
 			break ;
 		case 'TCHAT_IN' :
-			$arr_ins['field_LINK_TXT'] = "<b>Tchat entrant: {$post_form['tchat_title']}</b>" ;
+			$arr_ins['field_LINK_TXT'] = "<b>Portail entrant: {$post_form['tchat_title']}</b>" ;
 			$arr_ins['field_TXT'] = $post_form['tchat_txt'] ;
 			break ;
 

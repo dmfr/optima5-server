@@ -497,14 +497,14 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 					},
 					scope: this
 				},{
-					iconCls: 'op5-spec-rsiveo-action-mailout',
+					iconCls: 'op5-spec-rsiveo-mail-sms',
 					text: 'SMS',
 					handler: function() {
 						this.handleNewAction('SMS_OUT',{adrpost_default: true}) ;
 					},
 					scope: this
 				},{
-					iconCls: 'op5-spec-rsiveo-action-mailout',
+					iconCls: 'op5-spec-rsiveo-action-email-out',
 					text: 'E-mail',
 					handler: function() {
 						this.handleNewAction('EMAIL_OUT',{adrpost_default: true}) ;
@@ -512,7 +512,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 					scope: this
 				},{
 					iconCls: 'op5-spec-rsiveo-action-tchat',
-					text: 'Tchat (portail externe)',
+					text: 'Portail sortant',
 					handler: function() {
 						this.handleNewAction('TCHAT_OUT') ;
 					},
@@ -2449,14 +2449,21 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 									metaData.tdCls += ' op5-spec-rsiveo-actiontree-mailin' ;
 									break dance ;
 								case 'EMAIL_OUT' :
-									metaData.tdCls += ' op5-spec-rsiveo-actiontree-mailout' ;
+									metaData.tdCls += ' op5-spec-rsiveo-actiontree-emailout' ;
 									break dance ;
 								case 'EMAIL_IN' :
-									metaData.tdCls += ' op5-spec-rsiveo-actiontree-mailin' ;
+									metaData.tdCls += ' op5-spec-rsiveo-actiontree-emailin' ;
 									break dance ;
 								case 'SMS_OUT' :
 									metaData.tdCls += ' op5-spec-rsiveo-mail-sms' ;
 									break dance ;
+								case 'BUMP' :
+									metaData.tdCls += ' op5-spec-rsiveo-actiontree-bump' ;
+									break dance ;
+								case 'TCHAT_OUT' :
+									metaData.tdCls += ' op5-spec-rsiveo-action-tchat-out' ;
+								case 'TCHAT_IN' :
+									metaData.tdCls += ' op5-spec-rsiveo-action-tchat-in' ;
 								default :
 									break ;
 							}
