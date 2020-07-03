@@ -40,7 +40,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailSubReportingPanel',{
 							fields: ['timerange_intmonths','timerange_txt'],
 							data : [
 								{ timerange_intmonths: '6', timerange_txt: '6 mois' },
-								{ timerange_intmonths: '24', timerange_txt: '2 ans' }
+								{ timerange_intmonths: '12', timerange_txt: '1 an' },
+								{ timerange_intmonths: '-1', timerange_txt: 'Autre période' }
 							]
 						},
 						queryMode: 'local',
@@ -53,6 +54,36 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailSubReportingPanel',{
 							},
 							scope: this
 						}
+					},{
+						xtype: 'fieldset',
+						hidden: true,
+						itemId: 'paramTimerangeDateFields',
+						title: 'Autre intervalle',
+						items: [{
+							xtype: 'datefield',
+							allowBlank: false,
+							fieldLabel: 'Date début',
+							itemId: 'paramTimerangeDateStart',
+							format: 'Y-m-d',
+							listeners: {
+								change: function() {
+									this.doReload() ;
+								},
+								scope: this
+							}
+						},{
+							xtype: 'datefield',
+							fieldLabel: 'Date fin',
+							allowBlank: false,
+							itemId: 'paramTimerangeDateEnd',
+							format: 'Y-m-d',
+							listeners: {
+								change: function() {
+									this.doReload() ;
+								},
+								scope: this
+							}
+						}]
 					},{
 						xtype: 'displayfield',
 						name: 'display_action_auto',
@@ -103,6 +134,23 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailSubReportingPanel',{
 	},
 	
 	doReload: function() {
+		var dateFieldsMode = (this.down('#formSummary').down('#paramTimerangeMonths').getValue()=='-1') ;
+		this.down('#formSummary').down('#paramTimerangeDateFields').setVisible(dateFieldsMode) ;
+		
+		var doLoad = true ;
+		if( dateFieldsMode ) {
+			if( !this.down('#formSummary').down('#paramTimerangeDateStart').isValid() ) {
+				doLoad = false ;
+			}
+			if( !this.down('#formSummary').down('#paramTimerangeDateEnd').isValid() ) {
+				doLoad = false ;
+			}
+		}
+		if( !doLoad ) {
+			return ;
+		}
+		
+		
 		this.doLoadElements(this._accId) ;
 	},
 	doLoadElements: function(accId) {
@@ -123,13 +171,20 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailSubReportingPanel',{
 		
 		var paramTimerangeMonths = parseInt(this.down('#formSummary').down('#paramTimerangeMonths').getValue()) ;
 		
+		var ajaxParams = {
+			_moduleId: 'spec_rsi_recouveo',
+			_action: 'report_getFileElements',
+			acc_id: accId,
+		};
+		if( paramTimerangeMonths > 0 ) {
+			ajaxParams['timerange_months'] = paramTimerangeMonths ;
+		} else {
+			ajaxParams['timerange_datestart'] = this.down('#formSummary').down('#paramTimerangeDateStart').getRawValue() ;
+			ajaxParams['timerange_dateend'] = this.down('#formSummary').down('#paramTimerangeDateEnd').getRawValue() ;
+		}
+		
 		this.optimaModule.getConfiguredAjaxConnection().request({
-			params: {
-				_moduleId: 'spec_rsi_recouveo',
-				_action: 'report_getFileElements',
-				acc_id: accId,
-				timerange_months: paramTimerangeMonths
-			},
+			params: ajaxParams,
 			success: function(response) {
 				var ajaxResponse = Ext.decode(response.responseText) ;
 				if( ajaxResponse.success == false ) {

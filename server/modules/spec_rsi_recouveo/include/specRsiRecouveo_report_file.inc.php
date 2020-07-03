@@ -4,22 +4,28 @@ function specRsiRecouveo_report_getFileElements( $post_data ) {
 	global $_opDB ;
 	
 	$p_accId = $post_data['acc_id'] ;
-	$p_timerangeMonths = $post_data['timerange_months'] ;
 	
 	if( !$p_accId ) {
 		return array('success'=>false) ;
 	}
-	if( !is_numeric($p_timerangeMonths) || $p_timerangeMonths < 1 ) {
-		$p_timerangeMonths = 1 ;
+	
+	if( !isset($post_data['timerange_months']) ) {
+		$d_start = $post_data['timerange_datestart'] ;
+		$d_end = $post_data['timerange_dateend'] ;
+	} else {
+		$p_timerangeMonths = $post_data['timerange_months'] ;
+		if( !is_numeric($p_timerangeMonths) || $p_timerangeMonths < 1 ) {
+			$p_timerangeMonths = 1 ;
+		}
+		
+		$d = new DateTime();
+		$d->modify('last day of -1 month') ;
+		$d_end = $d->format('Y-m-d') ;
+		
+		$d = new DateTime();
+		$d->modify( "first day of -{$p_timerangeMonths} months" );
+		$d_start = $d->format('Y-m-d') ;
 	}
-	
-	$d = new DateTime();
-	$d->modify('last day of -1 month') ;
-	$d_end = $d->format('Y-m-d') ;
-	
-	$d = new DateTime();
-	$d->modify( "first day of -{$p_timerangeMonths} months" );
-	$d_start = $d->format('Y-m-d') ;
 	
 	$query = "SELECT DATE(min(fa.field_DATE_ACTUAL))
 				FROM view_file_FILE_ACTION fa
