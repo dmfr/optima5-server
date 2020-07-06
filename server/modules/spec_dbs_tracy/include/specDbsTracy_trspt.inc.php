@@ -733,6 +733,15 @@ function specDbsTracy_trspt_printDoc( $post_data ) {
 		$query = "SELECT * FROM view_bible_LIST_CARRIER_entry WHERE entry_key='{$trspt_record['mvt_carrier']}'" ;
 		$result = $_opDB->query($query) ;
 		$row_bible_CARRIER = $_opDB->fetch_assoc($result) ;
+		$row_bible_CARRIER_address = $row_bible_CARRIER['field_ADDRESS'] ;
+		$row_bible_CARRIER_address_NEW = '' ;
+		foreach( explode("\n",$row_bible_CARRIER_address) as $line ) {
+			$line = trim($line) ;
+			if( strlen($line) > 35 ) {
+				$line = substr($line,0,35) ;
+			}
+			$row_bible_CARRIER_address_NEW.= $line."\n" ;
+		}
 		//print_r($row_bible_CARRIER) ;
 		
 		$buffer.= "<table border='0' cellspacing='5' cellpadding='5' width='800'>" ;
@@ -757,9 +766,9 @@ function specDbsTracy_trspt_printDoc( $post_data ) {
 		$buffer.= "<td>&nbsp;</td>" ;
 		$buffer.= "<td width='33%' valign='top' style='border: 1px solid gray'>" ;
 			$buffer.= "<div style='padding-bottom:6px'><i>{$header_adr}</i></div>" ;
-			$buffer.= '<span class="mybig">' ;
+			$buffer.= '<span class="mybig" style="white-space: nowrap;">' ;
 			$buffer.= '<b>'.$trspt_record['mvt_carrier'].'</b><br>' ;
-			$buffer.= ''.nl2br(htmlentities($row_bible_CARRIER['field_ADDRESS'])).'<br>' ;
+			$buffer.= ''.nl2br(htmlentities($row_bible_CARRIER_address_NEW)).'<br>' ;
 			$buffer.= "</span>" ;
 		$buffer.= "</td>" ;
 		$buffer.= "</tr></table>" ;
