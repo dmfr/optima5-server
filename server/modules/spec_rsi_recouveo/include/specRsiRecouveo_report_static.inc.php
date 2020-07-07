@@ -171,35 +171,24 @@ function specRsiRecouveo_report_getUsers( $post_data ) {
 	/* Compteur actions 
 	 * - Appels sortants   : com_mailout
 	 * - Courriers manuels : com_callout
+	 * - Emails : com_emailout
+	 * - SMS : com_smsout
 	 */ 
-	$query = "SELECT fa.field_LOG_USER, count(*)
-				FROM ({$view_file_FILE_ACTION}) fa
-				JOIN view_file_FILE f ON f.filerecord_id=fa.filerecord_parent_id
-				WHERE fa.field_LOG_USER<>'' AND fa.field_LINK_ACTION='CALL_OUT'
-				GROUP BY fa.field_LOG_USER" ;
-	$result = $_opDB->query($query) ;
-	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
-		$user_arr = explode('@',$arr[0]) ;
-		$user_id = $user_arr[0] ;
-		if( !$TAB_userId_row[$user_id] ) {
-			continue ;
-		}
-		
-		$count = $arr[1] ;
-		
-		if( !isset($TAB_userId_row[$user_id]['com_callout']) ) {
-			$TAB_userId_row[$user_id]['com_callout'] = 0 ;
-		}
-		$TAB_userId_row[$user_id]['com_callout'] += $count ;
-	}
-	
-	$query = "SELECT fa.field_LOG_USER, count(*)
+	$query = "SELECT fa.field_LOG_USER, field_LINK_ACTION, count(*)
 				FROM ({$view_file_FILE_ACTION}) fa
 				JOIN view_file_FILE f ON f.filerecord_id=fa.filerecord_parent_id
 				JOIN view_bible_LIB_ACCOUNT_entry la ON la.entry_key=f.field_LINK_ACCOUNT
 				LEFT OUTER JOIN view_bible_TPL_entry bt ON bt.entry_key=fa.field_LINK_TPL
-				WHERE fa.field_LOG_USER<>'' AND fa.field_LINK_ACTION='MAIL_OUT' AND bt.field_MANUAL_IS_ON='1'
-				GROUP BY fa.field_LOG_USER" ;
+				WHERE fa.field_LOG_USER<>'' AND (
+					(fa.field_LINK_ACTION='MAIL_OUT' AND bt.field_MANUAL_IS_ON='1')
+					OR
+					fa.field_LINK_ACTION='EMAIL_OUT'
+					OR
+					fa.field_LINK_ACTION='CALL_OUT'
+					OR
+					fa.field_LINK_ACTION='SMS_OUT'
+				)
+				GROUP BY fa.field_LOG_USER, fa.field_LINK_ACTION" ;
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
 		$user_arr = explode('@',$arr[0]) ;
@@ -208,12 +197,19 @@ function specRsiRecouveo_report_getUsers( $post_data ) {
 			continue ;
 		}
 		
-		$count = $arr[1] ;
-		
-		if( !isset($TAB_userId_row[$user_id]['com_mailout']) ) {
-			$TAB_userId_row[$user_id]['com_mailout'] = 0 ;
+		switch( $arr[1] ) {
+			case 'MAIL_OUT' : $mkey='com_mailout' ; break ;
+			case 'EMAIL_OUT' : $mkey='com_emailout' ; break ;
+			case 'SMS_OUT' : $mkey='com_smsout' ; break ;
+			case 'CALL_OUT' : $mkey='com_callout' ; break ;
 		}
-		$TAB_userId_row[$user_id]['com_mailout'] += $count ;
+		
+		$count = $arr[2] ;
+		
+		if( !isset($TAB_userId_row[$user_id][$mkey]) ) {
+			$TAB_userId_row[$user_id][$mkey] = 0 ;
+		}
+		$TAB_userId_row[$user_id][$mkey] += $count ;
 	}
 	
 	
@@ -224,13 +220,11 @@ function specRsiRecouveo_report_getUsers( $post_data ) {
 	 * 
 	 *
 	 */
-	$_skip_accuser = !in_array( 'view_stat_scope_accuser', $_opDB->db_tables() ) ;
-	if( !$_skip_accuser ) {
-	$query = "SELECT map.log_user, sum(r.field_AMOUNT * (map.nb_actions_account_user / map.nb_actions_account))
+	$query = "SELECT la.field_LINK_USER_LOCAL, sum(r.field_AMOUNT)
 				FROM ({$view_file_RECORD}) r
-				JOIN view_stat_scope_accuser map ON map.acc_id=r.field_LINK_ACCOUNT
-				WHERE r.field_TYPE IN ('LOCAL','REMOTE')
-				GROUP BY map.log_user" ;
+				JOIN view_bible_LIB_ACCOUNT_entry la ON la.entry_key = r.field_LINK_ACCOUNT
+				WHERE (r.field_TYPE<>'' OR r.field_AMOUNT<'0')
+				GROUP BY la.field_LINK_USER_LOCAL" ;
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
 		$user_arr = explode('@',$arr[0]) ;
@@ -246,51 +240,6 @@ function specRsiRecouveo_report_getUsers( $post_data ) {
 			$TAB_userId_row[$user_id]['res_PAY'] = 0 ;
 		}
 		$TAB_userId_row[$user_id]['res_PAY'] += $amount ;
-	}
-	
-	$query = "SELECT map.log_user, sum(r.field_AMOUNT * (map.nb_actions_account_user / map.nb_actions_account))
-				FROM ({$view_file_RECORD}) r
-				JOIN view_stat_scope_accuser map ON map.acc_id=r.field_LINK_ACCOUNT
-				WHERE r.field_TYPE IN ('CI','DR','STOP')
-				GROUP BY map.log_user" ;
-	$result = $_opDB->query($query) ;
-	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
-		$user_arr = explode('@',$arr[0]) ;
-		$user_id = $user_arr[0] ;
-		if( !$TAB_userId_row[$user_id] ) {
-			continue ;
-		}
-		
-		$amount = $arr[1] ;
-		$amount = (-1 * $amount) ;
-		
-		if( !isset($TAB_userId_row[$user_id]['res_AVR']) ) {
-			$TAB_userId_row[$user_id]['res_AVR'] = 0 ;
-		}
-		$TAB_userId_row[$user_id]['res_AVR'] += $amount ;
-	}
-	
-	$query = "SELECT map.log_user, sum(r.field_AMOUNT * (map.nb_actions_account_user / map.nb_actions_account))
-				FROM ({$view_file_RECORD}) r
-				JOIN view_stat_scope_accuser map ON map.acc_id=r.field_LINK_ACCOUNT
-				WHERE r.field_TYPE IN (' ') AND r.field_AMOUNT<'0'
-				GROUP BY map.log_user" ;
-	$result = $_opDB->query($query) ;
-	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
-		$user_arr = explode('@',$arr[0]) ;
-		$user_id = $user_arr[0] ;
-		if( !$TAB_userId_row[$user_id] ) {
-			continue ;
-		}
-		
-		$amount = $arr[1] ;
-		$amount = (-1 * $amount) ;
-		
-		if( !isset($TAB_userId_row[$user_id]['res_misc']) ) {
-			$TAB_userId_row[$user_id]['res_misc'] = 0 ;
-		}
-		$TAB_userId_row[$user_id]['res_misc'] += $amount ;
-	}
 	}
 	
 	

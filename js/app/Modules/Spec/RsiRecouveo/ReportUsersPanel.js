@@ -6,6 +6,8 @@ Ext.define('RsiRecouveoReportUserModel',{
 		{ name: 'user_fullname', type: 'string' },
 		{ name: 'com_callout', type: 'int' },
 		{ name: 'com_mailout', type: 'int' },
+		{ name: 'com_smsout', type: 'int' },
+		{ name: 'com_emailout', type: 'int' },
 		{ name: 'res_PAY', type: 'number' },
 		{ name: 'res_AVR', type: 'number' },
 		{ name: 'res_misc', type: 'number' },
@@ -104,40 +106,37 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportUsersPanel',{
 				summaryType: 'sum'
 			},{
 				tdCls: 'op5-spec-rsiveo-taupe',
-				text: 'Courriers man.',
+				text: 'Courriers<br>manuels',
 				dataIndex: 'com_mailout',
+				width:100,
+				align: 'right',
+				renderer: countRenderer,
+				summaryType: 'sum'
+			},{
+				tdCls: 'op5-spec-rsiveo-taupe',
+				text: 'Emails<br>manuels',
+				dataIndex: 'com_emailout',
+				width:100,
+				align: 'right',
+				renderer: countRenderer,
+				summaryType: 'sum'
+			},{
+				tdCls: 'op5-spec-rsiveo-taupe',
+				text: 'SMS',
+				dataIndex: 'com_smsout',
 				width:100,
 				align: 'right',
 				renderer: countRenderer,
 				summaryType: 'sum'
 			}]
 		},{
-			text: 'Résolution',
-			columns: [{
-				text: 'Paiements',
-				dataIndex: 'res_PAY',
-				width:120,
-				align: 'right',
-				renderer: amountRenderer,
-				summaryType: 'sum',
-				summaryRenderer: amountRenderer
-			},{
-				text: 'Avoirs',
-				dataIndex: 'res_AVR',
-				width:120,
-				align: 'right',
-				renderer: amountRenderer,
-				summaryType: 'sum',
-				summaryRenderer: amountRenderer
-			},{
-				text: 'Autres',
-				dataIndex: 'res_misc',
-				width:120,
-				align: 'right',
-				renderer: amountRenderer,
-				summaryType: 'sum',
-				summaryRenderer: amountRenderer
-			}]
+			text: 'Encaissements',
+			dataIndex: 'res_PAY',
+			width:140,
+			align: 'right',
+			renderer: amountRenderer,
+			summaryType: 'sum',
+			summaryRenderer: amountRenderer
 		},{
 			tdCls: 'op5-spec-rsiveo-taupe',
 			text: 'Actions en retard au ' + Ext.Date.format(new Date(),'d/m/Y'),
