@@ -93,7 +93,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		'Optima5.Modules.Spec.RsiRecouveo.RecordTempForm',
 		'Optima5.Modules.Spec.RsiRecouveo.AgreeComparePanel',
 		
-		'Optima5.Modules.Spec.RsiRecouveo.FileDetailSubReportingPanel'
+		'Optima5.Modules.Spec.RsiRecouveo.FileDetailSubReportingPanel',
+		'Optima5.Modules.Spec.RsiRecouveo.FileDetailRiskPanel'
 	],
 	
 	_readonlyMode: false,
@@ -1258,12 +1259,12 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 				},Ext.create('Optima5.Modules.Spec.RsiRecouveo.FileDetailSubReportingPanel',{
 					title: 'Statistiques',
 					_parentCmp: this
-				}),{
-					hidden: true,
-					xtype: 'panel',
+				}),Ext.create('Optima5.Modules.Spec.RsiRecouveo.FileDetailRiskPanel',{
+					scrollable: 'vertical',
+					hidden: !Optima5.Helper.getApplication().desktopGetCfgIsDev(),
 					title: 'Analyse risque',
-					layout: 'fit'
-				}]
+					_parentCmp: this
+				})]
 			},{xtype: 'splitter', cls: 'op5-spec-rsiveo-splitter'},{
 				flex: 1,
 				title: 'Actions',
