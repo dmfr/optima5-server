@@ -72,6 +72,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportUserActionsPanel',{
 			locked: true
 		}] ;
 		Ext.Object.each( map_groupId_childrenCols, function(groupId, cols) {
+			if(groupId!='*'){
+				return ;
+			}
 			columns.push({
 				text: map_groupId_groupTxt[groupId],
 				columns: cols
