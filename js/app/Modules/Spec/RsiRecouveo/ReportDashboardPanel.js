@@ -215,11 +215,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPanel',{
 	
 	
 	onDateSet: function(doPreset) {
-		if( !doPreset ) {
-			return ;
-		}
 		var pagePanel = this.down('#pCenter').down('op5specrsiveoreportdashboardpage') ;
-		if( pagePanel ) {
+		if( pagePanel && doPreset ) {
 			//pagePanel.doLoad() ;
 			pagePanel.forceCfgChange({timebreak_group:doPreset.toUpperCase()}) ;
 		}
