@@ -146,7 +146,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 						xtype: 'menuseparator'
 					},{
 						xtype: 'menucheckitem',
-						text: 'Afficher addresses ?',
+						text: 'Afficher contacts ?',
 						handler: null,
 						listeners: {
 							checkchange: function(mi,checked) {
@@ -554,6 +554,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 		
 		this.showLoadmask() ;
 		this.optimaModule.getConfiguredAjaxConnection().request({
+			timeout: (this.showAddress ? (10*60*1000) : null),
 			params: {
 				_moduleId: 'spec_rsi_recouveo',
 				_action: 'file_getRecords',
@@ -880,12 +881,13 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			if( !column.isVisible(true) ) {
 				return ;
 			}
+			var dataIndex = column.dataIndexExport || column.dataIndex
 			columns.push({
-				dataIndex: column.dataIndex,
-				dataIndexString: mapFieldString[column.dataIndex],
+				dataIndex: dataIndex,
+				dataIndexString: mapFieldString[dataIndex],
 				text: column.text
 			});
-			columnsKeys.push( column.dataIndex ) ;
+			columnsKeys.push( dataIndex ) ;
 		});
 		
 		var data = [] ;
@@ -1108,6 +1110,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 					width: 100,
 					text: 'Encours',
 					dataIndex: 'acc_amount_due',
+					sortable: true,
 					align: 'right',
 					renderer: function(v,m,r) {
 						var txt = '' ;

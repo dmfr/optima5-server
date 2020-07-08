@@ -208,6 +208,11 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 			$ttmp = specRsiRecouveo_account_open(array('acc_id'=>$record['acc_id'])) ;
 			$account_record = $ttmp['data'] ;
 			$record['adr_postal'] = $account_record['adr_postal'] ;
+			$record['adr_postal_is_prio'] = $account_record['adr_postal_is_prio'] ;
+			$record['adr_tel'] = $account_record['adr_tel'] ;
+			$record['adr_tel_is_prio'] = $account_record['adr_tel_is_prio'] ;
+			$record['adr_email'] = $account_record['adr_email'] ;
+			$record['adr_email_is_prio'] = $account_record['adr_email_is_prio'] ;
 		}
 		
 		$TAB_files[$arr['filerecord_id']] = $record ;

@@ -313,17 +313,64 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesWidgetList', {
 			    filter: {
 				    type: 'string'
 			    }
-		    },{
-			    hidden: true,
-			    hideable: false,
-			    text: 'Nom',
-			    dataIndex: 'adr_postal',
-			    width:150,
-			    align: 'left',
-			    renderer: function(v) {
-				    return Ext.util.Format.nl2br(v) ;
-			    }
 		    }]
+	    },{
+				hidden: true,
+				hideable: false,
+				itemId: 'colContacts',
+				text: 'Contacts privilégiés',
+				columns: [{
+					hideable: false,
+					text: 'Adresse',
+					dataIndex: 'adr_postal_is_prio',
+					dataIndexExport: 'adr_postal',
+					width:175,
+					renderer: function(v,m,r) {
+						if(v) {
+							m.tdCls += ' op5-spec-rsiveo-icon-prioritylist-on' ;
+						} else {
+							m.tdCls += ' op5-spec-rsiveo-icon-prioritylist-off' ;
+						}
+						return Ext.util.Format.nl2br(r.get('adr_postal')) ;
+					},
+					filter: {
+						type: 'boolean'
+					}
+				},{
+					hideable: false,
+					text: 'Tel',
+					dataIndex: 'adr_tel_is_prio',
+					dataIndexExport: 'adr_tel',
+					width:175,
+					renderer: function(v,m,r) {
+						if(v) {
+							m.tdCls += ' op5-spec-rsiveo-icon-prioritylist-on' ;
+						} else {
+							m.tdCls += ' op5-spec-rsiveo-icon-prioritylist-off' ;
+						}
+						return Ext.util.Format.nl2br(r.get('adr_tel')) ;
+					},
+					filter: {
+						type: 'boolean'
+					}
+				},{
+					hideable: false,
+					text: 'Email',
+					dataIndex: 'adr_email_is_prio',
+					dataIndexExport: 'adr_email',
+					width:175,
+					renderer: function(v,m,r) {
+						if(v) {
+							m.tdCls += ' op5-spec-rsiveo-icon-prioritylist-on' ;
+						} else {
+							m.tdCls += ' op5-spec-rsiveo-icon-prioritylist-off' ;
+						}
+						return Ext.util.Format.nl2br(r.get('adr_email')) ;
+					},
+					filter: {
+						type: 'boolean'
+					}
+				}]
 	    },{
 		    itemId: 'colStatus',
 		    text: 'Statut',
@@ -567,7 +614,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesWidgetList', {
 		this.headerCt.down('#colBalage').setVisible(!isFactView) ;
 
 		var showAddress = (showAddress) ;
-		this.headerCt.down('[dataIndex="adr_postal"]').setVisible(showAddress) ;
+		this.headerCt.down('#colContacts').setVisible(showAddress) ;
 		
 		var hasXe = (!(disableXe) && isFactView) ;
 		this.headerCt.down('[dataIndex="record_xe_currency_amount"]').setVisible(hasXe) ;

@@ -248,7 +248,6 @@ function specRsiRecouveo_account_open( $post_data ) {
 		),
 		'acc_txt' => $arr['field_ACC_NAME'],
 		'acc_siret' => $arr['field_ACC_SIRET'],
-		'adr_postal' => $arr['field_ADR_POSTAL'],
 		'link_user' => $arr['field_LINK_USER_LOCAL'],
 		'ext_data' => $arr["field_EXT_JSON"],
 		'similar' => array(),
@@ -322,10 +321,27 @@ function specRsiRecouveo_account_open( $post_data ) {
 	
 	
 	// ************* Extract default adr ***********
+	$account_record += array(
+		'adr_postal' => null,
+		'adr_postal_is_prio' => false,
+		'adr_email' => null,
+		'adr_email_is_prio' => false,
+		'adr_tel' => null,
+		'adr_tel_is_prio' => false
+	);
 	foreach( $adrbook as $adrbook_row ) {
 		foreach( $adrbook_row['adrbookentries'] as $adrbookentry_row ) {
 			if( ($adrbookentry_row['adr_type']=='POSTAL') && $adrbookentry_row['status_is_priority'] ) {
 				$account_record['adr_postal'] = $adrbookentry_row['adr_txt'] ;
+				$account_record['adr_postal_is_prio'] = true ;
+			}
+			if( ($adrbookentry_row['adr_type']=='EMAIL') && $adrbookentry_row['status_is_priority'] ) {
+				$account_record['adr_email'] = $adrbookentry_row['adr_txt'] ;
+				$account_record['adr_email_is_prio'] = true ;
+			}
+			if( ($adrbookentry_row['adr_type']=='TEL') && $adrbookentry_row['status_is_priority'] ) {
+				$account_record['adr_tel'] = $adrbookentry_row['adr_txt'] ;
+				$account_record['adr_tel_is_prio'] = true ;
 			}
 		}
 	}
@@ -525,7 +541,6 @@ function specRsiRecouveo_account_getSimilar( $post_data ) {
 		),
 		'acc_txt' => $arr['field_ACC_NAME'],
 		'acc_siret' => $arr['field_ACC_SIRET'],
-		'adr_postal' => $arr['field_ADR_POSTAL'],
 		'link_user' => $arr['field_LINK_USER_LOCAL'],
 		
 		'similar' => array()

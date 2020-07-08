@@ -12,6 +12,11 @@ Ext.define('RsiRecouveoFileTplModel',{ // TO: RsiRecouveoFileModel
 		{name: 'acc_txt', type:'string'},
 		{name: 'acc_siret', type:'string'},
 		{name: 'adr_postal', type:'string'},
+		{name: 'adr_postal_is_prio', type:'boolean'},
+		{name: 'adr_email', type:'string'},
+		{name: 'adr_email_is_prio', type:'boolean'},
+		{name: 'adr_tel', type:'string'},
+		{name: 'adr_tel_is_prio', type:'boolean'},
 		{name: 'link_user', type:'string', allowNull:true},
 		{name: 'link_user_txt', type:'string', allowNull:true},
 		{name: 'ext_user', type:'string', allowNull:true},
@@ -269,6 +274,11 @@ Ext.define('RsiRecouveoAccountTplModel',{
 		{name: 'acc_txt', type:'string'},
 		{name: 'acc_siret', type:'string'},
 		{name: 'adr_postal', type:'string'},
+		{name: 'adr_postal_is_prio', type:'boolean'},
+		{name: 'adr_email', type:'string'},
+		{name: 'adr_email_is_prio', type:'boolean'},
+		{name: 'adr_tel', type:'string'},
+		{name: 'adr_tel_is_prio', type:'boolean'},
 		{name: 'link_user', type:'string'}
 	]
 }) ;
