@@ -103,7 +103,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageActions',{
 	buildPage: function() {
 		var tilePanel = {
 			xtype: 'panel',
-			width: 350,
+			//width: 350,
+			width: 220,
 			layout: {
 				type: 'vbox',
 				align: 'stretch'
@@ -137,6 +138,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageActions',{
 					valueField: 'mode'
 				}]
 			},{
+				hidden: true,
 				xtype: 'panel',
 				title: 'Encaissements',
 				margin: 16,
@@ -151,6 +153,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageActions',{
 					itemId: 'cashIn'
 				})
 			},{
+				hidden: true,
 				xtype: 'panel',
 				title: 'DSO (moyenne)',
 				margin: 16,
@@ -165,6 +168,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageActions',{
 					itemId: 'dsoAvg'
 				})
 			},{
+				hidden: true,
 				xtype: 'panel',
 				title: 'Actions sur période complète',
 				margin: 16,

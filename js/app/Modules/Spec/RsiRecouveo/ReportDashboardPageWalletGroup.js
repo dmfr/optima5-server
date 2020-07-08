@@ -213,7 +213,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageWalletGroup',{
 	buildPage: function() {
 		var tilePanel = {
 			xtype: 'panel',
-			flex: 1,
+			//flex: 1,
+			width: 220,
 			layout: {
 				type: 'vbox',
 				align: 'center'
@@ -265,6 +266,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageWalletGroup',{
 					valueField: 'mode'
 				}]
 			},{
+				hidden: true,
 				xtype: 'panel',
 				title: 'Encours total',
 				margin: 10,
@@ -279,6 +281,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPageWalletGroup',{
 					itemId: 'tileWallet'
 				})
 			},{
+				hidden: true,
 				xtype: 'panel',
 				title: 'Encours en retard',
 				margin: 10,
