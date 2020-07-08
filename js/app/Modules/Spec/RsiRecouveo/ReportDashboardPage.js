@@ -9,7 +9,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPage',{
 	
 	_viewInstalled: false,
 	
-	_cfgLoadOverflowLimit: 10,
+	_cfgLoadOverflowLimit: 20,
 	_loadResultSetsCntOverflow: 0,
 	_loadResultSetsCnt: 0,
 	_loadResultSets: {},
@@ -53,6 +53,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPage',{
 
 			this._loadResultSetsCnt++ ;
 			this.optimaModule.getConfiguredAjaxConnection().request({
+				timeout: (10 * 60 * 1000),
 				params: {
 					_moduleId: 'spec_rsi_recouveo',
 					_action: 'report_getGrid',
