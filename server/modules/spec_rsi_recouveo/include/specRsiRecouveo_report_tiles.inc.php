@@ -354,7 +354,17 @@ function specRsiRecouveo_report_toolGetEvalDirection($cur_value, $eval_value, $e
 	}
 }
 
-function specRsiRecouveo_report_getGrid($post_data) {
+function specRsiRecouveo_report_getGrid( $post_data ) {
+	if( $json = specRsiRecouveo_cache_get($post_data) ) {
+		return $json ;
+	}
+	
+	$return = specRsiRecouveo_report_getGridCalc($post_data) ;
+	specRsiRecouveo_cache_set($post_data, $return) ;
+	return $return ;
+}
+function specRsiRecouveo_report_getGridCalc($post_data) {
+	
 	$p_filters = json_decode($post_data['filters'],true) ;
 	$p_axes = json_decode($post_data['axes'],true) ;
 	$p_vals = json_decode($post_data['reportval_ids'],true) ;
