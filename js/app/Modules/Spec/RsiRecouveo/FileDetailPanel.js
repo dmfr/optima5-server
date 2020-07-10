@@ -28,6 +28,14 @@ Ext.define('RsiRecouveoFileDetailRecordsTreeModel', {
 		  {name: 'letter_is_confirm', type: 'boolean'}
      ]
 });
+Ext.define('RsiRecouveoExtPortalGridModel',{
+	extend: 'Ext.data.Model',
+	fields: [
+		{name:'field_code', type:'string'},
+		{name: "field_value", type: "string"},
+		{name: "field_status", type: "string"}
+	],
+});
 Ext.define('RsiRecouveoAdrbookTreeModel',{
 	extend: 'RsiRecouveoAdrbookModel',
 	idProperty: 'id',
@@ -932,6 +940,146 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 								scope: this
 							}]
 						}],
+					}, {
+						xtype: "panel",
+						layout: "fit",
+						itemId: "pExtPanel",
+						bodyCls: 'ux-noframe-bg',
+						title: "Attributs dynamiques",
+						items: [{
+							xtype: "grid",
+							itemId: "pExtGrid",
+							store: {
+								model: 'RsiRecouveoExtPortalGridModel',
+								data: [],
+								sorters: [ {
+									property: 'field_code',
+									direction: 'ASC'
+								} ],
+							},
+							tbar: [{
+								itemId: 'tbNew',
+								icon: 'images/add.png',
+								text: 'Définir attribut',
+								handler: function() {
+									this.handleNewAtr();
+								},
+								scope: this
+							},'-',{
+								disabled: true,
+								itemId: 'tbDelete',
+								icon: 'images/delete.png',
+								text: 'Supprimer',
+								handler: function() {
+									this.handleDeleteAtr();
+								},
+								scope: this
+							}],
+							plugins: [{
+								ptype: 'rowediting',
+								pluginId: 'rowediting',
+								onEnterKey: Ext.emptyFn,
+								errorSummary: false,
+								removeUnmodified: true,
+								listeners: {
+									beforeedit: this.onBeforeEditAtr,
+									edit: this.onAfterEditAtr,
+									canceledit: this.onCancelEditAtr,
+									scope: this
+								}
+							}],
+							_fieldsMap: Optima5.Modules.Spec.RsiRecouveo.HelperCache.getPortalFieldMap(),
+							columns: [{
+								text: 'Champ',
+								dataIndex: 'field_code',
+								width: 180,
+								itemId: "colField",
+								renderer: function(v) {
+									if( this._fieldsMap.hasOwnProperty(v) ) {
+										return this._fieldsMap[v] ;
+									}
+									return v ;
+								},
+								editor: {
+									xtype: 'combobox',
+									queryMode: 'local',
+									forceSelection: true,
+									allowBlank: false,
+									editable: false,
+									itemId: "comboField",
+									store: {
+										model: 'RsiRecouveoCfgPortalFieldModel',
+										data: Optima5.Modules.Spec.RsiRecouveo.HelperCache.getPortalFieldAll()
+									},
+									valueField: 'field_code',
+									displayField: 'field_txt'
+								}
+							},{
+								text: 'Valeur',
+								dataIndex: 'field_value',
+								flex: 1,
+								editor: {
+									xtype: 'textfield',
+									allowBlank: false
+								}
+							}, {
+								text: "Vérifié ?",
+								dataIndex: "field_status",
+								flex: 1,
+								editorTpl: {
+									xtype: 'checkboxfield'
+								},
+								renderer: function(value,metaData,record,rowIndex,colIndex,store,view) {
+									if( value !== "false" ) {
+										return '<b>'+'X'+'</b>' ;
+									}
+									return '&#160;' ;
+								},
+								scope: this,
+							}],
+							listeners: {
+								selectionchange: function(selModel,records) {
+									this.down('#pExtGrid').down('toolbar').down('#tbDelete').setDisabled( !(records && records.length > 0) ) ;
+								},
+								scope: this
+							}
+						}],
+						dockedItems: [{
+							xtype: 'toolbar',
+							dock: 'bottom',
+							ui: 'footer',
+							items: [{
+								itemId: 'btnEdit',
+								xtype: 'button',
+								text: 'Modifier',
+								icon: 'images/modules/rsiveo-edit-16.gif',
+								handler: function( btn ) {
+									this.handleAtrEdit() ;
+								},
+								scope: this
+							},{
+								xtype: 'component',
+								flex: 1
+							},{
+								itemId: 'btnOk',
+								xtype: 'button',
+								text: 'Enregistrer',
+								icon: 'images/modules/rsiveo-save-16.gif',
+								handler: function( btn ) {
+									this.handleAtrSave() ;
+								},
+								scope: this
+							},{
+								itemId: 'btnCancel',
+								xtype: 'button',
+								text: 'Annuler',
+								icon: 'images/modules/rsiveo-cancel-16.gif',
+								handler: function( btn ) {
+									this.handleAbort() ;
+								},
+								scope: this
+							}]
+						}]
 					}]
 				}]
 			},{xtype: 'splitter', cls: 'op5-spec-rsiveo-splitter'},{
@@ -1313,6 +1461,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		
 		this.on('afterrender', function() {
 			this.loadAccount( this._accId, this._filterAtr, this._focusFileFilerecordId, this._showClosed ) ;
+			this.setExtPortalEditMode(false) ;
 		},this) ;
 		this.on('beforeclose',this.onBeforeClose,this) ;
 		this.on('beforedestroy',this.onBeforeDestroy,this) ;
@@ -1337,6 +1486,114 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		}
 	},
 	
+	handleNewAtr: function() {
+		var grid = this.down('#pExtGrid') ;
+		if( grid.getPlugin('rowediting')._disabled ) {
+			return ;
+		}
+		var newRecords = grid.getStore().add( Ext.create('RsiRecouveoExtPortalGridModel',{
+			field_value: "",
+			field_code: "",
+			field_status: false,
+			time: ""
+		}) ) ;
+		grid.getPlugin('rowediting').startEdit(newRecords[0]) ;
+	},
+	handleDeleteAtr: function() {
+		var grid = this.down('#pExtGrid') ;
+		if( grid.getPlugin('rowediting')._disabled ) {
+			return ;
+		}
+		var toDeleteRecords = grid.getSelectionModel().getSelection() ;
+		if( toDeleteRecords && toDeleteRecords.length>0 ) {
+			grid.getStore().remove(toDeleteRecords) ;
+		}
+	},
+	handleAtrEdit: function(doCopy) {
+		var setAsNew = doCopy ;
+		this.setExtPortalEditMode(true,setAsNew) ;
+	},
+	setExtPortalEditMode: function(torf,setAsNew) {
+		var editorGrid = this.down('#pExtGrid');
+		editorGrid.getPlugin('rowediting')._disabled = !torf ;
+
+		this.down('#btnEdit').setVisible(!torf) ;
+		this.down('#btnOk').setVisible(torf) ;
+		this.down('#btnCancel').setVisible(torf) ;
+		editorGrid.down('toolbar').setVisible(torf) ;
+	},
+
+	onAfterEditAtr: function(editor,context) {
+		if (editor._disabled) {
+			return false;
+		}
+		context.record.commit() ;
+	},
+	onBeforeEditAtr: function(editor,context) {
+		if (editor._disabled) {
+			return false;
+		}
+		this.onBeforeEditAtrRecordStatus(context.record) ;
+	},
+	onBeforeEditAtrRecordStatus: function(record) {
+		var col = this.down('#pExtGrid').headerCt.down('[dataIndex="field_status"]'),
+				editor = Ext.clone(col.editorTpl) ;
+		var portalFieldRow = Optima5.Modules.Spec.RsiRecouveo.HelperCache.getPortalField(record.get('field_code')) ;
+		if (portalFieldRow && portalFieldRow.is_mandatory === true){
+			col.setEditor(null) ;
+		} else{
+			col.setEditor(editor) ;
+		}
+	},
+	onCancelEditAtr: function(editor,context) {
+		if( context.record.get('field_value') === "" || context.record.get('field_code') === "" || context.record.get('field_status') === "") {
+			context.grid.getStore().remove(context.record) ;
+		}
+	},
+	handleAtrSave: function(doDelete) {
+		var grid = this.down('#pExtGrid');
+		var data = [] ;
+		var _fieldsMap = Optima5.Modules.Spec.RsiRecouveo.HelperCache.getPortalFieldMap() ;
+		grid.getStore().each( function(gridRecord) {
+			let tmp = gridRecord.getData() ;
+			if (tmp["field_code"] !== "" && tmp["field_value"] !== "" && tmp["field_status"] !== ""){
+				data.push({
+					valeur: tmp["field_value"],
+					statut: tmp["field_status"],
+					code: tmp["field_code"],
+					lib: _fieldsMap[tmp["field_code"]],
+					time: tmp["time"],
+				})
+			}
+		}) ;
+		this.showLoadmask() ;
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_rsi_recouveo',
+				_action: 'account_saveExtData',
+				acc_id: this._accId,
+				data: Ext.JSON.encode(data),
+				fromRec: true
+			},
+			success: function(response) {
+				var ajaxResponse = Ext.JSON.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					Ext.MessageBox.alert('Error','Error') ;
+					return ;
+				}
+				this.doReload() ;
+				this.setExtPortalEditMode(false) ;
+			},
+			callback: function() {
+				this.hideLoadmask() ;
+			},
+			scope: this
+		}) ;
+	},
+	handleAbort: function() {
+		this.doReload() ;
+		this.setExtPortalEditMode(false) ;
+	},
 	showLoadmask: function() {
 		if( this.rendered ) {
 			this.doShowLoadmask() ;
@@ -1440,6 +1697,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		//adrbook
 		this.onLoadAccountBuildAdrbookTree(accountRecord) ;
 		
+		//attr dynamiques
+		this.onLoadAccountBuildExtPortalData(accountRecord) ;
+		
 		//notepad
 		accountRecord.notepad().each( function(accnotepadRecord) {
 			this.down('#pNotepadTxt').setValue( accnotepadRecord.get('notepad_txt') ) ;
@@ -1531,6 +1791,30 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			this.openNotifications() ;
 		}
 		
+		return ;
+	},
+	onLoadAccountBuildExtPortalData: function(accountRecord) {
+		var extPortalData = accountRecord.get('ext_data') ;
+		var store = this.down("#pExtGrid").getStore() ;
+		if (extPortalData === "") {
+			store.loadData([]);
+			return;
+		}
+		var data = Ext.JSON.decode(extPortalData);
+		let arr = [];
+		if (Ext.isEmpty(data)){
+			store.removeAll([]);
+			return ;
+		}
+		Object.entries(data).forEach((rec) => {
+			arr.push({
+				field_code: rec[1]["code"],
+				field_value: rec[1]["valeur"],
+				field_status: rec[1]["statut"],
+				time: rec[1]["time"],
+			});
+		})
+		store.loadData(arr);
 		return ;
 	},
 	onLoadAccountBuildAdrbookTree: function( accountRecord ) {

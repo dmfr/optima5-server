@@ -4,12 +4,13 @@ function specRsiRecouveo_account_saveExtData( $post_data ) {
 	global $_opDB ;
 	if ($post_data["fromRec"] === "true"){
 		$newData = specRsiRecouveo_account_convertRecData($post_data['data']) ;
-	} else $newData = $post_data["data"] ;
-	error_log("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx") ;
-	$newStr = str_replace("'", "''", $newData) ;
-
-	$query = "UPDATE view_bible_LIB_ACCOUNT_entry SET field_EXT_JSON = '{$newStr}' WHERE entry_key = '{$post_data['acc_id']}'" ;
-	error_log($query) ;
+	} else {
+		$newData = $post_data["data"] ;
+	}
+	
+	$newStrEscaped = $_opDB->escape_string($newData) ;
+	$query = "UPDATE view_bible_LIB_ACCOUNT_entry 
+		SET field_EXT_JSON = '{$newStrEscaped}' WHERE entry_key = '{$post_data['acc_id']}'" ;
 	$res = $_opDB->query($query) ;
 	if ($res === true){
 		return array("success" => true) ;
@@ -22,57 +23,12 @@ function specRsiRecouveo_account_convertRecData($data){
 	$conf = $confJson["data"] ;
 	$newArr = array() ;
 	$currentTimestamp = time() ;
-	foreach ($jsonData as $data){
-		$code = "" ;
-		if ($data["lib"] === "Pro/Part"){
-			$tmp = $data ;
-			$tmp["code"] = "propart" ;
-			if ($tmp["time"] === ""){
-				$tmp["time"] = $currentTimestamp ;
-			}
-			$newArr[] = $tmp ;
- 			continue ;
-		}
-		foreach ($conf["both"] as $row){
-			if ($row["displayName"] === $data["lib"]){
-				$tmp = $data ;
-				$tmp["code"] = $row["code"] ;
-				if ($tmp["time"] === ""){
-					$tmp["time"] = $currentTimestamp ;
-				}
-				$newArr[] = $tmp ;
-				$code = "ok" ;
-				break ;
-			}
-		}
-		if ($code !== "") continue ;
-		foreach ($conf["part"] as $row){
-			if ($row["displayName"] === $data["lib"]){
-				$tmp = $data ;
-				$tmp["code"] = $row["code"] ;
-				if ($tmp["time"] === ""){
-					$tmp["time"] = $currentTimestamp ;
-				}
-				$newArr[] = $tmp ;
-				$code = "ok" ;
-				break ;
-			}
-		}
-		if ($code !== "") continue ;
-		foreach ($conf["pro"] as $row){
-			if ($row["displayName"] === $data["lib"]){
-				$tmp = $data ;
-				$tmp["code"] = $row["code"] ;
-				if ($tmp["time"] === ""){
-					$tmp["time"] = $currentTimestamp ;
-				}
-				$newArr[] = $tmp ;
-				break ;
-			}
-		}
+	foreach ($jsonData as &$data){
+		$data["time"] = $currentTimestamp ;
 	}
-	$finalArr = specRsiRecouveo_account_removeInvalidDuplicates($newArr) ;
-	return json_encode($finalArr, JSON_UNESCAPED_UNICODE) ;
+	unset($data) ;
+	$jsonData = specRsiRecouveo_account_removeInvalidDuplicates($jsonData) ;
+	return json_encode($jsonData) ;
 
 }
 function specRsiRecouveo_account_removeInvalidDuplicates($data){

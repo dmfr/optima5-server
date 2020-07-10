@@ -275,6 +275,16 @@ Ext.define('RsiRecouveoCfgReportValueModel',{
 	]
 });
 
+Ext.define('RsiRecouveoCfgPortalFieldModel',{
+	extend: 'Ext.data.Model',
+	idProperty: 'field_code',
+	fields: [
+		{name: 'field_code', type:'string'},
+		{name: 'field_txt', type:'string'},
+		{name: 'is_mandatory', type:'boolean'}
+	]
+});
+
 
 
 Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
@@ -306,11 +316,12 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 	startLoading: function() {
 		var me = this ;
 		
-		me.nbToLoad = 2 ;
+		me.nbToLoad = 3 ;
 		me.nbLoaded = 0 ;
 		
 		me.authHelperInit() ;
 		me.fetchConfig() ;
+		me.fetchPortalCfg() ;
 	},
 	onLoad: function() {
 		var me = this ;
@@ -319,6 +330,50 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 			me.isReady = true ;
 			me.fireEvent('ready') ;
 		}
+	},
+	
+	
+	
+	fetchPortalCfg: function() {
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_rsi_recouveo',
+				_action: 'extPortal_getInfosConfig'
+			},
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					Ext.MessageBox.alert('Error','Error') ;
+					return ;
+				} else {
+					this.onLoadPortalCfg( ajaxResponse.data ) ;
+				}
+			},
+			scope: this
+		}) ;
+	},
+	onLoadPortalCfg: function(ajaxData) {
+		let arr = [];
+		let json = ajaxData ;
+		Object.values(json["pro"]).forEach((row) => {
+			arr.push({field_txt: row["displayName"], field_code: row["code"], is_mandatory: row["mandatory"]}) ;
+		})
+		Object.values(json["part"]).forEach((row) => {
+			arr.push({field_txt: row["displayName"], field_code: row["code"], is_mandatory: row["mandatory"]}) ;
+		})
+		Object.values(json["both"]).forEach((row) => {
+			arr.push({field_txt: row["displayName"], field_code: row["code"], is_mandatory: row["mandatory"]}) ;
+		})
+		arr.push({field_txt: "Pro/Part", field_code: "propart", is_mandatory: true}) ;
+		//this._isPortalEditableComboLoaded = true ;
+		//this._extPortalConfig = json ;
+		
+		this.cfgPortalFieldStore = Ext.create('Ext.data.Store',{
+			model: 'RsiRecouveoCfgPortalFieldModel',
+			data : arr
+		}) ;
+		
+		this.onLoad() ;
 	},
 	
 	
@@ -747,6 +802,20 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 	
 	getReportValueAll: function() {
 		return Ext.pluck( this.cfgReportValueStore.getRange(), 'data' ) ;
+	},
+	
+	getPortalFieldAll: function() {
+		return Ext.pluck( this.cfgPortalFieldStore.getRange(), 'data' ) ;
+	},
+	getPortalField: function(fieldCode) {
+		return ( this.cfgPortalFieldStore.getById(fieldCode) ? this.cfgPortalFieldStore.getById(fieldCode).getData() : null );
+	},
+	getPortalFieldMap: function() {
+		var map = {} ;
+		Ext.Array.each( this.getPortalFieldAll(), function(row) {
+			map[row.field_code] = row.field_txt ;
+		}) ;
+		return map ;
 	},
 	
 	getMetagenValue: function(metagenKey) {
