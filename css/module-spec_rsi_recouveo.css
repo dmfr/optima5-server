@@ -1199,6 +1199,22 @@
 .op5-spec-rsiveo-displayform .x-form-type-text {
 	margin-bottom: 4px !important;
 }
+.op5-spec-rsiveo-risk-displayform .x-fieldset-header-text {
+	min-height: 0px !important;
+	font-weight: bold ;
+}
+.op5-spec-rsiveo-risk-displayform .x-form-item-body {
+	min-height: 0px !important;
+}
+.op5-spec-rsiveo-risk-displayform .x-form-display-field {
+	min-height: 0px !important;
+}
+.op5-spec-rsiveo-risk-displayform .x-form-item {
+	margin-bottom: 0px !important;
+}
+.op5-spec-rsiveo-risk-displayform .x-form-type-text {
+	margin-bottom: 4px !important;
+}
 
 .op5-spec-rsiveo-scenexecpause-false {
 	background-position: center ;

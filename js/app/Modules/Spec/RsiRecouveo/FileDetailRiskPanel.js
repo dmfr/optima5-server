@@ -29,14 +29,15 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailRiskPanel', {
 					xtype: 'form',
 					bodyCls: 'ux-noframe-bg',
 					layout: 'anchor',
-					cls: 'op5-spec-rsiveo-displayform',
+					cls: 'op5-spec-rsiveo-risk-displayform',
 					fieldDefaults: {
 						anchor: "100%",
-						labelWidth: 130
+						labelWidth: 130,
+						labelSeparator : " :",
 					},
 					items: [{
 						xtype: 'fieldset',
-						title: 'Scores',
+						title: 'SCORES',
 						items: [{
 							xtype: 'displayfield',
 							fieldLabel: 'Note globale',
@@ -76,14 +77,14 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailRiskPanel', {
 						}]
 					},{
 						xtype: 'fieldset',
-						title: 'Tendances',
+						title: 'TENDANCES',
 						items: [{
 							xtype: 'box',
 							height: 48
 						}]
 					},{
 						xtype: 'fieldset',
-						title: 'Dirigeants',
+						title: 'DIRIGEANTS',
 						items: [{
 							xtype: 'displayfield',
 							fieldLabel: 'Nombre de dirigeants',
@@ -95,14 +96,14 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailRiskPanel', {
 						}]
 					},{
 						xtype: 'fieldset',
-						title: 'Maison mère ultime',
+						title: 'MAISON MÈRE ULTIME',
 						items: [{
 							xtype: 'displayfield',
 							fieldLabel: 'Raison sociale',
 							value: '&#160;'
 						},{
 							xtype: 'displayfield',
-							labelStyle: "font-weight:normal ; font-style:italic;",
+							labelStyle: "font-weight:normal",
 							fieldLabel: 'SAFE number',
 							value: '&#160;'
 						},{
@@ -116,21 +117,20 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailRiskPanel', {
 						}]
 					},{
 						xtype: 'fieldset',
-						title: 'Jugements & Privilèges',
+						title: 'JUGEMENTS & PRIVILÈGES',
 						items: [{
 							xtype: 'box',
 							height: 48
 						}]
 					},{
 						xtype: 'fieldset',
-						title: 'Comportements de paiement',
+						title: 'COMPORTEMENTS DE PAIEMENT',
 						items: [{
 							xtype: 'displayfield',
 							fieldLabel: 'DBS Score',
 							value: '&#160;'
 						},{
 							xtype: 'displayfield',
-							labelStyle: "font-weight:normal ; font-style:italic;",
 							fieldLabel: 'DBS secteur',
 							value: '&#160;'
 						}]
@@ -146,6 +146,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailRiskPanel', {
 				items: {
 					xtype: "textarea",
 					fieldLabel: "Commentaires",
+					labelStyle: 'font-weight:bold;',
+					labelSeparator: " :",
 					grow: true,
 					labelAlign: "top"
 				}
@@ -157,7 +159,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailRiskPanel', {
 				bodyCls: 'ux-noframe-bg',
 				items: [{
 					xtype: "button",
-					text: "Se rendre vers la page du prestataire",
+					text: "Consulter le détail",
 					scale: "medium",
 					handler: function () {
 					if (this._safeNo !== null){
