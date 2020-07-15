@@ -40,9 +40,14 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusTchatPanel',{
 					flex: 1,
 					xtype: 'grid',
 					cls: 'op5-spec-rsiveo-action-tchat',
+					viewConfig : {
+						trackOver : false,
+						enableTextSelection: true
+					},
 					store: {
 						fields: [
 							{name: 'tchat_date', type:'date', dateFormat:'Y-m-d H:i:s'},
+							{name: 'tchat_desc', type:'string'},
 							{name: 'tchat_action', type:'string'},
 							{name: 'tchat_txt', type:'string'}
 						],
@@ -63,24 +68,42 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusTchatPanel',{
 						dataIndex: 'tchat_action',
 						width: 32,
 						renderer: function(v,m,r) {
-							m.tdCls += ' op5-spec-rsiveo-action-tchat' ;
+
+							if (v === "TCHAT_OUT"){
+								m.tdCls += ' op5-spec-rsiveo-action-tchat-out ux-noframe-bg' ;
+								m.align = "right" ;
+							} else{
+								m.tdCls += ' op5-spec-rsiveo-action-tchat-in' ;
+							}
 							return '' ;
 						}
 					},{
-						xtype: 'datecolumn',
 						flex: 1,
-						format: 'd/m/Y H:i',
 						text: 'Date',
-						dataIndex: 'tchat_date'
+						dataIndex: 'tchat_date',
+						renderer: function (v,m,r) {
+							if (r.get("tchat_action") === "TCHAT_OUT"){
+								m.align = "right" ;
+								m.tdCls += ' ux-noframe-bg' ;
+							}
+							return r.get('tchat_desc') ;
+						}
 					}],
 					features: [{
 						ftype: 'rowbody',
 						getAdditionalData: function (data, idx, record, orig) {
 							// Usually you would style the my-body-class in a CSS file
-							return {
-								rowBody: '<pre>' + record.get("tchat_txt") + '</pre>',
-								rowBodyCls: "op5-spec-rsiveo-action-tchat-rowbody"
-							};
+							if (record.get("tchat_action") === "TCHAT_OUT"){
+								return {
+									rowBody: '<pre>' + record.get("tchat_txt") + '</pre>',
+									rowBodyCls: "op5-spec-rsiveo-action-tchat-rowbody-out ux-noframe-bg"
+								};
+							} else{
+								return {
+									rowBody: '<pre>' + record.get("tchat_txt") + '</pre>',
+									rowBodyCls: "op5-spec-rsiveo-action-tchat-rowbody-in"
+								};
+							}
 						}
 					}]
 				},{
@@ -107,8 +130,11 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusTchatPanel',{
 		this._fileRecord.actions().each( function(fileActionRecord) {
 			var actionRow = fileActionRecord.getData() ;
 			if( Ext.Array.contains(['TCHAT_OUT','TCHAT_IN'],actionRow.link_action) ) {
+				var date = Ext.Date.format(actionRow.date_actual, 'd-m-Y à H\\hi') ;
+				var str = "<b>" + date + " - " + actionRow.link_txt + "</b>" ;
 				tchatRows.push({
 					tchat_date: actionRow.date_actual,
+					tchat_desc: str,
 					tchat_action: actionRow.link_action,
 					tchat_txt: actionRow.txt
 				})

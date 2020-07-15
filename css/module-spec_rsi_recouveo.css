@@ -1249,8 +1249,17 @@
 	white-space: pre-wrap ;
 }
 
-.op5-spec-rsiveo-action-tchat-rowbody pre {
+.op5-spec-rsiveo-action-tchat-rowbody-out pre{
 	margin: 0;
 	padding: 2px 6px ;
 	font-family: sans-serif ;
+	text-align: right;
+	line-break: auto;
+	white-space: initial;
+}
+.op5-spec-rsiveo-action-tchat-rowbody-in pre{
+	margin: 0;
+	padding: 2px 6px ;
+	font-family: sans-serif ;
+	text-align: left;
 }
