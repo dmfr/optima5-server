@@ -870,7 +870,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 		}
 		
 		
-		
+		if (this.getCurrentAction()['action_id'] === 'TCHAT_OUT' && postData["tchatMode"] === "1"){
+			this.doUpload(formPanel, postData) ;
+			return ;
+		}
 		this.showLoadmask() ;
 		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: {
@@ -901,10 +904,63 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 		this.optimaModule.postCrmEvent('datachange',{}) ;
 		this.destroy() ;
 	},
-	
-	
-	
-	
+
+
+	doUpload: function(formPanel, postData) {
+		var baseForm = formPanel.getForm() ;
+		var ajaxParams = this.optimaModule.getConfiguredAjaxParams() ;
+		Ext.apply( ajaxParams, {
+			_moduleId: 'spec_rsi_recouveo',
+			_action: 'account_uploadAttachment',
+			acc_id: this._accId,
+			extUpload: true
+		}) ;
+		var msgbox = Ext.Msg.wait('Syncing...');
+		baseForm.submit({
+			timeout: (10 * 60 * 1000),
+			url: Optima5.Helper.getApplication().desktopGetBackendUrl(),
+			params: ajaxParams,
+			success : function(form,action){
+				msgbox.close() ;
+				this.doPostUpload(form, action, postData) ;
+			},
+			failure: function(fp, o) {
+				msgbox.close() ;
+				Ext.Msg.alert('Error','Error during upload') ;
+			},
+			scope: formPanel
+		});
+	},
+	doPostUpload: function(f, a, postData){
+		let fileName = a.result.data["fileName"] ;
+		let accBin = a.result.data["filerecord_id"] ;
+		postData["tchat_txt"] = "Envoi de pièce jointe: " + fileName ;
+		postData["accBin"] = accBin ;
+		this.showLoadmask() ;
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_rsi_recouveo',
+				_action: 'action_doFileAction',
+				_is_new: ( this._fileNew ? 1 : 0 ),
+				file_filerecord_id: this._fileRecord.get('file_filerecord_id'),
+				data: Ext.JSON.encode(postData)
+			},
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					var error = ajaxResponse.error || 'File not saved !' ;
+					Ext.MessageBox.alert('Error',error) ;
+					return ;
+				}
+				var doReload = doReload ;
+				this.onSaveHeader(ajaxResponse.file_filerecord_id) ;
+			},
+			callback: function() {
+				this.hideLoadmask() ;
+			},
+			scope: this
+		}) ;
+	},
 	handlePreviewMulti: function(adrType) {
 		var tplField = this.getForm().findField('tpl_id') ;
 		if( !tplField ) {

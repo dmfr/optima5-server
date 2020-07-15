@@ -27,7 +27,30 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusTchatPanel',{
 					flex: 1,
 					xtype: 'displayfield',
 					fieldLabel: 'Action',
-					value: '<b>Tchat (portail externe)</b>'
+					value: '<b>Portail sortant</b>'
+				}, {
+					flex: 1,
+					xtype: "radiogroup",
+					fieldLabel: "Type de message",
+					labelWidth: 100,
+					itemId: "radioTchatMode",
+					items: [{
+						boxLabel: "Message textuel", name: "tchatMode", inputValue: "0", checked: true
+					}, {
+						boxLabel: "Pièce jointe", name: "tchatMode", inputValue: "1"
+					}],
+					listeners: {
+						change: function (me, newVal, oldVal) {
+							if (newVal.tchatMode === "0"){
+								this.down('#newMessage').setVisible(true) ;
+								this.down('#newPj').setVisible(false) ;
+							} else{
+								this.down('#newMessage').setVisible(false) ;
+								this.down('#newPj').setVisible(true) ;
+							}
+						},
+						scope: this,
+					}
 				}]
 			},{
 				xtype: 'container',
@@ -110,22 +133,55 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusTchatPanel',{
 					xtype: 'box',
 					width: 16
 				},{
-					xtype: 'fieldset',
-					flex: 1,
-					title: 'Nouveau message / Réponse',
-					layout: 'fit',
+					xtype: 'container',
+					layout: {
+						type: 'vbox',
+						align: 'stretch'
+					},
+					height: "100%",
+					width: "50%",
 					items: [{
-						xtype: 'textareafield',
-						name: 'tchat_txt',
-						grow: true
-					}]
+							xtype: 'fieldset',
+							flex: 1,
+							itemId: "newMessage",
+							title: 'Nouveau message / Réponse',
+							layout: 'fit',
+							hidden: false,
+							items: [{
+								xtype: 'textareafield',
+								name: 'tchat_txt',
+								grow: true
+							}]
+						},{
+							xtype: 'fieldset',
+							width: 300,
+							title: 'Pièce jointe',
+							layout: 'fit',
+							itemId: "newPj",
+							hidden: true,
+							items: [{
+								xtype: 'filefield',
+								width: 450,
+								emptyText: 'Select a file',
+								padding: "0 0 5 0",
+								fieldLabel: 'Source',
+								name: 'bin_file',
+								buttonText: '',
+								allowBlank: false,
+								buttonConfig: {
+									iconCls: 'upload-icon'
+								}
+							},{
+								xtype: 'textfield',
+								name: 'bin_desc',
+								fieldLabel: 'Description'
+							}]
+						}]
 				}]
 			}]
 		}) ;
 		
 		this.callParent() ;
-		
-		console.dir( this._fileRecord ) ;
 		var tchatRows = [] ;
 		this._fileRecord.actions().each( function(fileActionRecord) {
 			var actionRow = fileActionRecord.getData() ;

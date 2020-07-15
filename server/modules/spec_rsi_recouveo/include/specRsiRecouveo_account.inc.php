@@ -236,7 +236,8 @@ function specRsiRecouveo_account_open( $post_data ) {
 				$account_record['attachments'][] = array(
 					'accbin_filerecord_id' => $arr['filerecord_id'],
 					'bin_desc' => $arr['field_BIN_DESC'],
-					'bin_filename' => $arr['field_BIN_FILENAME']
+					'bin_filename' => $arr['field_BIN_FILENAME'],
+					'is_hidden' => $arr['field_IS_HIDDEN']
 				);
 			}
 		}
@@ -1011,6 +1012,7 @@ function specRsiRecouveo_account_uploadAttachment( $post_data ) {
 			$arr_ins = array() ;
 			$arr_ins['field_BIN_DESC'] = $post_data['bin_desc'] ;
 			$arr_ins['field_BIN_FILENAME'] = $src_filename ;
+			$arr_ins['field_IS_HIDDEN'] = $post_data["extUpload"] === "true" ? 1 : 0 ;
 			$accbin_filerecord_id = paracrm_lib_data_updateRecord_file( 'ACC_NOTEPAD_BIN', $arr_ins, $accbin_filerecord_id );
 		}
 	}
@@ -1018,18 +1020,18 @@ function specRsiRecouveo_account_uploadAttachment( $post_data ) {
 		$arr_ins = array() ;
 		$arr_ins['field_BIN_DESC'] = $post_data['bin_desc'] ;
 		$arr_ins['field_BIN_FILENAME'] = $src_filename ;
+		$arr_ins['field_IS_HIDDEN'] = $post_data["extUpload"] === "true" ? 1 : 0 ;
 		$accbin_filerecord_id = paracrm_lib_data_insertRecord_file( 'ACC_NOTEPAD_BIN', $accnotepad_filerecord_id, $arr_ins );
 	}
 	
 	media_bin_move( $media_id,  media_pdf_toolFile_getId('ACC_NOTEPAD_BIN',$accbin_filerecord_id) ) ;
 
 	media_contextClose() ;
-	return array('success'=>true) ;
+	return array('success'=>true, 'data' => array("fileName" => $src_filename, "filerecord_id" => $accbin_filerecord_id)) ;
 }
 function specRsiRecouveo_account_downloadAttachment( $post_data ) {
 	$_domain_id = DatabaseMgr_Base::dbCurrent_getDomainId() ;
 	$_sdomain_id = DatabaseMgr_Sdomain::dbCurrent_getSdomainId() ;
-	
 	global $_opDB ;
 	$query = "SELECT field_BIN_FILENAME FROM view_file_ACC_NOTEPAD_BIN WHERE filerecord_id='{$post_data['accbin_filerecord_id']}'" ;
 	$filename = $_opDB->query_uniqueValue($query) ;
@@ -1045,6 +1047,20 @@ function specRsiRecouveo_account_downloadAttachment( $post_data ) {
 	echo $bin ;
 	//unlink($tmpfilename) ;
 	die() ;
+}
+
+function specRsiRecouveo_account_downloadAttachmentBinary ($post_data){
+	$_sdomain_id = DatabaseMgr_Sdomain::dbCurrent_getSdomainId() ;
+	global $_opDB ;
+	$query = "SELECT field_BIN_FILENAME FROM view_file_ACC_NOTEPAD_BIN WHERE filerecord_id='{$post_data['accbin_filerecord_id']}'" ;
+	$filename = $_opDB->query_uniqueValue($query) ;
+
+
+	media_contextOpen( $_sdomain_id ) ;
+	$media_id = media_bin_toolFile_getId('ACC_NOTEPAD_BIN',$post_data['accbin_filerecord_id']) ;
+	$bin = media_bin_getBinary($media_id) ;
+	media_contextClose() ;
+	return array("success" => true, "bin" => base64_encode($bin), "filename" => $filename) ;
 }
 function specRsiRecouveo_account_deleteAttachment( $post_data ) {
 	$_domain_id = DatabaseMgr_Base::dbCurrent_getDomainId() ;

@@ -1719,7 +1719,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		// attachments
 		var attachmentsData = [] ;
 		accountRecord.attachments().each( function(accbinRecord) {
-			attachmentsData.push( accbinRecord.getData() ) ;
+			if (accbinRecord.getData()['is_hidden'] !== "1"){
+				attachmentsData.push( accbinRecord.getData() ) ;
+			}
 		}) ;
 		this.down('#pAttachments').getStore().loadData(attachmentsData) ;
 		

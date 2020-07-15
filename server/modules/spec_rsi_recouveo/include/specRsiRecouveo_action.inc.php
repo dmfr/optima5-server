@@ -881,9 +881,11 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 		case 'TCHAT_OUT' :
 			$arr_ins['field_LINK_TXT'] = "<b>Portail sortant</b>" ;
 			$arr_ins['field_TXT'] = $post_form['tchat_txt'] ;
+			$arr_ins['field_LINK_MEDIA_FILECODE'] = $post_form["accBin"] === null ? "" : "ACC_NOTEPAD_BIN" ;
+			$arr_ins['field_LINK_MEDIA_FILEID'] = $post_form["accBin"] ;
 			break ;
 		case 'TCHAT_IN' :
-			$arr_ins['field_LINK_TXT'] = "<b>Portail entrant: {$post_form['tchat_title']}</b>" ;
+			$arr_ins['field_LINK_TXT'] = "<b>{$post_form['tchat_title']}</b>" ;
 			$arr_ins['field_TXT'] = $post_form['tchat_txt'] ;
 			break ;
 
