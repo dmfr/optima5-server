@@ -169,6 +169,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		var formItems = []
 		formItems.push(Ext.create('Optima5.Modules.Spec.RsiRecouveo.CfgParamField',{
 			fieldLabel: '<b>Affectation</b>',
+			labelSeparator : "",
 			cfgParam_id: 'USER',
 			cfgParam_emptyDisplayText: '-Non affecté-',
 			optimaModule: this.optimaModule,
@@ -177,6 +178,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			readOnly: true,
 			xtype: 'op5crmbasebibletreepicker',
 			fieldLabel: '<b>Entité</b>',
+			labelSeparator : "",
 			name: 'soc_id',
 			allowBlank: false,
 			selectMode: 'single',
@@ -187,12 +189,14 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			readOnly: true,
 			xtype: 'textfield',
 			fieldLabel: '<b># Acheteur</b>',
+			labelSeparator : "",
 			name: 'acc_id',
 			allowBlank: false
 		},{
 			xtype: 'fieldcontainer',
 			itemId: 'btnSimilar',
 			hidden: true,
+			labelSeparator : "",
 			fieldLabel: '&#160;',
 			layout: {
 				type: 'hbox',
@@ -211,11 +215,13 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			readOnly: true,
 			xtype: 'textfield',
 			fieldLabel: 'Nom / Société',
+			labelSeparator : "",
 			name: 'acc_txt'
 		},{
 			readOnly: true,
 			xtype: 'textfield',
 			fieldLabel: 'SIREN/SIRET',
+			labelSeparator : "",
 			name: 'acc_siret',
 			anchor: '',
 			width: 300
@@ -223,6 +229,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			readOnly: true,
 			hidden: true,
 			xtype: 'textarea',
+			labelSeparator : "",
 			fieldLabel: 'Adresse Contact',
 			name: 'adr_postal'
 		}) ;
@@ -244,6 +251,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 						displayField: 'atr_value',
 						valueField: 'atr_value',
 						queryParam: 'search_txt',
+						labelSeparator : "",
 						minChars: 1,
 						checkValueOnChange: function() {}, //HACK
 						store: {
@@ -267,6 +275,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 					formItems.push({
 						cfgParam_id: 'ATR:'+atrRecord.atr_id,
 						readOnly: !atrRecord.is_editable,
+						labelSeparator : "",
 						xtype: 'combobox',
 						fieldLabel: atrRecord.atr_desc,
 						name: atrRecord.atr_field,
@@ -290,6 +299,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 					});
 				} else {
 					formItems.push({
+						labelSeparator : "",
 						cfgParam_id: 'ATR:'+atrRecord.atr_id,
 						readOnly: !atrRecord.is_editable,
 						xtype: 'textfield',
@@ -1151,11 +1161,11 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 											'<td class="op5-spec-dbspeople-realvalidhdr-tdvalue">{inv_nb_open}</td>',
 										'</tr>',
 										'<tr>',
-											'<td class="op5-spec-dbspeople-realvalidhdr-tdlabel">Encours total:</td>',
+											'<td class="op5-spec-dbspeople-realvalidhdr-tdlabel">Encours total :</td>',
 											'<td class="op5-spec-dbspeople-realvalidhdr-tdvalue">{inv_amount_due}&#160;€</td>',
 										'</tr>',
 										'<tr>',
-											'<td class="op5-spec-dbspeople-realvalidhdr-tdlabel">Encours overdue :</td>',
+											'<td class="op5-spec-dbspeople-realvalidhdr-tdlabel">Encours échu :</td>',
 											'<td class="op5-spec-dbspeople-realvalidhdr-tdvalue">{inv_amount_due_over}&#160;€</td>',
 										'</tr>',
 										'</table>',
