@@ -2,10 +2,16 @@
 
 function specRsiRecouveo_cache_isActive() {
 	global $_opDB ;
-	if( in_array('view_file_Z_CACHE',$_opDB->db_tables()) ) {
+	if( !in_array('view_file_Z_CACHE',$_opDB->db_tables()) ) {
+		return FALSE ;
+	}
+	if( $GLOBALS['cache_specRsiRecouveo_zcacheClear'] ) {
 		return TRUE ;
 	}
-	return FALSE ;
+	$date_clear = date('Y-m-d H:i:s',strtotime('-23 hours')) ;
+	$query = "DELETE FROM view_file_Z_CACHE WHERE field_DATE <= '{$date_clear}'" ;
+	$_opDB->query($query) ;
+	return TRUE ;
 }
 
 function specRsiRecouveo_cache_buildQuery($post_data) {
