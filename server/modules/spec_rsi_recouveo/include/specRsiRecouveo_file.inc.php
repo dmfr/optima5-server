@@ -1793,7 +1793,13 @@ function specRsiRecouveo_file_lib_managePre( $acc_id ) {
 			$toCreate_presteps = array() ;
 			if( $map_subfileFilerecordId_sumAmount[$filesub_filerecord_id] > 0 ) {
 				foreach( $scen_presteps as $scen_prestep ) {
-					$date_sched = date('Y-m-d H:i:s',strtotime('- '.$scen_prestep['prestep_daybefore'].' days',strtotime($date_value))) ;
+					if( $scen_prestep['prestep_daybefore'] < 0 ) {
+						continue ;
+					} elseif( $scen_prestep['prestep_daybefore'] == 0 ) {
+						$date_sched = date('Y-m-d H:i:s') ;
+					} else {
+						$date_sched = date('Y-m-d H:i:s',strtotime('- '.$scen_prestep['prestep_daybefore'].' days',strtotime($date_value))) ;
+					}
 					if( $date_sched < $date_now ) {
 						continue ;
 					}
