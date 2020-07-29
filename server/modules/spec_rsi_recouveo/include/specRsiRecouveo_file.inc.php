@@ -2342,6 +2342,7 @@ function specRsiRecouveo_file_multiAction($post_data) {
 	
 	foreach( $arr_fileRecords as $file_record ) {
 		$is_sched_lock = $map_status[$file_record['status']]['sched_lock'] ;
+		$is_sched_none = $map_status[$file_record['status']]['sched_none'] ;
 		$file_filerecord_id = $file_record['file_filerecord_id'] ;
 	
 		switch( $p_targetForm['multi_action'] ) {
@@ -2371,7 +2372,7 @@ function specRsiRecouveo_file_multiAction($post_data) {
 				break ;
 				
 			case 'scenstep' :
-				if( !$is_sched_lock ) {
+				if( !$is_sched_lock && !$is_sched_none ) { // S1_OPEN
 					$forward_post = array(
 						'file_filerecord_id' => $file_filerecord_id,
 						'data' => json_encode(array(
@@ -2384,6 +2385,17 @@ function specRsiRecouveo_file_multiAction($post_data) {
 						))
 					) ;
 					$json = specRsiRecouveo_action_doFileAction($forward_post) ;
+				}
+				break ;
+		
+			case 'scenpre' :
+				if( !$is_sched_lock && $is_sched_none ) { // S0_PRE
+					$forward_post = array(
+						'acc_id' => $file_record['acc_id'],
+						'file_filerecord_id' => $file_record['file_filerecord_id'],
+						'scen_code' => $p_targetForm['scen_code_pre']
+					) ;
+					$json = specRsiRecouveo_file_setScenario($forward_post) ;
 				}
 				break ;
 		

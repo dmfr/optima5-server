@@ -176,7 +176,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MultiActionForm',{
 				vertical: true,
 				items: [
 					{ boxLabel: 'Reprise dossier', name: 'multi_action', inputValue: 'bump' },
-					{ boxLabel: 'Alignement scénario', name: 'multi_action', inputValue: 'scenstep'},
+					{ boxLabel: 'Alignement scénario curatif', name: 'multi_action', inputValue: 'scenstep'},
+					{ boxLabel: 'Scénario pré-relance', name: 'multi_action', inputValue: 'scenpre'},
 					{ boxLabel: 'Action externe / Litige', name: 'multi_action', inputValue: 'lock_litig' },
 					{ boxLabel: 'Demande clôture', name: 'multi_action', inputValue: 'lock_close' },
 					{ boxLabel: 'Assigner collaborateur', name: 'multi_action', inputValue: 'user' },
@@ -208,7 +209,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MultiActionForm',{
 			},{
 				xtype: 'fieldset',
 				itemId: 'fsScenstep',
-				title: 'Alignement scénario',
+				title: 'Alignement scénario curatif',
 				items: [{
 					xtype: 'combobox',
 					name: 'scen_code',
@@ -253,6 +254,45 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MultiActionForm',{
 					format: 'Y-m-d',
 					name: 'next_date',
 					fieldLabel: 'Date prévue'
+				}]
+			},{
+				xtype: 'fieldset',
+				itemId: 'fsScenpre',
+				title: 'Scénario pré-relance',
+				items: [{
+					xtype: 'combobox',
+					name: 'scen_code_pre',
+					forceSelection:true,
+					preventBlankIfVisible:true,
+					editable:true,
+					typeAhead:false,
+					queryMode: 'local',
+					displayField: 'scen_txt',
+					valueField: 'scen_code',
+					minChars: 2,
+					checkValueOnChange: function() {}, //HACK
+					store: {
+						autoLoad: true,
+						model: Optima5.Modules.Spec.RsiRecouveo.HelperCache.getConfigScenarioModel(),
+						proxy: this.optimaModule.getConfiguredAjaxProxy({
+							extraParams : {
+								_moduleId: 'spec_rsi_recouveo',
+								_action: 'config_getScenarios'
+							},
+							reader: {
+								type: 'json',
+								rootProperty: 'data'
+							}
+						}),
+						listeners: {
+							load: function(store) {
+								store.insert(0,{
+									scen_code: '',
+									scen_txt: '- Désactivé -'
+								}) ;
+							}
+						}
+					}
 				}]
 			},{
 				xtype: 'fieldset',
@@ -368,6 +408,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MultiActionForm',{
 	
 	setMultiMode: function(multiMode) {
 		this.down('#fsScenstep').setVisible( multiMode=='scenstep' ) ;
+		this.down('#fsScenpre').setVisible( multiMode=='scenpre' ) ;
 		this.down('#fsClose').setVisible( multiMode=='lock_close' ) ;
 		this.down('#fsLitig').setVisible( multiMode=='lock_litig' ) ;
 		this.down('#fsUser').setVisible( multiMode=='user' ) ;
