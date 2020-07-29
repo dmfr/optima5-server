@@ -608,13 +608,22 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 				'next_agenda_class' => $next_action['link_action_class']
 			);
 			
-			if( !$file_row['status_is_schedlock'] ) {
+			if( !$file_row['status_is_schedlock'] && !$file_row['status_is_schednone'] ) {
 				if( $file_row['scen_exec_pause'] ) {
 					$file_row += array('next_icon'=>'PAUSE') ;
 				} elseif( $next_action['link_action']=='BUMP' ) {
 					$file_row += array('next_icon'=>'') ;
 				} else {
 					$file_row += array('next_icon'=>'PLAY') ;
+				}
+			}
+			if( !$file_row['status_is_schedlock'] && $file_row['status_is_schednone'] ) {
+				if( $file_row['scen_exec_pause'] ) {
+					$file_row += array('next_icon'=>'PAUSE') ;
+				} elseif( $file_row['scen_code'] ) {
+					$file_row += array('next_icon'=>'PLAY') ;
+				} else {
+					$file_row += array('next_icon'=>'') ;
 				}
 			}
 		}
@@ -1796,7 +1805,7 @@ function specRsiRecouveo_file_lib_managePre( $acc_id ) {
 					if( $scen_prestep['prestep_daybefore'] < 0 ) {
 						continue ;
 					} elseif( $scen_prestep['prestep_daybefore'] == 0 ) {
-						$date_sched = date('Y-m-d H:i:s') ;
+						$date_sched = date('Y-m-d').' '.'00:00:00' ;
 					} else {
 						$date_sched = date('Y-m-d H:i:s',strtotime('- '.$scen_prestep['prestep_daybefore'].' days',strtotime($date_value))) ;
 					}
