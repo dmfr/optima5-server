@@ -607,11 +607,12 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 				'next_eta_range' => $next_action['calc_eta_range'],
 				'next_agenda_class' => $next_action['link_action_class']
 			);
-			
+		}
+		if( TRUE ) { // always show icon
 			if( !$file_row['status_is_schedlock'] && !$file_row['status_is_schednone'] ) {
 				if( $file_row['scen_exec_pause'] ) {
 					$file_row += array('next_icon'=>'PAUSE') ;
-				} elseif( $next_action['link_action']=='BUMP' ) {
+				} elseif( !$next_action || $next_action['link_action']=='BUMP' ) {
 					$file_row += array('next_icon'=>'') ;
 				} else {
 					$file_row += array('next_icon'=>'PLAY') ;
