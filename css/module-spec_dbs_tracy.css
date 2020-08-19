@@ -88,6 +88,9 @@
 .op5-spec-dbstracy-mmenu-upload {
 	background-image: url("../images/modules/dbstracy-upload-64.png") !important;
 }
+.op5-spec-dbstracy-mmenu-pda {
+	background-image: url("../images/modules/dbstracy-pda-64.png") !important;
+}
 
 
 .op5-spec-dbstracy-alm .x-grid-cell-inner {

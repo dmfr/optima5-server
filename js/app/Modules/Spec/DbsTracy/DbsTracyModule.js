@@ -270,6 +270,13 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.DbsTracyModule', {
 			height:600,
 			resizable:true,
 			layout:'fit',
+			tools: [{
+				type: 'restore',
+				handler: function() {
+					this.postCrmEvent('opengun') ;
+				},
+				scope: me
+			}],
 			items:[Ext.create('Optima5.Modules.Spec.DbsTracy.MainPanel',{
 				optimaModule: me,
 				border: false
@@ -310,6 +317,9 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.DbsTracyModule', {
 					hatFilerecordId: postParams.hatFilerecordId,
 					hatNew_orderRecords: postParams.hatNew_orderRecords
 				}) ;
+				break ;
+				
+			case 'opengun' :
 				break ;
 			
 			default :

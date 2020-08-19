@@ -11,7 +11,8 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.MainPanel',{
 		'Optima5.Modules.Spec.DbsTracy.AttachmentViewerWindow',
 		'Optima5.Modules.Spec.DbsTracy.UploadForm',
 		'Optima5.Modules.Spec.DbsTracy.ReportForm',
-		'Optima5.Modules.Spec.DbsTracy.LivePanel'
+		'Optima5.Modules.Spec.DbsTracy.LivePanel',
+		'Optima5.Modules.Spec.DbsTracy.GunPanel'
 	],
 	
 	_readonlyMode: false,
@@ -133,6 +134,11 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.MainPanel',{
 				return this.openOrderFile( eventParams.orderNew ? 0 : eventParams.orderFilerecordId ) ;
 			case 'openhat' :
 				return this.openHatFile( eventParams.hatNew ? 0 : eventParams.hatFilerecordId, eventParams.hatNew_orderRecords ) ;
+				
+			case 'opengun' :
+				this.openGunWindow(eventParams) ;
+				break ;
+			
 			default: break ;
 		}
 	},
@@ -354,5 +360,42 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.MainPanel',{
 					}
 				}
 		},Optima5.Modules.Spec.DbsTracy.LivePanel) ;
+	},
+	
+	
+	openGunWindow: function() {
+		// recherche d'une fenetre deja ouverte
+		var doOpen = true ;
+		this.optimaModule.eachWindow(function(win){
+			if( win.itemId == 'windowGun' ) {
+				win.show() ;
+				win.focus() ;
+				doOpen = false ;
+				return false ;
+			}
+		},this) ;
+		if( !doOpen ) {
+			return ;
+		}
+		
+		// new window
+		this.optimaModule.createWindow({
+			title: 'Gun Interface',
+			itemId: 'windowGun',
+			width:375,
+			height:500,
+			iconCls: 'op5-crmbase-dataformwindow-icon',
+			animCollapse:false,
+			layout: 'fit',
+			items:[Ext.create('Optima5.Modules.Spec.DbsTracy.GunPanel',{
+				border: false,
+				optimaModule: this.optimaModule,
+				listeners: {
+					candestroy: function(w) {
+						w.close() ;
+					}
+				}
+			})]
+		}) ;
 	}
 }) ;
