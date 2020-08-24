@@ -161,6 +161,9 @@ function specRsiRecouveo_cfg_getConfig($post_data=array('skip_filter'=>true)) {
 	global $_opDB ;
 	
 	// HACK : actions/statuts
+	$query = "LOCK TABLES define_bible WRITE, define_bible_entry WRITE, define_bible_tree WRITE, store_bible_CFG_ACTION_tree WRITE, store_bible_CFG_ACTION_entry WRITE, view_bible_CFG_ACTION_tree WRITE, view_bible_CFG_ACTION_entry WRITE" ;
+	$_opDB->query($query) ;
+	
 	paracrm_lib_data_insertRecord_bibleTreenode('CFG_ACTION','TCHAT','',array(
 		'field_ACTION_GROUP' => 'TCHAT'
 	));
@@ -178,6 +181,8 @@ function specRsiRecouveo_cfg_getConfig($post_data=array('skip_filter'=>true)) {
 		'field_IS_NEXT' => 1,
 		'field_IS_NEXT_SCHED' => 1,
 	));
+	$query = "UNLOCK TABLES" ;
+	$_opDB->query($query) ;
 	
 	
 	$GLOBALS['cache_specRsiRecouveo_cfg']['getConfig'] = array();
