@@ -183,6 +183,15 @@ function specDbsTracy_orderTree_getData( $post_data ) {
 		$map_stepDataIdx_count[$mkey] = $cnt ;
 	}
 	
+	if( $GLOBALS['__OPTIMA_TEST'] ) {
+		return array(
+			'success'=>true,
+			'dataTree'=>$root,
+			'dataCount'=>$map_stepDataIdx_count,
+			'debug_mysql_mtime'=> $GLOBALS['_opDB']->mtime_total,
+			'debug_mysql_queries' => $GLOBALS['_opDB']->mtime_log_queries
+		) ;
+	}
 	return array('success'=>true, 'dataTree'=>$root, 'dataCount'=>$map_stepDataIdx_count ) ;
 }
 
