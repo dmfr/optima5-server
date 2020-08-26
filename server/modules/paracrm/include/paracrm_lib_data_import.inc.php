@@ -848,6 +848,9 @@ function paracrm_lib_dataImport_preHandle_SAP( $handle_in, $handle_out, $separat
 	$max_occurences = 0 ;
 	while( !feof($handle_priv) ) {
 		$arr_csv = fgetcsv($handle_priv,0,$separator) ;
+		if( !$arr_csv ) {
+			continue ;
+		}
 		if( count($arr_csv) > $max_occurences ) {
 			$max_occurences = count($arr_csv) ;
 		}
@@ -892,6 +895,9 @@ function paracrm_lib_dataImport_preHandle_SAP( $handle_in, $handle_out, $separat
 	$strip_last = TRUE ;
 	while( !feof($handle_priv) ) {
 		$arr_csv = fgetcsv($handle_priv,0,$separator) ;
+		if( !$arr_csv ) {
+			continue ;
+		}
 		if( count($arr_csv) != $max_occurences ) {
 			continue ;
 		}
@@ -963,6 +969,9 @@ function paracrm_lib_dataImport_preHandle_SAP( $handle_in, $handle_out, $separat
 	fseek($handle_priv,0) ;
 	while( !feof($handle_priv) ) {
 		$arr_csv = fgetcsv($handle_priv,0,$separator) ;
+		if( !$arr_csv ) {
+			continue ;
+		}
 		
 		if( count($arr_csv) != $max_occurences ) {
 			continue ;
