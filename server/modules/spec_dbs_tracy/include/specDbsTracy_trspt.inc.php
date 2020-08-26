@@ -13,6 +13,20 @@ function specDbsTracy_trspt_tool_isDateValid( $date_sql )
 function specDbsTracy_trspt_getRecords( $post_data ) {
 	global $_opDB ;
 	
+	// CFG: liste chaine des étapes
+	$map_flowCode_steps = array() ;
+	$ttmp = specDbsTracy_cfg_getConfig() ;
+	$json_cfg = $ttmp['data'] ;
+	foreach( $json_cfg['cfg_orderflow'] as $orderflow ) {
+		$flow_code = $orderflow['flow_code'] ;
+		$arr_steps = array() ;
+		foreach( $orderflow['steps'] as $step ) {
+			$arr_steps[] = $step['step_code'] ;
+		}
+		sort($arr_steps) ;
+		$map_flowCode_steps[$flow_code] = $arr_steps ;
+	}
+	
 	// filter ?
 	if( isset($post_data['filter_trsptFilerecordId_arr']) ) {
 		$filter_trsptFilerecordId_list = $_opDB->makeSQLlist( json_decode($post_data['filter_trsptFilerecordId_arr'],true) ) ;
@@ -194,6 +208,33 @@ function specDbsTracy_trspt_getRecords( $post_data ) {
 		
 		if( $row_trspt['sword_edi_1_warn'] ) {
 			$row_trspt['calc_step_warning_edi'] = TRUE ;
+		}
+		
+		
+		$steps = array() ;
+		foreach( $row_trspt['orders'] as $row_order ) {
+			$max_stepCode = array() ;
+			foreach( $row_order['steps'] as $row_order_step ) {
+				if( $row_order_step['status_is_ok'] ) {
+					$max_stepCode[] = $row_order_step['step_code'] ;
+				}
+			}
+			if( $max_stepCode ) {
+				$row_order['calc_step'] = max($max_stepCode) ;
+			}
+		
+			if( $row_order['calc_step'] && !in_array($row_order['calc_step'],$steps) ) {
+				$steps[] = $row_order['calc_step'] ;
+			}
+		}
+		if( count($steps) == 1 ) {
+			$arr_flowSteps = $map_flowCode_steps[$row_trspt['flow_code']] ;
+			$current_stepCode = reset($steps) ;
+			$current_stepCode_idx = array_search($current_stepCode,$arr_flowSteps) ;
+			$next_stepCode_idx = $current_stepCode_idx+1 ;
+			if( $arr_flowSteps[$next_stepCode_idx] ) {
+				$row_trspt['calc_step_next'] = $arr_flowSteps[$next_stepCode_idx] ;
+			}
 		}
 	}
 	unset($row_trspt) ;
