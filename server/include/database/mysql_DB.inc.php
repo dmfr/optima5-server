@@ -2,13 +2,10 @@
 if ( !class_exists('MySQL_DB') )
 {
 
-/*
-function getmicrotime()
- { 
-    list($usec, $sec) = explode(" ", microtime());
-    return ((float)$usec + (float)$sec);
- }
- */
+function mysql_getmicrotime() {
+	list($usec, $sec) = explode(" ", microtime());
+	return ((float)$usec + (float)$sec);
+}
 
 class MySQL_DB {
 
@@ -87,7 +84,17 @@ class MySQL_DB {
 		switch ($this->type_de_base) {
 			case "MySQL" :
 			// echo $query."<br>" ;
+			$mtime = mysql_getmicrotime() ;
 			$result = mysqli_query( $this->connection, $query ) ;
+			$mtime_duration = ( mysql_getmicrotime() - $mtime ) ;
+			$this->mtime_total += $mtime_duration ;
+			if( $mtime_duration > 0.1 ) {
+				$this->mtime_log_queries[] = array(
+					'query' => $query,
+					'mtime' => $mtime_duration
+				) ;
+			}
+			
 			if ( !$result && $this->is_quiet == FALSE )
 			{
 				echo("<b>ERROR&nbsp;</b>$query<br>\n");
