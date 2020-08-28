@@ -13,6 +13,8 @@ include("$server_root/modules/spec_dbs_tracy/include/specDbsTracy_lib_calc.inc.p
 include("$server_root/modules/spec_dbs_tracy/include/specDbsTracy_lib_edi.inc.php") ;
 include("$server_root/modules/spec_dbs_tracy/include/specDbsTracy_lib_TMS.inc.php") ;
 
+include("$server_root/modules/spec_dbs_tracy/include/specDbsTracy_gun.inc.php") ;
+
 function specDbsTracy_cfg_doInit( $post_data ) {
 	global $_opDB ;
 	

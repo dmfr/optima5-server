@@ -107,6 +107,9 @@ switch( $post_data['_action'] )
 	session_write_close() ;
 	return specDbsTracy_orderTree_getData($post_data) ;
 	
+	case 'gun_t70_getTrsptList' :
+	return specDbsTracy_gun_t70_getTrsptList($post_data) ;
+	
 	default :
 	return NULL ;
 }

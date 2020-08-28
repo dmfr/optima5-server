@@ -1,9 +1,23 @@
+Ext.define('DbsTracyGunTracySelectTrspt',{
+	extend: 'Ext.data.Model',
+	idProperty: 'printer_uri',
+	fields: [
+		{name: 'printer_uri', type:'string'},
+		{name: 'printer_type', type:'string'},
+		{name: 'printer_spool_ip', type:'string'},
+		{name: 'printer_qz_name', type:'string'},
+		{name: 'printer_desc', type:'string'}
+	]
+});
+
+
 Ext.define('Optima5.Modules.Spec.DbsTracy.GunPanel',{
 	extend:'Ext.panel.Panel',
 	requires:[
-		//'Optima5.Modules.Spec.DbsTracy.GunHelper',
+		'Optima5.Modules.Spec.DbsTracy.GunHelper',
 		
-		'Optima5.Modules.Spec.DbsTracy.GunMenu'
+		'Optima5.Modules.Spec.DbsTracy.GunMenu',
+		'Optima5.Modules.Spec.DbsTracy.GunTracy70'
 	],
 	
 	initComponent: function() {
@@ -18,7 +32,6 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunPanel',{
 		});
 		this.callParent() ;
 		
-		/*
 		var helperCache = Optima5.Modules.Spec.DbsTracy.GunHelper ;
 		helperCache.init(this.optimaModule) ;
 		if( helperCache.isReady ) {
@@ -28,10 +41,6 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunPanel',{
 				this.switchToMainMenu() ;
 			},this,{single:true}) ;
 		}
-		*/
-		Ext.defer(function() {
-			this.switchToMainMenu() ;
-		},1000,this) ;
 	},
 	switchToMainMenu: function() {
 		var me = this ;
@@ -52,6 +61,8 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunPanel',{
 		//console.log("Action: "+actionCode) ;
 		
 		switch( actionCode ) {
+			case 'gun_tracy70' :
+				return me.switchToAppPanel('Optima5.Modules.Spec.DbsTracy.GunTracy70') ;
 			default :
 				return ;
 		}

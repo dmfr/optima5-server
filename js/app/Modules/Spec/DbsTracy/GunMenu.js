@@ -48,8 +48,8 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunMenu',{
 				separator_label: 'Tracy Pickup'
 			},{
 				type_action:true,
-				action_caption: 'Trspt load',
-				action_sendEvent:'gun_input',
+				action_caption: 'Pickup(t_70)',
+				action_sendEvent:'gun_tracy70',
 				action_iconCls:'op5-spec-dbstracy-mmenu-pda'
 			},{
 				type_separator:true,
