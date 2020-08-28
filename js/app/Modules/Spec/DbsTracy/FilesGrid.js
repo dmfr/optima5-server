@@ -505,6 +505,27 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 					optimaModule: this.optimaModule,
 					bibleId: 'LIST_CARRIER'
 				}
+			},{
+				text: 'TMS',
+				dataIndex: 'spec_tms_status',
+				width: 60,
+				renderer: function(v,m,r) {
+					v = v.toLowerCase() ;
+					switch( v ) {
+						case 'ok' :
+						case 'cancel' :
+						case 'error' :
+							m.tdCls += ' op5-spec-dbstracy-label-'+v ;
+						default:
+							return '' ;
+					}
+					return '&#160;' ;
+				},
+				filter: {
+					type: 'stringlist',
+					optimaModule: this.optimaModule,
+					bibleId: 'LIST_CARRIER'
+				}
 			}]
 		},{
 			text: 'Orders',

@@ -185,6 +185,7 @@ Ext.define('DbsTracyFileTrsptModel',{
 		{name: 'customs_date_request', dateFormat:'Y-m-d H:i:s'},
 		{name: 'customs_date_cleared', dateFormat:'Y-m-d H:i:s'},
 		{name: 'pod_doc', type:'string'},
+		{name: 'spec_tms_status', type:'string'},
 		
 		{name: 'sword_edi_1_warn', type:'boolean'},
 		{name: 'sword_edi_1_warn_txt', type:'string'},
@@ -223,7 +224,10 @@ Ext.define('DbsTracyFileHatParcelModel',{
 		{name: 'hatparcel_filerecord_id', type:'int'},
 		{name: 'vol_count', type:'int'},
 		{name: 'vol_kg', type:'number'},
-		{name: 'vol_dims', type:'auto'}
+		{name: 'vol_dims', type:'auto'},
+		{name: 'spec_barcode', type:'string'},
+		{name: 'tms_carrier', type:'string'},
+		{name: 'tms_tracking', type:'string'}
 	]
 });
 Ext.define('DbsTracyFileHatParcelEditModel',{

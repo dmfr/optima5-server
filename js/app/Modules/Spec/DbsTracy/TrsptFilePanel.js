@@ -1114,7 +1114,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 						Ext.MessageBox.alert('Error',error) ;
 					return ;
 				}
-				this.onSaveHeader(ajaxResponse.id, (!Ext.isEmpty(validateStepCode)||!Ext.isEmpty(additionalData)||callbackCfg)) ;
+				this.onSaveHeader(ajaxResponse.id, (!Ext.isEmpty(validateStepCode)||!Ext.isEmpty(additionalData)||callbackCfg), callbackCfg) ;
 				if( callbackCfg && callbackCfg.fn ) {
 					Ext.callback( callbackCfg.fn, callbackCfg.scope||this ) ;
 				}
@@ -1125,8 +1125,10 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 			scope: this
 		}) ;
 	},
-	onSaveHeader: function(savedId, dontClose) {
-		this.optimaModule.postCrmEvent('datachange',{}) ;
+	onSaveHeader: function(savedId, dontClose, dontRefresh) {
+		if( !dontRefresh ) {
+			this.optimaModule.postCrmEvent('datachange',{}) ;
+		}
 		
 		if( this._trsptNew || dontClose ) {
 			this.loadTrspt(savedId) ;
@@ -1627,6 +1629,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 					this._labelMessageBox = null ;
 				}
 				this.doReload() ;
+				this.optimaModule.postCrmEvent('datachange',{}) ;
 			},
 			scope: this
 		}) ;

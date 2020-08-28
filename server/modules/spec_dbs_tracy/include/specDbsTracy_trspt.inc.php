@@ -85,6 +85,7 @@ function specDbsTracy_trspt_getRecords( $post_data ) {
 			'sword_edi_1_sent' => ($arr['field_SWORD_EDI_1_SENT']?true:false),
 			'pod_doc' => $arr['field_POD_DOC'],
 			'print_is_ok' => $arr['field_PRINT_IS_OK'],
+			'spec_tms_status' => $arr['field_SPEC_TMS_STATUS'],
 			
 			'calc_step' => NULL,
 			'calc_step_warning_edi' => FALSE,
@@ -213,6 +214,9 @@ function specDbsTracy_trspt_getRecords( $post_data ) {
 		
 		$steps = array() ;
 		foreach( $row_trspt['orders'] as $row_order ) {
+			if( !$row_order['steps'] ) {
+				continue ;
+			}
 			$max_stepCode = array() ;
 			foreach( $row_order['steps'] as $row_order_step ) {
 				if( $row_order_step['status_is_ok'] ) {
@@ -443,12 +447,14 @@ function specDbsTracy_trspt_orderRemove( $post_data ) {
 		}
 	}
 	
-	foreach( $ttmp['data'][0]['steps'] as $row_order_step ) {
-		if( $row_order_step['step_code'] == '50_ASSOC' ) {
-			$arr_ins = array() ;
-			$arr_ins['field_STATUS_IS_OK'] = 0 ;
-			$arr_ins['field_DATE_ACTUAL'] = '0000-00-00 00:00:00' ;
-			paracrm_lib_data_updateRecord_file( 'CDE_STEP', $arr_ins, $row_order_step['orderstep_filerecord_id'] );
+	if( is_array($ttmp['data'][0]['steps']) ) {
+		foreach( $ttmp['data'][0]['steps'] as $row_order_step ) {
+			if( $row_order_step['step_code'] == '50_ASSOC' ) {
+				$arr_ins = array() ;
+				$arr_ins['field_STATUS_IS_OK'] = 0 ;
+				$arr_ins['field_DATE_ACTUAL'] = '0000-00-00 00:00:00' ;
+				paracrm_lib_data_updateRecord_file( 'CDE_STEP', $arr_ins, $row_order_step['orderstep_filerecord_id'] );
+			}
 		}
 	}
 	

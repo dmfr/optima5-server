@@ -72,6 +72,8 @@ function specDbsTracy_lib_TMS_doLabelCreateObj( $row_trspt ) {
 	}
 	if( !$json_parcels ) {
 		throw new Exception("TRACY : No parcels declared");
+	} elseif( count($json_parcels) > 1 ) {
+		throw new Exception("TRACY : Multiple parcels not supported");
 	}
 	
 	$json = array(
@@ -329,6 +331,22 @@ function specDbsTracy_lib_TMS_doLabelCreate( $row_trspt, $obj_request=NULL ) {
 	$arr_ins['field_EVENTLINK_FILE'] = 'TMS_STORE' ;
 	$arr_ins['field_EVENTLINK_IDS_JSON'] = json_encode($map_tmsTag_filerecordId) ;
 	$trsptevent_filerecord_id = paracrm_lib_data_insertRecord_file( 'TRSPT_EVENT', $row_trspt['trspt_filerecord_id'], $arr_ins );
+	
+	
+	// HACK: restockage TRSPT > SPEC_TMS_STATUS/FLIGHT_AWB
+	if( $json['labelData'] && $json['trackingNumber'] ) {
+		$arr_ins = array(
+			'field_SPEC_TMS_STATUS' => 'OK',
+			'field_FLIGHT_AWB' => $json['trackingNumber']
+		);
+	} else {
+		$arr_ins = array(
+			'field_SPEC_TMS_STATUS' => 'ERROR',
+			'field_FLIGHT_AWB' => ''
+		);
+	}
+	paracrm_lib_data_updateRecord_file( 'TRSPT', $arr_ins, $row_trspt['trspt_filerecord_id'] );
+	
 	
 	return $trsptevent_filerecord_id ;
 }

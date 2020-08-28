@@ -156,7 +156,7 @@ function specDbsTracy_cfg_getConfig() {
 	$json_define = paracrm_define_getMainToolbar( array('data_type'=>'bible') , true ) ;
 	foreach( $json_define['data_bible'] as $define_bible ) {
 		if( strpos($define_bible['bibleId'],'LIST_')===0 ) {
-			$json_define_bible = paracrm_data_getBibleCfg(array('bible_code'=>$define_bible['bibleId'])) ;
+			$json_define_bible = paracrm_data_getBibleCfg(array('bible_code'=>$define_bible['bibleId']),true) ;
 			
 			$bible_code = $define_bible['bibleId'] ;
 			

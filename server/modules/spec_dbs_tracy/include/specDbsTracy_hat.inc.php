@@ -182,7 +182,10 @@ function specDbsTracy_hat_getRecords( $post_data ) {
 				'hatparcel_filerecord_id' => $arr['filerecord_id'],
 				'vol_count' => (int)$arr['field_VOL_COUNT'],
 				'vol_kg' => (float)$arr['field_VOL_KG'],
-				'vol_dims' => explode('x',$arr['field_VOL_DIMS'])
+				'vol_dims' => explode('x',$arr['field_VOL_DIMS']),
+				'spec_barcode' => $arr['field_SPEC_BARCODE'],
+				'tms_carrier' => $arr['field_TMS_CARRIER'],
+				'tms_tracking' => $arr['field_TMS_TRACKING']
 			);
 		}
 	}
