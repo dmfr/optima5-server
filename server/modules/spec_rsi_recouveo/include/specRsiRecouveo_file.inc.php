@@ -2341,6 +2341,7 @@ function specRsiRecouveo_file_multiAction($post_data) {
 	)) ;
 	$arr_fileRecords = $json['data'] ;
 	
+	$arr_filerecordIds = array() ;
 	foreach( $arr_fileRecords as $file_record ) {
 		$is_sched_lock = $map_status[$file_record['status']]['sched_lock'] ;
 		$is_sched_none = $map_status[$file_record['status']]['sched_none'] ;
@@ -2369,6 +2370,7 @@ function specRsiRecouveo_file_multiAction($post_data) {
 					))
 				) ;
 				$json = specRsiRecouveo_action_doFileAction($forward_post) ;
+				$arr_filerecordIds[] = $file_filerecord_id ;
 				
 				break ;
 				
@@ -2386,6 +2388,7 @@ function specRsiRecouveo_file_multiAction($post_data) {
 						))
 					) ;
 					$json = specRsiRecouveo_action_doFileAction($forward_post) ;
+					$arr_filerecordIds[] = $file_filerecord_id ;
 				}
 				break ;
 		
@@ -2397,6 +2400,7 @@ function specRsiRecouveo_file_multiAction($post_data) {
 						'scen_code' => $p_targetForm['scen_code_pre']
 					) ;
 					$json = specRsiRecouveo_file_setScenario($forward_post) ;
+					$arr_filerecordIds[] = $file_filerecord_id ;
 				}
 				break ;
 		
@@ -2404,6 +2408,7 @@ function specRsiRecouveo_file_multiAction($post_data) {
 				$acc_id = $file_record['acc_id'] ;	
 				$arr_update = array('field_ACC_ID'=>$acc_id,'field_LINK_USER_LOCAL'=>$p_targetForm['link_user']) ;
 				paracrm_lib_data_updateRecord_bibleEntry('LIB_ACCOUNT',$acc_id,$arr_update) ;
+				$arr_filerecordIds[] = $file_filerecord_id ;
 				break ;
 				
 			case 'status_scenexecpause' :
@@ -2419,6 +2424,7 @@ function specRsiRecouveo_file_multiAction($post_data) {
 				}
 				$arr_update = array('field_SCENARIO_EXEC_PAUSE'=>($p_isPaused?1:0)) ;
 				paracrm_lib_data_updateRecord_file( 'FILE', $arr_update, $file_record['file_filerecord_id']);
+				$arr_filerecordIds[] = $file_filerecord_id ;
 				break ;
 				
 			case 'lock_close' :
@@ -2440,6 +2446,7 @@ function specRsiRecouveo_file_multiAction($post_data) {
 					))
 				);
 				$json = specRsiRecouveo_file_createForAction($forward_post) ;
+				$arr_filerecordIds[] = $file_filerecord_id ;
 				break ;
 				
 			case 'lock_litig' :
@@ -2464,10 +2471,26 @@ function specRsiRecouveo_file_multiAction($post_data) {
 					))
 				);
 				$json = specRsiRecouveo_file_createForAction($forward_post) ;
+				$arr_filerecordIds[] = $file_filerecord_id ;
 				break ;
 		}
 	}
-	specRsiRecouveo_file_createLogMultiAction($arr_fileRecords, $p_targetForm, $ttmp['data']["cfg_opt"]) ;
+	$zgrplog_filerecord_id = specRsiRecouveo_file_createLogMultiAction($arr_fileRecords, $p_targetForm, $ttmp['data']["cfg_opt"]) ;
+	$zgrplog_row = paracrm_lib_data_getRecord('file_record','Z_GRPLOGS',$zgrplog_filerecord_id) ;
+	if( $zgrplog_row['field_GRPLOG_ACTION'] ) {
+		foreach( $arr_filerecordIds as $file_filerecord_id ) {
+			$forward_post = array(
+				'file_filerecord_id' => $file_filerecord_id,
+				'data' => json_encode(array(
+					'link_action' => 'BUMP',
+					'link_txt' => '<i>Action groupée</i> : '.$zgrplog_row['field_GRPLOG_ACTION'],
+					'txt' => $p_targetForm['txt'],
+					'next_action_save' => TRUE
+				))
+			);
+			specRsiRecouveo_action_doFileAction($forward_post) ;
+		}
+	}
 	return array('success'=>true, 'debug'=>$post_data, 'debug2'=>$arr_fileRecords) ;
 }
 
@@ -2534,7 +2557,7 @@ function specRsiRecouveo_file_createLogMultiAction ($arr_fileRecords, $targetFor
 	$arr_ins["field_GRPLOG_AMOUNT"] = $totalAmount ;
 	$arr_ins["field_GRPLOG_DETAIL"] = $actionDetail ;
 
-	paracrm_lib_data_insertRecord_file( 'Z_GRPLOGS', 0, $arr_ins );
+	return paracrm_lib_data_insertRecord_file( 'Z_GRPLOGS', 0, $arr_ins );
 }
 function specRsiRecouveo_file_extractDetailFromOpt($actionDetail, $opts, $getSubStatusLabel, $subStatusCode, $targetForm) {
 	foreach ($opts as $opt) {

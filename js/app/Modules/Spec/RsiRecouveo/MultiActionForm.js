@@ -377,6 +377,14 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MultiActionForm',{
 					preventBlankIfVisible:true,
 					fieldLabel: 'Collaborateur'
 				})]
+			},{
+				xtype: 'fieldset',
+				itemId: 'fsComment',
+				title: 'Commentaire',
+				items: [{
+					xtype: 'textfield',
+					name: 'txt'
+				}]
 			}],
 			buttons: [{
 				itemId: 'btnOk',
@@ -413,6 +421,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MultiActionForm',{
 		this.down('#fsLitig').setVisible( multiMode=='lock_litig' ) ;
 		this.down('#fsUser').setVisible( multiMode=='user' ) ;
 		this.down('#fsScenexecpause').setVisible( multiMode=='status_scenexecpause' ) ;
+		this.down('#fsComment').setVisible( !Ext.isEmpty(multiMode) )
 	},
 	onFormChange: function(formP, field) {
 		var form = formP.getForm() ;
