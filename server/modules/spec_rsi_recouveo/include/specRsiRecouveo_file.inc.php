@@ -2467,10 +2467,120 @@ function specRsiRecouveo_file_multiAction($post_data) {
 				break ;
 		}
 	}
-
+	specRsiRecouveo_file_createLogMultiAction($arr_fileRecords, $p_targetForm, $ttmp['data']["cfg_opt"]) ;
 	return array('success'=>true, 'debug'=>$post_data, 'debug2'=>$arr_fileRecords) ;
 }
 
+function specRsiRecouveo_file_createLogMultiAction ($arr_fileRecords, $targetForm, $opts) {
+	$acc_names = [] ;
+	$totalAmount = 0 ;
+	$nbFact = 0 ;
+	foreach ($arr_fileRecords as $fileRecord) {
+		$acc_names[] = $fileRecord["acc_id"] ;
+		$totalAmount += $fileRecord["inv_amount_due"] ;
+		$nbFact += $fileRecord["inv_nb_open_alltypes"] ;
+	}
+	
+	$actionLabel = "" ;
+	$actionDetail = "" ;
+	$subStatusCode = NULL ;
+	$getSubStatusLabel = NULL ;
+	switch ($targetForm["multi_action"]){
+		case "bump":
+			$actionLabel = "Reprise dossier" ; // Rien à ajouter
+			break ;
+		case "scenstep":
+			$actionLabel = "Alignement scénario curatif" ; // Ajouter le code du scénario
+			$actionDetail = "Scénario: ".$targetForm["scen_code"] ;
+			if (isset($targetForm["next_action"]) === true){
+				$actionDetail .= " - Prochaine action: ".$targetForm["next_action"] ;
+			}
+			if ($targetForm["next_date"] !== ""){
+				$actionDetail .= " - Date de prochaine action: ".$targetForm["next_date"] ;
+			}
+			break ;
+		case "scenpre":
+			$actionLabel = "Scénario pré-relance"; // Ajouter le code du scénario
+			$actionDetail = $targetForm["scen_code_pre"] ;
+			break ;
+		case "user":
+			$actionLabel = "Assignation d'un collaborateur" ;
+			$actionDetail = "Collaborateur: ".$targetForm["link_user"];
+			break ;
+		case "status_scenexecpause":
+			$actionLabel = $targetForm["scen_exec_pause"] === "false" ? "Exécution normale des relances automatiques" : "Blocage des relances automatiques" ; // Le param
+			break ;
+		case "lock_close":
+			$actionLabel = "Demande de clôture" ; // get sub_status OPT_CLOSEASK
+			$getSubStatusLabel = "OPT_CLOSEASK" ;
+			$subStatusCode = $targetForm["close_code"] ;
+			break ;
+		case "lock_litig":
+			$actionLabel = "Action externe / Litige" ; // get sub_status OPT_LITIG
+			$getSubStatusLabel = "OPT_LITIG" ;
+			$subStatusCode = $targetForm["litig_code"] ;
+			break ;
+	}
+	if ($subStatusCode !== NULL && $getSubStatusLabel !== NULL){
+		$actionDetail = specRsiRecouveo_file_extractDetailFromOpt($actionDetail, $opts, $getSubStatusLabel, $subStatusCode, $targetForm);
+	}
+	$user = specRsiRecouveo_util_getLogUser() ;
+	$arr_ins = [] ;
+	$arr_ins["field_GRPLOG_DATE"] = date('Y-m-d H:i:s');
+	$arr_ins["field_GRPLOG_ACTION"] = $actionLabel ;
+	$arr_ins["field_GRPLOG_ACC_NAME"] = implode(", ", $acc_names) ;
+	$arr_ins["field_GRPLOG_USER"] = $user === NULL ? "admin" : $user  ;
+	$arr_ins["field_GRPLOG_COUNT_FACT"] = $nbFact ;
+	$arr_ins["field_GRPLOG_AMOUNT"] = $totalAmount ;
+	$arr_ins["field_GRPLOG_DETAIL"] = $actionDetail ;
+
+	paracrm_lib_data_insertRecord_file( 'Z_GRPLOGS', 0, $arr_ins );
+}
+function specRsiRecouveo_file_extractDetailFromOpt($actionDetail, $opts, $getSubStatusLabel, $subStatusCode, $targetForm) {
+	foreach ($opts as $opt) {
+		if ($opt['bible_code'] === $getSubStatusLabel) {
+			foreach ($opt['records'] as $rec) {
+				if ($rec["id"] === $subStatusCode) {
+					$actionDetail = "Sous-statut: " . $rec["text"];
+					if ($targetForm["litig_nextdate"] !== "") {
+						$actionDetail .= " - Prochain suivi: " . $targetForm["litig_nextdate"];
+					}
+					if ($targetForm["litig_ext_is_on"] === "on" && $targetForm !== "") {
+						$actionDetail .= " - Affectation externe: " . $targetForm["litig_ext_user"];
+					}
+					break;
+				}
+			}
+		}
+		if ($actionDetail !== "") {
+			break;
+		}
+	}
+	return $actionDetail;
+}
+
+function specRsiRecouveo_file_multiAction_getLogs ($post_data){
+	global $_opDB ;
+
+	$data = array() ;
+	$query = "SELECT * FROM view_file_Z_GRPLOGS ORDER BY field_GRPLOG_DATE DESC" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+
+		$data[] = array(
+			'filerecord_id' => $arr['filerecord_id'],
+			'field_date' => $arr['field_GRPLOG_DATE'],
+			'field_action' => $arr['field_GRPLOG_ACTION'],
+			'field_acc_name' => $arr['field_GRPLOG_ACC_NAME'],
+			'field_user' => $arr['field_GRPLOG_USER'],
+			'field_fact_count' => $arr['field_GRPLOG_COUNT_FACT'],
+			'field_amount' => $arr['field_GRPLOG_AMOUNT'],
+			'field_detail' => $arr['field_GRPLOG_DETAIL'],
+		) ;
+	}
+	return array('success'=>true, 'data'=>$data) ;
+
+}
 
 
 

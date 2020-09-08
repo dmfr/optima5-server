@@ -13,7 +13,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 		'Optima5.Modules.Spec.RsiRecouveo.FilesWidgetCharts',
 		'Optima5.Modules.Spec.RsiRecouveo.FilesWidgetAgenda',
 		'Optima5.Modules.Spec.RsiRecouveo.FilesWidgetBalage',
-		'Optima5.Modules.Spec.RsiRecouveo.FilesWidgetList'
+		'Optima5.Modules.Spec.RsiRecouveo.FilesWidgetList',
+		'Optima5.Modules.Spec.RsiRecouveo.MultiActionLogGrid'
 	],
 	
 	viewMode: null,
@@ -164,14 +165,30 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				},
 				scope: this
 			},{
-				itemId: 'btnSelection',
+				itemId: 'menuMultiSelect',
 				hidden: this._reportMode,
 				iconCls: 'op5-spec-rsiveo-datatoolbar-new',
-				text: 'Select.multiple',
-				handler: function(){
-					this.getGrid().toggleMultiSelect() ;
-				},
-				scope: this
+				text: 'Actions groupées',
+				viewConfig: {forceFit: true},
+				menu: {
+					items: [{
+						itemId: 'btnSelection',
+						text: 'Démarrer sélection',
+						iconCls: 'op5-spec-rsiveo-datatoolbar-new',
+						handler: function(){
+							this.getGrid().toggleMultiSelect() ;
+						},
+						scope: this
+					},{
+						itemId: 'btnLogSelection',
+						text: 'Historique',
+						icon: 'images/modules/rsiveo-blocs-16.gif',
+						handler: function () {
+							this.handleMultiActionLog() ;
+						},
+						scope: this
+					}]
+				}
 			},{
 				hidden: this._reportMode,
 				iconCls: 'op5-spec-rsiveo-datatoolbar-file-export-excel',
@@ -657,11 +674,64 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 		if( this.multiActionForm ) {
 			this.multiActionForm.destroy() ;
 		}
+		if (this.multiActionLogGrid){
+			this.multiActionLogGrid.destroy() ;
+		}
 		this.callParent();
 	},
 	
 	onGridMultiSelect: function( widgetList, ids ) {
 		this.handleMultiSelect(ids) ;
+	},
+
+	handleMultiActionLog: function() {
+		// Open panel
+		this.getEl().mask() ;
+		var createPanel = Ext.create('Optima5.Modules.Spec.RsiRecouveo.MultiActionLogGrid',{
+			width: 800,
+			height: 600,
+			optimaModule: this.optimaModule,
+			floating: true,
+			draggable: true,
+			resizable: true,
+			renderTo: this.getEl(),
+			tools: [{
+				type: 'close',
+				handler: function(e, t, p) {
+					p.ownerCt.destroy();
+				},
+				scope: this
+			}],
+			listeners: {
+				onLogItemDbClick: this.onLogItemDbClick,
+				scope: this
+			},
+		});
+		createPanel.on('destroy',function(p) {
+			this.multiActionLogGrid = null ;
+			this.getEl().unmask() ;
+		},this,{single:true}) ;
+
+		createPanel.show();
+		createPanel.getEl().alignTo(this.getEl(), 'c-c?');
+
+		this.multiActionLogGrid = createPanel ;
+	},
+	onLogItemDbClick: function(ids){
+		var gridPanel = this.down('#pCenter').down('#pGrid'),
+				gridPanelStore = gridPanel.getStore(),
+				gridPanelFilters = gridPanelStore.getFilters() ;
+		gridPanelStore.clearFilter() ;
+		gridPanel.filters.clearFilters() ;
+
+		var filter = new Ext.util.Filter({
+			filterFn: function (item) {
+				return ids.includes(item.data.acc_id) === true ;
+			}
+		})
+		gridPanelStore.filter(filter) ;
+		this.multiActionLogGrid.destroy() ;
+		this.getEl().unmask() ;
 	},
 	handleMultiSelect: function(ids) {
 		this.getEl().mask() ;

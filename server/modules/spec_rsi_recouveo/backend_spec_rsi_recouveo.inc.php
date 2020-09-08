@@ -8,6 +8,8 @@ function backend_specific( $post_data )
 session_write_close() ;
 switch( $post_data['_action'] )
 {
+	case 'file_getMultiActionLogs':
+		return specRsiRecouveo_file_multiAction_getLogs($post_data) ;
 	case 'account_downloadAttachmentBinary':
 		return specRsiRecouveo_account_downloadAttachmentBinary($post_data) ;
 	case 'extPortal_getInfosConfig':
