@@ -1019,6 +1019,11 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 		var hasNotifications = (notificationsData.length>0) ;
 		this.down('toolbar').down('#tbNotifications').setVisible( hasNotifications ) ;
 		if( hasNotifications && !(this.notificationsPanel===false) ) {
+			if( !this.isVisible() ) {
+				this.on('activate',function() {
+					this.openNotifications() ;
+				},this,{single: true, delay:10}) ;
+			}
 			this.openNotifications() ;
 		}
 	},
@@ -1035,6 +1040,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 		*/
 		if( this.notificationsPanel ) {
 			this.notificationsPanel.getStore().loadData( notificationsData ) ;
+			this.notificationsPanel.doResize() ;
 			return ;
 		}
 		
@@ -1163,7 +1169,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 		this.notificationsPanel = notificationsPanel ;
 		this.notificationsPanel.mon(this,'resize', function(p){
 			p.notificationsPanel.doResize() ;
-		},this)
+		},this);
 		
 		notificationsPanel.getStore().loadData(notificationsData) ;
 	}
