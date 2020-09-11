@@ -36,6 +36,13 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70selectTrspt',{
 							this.handleScan() ;
 						}
 					},
+					change: {
+						fn: function(field) {
+							this.handleScan(true) ;
+						},
+						buffer: 500,
+						scope: this
+					},
 					scope: this
 				}
 			},{
@@ -48,12 +55,25 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70selectTrspt',{
 			}],
 			store: {
 				model: 'DbsTracyGunTracySelectTrspt',
-				autoLoad: true,
-				proxy: {
-					type: 'memory',
+				autoLoad: false,
+				sorters: [{
+					property: 'mvt_carrier_txt',
+					direction: 'ASC'
+				}],
+				proxy: this.optimaModule.getConfiguredAjaxProxy({
+					extraParams : {
+						_moduleId: 'spec_dbs_tracy',
+						_action: 'gun_t70_getTrsptList'
+					},
 					reader: {
-						type: 'json'
+						type: 'json',
+						rootProperty: 'data'
 					}
+				}),
+				listeners: {
+					beforeload: this.onGridBeforeLoad,
+					load: this.onGridLoad,
+					scope: this
 				}
 			},
 			columns: [{
@@ -70,18 +90,21 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70selectTrspt',{
 					scope: this
 				}]
 			},{
-				dataIndex: 'container_ref',
-				text: 'Container',
-			},{
-				dataIndex: 'stk_prod',
+				dataIndex: 'mvt_carrier_txt',
 				width: 150,
-				text: 'P/N'
+				text: 'Carrier',
 			},{
-				dataIndex: 'src_adr',
-				text: 'Pos.From'
+				dataIndex: 'count_trspt',
+				width: 50,
+				text: '#Trspt'
 			},{
-				dataIndex: 'dst_adr',
-				text: 'Pos.Dest'
+				dataIndex: 'count_parcels',
+				width: 50,
+				text: '#Packs'
+			},{
+				dataIndex: 'count_order_final',
+				width: 50,
+				text: '#DNs'
 			}]
 		});
 		this.callParent() ;
@@ -91,31 +114,17 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70selectTrspt',{
 		this.onFilterChanged() ;
 		//this.doLoad() ;
 	},
-	handleScan: function() {
-		var containerRef = this.down('#txtScan').getValue() ;
-		containerRef = containerRef.trim().toUpperCase() ;
+	handleScan: function(dontSend) {
+		var scanval = this.down('#txtScan').getValue() ;
+		scanval = scanval.trim().toUpperCase() ;
 		
-		var transferligFilerecordId = null ;
-		this.getStore().each( function(rec) {
-			if( rec.get('container_ref') == containerRef ) {
-				transferligFilerecordId = rec.get('transferlig_filerecord_id') ;
-			}
-		}) ;
-		if( transferligFilerecordId ) {
-			this.openTransferLig(transferligFilerecordId) ;
-			return ;
+		console.dir( scanval ) ;
+		if(!dontSend) {
+			//this.fireEvent('brtbegin',this,transferligFilerecordId) ;
 		}
-		this.getStore().load() ;
 	},
 	openTransferLig: function(transferligFilerecordId) {
-		this.fireEvent('opentransferlig',this,transferligFilerecordId) ;
-	},
-	
-	onGridBeforeLoad: function() {
-		
-	},
-	onGridLoad: function() {
-		this.down('#txtScan').focus() ;
+		this.fireEvent('brtbegin',this,transferligFilerecordId) ;
 	},
 	
 	openFilters: function() {
@@ -132,37 +141,21 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70selectTrspt',{
 		this.doLoad() ;
 	},
 	
-	doLoad: function() {
-		this.showLoadmask() ;
-		
+	onGridBeforeLoad: function(store,options) {
 		var filterParams = this.getFilterValues() ;
-		this.optimaModule.getConfiguredAjaxConnection().request({
-			params: Ext.apply({
-				_moduleId: 'spec_dbs_tracy',
-				_action: 'gun_t70_getTrsptList'
-			},filterParams),
-			success: function(response) {
-				var ajaxResponse = Ext.decode(response.responseText) ;
-				if( ajaxResponse.success == false ) {
-					Ext.MessageBox.alert('Error','Error') ;
-					return ;
-				}
-				this.onLoad(ajaxResponse.data) ;
-			},
-			callback: function() {
-				this.hideLoadmask() ;
-			},
-			scope: this
-		}) ;
+		var params = options.getParams() || {} ;
+		Ext.apply(params,this.getFilterValues()) ;
+		options.setParams(params) ;
 	},
-	onLoad: function(ajaxData) {
-		console.dir(ajaxData) ;
+	onGridLoad: function(store) {
+		
+	},
+	
+	doLoad: function() {
+		this.getStore().load() ;
 	},
 	
 	doQuit: function() {
 		this.fireEvent('quit',this) ;
-	},
-	
-	
-
+	}
 }) ;

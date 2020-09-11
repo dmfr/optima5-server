@@ -2,6 +2,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70',{
 	extend:'Ext.panel.Panel',
 	
 	requires: [
+		'Optima5.Modules.Spec.DbsTracy.GunTracy70example',
 		'Optima5.Modules.Spec.DbsTracy.GunTracy70selectTrspt',
 		
 	],
@@ -16,6 +17,9 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70',{
 			items: []
 		});
 		this.callParent() ;
+		
+		// resume session OR list ?
+		
 		this.openSelectTrspt() ;
 	},
 	openSelectTrspt: function() {
@@ -30,15 +34,26 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70',{
 					//this._printerUri = printerUri ;
 					//this.openList(this._printerUri) ;
 				},
-				openfilters: function(p,cfg) {
-					console.log('openfilters') ;
-					this.fireEvent('openfilters',this,cfg) ;
+				brtbegin: function(p,cfg) {
+					//console.log('openfilters') ;
+					//this.fireEvent('openfilters',this,cfg) ;
+					this.openTrsptSession(151516) ;
 				},
 				scope: this
 			}
 		}) ;
 		this.removeAll() ;
 		this.add(listPanel) ;
+	},
+	openTrsptSession: function(tracy70sessionId) {
+		var listPanel = Ext.create('Optima5.Modules.Spec.DbsTracy.GunTracy70example',{
+			border: false,
+			optimaModule: this.optimaModule,
+		}) ;
+		this.removeAll() ;
+		this.add(listPanel) ;
+		
+		
 	},
 	openList: function(printerUri) {
 		var listPanel = Ext.create('Optima5.Modules.Spec.DbsLam.GunPackingList',{

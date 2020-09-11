@@ -1,4 +1,4 @@
-Ext.define('DbsTracyGunTracySelectTrspt',{
+Ext.define('DbsTracyGunTracyPrinter',{
 	extend: 'Ext.data.Model',
 	idProperty: 'printer_uri',
 	fields: [
@@ -7,6 +7,18 @@ Ext.define('DbsTracyGunTracySelectTrspt',{
 		{name: 'printer_spool_ip', type:'string'},
 		{name: 'printer_qz_name', type:'string'},
 		{name: 'printer_desc', type:'string'}
+	]
+});
+Ext.define('DbsTracyGunTracySelectTrspt',{
+	extend: 'Ext.data.Model',
+	idProperty: 'mvt_carrier',
+	fields: [
+		{name: 'mvt_carrier', type:'string'},
+		{name: 'mvt_carrier_txt', type:'string'},
+		{name: 'count_trspt', type:'int'},
+		{name: 'count_parcel', type:'int'},
+		{name: 'count_order', type:'int'},
+		{name: 'count_order_final', type:'int'}
 	]
 });
 

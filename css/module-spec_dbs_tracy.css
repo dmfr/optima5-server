@@ -227,3 +227,7 @@
 	text-decoration:line-through;
 	font-weight: lighter !important;
 }
+
+.op5-spec-dbstracy-field-narrowline .x-form-display-field {
+	min-height: 16px ;
+}
