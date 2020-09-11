@@ -9,6 +9,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 		'Optima5.Modules.Spec.RsiRecouveo.CfgParamFilter',
 		'Optima5.Modules.Spec.RsiRecouveo.MultiActionForm',
 		'Optima5.Modules.Spec.RsiRecouveo.FilesTopPanel',
+		'Optima5.Modules.Spec.RsiRecouveo.FilesTopAccountPanel',
 		'Optima5.Modules.Spec.RsiRecouveo.UxGridFilters',
 		'Optima5.Modules.Spec.RsiRecouveo.FilesWidgetCharts',
 		'Optima5.Modules.Spec.RsiRecouveo.FilesWidgetAgenda',
@@ -992,14 +993,26 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 		if( this.filesTopPanel ) {
 			this.filesTopPanel.destroy() ;
 		}
-		var filesTopPanel = Ext.create('Optima5.Modules.Spec.RsiRecouveo.FilesTopPanel',{
+		var classname = null ;
+		switch( this.viewMode ) {
+			case 'file' :
+				classname = 'Optima5.Modules.Spec.RsiRecouveo.FilesTopPanel' ;
+				break ;
+			case 'account' :
+				classname = 'Optima5.Modules.Spec.RsiRecouveo.FilesTopAccountPanel' ;
+				break ;
+			default :
+				Ext.MessageBox.alert('Erreur','Top-X non disponible en vue par facture') ;
+				return ;
+		}
+		var filesTopPanel = Ext.create(classname,{
 			optimaModule: this.optimaModule,
 			loadData: this.getLoadData(),
 			
 			title: 'Top X / par encours',
 			
 			width:400, // dummy initial size, for border layout to work
-			height:320, // ...
+			height:380, // ...
 			floating: true,
 			draggable: true,
 			resizable: false,
