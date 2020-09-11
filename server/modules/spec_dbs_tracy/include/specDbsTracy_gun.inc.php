@@ -80,14 +80,49 @@ function specDbsTracy_gun_t70_getTrsptList($post_data) {
 
 function specDbsTracy_gun_t70_transactionGetActiveId($post_data) {
 	// TMP: only one active session, using PHP SESSION, (no database)
-	
+	$transaction_id = null ;
+	if( isset($_SESSION['transactions']) ) {
+		foreach( $_SESSION['transactions'] as $iter_transaction_id => $dummy ) {
+			if( $_SESSION['transactions'][$iter_transaction_id]['transaction_code'] == 'specDbsTracy_gun_t70' ) {
+				$transaction_id = $iter_transaction_id ;
+			}
+		}
+	}
+	sleep(1) ;
+	return array('success'=>true, 'transaction_id'=>$transaction_id) ;
 }
 
 function specDbsTracy_gun_t70_transactionGetSummary($post_data) {
-
+	$p_transactionId = $post_data['_transaction_id'] ;
+	if( isset($_SESSION['transactions'][$p_transactionId]) 
+		&& ($_SESSION['transactions'][$p_transactionId]['transaction_code'] == 'specDbsTracy_gun_t70') ) {
+		
+		return array('success'=>true, 'data'=> $_SESSION['transactions'][$p_transactionId]) ;
+	}
+	return array('success'=>false) ;
 }
 function specDbsTracy_gun_t70_transactionPostAction($post_data) {
 	// create, Flash, confirm/abort
+	$p_transactionId = $post_data['_transaction_id'] ;
+	$p_subaction = $post_data['_subaction'] ;
+	
+	switch( $p_subaction ) {
+		case 'abort' :
+			if( isset($_SESSION['transactions'][$p_transactionId]) 
+				&& ($_SESSION['transactions'][$p_transactionId]['transaction_code'] == 'specDbsTracy_gun_t70') ) {
+				
+				unset($_SESSION['transactions'][$p_transactionId]) ;
+			}
+			return array('success'=>true) ;
+			break ;
+			
+		case 'create' :
+			
+			break ;
+			
+		default :
+			break ;
+	}
 	
 }
 

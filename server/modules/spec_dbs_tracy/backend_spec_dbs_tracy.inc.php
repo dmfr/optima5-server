@@ -109,6 +109,12 @@ switch( $post_data['_action'] )
 	
 	case 'gun_t70_getTrsptList' :
 	return specDbsTracy_gun_t70_getTrsptList($post_data) ;
+	case 'gun_t70_transactionGetActiveId' :
+	return specDbsTracy_gun_t70_transactionGetActiveId($post_data) ;
+	case 'gun_t70_transactionGetSummary' :
+	return specDbsTracy_gun_t70_transactionGetSummary($post_data) ;
+	case 'gun_t70_transactionPostAction' :
+	return specDbsTracy_gun_t70_transactionPostAction($post_data) ;
 	
 	default :
 	return NULL ;

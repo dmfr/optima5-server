@@ -17,10 +17,41 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70',{
 			items: []
 		});
 		this.callParent() ;
+		this.openInit() ;
+	},
+	openInit: function() {
+		this.openBlank() ;
 		
 		// resume session OR list ?
-		
-		this.openSelectTrspt() ;
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_dbs_tracy',
+				_action: 'gun_t70_transactionGetActiveId'
+			},
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					var error = ajaxResponse.success || 'File not saved !' ;
+					Ext.MessageBox.alert('Error',error) ;
+					return ;
+				}
+				if( ajaxResponse.transaction_id ) {
+					this.openTrsptSession(ajaxResponse.transaction_id) ;
+				} else {
+					this.openSelectTrspt() ;
+				}
+			},
+			callback: function() {},
+			scope: this
+		}) ;
+	},
+	openBlank: function() {
+		var blankPanel = {
+			xtype: 'box',
+			cls:'op5-waiting'
+		}
+		this.removeAll() ;
+		this.add(blankPanel) ;
 	},
 	openSelectTrspt: function() {
 		var listPanel = Ext.create('Optima5.Modules.Spec.DbsTracy.GunTracy70selectTrspt',{
@@ -45,10 +76,16 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70',{
 		this.removeAll() ;
 		this.add(listPanel) ;
 	},
-	openTrsptSession: function(tracy70sessionId) {
+	openTrsptSession: function(tracy70transactionId) {
 		var listPanel = Ext.create('Optima5.Modules.Spec.DbsTracy.GunTracy70example',{
 			border: false,
 			optimaModule: this.optimaModule,
+			listeners: {
+				quit: function() {
+					this.openInit() ;
+				},
+				scope: this
+			}
 		}) ;
 		this.removeAll() ;
 		this.add(listPanel) ;

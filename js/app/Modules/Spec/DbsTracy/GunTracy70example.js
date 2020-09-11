@@ -3,6 +3,14 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70example',{
 	
 	initComponent: function(){
 		Ext.apply(this,{
+			tbar: [{
+				icon: 'images/op5img/ico_back_16.gif',
+				text: '<u>Back</u>',
+				handler: function(){
+					this.doQuit() ;
+				},
+				scope: this
+			}],
 			bodyCls: 'ux-noframe-bg',
 			bodyPadding: "0 10px",
 			layout: 'anchor',
@@ -51,5 +59,9 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70example',{
 		});
 		
 		this.callParent() ;
+	},
+	
+	doQuit: function() {
+		this.fireEvent('quit',this) ;
 	}
 });
