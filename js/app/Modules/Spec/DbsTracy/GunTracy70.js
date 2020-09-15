@@ -5,6 +5,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70',{
 		'Optima5.Modules.Spec.DbsTracy.GunTracy70example',
 		'Optima5.Modules.Spec.DbsTracy.GunTracy70selectTrspt',
 		'Optima5.Modules.Spec.DbsTracy.GunTracy70transactionBuild',
+		'Optima5.Modules.Spec.DbsTracy.GunTracy70transactionScanResult',
 		
 	],
 	
@@ -66,11 +67,9 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70',{
 		}) ;
 		this.removeAll() ;
 		this.add(listPanel) ;
-		
-		
 	},
 	openTransactionScanResult: function(formData) {
-		var listPanel = Ext.create('Optima5.Modules.Spec.DbsTracy.GunTracy70example',{
+		var listPanel = Ext.create('Optima5.Modules.Spec.DbsTracy.GunTracy70transactionScanResult',{
 			border: false,
 			optimaModule: this.optimaModule,
 			_data: formData,
@@ -97,7 +96,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70',{
 			success: function(response) {
 				var ajaxResponse = Ext.decode(response.responseText) ;
 				if( ajaxResponse.success == false ) {
-					var error = ajaxResponse.success || 'File not saved !' ;
+					var error = ajaxResponse.success || 'Error' ;
 					Ext.MessageBox.alert('Error',error) ;
 					return ;
 				}
@@ -125,8 +124,8 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70',{
 			success: function(response) {
 				var ajaxResponse = Ext.decode(response.responseText) ;
 				if( ajaxResponse.success == false ) {
-					var error = ajaxResponse.success || 'File not saved !' ;
-					Ext.MessageBox.alert('Error',error) ;
+					var error = ajaxResponse.success || 'Error' ;
+					Ext.MessageBox.alert('Error',error, function(){this.handleInit();},this) ;
 					return ;
 				}
 				if( ajaxResponse.transaction_id ) {
@@ -140,6 +139,27 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70',{
 		}) ;
 	},
 	handleTransactionScan: function(scanval) {
-		this.openTransactionScanResult({}) ;
+		this.openBlank() ;
+		// resume session OR list ?
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_dbs_tracy',
+				_action: 'gun_t70_transactionPostAction',
+				
+				_subaction: 'scan',
+				scanval: scanval
+			},
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					var error = ajaxResponse.success || 'Error' ;
+					Ext.MessageBox.alert('Error',error, function(){this.openTransactionBuild(this._run_tracy70transactionId);},this) ;
+					return ;
+				}
+				this.openTransactionScanResult( ajaxResponse.data ) ;
+			},
+			callback: function() {},
+			scope: this
+		}) ;
 	}
 }) ;

@@ -3,7 +3,12 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunFiltersMixin',{
 		'Optima5.Modules.Spec.DbsTracy.GunFiltersForm'
 	],
 	
-	_filterValues: {},
+	_filterValues: null,
+	
+	constructor : function () {
+		var filterValues = Optima5.Modules.Spec.DbsTracy.GunHelper.getFilters() ;
+		this._filterValues = filterValues || {} ;
+	},
 	
 	openModalFilters: function() {
 		this.getEl().mask() ;
@@ -29,7 +34,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunFiltersMixin',{
 		createPanel.on('submit', function(p,filterValues) {
 			this._filterValues = filterValues ;
 			p.destroy() ;
-			this.onFilterChanged() ;
+			this.onFilterChangedLocal() ;
 		},this,{single:true}) ;
 		createPanel.on('destroy',function(p) {
 			this.getEl().unmask() ;
@@ -47,6 +52,10 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunFiltersMixin',{
 			}
 		}) ;
 		return filterValues ;
+	},
+	onFilterChangedLocal: function() {
+		Optima5.Modules.Spec.DbsTracy.GunHelper.setFilters( this.getFilterValues() ) ;
+		this.onFilterChanged() ;
 	},
 	onFilterChanged: function() {
 		// to be overridden

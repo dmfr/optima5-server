@@ -117,7 +117,6 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70transactionBuild',{
 		var scanval = this.down('#txtScan').getValue() ;
 		scanval = scanval.trim().toUpperCase() ;
 		
-		console.dir( scanval ) ;
 		this.fireEvent('scan',this,scanval) ;
 		if(!dontSend) {
 			//this.fireEvent('brtbegin',this,transferligFilerecordId) ;

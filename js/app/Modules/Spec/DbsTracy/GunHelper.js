@@ -113,4 +113,11 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunHelper',{
 	getSocAll: function() {
 		return Ext.pluck( this.cfgSocStore.getRange(), 'data' ) ;
 	},
+	
+	setFilters: function(filterValues) {
+		this._savedFilterValues = filterValues ;
+	},
+	getFilters: function() {
+		return this._savedFilterValues ;
+	}
 });

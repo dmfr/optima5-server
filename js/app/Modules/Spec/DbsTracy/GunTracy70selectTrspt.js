@@ -61,7 +61,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70selectTrspt',{
 							return 'op5-spec-dbstracy-gun-take-green' ;
 						}
 					},
-					tooltip: 'Take',
+					//tooltip: 'Take',
 					handler: function(grid, rowIndex, colIndex) {
 						var rec = grid.getStore().getAt(rowIndex);
 						this.selectTrspt( rec.get('mvt_carrier') ) ;

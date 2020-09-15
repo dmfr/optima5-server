@@ -196,7 +196,20 @@ function specDbsTracy_gun_t70_transactionPostAction($post_data) {
 			$_SESSION['transactions'][$transaction_id]['obj_brt'] = $obj_brt ;
 			
 			return array('success'=>true, 'transaction_id'=>$transaction_id) ;
-			
+		
+		case 'scan' :
+			return array(
+				'success'=>true,
+				'data' => array(
+					'header'=>array('result_type' => 'success'),
+					'fields' => array(
+						array('label'=>'Pouet', 'text'=>'Test'),
+						array('label'=>'Pouet23', 'text'=>'Test998')
+					),
+					'reason' => 'Tagda pouet pouet'
+				)
+			);
+		
 		default :
 			break ;
 	}

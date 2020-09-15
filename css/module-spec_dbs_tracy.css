@@ -238,3 +238,11 @@
 .op5-spec-dbstracy-gun-take-green {
 	background: url('../images/modules/dbstracy-puzzle-green-16.png') ;
 }
+
+
+.op5-spec-dbstracy-gun-result-ok {
+	background: url('../images/modules/dbstracy-gunresult-ok-48.png') ;
+}
+.op5-spec-dbstracy-gun-result-fail {
+	background: url('../images/modules/dbstracy-gunresult-fail-48.png') ;
+}
