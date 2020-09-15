@@ -4,6 +4,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70',{
 	requires: [
 		'Optima5.Modules.Spec.DbsTracy.GunTracy70example',
 		'Optima5.Modules.Spec.DbsTracy.GunTracy70selectTrspt',
+		'Optima5.Modules.Spec.DbsTracy.GunTracy70transactionBuild',
 		
 	],
 	
@@ -17,33 +18,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70',{
 			items: []
 		});
 		this.callParent() ;
-		this.openInit() ;
-	},
-	openInit: function() {
-		this.openBlank() ;
-		
-		// resume session OR list ?
-		this.optimaModule.getConfiguredAjaxConnection().request({
-			params: {
-				_moduleId: 'spec_dbs_tracy',
-				_action: 'gun_t70_transactionGetActiveId'
-			},
-			success: function(response) {
-				var ajaxResponse = Ext.decode(response.responseText) ;
-				if( ajaxResponse.success == false ) {
-					var error = ajaxResponse.success || 'File not saved !' ;
-					Ext.MessageBox.alert('Error',error) ;
-					return ;
-				}
-				if( ajaxResponse.transaction_id ) {
-					this.openTrsptSession(ajaxResponse.transaction_id) ;
-				} else {
-					this.openSelectTrspt() ;
-				}
-			},
-			callback: function() {},
-			scope: this
-		}) ;
+		this.handleInit() ;
 	},
 	openBlank: function() {
 		var blankPanel = {
@@ -61,14 +36,8 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70',{
 				quit: function() {
 					this.destroy() ;
 				},
-				selecttrspt: function(p,printerUri) {
-					//this._printerUri = printerUri ;
-					//this.openList(this._printerUri) ;
-				},
-				brtbegin: function(p,cfg) {
-					//console.log('openfilters') ;
-					//this.fireEvent('openfilters',this,cfg) ;
-					this.openTrsptSession(151516) ;
+				selecttrspt: function(p,data) {
+					this.handleSelectTrspt(data) ;
 				},
 				scope: this
 			}
@@ -76,13 +45,14 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70',{
 		this.removeAll() ;
 		this.add(listPanel) ;
 	},
-	openTrsptSession: function(tracy70transactionId) {
-		var listPanel = Ext.create('Optima5.Modules.Spec.DbsTracy.GunTracy70example',{
+	openTransactionBuild: function(tracy70transactionId) {
+		var listPanel = Ext.create('Optima5.Modules.Spec.DbsTracy.GunTracy70transactionBuild',{
 			border: false,
 			optimaModule: this.optimaModule,
+			_transactionId: tracy70transactionId,
 			listeners: {
 				quit: function() {
-					this.openInit() ;
+					this.handleInit() ;
 				},
 				scope: this
 			}
@@ -92,63 +62,59 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70',{
 		
 		
 	},
-	openList: function(printerUri) {
-		var listPanel = Ext.create('Optima5.Modules.Spec.DbsLam.GunPackingList',{
-			border: false,
-			optimaModule: this.optimaModule,
-			_printerUri: printerUri,
-			listeners: {
-				openpackingsrc: function(p,srcAdr) {
-					this.openPackingSrc(this._printerUri,srcAdr) ;
-				},
-				quit: function() {
-					this.destroy() ;
-				},
-				scope: this
-			}
+	
+	handleInit: function() {
+		this.openBlank() ;
+		
+		// resume session OR list ?
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_dbs_tracy',
+				_action: 'gun_t70_transactionGetActiveId'
+			},
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					var error = ajaxResponse.success || 'File not saved !' ;
+					Ext.MessageBox.alert('Error',error) ;
+					return ;
+				}
+				if( ajaxResponse.transaction_id ) {
+					this.openTransactionBuild(ajaxResponse.transaction_id) ;
+				} else {
+					this.openSelectTrspt() ;
+				}
+			},
+			callback: function() {},
+			scope: this
 		}) ;
-		this.removeAll() ;
-		this.add(listPanel) ;
 	},
-	openPackingSrc: function(printerUri,transferligSrcAdr) {
-		this._runTransferligSrcAdr = transferligSrcAdr ;
-		var listPanel = Ext.create('Optima5.Modules.Spec.DbsLam.GunPackingRun',{
-			border: false,
-			optimaModule: this.optimaModule,
-			_printerUri: printerUri,
-			_transferligSrcAdr: transferligSrcAdr,
-			listeners: {
-				quit: function() {
-					this._runTransferligSrcAdr = null ;
-					this.openList(this._printerUri) ;
-				},
-				openpackingrecord: function(p,transferCdePackFilerecordId) {
-					this.openPackingRecord(this._printerUri,transferCdePackFilerecordId) ;
-				},
-				scope: this
-			}
+	handleSelectTrspt: function(data) {
+		this.openBlank() ;
+		// resume session OR list ?
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_dbs_tracy',
+				_action: 'gun_t70_transactionPostAction',
+				
+				_subaction: 'create',
+				data: Ext.JSON.encode(data)
+			},
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					var error = ajaxResponse.success || 'File not saved !' ;
+					Ext.MessageBox.alert('Error',error) ;
+					return ;
+				}
+				if( ajaxResponse.transaction_id ) {
+					this.openTransactionBuild(ajaxResponse.transaction_id) ;
+				} else {
+					this.openSelectTrspt() ;
+				}
+			},
+			callback: function() {},
+			scope: this
 		}) ;
-		this.removeAll() ;
-		this.add(listPanel) ;
-	},
-	openPackingRecord: function(printerUri, transferCdePackFilerecordId) {
-		var listPanel = Ext.create('Optima5.Modules.Spec.DbsLam.GunPackingResult',{
-			border: false,
-			optimaModule: this.optimaModule,
-			_printerUri: printerUri,
-			_transferCdePackFilerecordId: transferCdePackFilerecordId,
-			listeners: {
-				quit: function() {
-					if( this._runTransferligSrcAdr ) {
-						this.openPackingSrc( this._printerUri, this._runTransferligSrcAdr ) ;
-					} else {
-						this.openList() ;
-					}
-				},
-				scope: this
-			}
-		}) ;
-		this.removeAll() ;
-		this.add(listPanel) ;
 	}
 }) ;

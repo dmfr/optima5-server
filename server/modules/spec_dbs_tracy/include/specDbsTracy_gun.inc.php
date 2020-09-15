@@ -1,5 +1,7 @@
 <?php
 
+define('SPECDBSTRACY_GUN_T70_CODE','specDbsTracy_gun_t70') ;
+
 function specDbsTracy_gun_getTrsptRecords($post_data) {
 	global $_opDB ;
 	
@@ -38,6 +40,8 @@ function specDbsTracy_gun_getTrsptRecords($post_data) {
 
 
 function specDbsTracy_gun_t70_getTrsptList($post_data) {
+	global $_opDB ;
+	
 	$forward_post = $post_data ;
 	$forward_post['query_step_next'] = '70_PICKUP' ;
 	$json = specDbsTracy_gun_getTrsptRecords( $forward_post ) ;
@@ -50,12 +54,18 @@ function specDbsTracy_gun_t70_getTrsptList($post_data) {
 	$ttmp = specDbsTracy_cfg_getConfig() ;
 	$json_cfg = $ttmp['data'] ;
 	$mapCarrier_code_txt = array() ;
+	$mapCarrier_code_isIntegrateur = array() ;
 	foreach( $json_cfg['cfg_list'] as $list ) {
 		if( $list['bible_code'] == 'LIST_CARRIER' ) {
 			foreach( $list['records'] as $carrier_row ) {
 				$mapCarrier_code_txt[$carrier_row['id']] = $carrier_row['text'] ;
 			}
 		}
+	}
+	$query = "SELECT entry_key,field_IS_INTEGRATEUR FROM view_bible_LIST_CARRIER_entry" ;
+	$result = $_opDB->query($query);
+	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+		$mapCarrier_code_isIntegrateur[$arr[0]] = !!$arr[1] ;
 	}
 	
 	$map_carrierCode_arrTrpstRows = array() ;
@@ -69,10 +79,26 @@ function specDbsTracy_gun_t70_getTrsptList($post_data) {
 	
 	$data = array() ;
 	foreach( $map_carrierCode_arrTrpstRows as $carrier_code => $trspt_rows ) {
+		$count_trspt = $count_parcel = $count_order = $count_order_final = 0 ;
+		foreach( $trspt_rows as $trspt_row ) {
+			if( !$trspt_row['orders'] ) {
+				continue ;
+			}
+			$count_order_final += count($trspt_row['orders']) ;
+			foreach( $trspt_row['hats'] as $hat_row ) {
+				$count_order++ ;
+				$count_parcel+= count($hat_row['parcels']) ;
+			}
+			$count_trspt++ ;
+		}
 		$data[] = array(
 			'mvt_carrier' => $carrier_code,
 			'mvt_carrier_txt' => $mapCarrier_code_txt[$carrier_code],
-			'count_trspt' => count($trspt_rows)
+			'is_integrateur' => $mapCarrier_code_isIntegrateur[$carrier_code],
+			'count_trspt' => $count_trspt,
+			'count_parcel' => $count_parcel,
+			'count_order' => $count_order,
+			'count_order_final' => $count_order_final
 		);
 	}
 	return array('success'=>true, 'data'=>$data) ;
@@ -83,21 +109,21 @@ function specDbsTracy_gun_t70_transactionGetActiveId($post_data) {
 	$transaction_id = null ;
 	if( isset($_SESSION['transactions']) ) {
 		foreach( $_SESSION['transactions'] as $iter_transaction_id => $dummy ) {
-			if( $_SESSION['transactions'][$iter_transaction_id]['transaction_code'] == 'specDbsTracy_gun_t70' ) {
+			if( $_SESSION['transactions'][$iter_transaction_id]['transaction_code'] == SPECDBSTRACY_GUN_T70_CODE ) {
 				$transaction_id = $iter_transaction_id ;
 			}
 		}
 	}
-	sleep(1) ;
+	usleep(100*1000) ;
 	return array('success'=>true, 'transaction_id'=>$transaction_id) ;
 }
 
 function specDbsTracy_gun_t70_transactionGetSummary($post_data) {
 	$p_transactionId = $post_data['_transaction_id'] ;
 	if( isset($_SESSION['transactions'][$p_transactionId]) 
-		&& ($_SESSION['transactions'][$p_transactionId]['transaction_code'] == 'specDbsTracy_gun_t70') ) {
+		&& ($_SESSION['transactions'][$p_transactionId]['transaction_code'] == SPECDBSTRACY_GUN_T70_CODE) ) {
 		
-		return array('success'=>true, 'data'=> $_SESSION['transactions'][$p_transactionId]) ;
+		return array('success'=>true, 'data'=> $_SESSION['transactions'][$p_transactionId]['obj_brt']) ;
 	}
 	return array('success'=>false) ;
 }
@@ -105,20 +131,44 @@ function specDbsTracy_gun_t70_transactionPostAction($post_data) {
 	// create, Flash, confirm/abort
 	$p_transactionId = $post_data['_transaction_id'] ;
 	$p_subaction = $post_data['_subaction'] ;
+	$p_data = json_decode($post_data['data'],true) ;
 	
 	switch( $p_subaction ) {
 		case 'abort' :
 			if( isset($_SESSION['transactions'][$p_transactionId]) 
-				&& ($_SESSION['transactions'][$p_transactionId]['transaction_code'] == 'specDbsTracy_gun_t70') ) {
+				&& ($_SESSION['transactions'][$p_transactionId]['transaction_code'] == SPECDBSTRACY_GUN_T70_CODE) ) {
 				
 				unset($_SESSION['transactions'][$p_transactionId]) ;
 			}
 			return array('success'=>true) ;
-			break ;
 			
 		case 'create' :
+			while( TRUE ) {
+				$json = specDbsTracy_gun_t70_transactionGetActiveId(array()) ;
+				if( !$json['success'] || !$json['transaction_id'] ) {
+					break ;
+				}
+				specDbsTracy_gun_t70_transactionPostAction( array(
+					'_subaction' => 'abort',
+					'_transaction_id' => $json['transaction_id']
+				)) ;
+			}
 			
-			break ;
+			$obj_brt = array(
+				'date_create' => date('Y-m-d H:i:s'),
+				'mvt_carrier' => $p_data['mvt_carrier'],
+				'filter_soc' => $p_data['filter_soc'],
+				'arr_trsptFilerecordIds' => array(),
+				'arr_parcelFilerecordIds' => array()
+			) ;
+			
+			$transaction_id = $_SESSION['next_transaction_id']++ ;
+		
+			$_SESSION['transactions'][$transaction_id] = array() ;
+			$_SESSION['transactions'][$transaction_id]['transaction_code'] = SPECDBSTRACY_GUN_T70_CODE ;
+			$_SESSION['transactions'][$transaction_id]['obj_brt'] = $obj_brt ;
+			
+			return array('success'=>true, 'transaction_id'=>$transaction_id) ;
 			
 		default :
 			break ;

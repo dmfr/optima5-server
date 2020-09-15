@@ -15,6 +15,7 @@ Ext.define('DbsTracyGunTracySelectTrspt',{
 	fields: [
 		{name: 'mvt_carrier', type:'string'},
 		{name: 'mvt_carrier_txt', type:'string'},
+		{name: 'is_integrateur', type:'boolean'},
 		{name: 'count_trspt', type:'int'},
 		{name: 'count_parcel', type:'int'},
 		{name: 'count_order', type:'int'},

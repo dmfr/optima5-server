@@ -26,33 +26,6 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70selectTrspt',{
 				},
 				scope: this
 			}],
-			bbar : [{
-				xtype:'textfield',
-				itemId: 'txtScan',
-				flex:1,
-				listeners : {
-					specialkey: function(field, e){
-						if (e.getKey() == e.ENTER) {
-							this.handleScan() ;
-						}
-					},
-					change: {
-						fn: function(field) {
-							this.handleScan(true) ;
-						},
-						buffer: 500,
-						scope: this
-					},
-					scope: this
-				}
-			},{
-				xtype:'button',
-				text: 'Send',
-				handler : function(button,event) {
-					this.handleScan() ;
-				},
-				scope : this
-			}],
 			store: {
 				model: 'DbsTracyGunTracySelectTrspt',
 				autoLoad: false,
@@ -81,11 +54,17 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70selectTrspt',{
 				align: 'center',
 				width: 36,
 				items: [{
-					icon: 'images/modules/crmbase-plugin-22.png',  // Use a URL in the icon config
+					getClass: function(v,metadata,r) {
+						if( r.get('is_integrateur') ) {
+							return 'op5-spec-dbstracy-gun-take-orange' ;
+						} else {
+							return 'op5-spec-dbstracy-gun-take-green' ;
+						}
+					},
 					tooltip: 'Take',
 					handler: function(grid, rowIndex, colIndex) {
 						var rec = grid.getStore().getAt(rowIndex);
-						this.openTransferLig( rec.get('transferlig_filerecord_id') ) ;
+						this.selectTrspt( rec.get('mvt_carrier') ) ;
 					},
 					scope: this
 				}]
@@ -98,7 +77,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70selectTrspt',{
 				width: 50,
 				text: '#Trspt'
 			},{
-				dataIndex: 'count_parcels',
+				dataIndex: 'count_parcel',
 				width: 50,
 				text: '#Packs'
 			},{
@@ -113,18 +92,6 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70selectTrspt',{
 		
 		this.onFilterChanged() ;
 		//this.doLoad() ;
-	},
-	handleScan: function(dontSend) {
-		var scanval = this.down('#txtScan').getValue() ;
-		scanval = scanval.trim().toUpperCase() ;
-		
-		console.dir( scanval ) ;
-		if(!dontSend) {
-			//this.fireEvent('brtbegin',this,transferligFilerecordId) ;
-		}
-	},
-	openTransferLig: function(transferligFilerecordId) {
-		this.fireEvent('brtbegin',this,transferligFilerecordId) ;
 	},
 	
 	openFilters: function() {
@@ -149,6 +116,14 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70selectTrspt',{
 	},
 	onGridLoad: function(store) {
 		
+	},
+	
+	selectTrspt: function(carrierCode) {
+		var data = {
+			mvt_carrier: carrierCode
+		};
+		Ext.apply(data,this.getFilterValues()) ;
+		this.fireEvent('selecttrspt',this,data) ;
 	},
 	
 	doLoad: function() {

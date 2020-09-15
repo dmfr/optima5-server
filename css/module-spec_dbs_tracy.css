@@ -231,3 +231,10 @@
 .op5-spec-dbstracy-field-narrowline .x-form-display-field {
 	min-height: 16px ;
 }
+
+.op5-spec-dbstracy-gun-take-orange {
+	background: url('../images/modules/dbstracy-puzzle-orange-16.png') ;
+}
+.op5-spec-dbstracy-gun-take-green {
+	background: url('../images/modules/dbstracy-puzzle-green-16.png') ;
+}
