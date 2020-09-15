@@ -11,6 +11,8 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70',{
 	_printerUri: null,
 	_runTransferligSrcAdr: null,
 	
+	_run_tracy70transactionId: null,
+	
 	initComponent: function(){
 		Ext.apply(this,{
 			bodyCls: 'ux-noframe-bg',
@@ -29,6 +31,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70',{
 		this.add(blankPanel) ;
 	},
 	openSelectTrspt: function() {
+		this._run_tracy70transactionId = null ;
 		var listPanel = Ext.create('Optima5.Modules.Spec.DbsTracy.GunTracy70selectTrspt',{
 			border: false,
 			optimaModule: this.optimaModule,
@@ -46,11 +49,15 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70',{
 		this.add(listPanel) ;
 	},
 	openTransactionBuild: function(tracy70transactionId) {
+		this._run_tracy70transactionId = tracy70transactionId ;
 		var listPanel = Ext.create('Optima5.Modules.Spec.DbsTracy.GunTracy70transactionBuild',{
 			border: false,
 			optimaModule: this.optimaModule,
 			_transactionId: tracy70transactionId,
 			listeners: {
+				scan: function(p,scanval) {
+					this.handleTransactionScan(scanval) ;
+				},
 				quit: function() {
 					this.handleInit() ;
 				},
@@ -61,6 +68,21 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70',{
 		this.add(listPanel) ;
 		
 		
+	},
+	openTransactionScanResult: function(formData) {
+		var listPanel = Ext.create('Optima5.Modules.Spec.DbsTracy.GunTracy70example',{
+			border: false,
+			optimaModule: this.optimaModule,
+			_data: formData,
+			listeners: {
+				quit: function() {
+					this.openTransactionBuild(this._run_tracy70transactionId) ;
+				},
+				scope: this
+			}
+		}) ;
+		this.removeAll() ;
+		this.add(listPanel) ;
 	},
 	
 	handleInit: function() {
@@ -116,5 +138,8 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70',{
 			callback: function() {},
 			scope: this
 		}) ;
+	},
+	handleTransactionScan: function(scanval) {
+		this.openTransactionScanResult({}) ;
 	}
 }) ;

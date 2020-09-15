@@ -1,5 +1,6 @@
 Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70example',{
 	extend:'Ext.form.Panel',
+	requires: ['Optima5.Modules.Spec.DbsTracy.GunFormHeader'],
 	
 	initComponent: function(){
 		Ext.apply(this,{
@@ -11,7 +12,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70example',{
 				},
 				scope: this
 			}],
-			bodyCls: 'ux-noframe-bg',
+			//bodyCls: 'ux-noframe-bg',
 			bodyPadding: "0 10px",
 			layout: 'anchor',
 			fieldDefaults: {
@@ -59,6 +60,11 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70example',{
 		});
 		
 		this.callParent() ;
+		
+		
+		Ext.defer( function(){
+			this.doQuit() ;
+		},2000,this) ;
 	},
 	
 	doQuit: function() {

@@ -122,10 +122,37 @@ function specDbsTracy_gun_t70_transactionGetSummary($post_data) {
 	$p_transactionId = $post_data['_transaction_id'] ;
 	if( isset($_SESSION['transactions'][$p_transactionId]) 
 		&& ($_SESSION['transactions'][$p_transactionId]['transaction_code'] == SPECDBSTRACY_GUN_T70_CODE) ) {
-		
-		return array('success'=>true, 'data'=> $_SESSION['transactions'][$p_transactionId]['obj_brt']) ;
+	} else {
+		return array('success'=>false) ;
 	}
-	return array('success'=>false) ;
+	
+	// CFG: liste des carriers
+	$ttmp = specDbsTracy_cfg_getConfig() ;
+	$json_cfg = $ttmp['data'] ;
+	$mapCarrier_code_txt = array() ;
+	foreach( $json_cfg['cfg_list'] as $list ) {
+		if( $list['bible_code'] == 'LIST_CARRIER' ) {
+			foreach( $list['records'] as $carrier_row ) {
+				$mapCarrier_code_txt[$carrier_row['id']] = $carrier_row['text'] ;
+			}
+		}
+	}
+	
+	$obj_brt = $_SESSION['transactions'][$p_transactionId]['obj_brt'] ;
+	$data_header = array() ;
+	$data_header['mvt_carrier_txt'] = $mapCarrier_code_txt[$obj_brt['mvt_carrier']] ;
+	if( $obj_brt['filter_soc'] ) {
+		$data_header['mvt_carrier_txt'].= ' '.'('.$obj_brt['filter_soc'].')' ;
+	}
+	$data_header['date_create_txt'] = date('d/m/y H:i',strtotime($obj_brt['date_create'])) ;
+	
+	
+	
+	$data = array(
+		'header' => $data_header,
+		'grid' => $data_grid
+	);
+	return array('success'=>true, 'data'=>$data, 'debug'=>$obj_brt);
 }
 function specDbsTracy_gun_t70_transactionPostAction($post_data) {
 	// create, Flash, confirm/abort
