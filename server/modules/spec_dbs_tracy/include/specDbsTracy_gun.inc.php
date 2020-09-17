@@ -130,10 +130,16 @@ function specDbsTracy_gun_t70_transactionGetSummary($post_data) {
 	$ttmp = specDbsTracy_cfg_getConfig() ;
 	$json_cfg = $ttmp['data'] ;
 	$mapCarrier_code_txt = array() ;
+	$mapConsignee_code_txt = array() ;
 	foreach( $json_cfg['cfg_list'] as $list ) {
 		if( $list['bible_code'] == 'LIST_CARRIER' ) {
 			foreach( $list['records'] as $carrier_row ) {
 				$mapCarrier_code_txt[$carrier_row['id']] = $carrier_row['text'] ;
+			}
+		}
+		if( $list['bible_code'] == 'LIST_CONSIGNEE' ) {
+			foreach( $list['records'] as $consignee_row ) {
+				$mapConsignee_code_txt[$consignee_row['id']] = $consignee_row['text'] ;
 			}
 		}
 	}
@@ -149,8 +155,24 @@ function specDbsTracy_gun_t70_transactionGetSummary($post_data) {
 	
 	$data_grid = array() ;
 	foreach( $obj_brt['arr_trsptFilerecordIds'] as $trspt_filerecord_id ) {
+		$json = specDbsTracy_trspt_getRecords(array('filter_trsptFilerecordId_arr'=>json_encode(array($trspt_filerecord_id)))) ;
+		$trspt_row = $json['data'][0] ;
+		
+		$arr_hatparcelFilerecordIds = array() ;
+		foreach( $trspt_row['hats'] as $hat_row ) {
+			foreach( $hat_row['parcels'] as $hatparcel_row ) {
+				$arr_hatparcelFilerecordIds[] = $hatparcel_row['hatparcel_filerecord_id'] ;
+			}
+		}
+		
+		
 		$data_grid[] = array(
-			'trspt_filerecord_id' => $trspt_filerecord_id
+			'trspt_filerecord_id' => $trspt_filerecord_id,
+			'id_doc' => $trspt_row['id_doc'],
+			'atr_consignee' => $trspt_row['atr_consignee'],
+			'atr_consignee_txt' => $mapConsignee_code_txt[$trspt_row['atr_consignee']],
+			'count_parcel_scan' => count(array_intersect($arr_hatparcelFilerecordIds,$obj_brt['arr_hatparcelFilerecordIds'])),
+			'count_parcel_total' => count($arr_hatparcelFilerecordIds)
 		);
 	}
 	
@@ -247,11 +269,12 @@ function specDbsTracy_gun_t70_transactionPostAction($post_data) {
 			while( TRUE ) {
 				switch( $scanval_type ) {
 					case 'hat_parcel' :
-						$query = "SELECT filerecord_id FROM view_file_HAT_PARCEL
-									WHERE field_SPEC_BARCODE='{$p_scanval}' OR field_TMS_TRACKING='{$p_scanval}'" ;
-						if( is_numeric($p_scanval) ) {
-							$query.= " AND filerecord_id='{$p_scanval}'" ;
-						}
+						$query = "SELECT hp.filerecord_id FROM view_file_HAT_PARCEL hp
+									JOIN view_file_HAT h ON h.filerecord_id=hp.filerecord_parent_id
+									WHERE 0
+									OR h.field_ID_HAT='{$p_scanval}' 
+									OR hp.field_SPEC_BARCODE='{$p_scanval}' 
+									OR hp.field_TMS_TRACKING='{$p_scanval}'" ;
 						$result = $_opDB->query($query) ;
 						if( $_opDB->num_rows($result) != 1 ) {
 							break 2 ;

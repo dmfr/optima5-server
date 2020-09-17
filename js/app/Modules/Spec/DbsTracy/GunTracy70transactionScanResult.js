@@ -25,6 +25,8 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70transactionScanResult',{
 	buildForm: function(data) {
 		var formItems = [] ;
 		
+		var deferQuit = false ;
+		
 		var bodyCls ;
 		var iconCls, title, caption ;
 		switch( data.header.result_type ) {
@@ -34,11 +36,12 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70transactionScanResult',{
 				iconCls = 'op5-spec-dbstracy-gun-result-ok' ;
 				title = 'Scan success' ;
 				caption = 'Scanned item has been recorded' ;
+				deferQuit = true ;
 				break ;
 				
 			case 'failure' :
 			default :
-				bodyCls = '' ;
+				bodyCls = 'ux-noframe-bg-alert' ;
 				iconCls = 'op5-spec-dbstracy-gun-result-fail' ;
 				title = 'Scan rejected' ;
 				caption = 'Error on scan, see below reason' ;
@@ -116,6 +119,12 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70transactionScanResult',{
 				}
 			}]
 		});
+		
+		if( deferQuit ) {
+			Ext.defer( function(){
+				this.doQuit() ;
+			},2000,this) ;
+		}
 	},
 	
 	doQuit: function() {

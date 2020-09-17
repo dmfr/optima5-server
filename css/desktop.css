@@ -665,6 +665,9 @@ body {    background: none repeat scroll 0 0 #F8F8F8;}
 .ux-noframe-bg {
 	background-color:#dfe9f6 ;
 }
+.ux-noframe-bg-alert {
+	background-color:#f6c2c2 ;
+}
 
 .x-fieldset-withicon .x-fieldset-header-text {
 	line-height: 24px;

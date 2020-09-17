@@ -103,10 +103,18 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70transactionBuild',{
 					text: 'Consignee'
 				},{
 					//dataIndex: 'count_parcel',
+					align: 'center',
 					width: 90,
 					text: 'Packs',
 					renderer: function(v,metadata,r) {
-						console.dir(r) ;
+						var v = r.get('count_parcel_scan') + '/' + r.get('count_parcel_total') ;
+						if( r.get('count_parcel_scan') < r.get('count_parcel_total') ) {
+							metadata.style += 'color: red;' ;
+						} else {
+							metadata.style += 'color: green;' ;
+						}
+						metadata.style += 'font-weight: bold;' ;
+						return v ;
 					}
 				}]
 			}]
