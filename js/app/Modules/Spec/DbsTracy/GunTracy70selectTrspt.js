@@ -27,7 +27,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70selectTrspt',{
 				scope: this
 			}],
 			store: {
-				model: 'DbsTracyGunTracySelectTrspt',
+				model: 'DbsTracyGun70selectTrspt',
 				autoLoad: false,
 				sorters: [{
 					property: 'mvt_carrier_txt',

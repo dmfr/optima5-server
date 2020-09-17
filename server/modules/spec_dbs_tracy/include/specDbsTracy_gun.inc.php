@@ -139,6 +139,7 @@ function specDbsTracy_gun_t70_transactionGetSummary($post_data) {
 	}
 	
 	$obj_brt = $_SESSION['transactions'][$p_transactionId]['obj_brt'] ;
+	
 	$data_header = array() ;
 	$data_header['mvt_carrier_txt'] = $mapCarrier_code_txt[$obj_brt['mvt_carrier']] ;
 	if( $obj_brt['filter_soc'] ) {
@@ -146,6 +147,12 @@ function specDbsTracy_gun_t70_transactionGetSummary($post_data) {
 	}
 	$data_header['date_create_txt'] = date('d/m/y H:i',strtotime($obj_brt['date_create'])) ;
 	
+	$data_grid = array() ;
+	foreach( $obj_brt['arr_trsptFilerecordIds'] as $trspt_filerecord_id ) {
+		$data_grid[] = array(
+			'trspt_filerecord_id' => $trspt_filerecord_id
+		);
+	}
 	
 	
 	$data = array(
@@ -155,6 +162,8 @@ function specDbsTracy_gun_t70_transactionGetSummary($post_data) {
 	return array('success'=>true, 'data'=>$data, 'debug'=>$obj_brt);
 }
 function specDbsTracy_gun_t70_transactionPostAction($post_data) {
+	global $_opDB ;
+	
 	// create, Flash, confirm/abort
 	$p_transactionId = $post_data['_transaction_id'] ;
 	$p_subaction = $post_data['_subaction'] ;
@@ -186,7 +195,7 @@ function specDbsTracy_gun_t70_transactionPostAction($post_data) {
 				'mvt_carrier' => $p_data['mvt_carrier'],
 				'filter_soc' => $p_data['filter_soc'],
 				'arr_trsptFilerecordIds' => array(),
-				'arr_parcelFilerecordIds' => array()
+				'arr_hatparcelFilerecordIds' => array()
 			) ;
 			
 			$transaction_id = $_SESSION['next_transaction_id']++ ;
@@ -198,15 +207,208 @@ function specDbsTracy_gun_t70_transactionPostAction($post_data) {
 			return array('success'=>true, 'transaction_id'=>$transaction_id) ;
 		
 		case 'scan' :
+			$obj_brt = $_SESSION['transactions'][$p_transactionId]['obj_brt'] ;
+			if( !$obj_brt ) {
+				return array(
+					'success'=>true,
+					'data' => array(
+						'header'=>array('result_type' => 'fail'),
+						'reason' => "Session error\nStart new transaction"
+					)
+				);
+			}
+			
+			$p_scanval = strtoupper(trim($post_data['scanval'])) ;
+			if( !$p_scanval ) {
+				return array(
+					'success'=>true,
+					'data' => array(
+						'header'=>array('result_type' => 'fail'),
+						'reason' => "Scan value is empty"
+					)
+				);
+			}
+			$p_scanval = $_opDB->escape_string($p_scanval) ;
+			
+			// CFG: liste des socs
+			$ttmp = specDbsTracy_cfg_getConfig() ;
+			$json_cfg = $ttmp['data'] ;
+			$arr_socCodes = array() ;
+			foreach( $json_cfg['cfg_soc'] as $soc_row ) {
+				$arr_socCodes[] = $soc_row['soc_code'] ;
+			}
+			
+			$scanval_type = 'hat_parcel' ;
+			$ttmp = explode('/',$p_scanval) ;
+			if( (count($ttmp)==2) && in_array($ttmp[0],$arr_socCodes) ) {
+				$scanval_type = 'trspt_id_doc' ;
+			}
+			
+			while( TRUE ) {
+				switch( $scanval_type ) {
+					case 'hat_parcel' :
+						$query = "SELECT filerecord_id FROM view_file_HAT_PARCEL
+									WHERE field_SPEC_BARCODE='{$p_scanval}' OR field_TMS_TRACKING='{$p_scanval}'" ;
+						if( is_numeric($p_scanval) ) {
+							$query.= " AND filerecord_id='{$p_scanval}'" ;
+						}
+						$result = $_opDB->query($query) ;
+						if( $_opDB->num_rows($result) != 1 ) {
+							break 2 ;
+						}
+						$arr = $_opDB->fetch_row($result) ;
+						$hatparcel_filerecord_id = $arr[0] ;
+						
+						$query = "SELECT distinct hp.filerecord_id, tc.filerecord_parent_id 
+									FROM view_file_HAT_PARCEL hp 
+									JOIN view_file_HAT_CDE hc ON hc.filerecord_parent_id=hp.filerecord_parent_id AND hc.field_LINK_IS_CANCEL='0' 
+									JOIN view_file_TRSPT_CDE tc ON tc.field_FILE_CDE_ID=hc.field_FILE_CDE_ID AND tc.field_LINK_IS_CANCEL='0' 
+									WHERE hp.filerecord_id='{$hatparcel_filerecord_id}'" ;
+						$result = $_opDB->query($query) ;
+						if( $_opDB->num_rows($result) != 1 ) {
+							break 2 ;
+						}
+						$arr = $_opDB->fetch_row($result) ;
+						$trspt_filerecord_id = $arr[1] ;
+						break ;
+						
+					case 'trspt_id_doc' :
+						$query = "SELECT filerecord_id FROM view_file_TRSPT WHERE field_ID_DOC='{$p_scanval}'" ;
+						$result = $_opDB->query($query) ;
+						if( $_opDB->num_rows($result) != 1 ) {
+							break 2 ;
+						}
+						$arr = $_opDB->fetch_row($result) ;
+						$trspt_filerecord_id = $arr[0] ;
+						break ;
+				}
+				break ;
+			}
+			if( !$trspt_filerecord_id ) {
+				return array(
+					'success'=>true,
+					'data' => array(
+						'header'=>array('result_type' => 'fail'),
+						'reason' => 'Scanned item not recognized'
+					)
+				);
+			}
+			$json = specDbsTracy_trspt_getRecords(array('filter_trsptFilerecordId_arr'=>json_encode(array($trspt_filerecord_id)))) ;
+			$trspt_row = $json['data'][0] ;
+			
+			//print_r($trspt_row) ;
+			$fields = array() ;
+			$fields[] = array(
+				'label' => 'Trspt. Doc',
+				'text' => $trspt_row['id_doc']
+			);
+			$fields[] = array(
+				'label' => 'Carrier',
+				'text' => $trspt_row['mvt_carrier']
+			);
+			$fields[] = array(
+				'label' => 'Consignee',
+				'text' => $trspt_row['atr_consignee']
+			);
+			if( !$hatparcel_filerecord_id ) {
+				$order_ids = array() ;
+				foreach( $trspt_row['orders'] as $order_row ) {
+					$order_ids[] = $order_row['id_dn'] ;
+				}
+				$fields[] = array(
+					'label' => 'Order(s)',
+					'text' => implode(' ',$order_ids)
+				);
+			}
+			if( $hatparcel_filerecord_id ) {
+				$hat_row = $hatparcel_row = NULL ;
+				foreach( $trspt_row['hats'] as $iter_hat_row ) {
+					foreach( $iter_hat_row['parcels'] as $iter_hatparcel_row ) {
+						if( $iter_hatparcel_row['hatparcel_filerecord_id'] == $hatparcel_filerecord_id ) {
+							$hat_row = $iter_hat_row ;
+							$hatparcel_row = $iter_hatparcel_row ;
+						}
+					}
+				}
+				$fields[] = array(
+					'label' => 'ShipGroup #',
+					'text' => $hat_row['id_hat']
+				);
+				$order_ids = array() ;
+				foreach( $hat_row['orders'] as $order_row ) {
+					$order_ids[] = $order_row['id_dn'] ;
+				}
+				$fields[] = array(
+					'label' => 'Order(s)',
+					'text' => implode(' ',$order_ids)
+				);
+				if( $hatparcel_row['tms_tracking'] ) {
+					$fields[] = array(
+						'label' => 'Tracking',
+						'text' => $hatparcel_row['tms_tracking']
+					);
+				}
+				$fields[] = array(
+					'label' => 'Weight',
+					'text' => $hatparcel_row['vol_kg'].' kg'
+				);
+				
+			}
+			
+			// Conditions :
+			// - step_code_next
+			// - mvt_carrier
+			// - filter_soc ?
+			$errors = array() ;
+			if( $trspt_row['calc_step_next'] != '70_PICKUP' ) {
+				$errors[] = 'Not ready for step 70_PICKUP' ;
+			}
+			if( $trspt_row['mvt_carrier'] != $obj_brt['mvt_carrier'] ) {
+				$errors[] = 'Trspt doc to wrong carrier' ;
+			}
+			if( $obj_brt['filter_soc'] && ($obj_brt['filter_soc']!=$trspt_row['id_soc']) ) {
+				$errors[] = 'Trspt doc to different entity ('.$trspt_row['id_soc'].')' ;
+			}
+			
+			$result_type = ($errors ? 'fail' : 'success');
+			if( $errors ) {
+				$reason = ''; 
+				foreach( $errors as $error ) {
+					$reason.= '- '.$error."\n" ;
+				}
+			}
+			
+			
+			if( $result_type=='success' ) {
+				$arr_hatparcelFilerecordIds = array() ;
+				if( $hatparcel_filerecord_id ) {
+					$arr_hatparcelFilerecordIds[] = $hatparcel_filerecord_id ;
+				} else {
+					foreach( $trspt_row['hats'] as $iter_hat_row ) {
+						foreach( $iter_hat_row['parcels'] as $iter_hatparcel_row ) {
+							$arr_hatparcelFilerecordIds[] = $iter_hatparcel_row['hatparcel_filerecord_id'] ;
+						}
+					}
+				}
+				
+				if( !in_array($trspt_filerecord_id,$obj_brt['arr_trsptFilerecordIds']) ) {
+					$obj_brt['arr_trsptFilerecordIds'][] = $trspt_filerecord_id ;
+				}
+				foreach( $arr_hatparcelFilerecordIds as $hatparcel_filerecord_id ) {
+					if( !in_array($hatparcel_filerecord_id,$obj_brt['arr_hatparcelFilerecordIds']) ) {
+						$obj_brt['arr_hatparcelFilerecordIds'][] = $hatparcel_filerecord_id ;
+					}
+				}
+				$_SESSION['transactions'][$p_transactionId]['obj_brt'] = $obj_brt ;
+			}
+			
+			
 			return array(
 				'success'=>true,
 				'data' => array(
-					'header'=>array('result_type' => 'success'),
-					'fields' => array(
-						array('label'=>'Pouet', 'text'=>'Test'),
-						array('label'=>'Pouet23', 'text'=>'Test998')
-					),
-					'reason' => 'Tagda pouet pouet'
+					'header'=>array('result_type' => $result_type),
+					'fields' => $fields,
+					'reason' => $reason
 				)
 			);
 		

@@ -81,7 +81,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70transactionBuild',{
 				flex: 1,
 				xtype: 'grid',
 				store: {
-					model: 'DbsTracyGunTracySelectTrspt',
+					model: 'DbsTracyGun70transactionSummary',
 					sorters: [{
 						property: 'trspt_filerecord_id',
 						direction: 'ASC'
@@ -102,9 +102,12 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70transactionBuild',{
 					width: 150,
 					text: 'Consignee'
 				},{
-					dataIndex: 'count_parcel',
+					//dataIndex: 'count_parcel',
 					width: 90,
-					text: 'Packs'
+					text: 'Packs',
+					renderer: function(v,metadata,r) {
+						console.dir(r) ;
+					}
 				}]
 			}]
 		});
@@ -116,6 +119,9 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70transactionBuild',{
 	handleScan: function(dontSend) {
 		var scanval = this.down('#txtScan').getValue() ;
 		scanval = scanval.trim().toUpperCase() ;
+		if( Ext.isEmpty(scanval) ) {
+			return ;
+		}
 		
 		this.fireEvent('scan',this,scanval) ;
 		if(!dontSend) {
@@ -150,6 +156,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70transactionBuild',{
 		console.dir(ajaxData) ;
 		
 		this.down('form').getForm().setValues(ajaxData.header) ;
+		this.down('grid').getStore().loadData(ajaxData.grid) ;
 		
 		this.down('#txtScan').focus() ;
 	},

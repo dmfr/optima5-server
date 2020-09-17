@@ -54,23 +54,25 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70transactionScanResult',{
 			}
 		}) );
 		
-		var fieldsetItems = [] ;
-		Ext.Array.each( data.fields, function(field) {
-			fieldsetItems.push({
-				xtype: 'displayfield',
-				fieldLabel: field.label,
-				value: field.text
-			});
-		}) ;
-		formItems.push( {
-			xtype: 'fieldset',
-			title: 'Informations',
-			cls: 'op5-spec-dbstracy-field-narrowline',
-			defaults: {
-				labelStyle: 'font-weight: bold;'
-			},
-			items: fieldsetItems
-		} );
+		if( !Ext.isEmpty(data.fields) ) {
+			var fieldsetItems = [] ;
+			Ext.Array.each( data.fields, function(field) {
+				fieldsetItems.push({
+					xtype: 'displayfield',
+					fieldLabel: field.label,
+					value: field.text
+				});
+			}) ;
+			formItems.push( {
+				xtype: 'fieldset',
+				title: 'Informations',
+				cls: 'op5-spec-dbstracy-field-narrowline',
+				defaults: {
+					labelStyle: 'font-weight: bold;'
+				},
+				items: fieldsetItems
+			} );
+		}
 		
 		if( data.reason ) {
 			formItems.push({

@@ -1,4 +1,4 @@
-Ext.define('DbsTracyGunTracyPrinter',{
+Ext.define('DbsTracyGunPrinter',{
 	extend: 'Ext.data.Model',
 	idProperty: 'printer_uri',
 	fields: [
@@ -9,7 +9,7 @@ Ext.define('DbsTracyGunTracyPrinter',{
 		{name: 'printer_desc', type:'string'}
 	]
 });
-Ext.define('DbsTracyGunTracySelectTrspt',{
+Ext.define('DbsTracyGun70selectTrspt',{
 	extend: 'Ext.data.Model',
 	idProperty: 'mvt_carrier',
 	fields: [
@@ -20,6 +20,17 @@ Ext.define('DbsTracyGunTracySelectTrspt',{
 		{name: 'count_parcel', type:'int'},
 		{name: 'count_order', type:'int'},
 		{name: 'count_order_final', type:'int'}
+	]
+});
+Ext.define('DbsTracyGun70transactionSummary',{
+	extend: 'Ext.data.Model',
+	idProperty: 'trspt_filerecord_id',
+	fields: [
+		{name: 'trspt_filerecord_id', type:'int'},
+		{name: 'id_doc', type:'string'},
+		{name: 'atr_consignee', type:'string'},
+		{name: 'count_parcel_scan', type:'int'},
+		{name: 'count_parcel_total', type:'int'},
 	]
 });
 

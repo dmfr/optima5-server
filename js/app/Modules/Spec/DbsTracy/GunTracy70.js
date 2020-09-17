@@ -146,6 +146,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70',{
 				_moduleId: 'spec_dbs_tracy',
 				_action: 'gun_t70_transactionPostAction',
 				
+				_transaction_id: this._run_tracy70transactionId,
 				_subaction: 'scan',
 				scanval: scanval
 			},
