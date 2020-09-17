@@ -80,6 +80,7 @@ function specDbsTracy_gun_t70_getTrsptList($post_data) {
 	$data = array() ;
 	foreach( $map_carrierCode_arrTrpstRows as $carrier_code => $trspt_rows ) {
 		$count_trspt = $count_parcel = $count_order = $count_order_final = 0 ;
+		$arr_trsptFilerecordIds = array() ;
 		foreach( $trspt_rows as $trspt_row ) {
 			if( !$trspt_row['orders'] ) {
 				continue ;
@@ -90,6 +91,7 @@ function specDbsTracy_gun_t70_getTrsptList($post_data) {
 				$count_parcel+= count($hat_row['parcels']) ;
 			}
 			$count_trspt++ ;
+			$arr_trsptFilerecordIds[] = $trspt_row['trspt_filerecord_id'] ;
 		}
 		$data[] = array(
 			'mvt_carrier' => $carrier_code,
@@ -98,7 +100,8 @@ function specDbsTracy_gun_t70_getTrsptList($post_data) {
 			'count_trspt' => $count_trspt,
 			'count_parcel' => $count_parcel,
 			'count_order' => $count_order,
-			'count_order_final' => $count_order_final
+			'count_order_final' => $count_order_final,
+			'arr_trsptFilerecordIds' => $arr_trsptFilerecordIds
 		);
 	}
 	return array('success'=>true, 'data'=>$data) ;
@@ -183,6 +186,28 @@ function specDbsTracy_gun_t70_transactionGetSummary($post_data) {
 	);
 	return array('success'=>true, 'data'=>$data, 'debug'=>$obj_brt);
 }
+function specDbsTracy_gun_t70_lib_populateTrspt( &$obj_brt ) {
+	$forward_post = array() ;
+	foreach( $obj_brt as $mkey => $mvalue ) {
+		if( strpos($mkey,'filter_')===0 ) {
+			$forward_post[$mkey] = $mvalue ;
+		}
+	}
+	$json = specDbsTracy_gun_t70_getTrsptList($forward_post) ;
+	foreach( $json['data'] as $trsptgroup_row ) {
+		if( $trsptgroup_row['mvt_carrier'] != $obj_brt['mvt_carrier'] ) {
+			continue ;
+		}
+		if( !$trsptgroup_row['is_integrateur'] ) {
+			continue ;
+		}
+		foreach( $trsptgroup_row['arr_trsptFilerecordIds'] as $trspt_filerecord_id ) {
+			if( !in_array($trspt_filerecord_id,$obj_brt['arr_trsptFilerecordIds']) ) {
+				$obj_brt['arr_trsptFilerecordIds'][] = $trspt_filerecord_id ;
+			}
+		}
+	}
+}
 function specDbsTracy_gun_t70_transactionPostAction($post_data) {
 	global $_opDB ;
 	
@@ -219,6 +244,7 @@ function specDbsTracy_gun_t70_transactionPostAction($post_data) {
 				'arr_trsptFilerecordIds' => array(),
 				'arr_hatparcelFilerecordIds' => array()
 			) ;
+			specDbsTracy_gun_t70_lib_populateTrspt($obj_brt) ;
 			
 			$transaction_id = $_SESSION['next_transaction_id']++ ;
 		
@@ -434,6 +460,30 @@ function specDbsTracy_gun_t70_transactionPostAction($post_data) {
 					'reason' => $reason
 				)
 			);
+			
+			
+		case 'validate' :
+		case 'submit' :
+			$obj_brt = $_SESSION['transactions'][$p_transactionId]['obj_brt'] ;
+			specDbsTracy_gun_t70_lib_populateTrspt($obj_brt) ;
+			$_SESSION['transactions'][$p_transactionId]['obj_brt'] = $obj_brt ;
+			
+			$json = specDbsTracy_gun_t70_transactionGetSummary( array('_transaction_id'=>$p_transactionId) ) ;
+			//print_r($json) ;
+			foreach( $json['data']['grid'] as $trsptsum_row ) {
+				if( $trsptsum_row['count_parcel_scan'] < $trsptsum_row['count_parcel_total'] ) {
+					return array('success'=>false, 'debug'=>$json['data']['grid']) ;
+				}
+			}
+			if( $p_subaction=='validate' ) {
+				// build fieldset summary
+				return array('success'=>true) ;
+			}
+			
+			$p_data ;
+			
+		
+			break ;
 		
 		default :
 			break ;

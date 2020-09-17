@@ -56,6 +56,9 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70',{
 			optimaModule: this.optimaModule,
 			_transactionId: tracy70transactionId,
 			listeners: {
+				validate: function() {
+					this.handleTransactionValidate() ;
+				},
 				scan: function(p,scanval) {
 					this.handleTransactionScan(scanval) ;
 				},
@@ -75,6 +78,24 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70',{
 			_data: formData,
 			listeners: {
 				quit: function() {
+					this.openTransactionBuild(this._run_tracy70transactionId) ;
+				},
+				scope: this
+			}
+		}) ;
+		this.removeAll() ;
+		this.add(listPanel) ;
+	},
+	openTransactionScanFinal: function(formData) {
+		var listPanel = Ext.create('Optima5.Modules.Spec.DbsTracy.GunTracy70transactionFinalForm',{
+			border: false,
+			optimaModule: this.optimaModule,
+			_data: formData,
+			listeners: {
+				submit: function() {
+					this.handleTransactionSubmit() ;
+				},
+				back: function() {
 					this.openTransactionBuild(this._run_tracy70transactionId) ;
 				},
 				scope: this
@@ -158,6 +179,30 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70',{
 					return ;
 				}
 				this.openTransactionScanResult( ajaxResponse.data ) ;
+			},
+			callback: function() {},
+			scope: this
+		}) ;
+	},
+	handleTransactionValidate: function() {
+		this.openBlank() ;
+		// resume session OR list ?
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_dbs_tracy',
+				_action: 'gun_t70_transactionPostAction',
+				
+				_transaction_id: this._run_tracy70transactionId,
+				_subaction: 'validate'
+			},
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					var error = ajaxResponse.success || 'Manifest build incomplete' ;
+					Ext.MessageBox.alert('Error',error, function(){this.openTransactionBuild(this._run_tracy70transactionId);},this) ;
+					return ;
+				}
+				this.openTransactionScanFinal( ajaxResponse.data ) ;
 			},
 			callback: function() {},
 			scope: this

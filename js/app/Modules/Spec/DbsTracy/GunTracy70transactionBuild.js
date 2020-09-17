@@ -12,10 +12,10 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70transactionBuild',{
 	initComponent: function(){
 		Ext.apply(this,{
 			tbar: [{
-				icon: 'images/op5img/ico_ok_16.gif',
-				text: '<b>Create BRT</b>',
+				icon: 'images/op5img/ico_save_16.gif',
+				text: '<b>Create manifest</b>',
 				handler: function(){
-					//this.doQuit() ;
+					this.handleValidate() ;
 				},
 				scope: this
 			},'->',{
@@ -193,6 +193,9 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70transactionBuild',{
 			},
 			scope: this
 		}) ;
+	},
+	handleValidate: function() {
+		this.fireEvent('validate',this) ;
 	},
 	
 	doQuit: function() {
