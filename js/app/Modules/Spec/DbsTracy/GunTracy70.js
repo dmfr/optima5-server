@@ -2,7 +2,6 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70',{
 	extend:'Ext.panel.Panel',
 	
 	requires: [
-		'Optima5.Modules.Spec.DbsTracy.GunTracy70example',
 		'Optima5.Modules.Spec.DbsTracy.GunTracy70selectTrspt',
 		'Optima5.Modules.Spec.DbsTracy.GunTracy70transactionBuild',
 		'Optima5.Modules.Spec.DbsTracy.GunTracy70transactionScanResult',
