@@ -469,21 +469,51 @@ function specDbsTracy_gun_t70_transactionPostAction($post_data) {
 			$_SESSION['transactions'][$p_transactionId]['obj_brt'] = $obj_brt ;
 			
 			$json = specDbsTracy_gun_t70_transactionGetSummary( array('_transaction_id'=>$p_transactionId) ) ;
-			//print_r($json) ;
 			foreach( $json['data']['grid'] as $trsptsum_row ) {
 				if( $trsptsum_row['count_parcel_scan'] < $trsptsum_row['count_parcel_total'] ) {
 					return array('success'=>false, 'debug'=>$json['data']['grid']) ;
 				}
 			}
+			
+			$arr_trsptFilerecordIds = array() ;
+			foreach( $obj_brt['arr_trsptFilerecordIds'] as $trspt_filerecord_id ) {
+				$arr_trsptFilerecordIds[] = $trspt_filerecord_id ;
+			}
+			
+			$weight_kg = $count_parcel = 0 ;
+			$json = specDbsTracy_trspt_getRecords(array('filter_trsptFilerecordId_arr'=>json_encode($arr_trsptFilerecordIds))) ;
+			foreach( $json['data'] as $trspt_row ) {
+				foreach( $trspt_row['hats'] as $hat_row ) {
+					foreach( $hat_row['parcels'] as $hatparcel_row ) {
+						$weight_kg+= $hatparcel_row['vol_kg'] ;
+						$count_parcel++ ;
+					}
+				}
+			}
+			
 			if( $p_subaction=='validate' ) {
+				$fields = array() ;
 				// build fieldset summary
-				return array('success'=>true) ;
+				$fields[] = array(
+					'label' => 'Carrier',
+					'text' => $obj_brt['mvt_carrier']
+				);
+				$fields[] = array(
+					'label' => 'Nb.Parcels',
+					'text' => $count_parcel
+				);
+				$fields[] = array(
+					'label' => 'Weight',
+					'text' => $weight_kg.' '.'kg'
+				);
+				return array('success'=>true, 'data'=>array('fields'=>$fields)) ;
 			}
 			
 			$p_data ;
 			
+			
 		
-			break ;
+			return array('success'=>false) ;
 		
 		default :
 			break ;

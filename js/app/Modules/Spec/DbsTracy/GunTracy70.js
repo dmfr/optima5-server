@@ -5,7 +5,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70',{
 		'Optima5.Modules.Spec.DbsTracy.GunTracy70selectTrspt',
 		'Optima5.Modules.Spec.DbsTracy.GunTracy70transactionBuild',
 		'Optima5.Modules.Spec.DbsTracy.GunTracy70transactionScanResult',
-		
+		'Optima5.Modules.Spec.DbsTracy.GunTracy70transactionFinalForm',
 	],
 	
 	_printerUri: null,
@@ -91,8 +91,8 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70',{
 			optimaModule: this.optimaModule,
 			_data: formData,
 			listeners: {
-				submit: function() {
-					this.handleTransactionSubmit() ;
+				submit: function(p,values) {
+					this.handleTransactionSubmit(values) ;
 				},
 				back: function() {
 					this.openTransactionBuild(this._run_tracy70transactionId) ;
@@ -202,6 +202,31 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70',{
 					return ;
 				}
 				this.openTransactionScanFinal( ajaxResponse.data ) ;
+			},
+			callback: function() {},
+			scope: this
+		}) ;
+	},
+	handleTransactionSubmit: function(values) {
+		this.openBlank() ;
+		// resume session OR list ?
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_dbs_tracy',
+				_action: 'gun_t70_transactionPostAction',
+				
+				_transaction_id: this._run_tracy70transactionId,
+				_subaction: 'submit',
+				data: Ext.JSON.encode(values)
+			},
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					var error = ajaxResponse.success || 'Manifest build error' ;
+					Ext.MessageBox.alert('Error',error, function(){this.openTransactionBuild(this._run_tracy70transactionId);},this) ;
+					return ;
+				}
+				this.openTransactionScanEnd( ajaxResponse.data ) ;
 			},
 			callback: function() {},
 			scope: this
