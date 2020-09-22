@@ -488,7 +488,7 @@ function specRsiRecouveo_lib_mail_doSendRaw($email_bin)
 			}
 		}
 		if ($hostinfo[2] == 'tls') {
-			$smtp->connect($url, $port);
+			$smtp->connect($url, $port, $timeout=30, $options=array("ssl" => array('verify_peer' => false,'verify_peer_name' => false)));
 			$smtp->hello($hello_msg);
 			$smtp->startTls();
 			$smtp->hello($hello_msg);
