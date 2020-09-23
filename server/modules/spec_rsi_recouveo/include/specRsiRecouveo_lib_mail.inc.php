@@ -717,9 +717,8 @@ function specRsiRecouveo_lib_mail_buildEmail( $email_record, $test_mode=FALSE ) 
 		
 		// reassemble
 		// = [banner] + blockwrite + [signature] + blockquote
-		$doc_content = '<?xml encoding="UTF-8">'.'<html><body><div>'.$email_record['body_html'].'</div></body></html>' ;
 		$doc = new DOMDocument();
-		@$doc->loadHTML($doc_content,LIBXML_HTML_NODEFDTD);
+		@$doc->loadHTML('<?xml encoding="UTF-8"?><html>'.$email_record['body_html'].'</html>',LIBXML_HTML_NODEFDTD);
 		
 		$getDepth = function($node) {
 			$depth = -1;
@@ -765,7 +764,6 @@ function specRsiRecouveo_lib_mail_buildEmail( $email_record, $test_mode=FALSE ) 
 			if( $getDepth($node) == 2 ) {
 				// body / html = 2
 				$bodyNode = $node ;
-				$bodyNode = $bodyNode->firstChild ; // DIV
 				break ;
 			}
 		}
@@ -820,11 +818,6 @@ function specRsiRecouveo_lib_mail_buildEmail( $email_record, $test_mode=FALSE ) 
 				$bodyNode->appendChild($new_node) ;
 			}
 		}
-		
-		// remove <!DOCTYPE
-		$doc->removeChild($doc->firstChild);
-		// remove <html><body></body></html>
-		$doc->replaceChild($doc->firstChild->firstChild->firstChild, $doc->firstChild);
 		
 		$email_record['body_html'] =  $doc->saveHTML() ;
 	}
