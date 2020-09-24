@@ -510,10 +510,89 @@ function specDbsTracy_gun_t70_transactionPostAction($post_data) {
 			}
 			
 			$p_data ;
+			// - Creation du file TRSPTPICK
+			// - Assoc TRSPTPICK_TRSPT
+			// - passage 70_PICKUP
+			// - genetation du PDF ? //TODO
+			// - pour chaque TRPST : creation TRSPT_EVENT
 			
+			$prefix = 'PICK/' ;
+			$prefix_len = strlen($prefix) ;
+			$offset = $prefix_len+1 ;
+			$query = "SELECT max(substring(field_ID_DOC,{$offset},5)) FROM view_file_TRSPT WHERE field_ID_DOC LIKE '{$prefix}%'" ;
+			$max_idx = $_opDB->query_uniqueValue($query) ;
 			
-		
-			return array('success'=>false) ;
+			$max_idx++ ;
+			
+			$arr_ins = array() ;
+			$arr_ins['field_ID_PICK'] = $prefix.str_pad((float)$max_idx, 5, "0", STR_PAD_LEFT) ;
+			$arr_ins['field_ATR_NAME'] = trim($p_data['atr_name']) ;
+			$arr_ins['field_ATR_LPLATE'] = trim($p_data['atr_lplate']) ;
+			$arr_ins['field_DATE_CREATE'] = date('Y-m-d H:i:s') ;
+			$pick_filerecord_id = paracrm_lib_data_insertRecord_file( 'TRSPTPICK', 0, $arr_ins );
+			
+			$_id_pick = $arr_ins['field_ID_PICK'] ;
+			
+			foreach( $arr_trsptFilerecordIds as $trspt_filerecord_id ) {
+				$params = array(
+					'trspt_filerecord_id' => $trspt_filerecord_id,
+					'step_code' => '70_PICKUP'
+				) ;
+				$ttmp = specDbsTracy_trspt_stepValidate( $params ) ;
+				
+				$event_txt = "Pickup manifest {$_id_pick}"."\n" ;
+				$event_txt.= '- Driver name : '.$arr_ins['field_ATR_NAME']."\n" ;
+				$event_txt.= '- License plate : '.$arr_ins['field_ATR_LPLATE']."\n" ;
+				
+				$arr_ins = array() ;
+				$arr_ins['field_EVENT_DATE'] = date('Y-m-d H:i:s') ;
+				$arr_ins['field_EVENT_USER'] = 'PICK' ;
+				$arr_ins['field_EVENT_TXT'] = $event_txt ;
+				$arr_ins['field_EVENTLINK_FILE'] = 'TRSPTPICK' ;
+				$arr_ins['field_EVENTLINK_IDS_JSON'] = json_encode(array('PRINT'=>$pick_filerecord_id)) ;
+				$trsptevent_filerecord_id = paracrm_lib_data_insertRecord_file( 'TRSPT_EVENT', $trspt_filerecord_id, $arr_ins );
+				
+				$arr_ins = array() ;
+				$arr_ins['field_FILE_TRSPT_ID'] = $trspt_filerecord_id ;
+				$arr_ins['field_LINK_IS_CANCEL'] = 0 ;
+				$picklink_filerecord_id = paracrm_lib_data_insertRecord_file( 'TRSPTPICK_TRSPT', $pick_filerecord_id, $arr_ins );
+			}
+			
+			$fields = array() ;
+			// build fieldset summary
+			$fields[] = array(
+				'label' => 'Carrier',
+				'text' => $obj_brt['mvt_carrier']
+			);
+			$fields[] = array(
+				'label' => 'Manifest #',
+				'text' => $_id_pick
+			);
+			$fields[] = array(
+				'label' => '<i>Driver name</i>',
+				'text' => $p_data['atr_name']
+			);
+			$fields[] = array(
+				'label' => '<i>License plate</i>',
+				'text' => $p_data['atr_lplate']
+			);
+			$fields[] = array(
+				'label' => 'Nb.Parcels',
+				'text' => $count_parcel
+			);
+			$fields[] = array(
+				'label' => 'Weight',
+				'text' => $weight_kg.' '.'kg'
+			);
+			
+			unset( $_SESSION['transactions'][$p_transactionId] ) ;
+			return array(
+				'success'=>true,
+				'data' => array(
+					'header'=>array('result_type' => 'success'),
+					'fields' => $fields
+				)
+			) ;
 		
 		default :
 			break ;

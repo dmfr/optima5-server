@@ -30,6 +30,14 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70transactionScanResult',{
 		var bodyCls ;
 		var iconCls, title, caption ;
 		switch( data.header.result_type ) {
+			case 'final' :
+				bodyCls = 'ux-noframe-bg' ;
+				iconCls = 'op5-spec-dbstracy-gun-result-ok' ;
+				title = 'Manifest saved' ;
+				caption = 'End of transaction' ;
+				deferQuit = false ;
+				break ;
+				
 			case 'success' :
 			case 'repeat' :
 				bodyCls = 'ux-noframe-bg' ;

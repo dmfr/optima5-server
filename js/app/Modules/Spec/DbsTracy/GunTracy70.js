@@ -103,6 +103,21 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70',{
 		this.removeAll() ;
 		this.add(listPanel) ;
 	},
+	openTransactionScanEnd: function(formData) {
+		var listPanel = Ext.create('Optima5.Modules.Spec.DbsTracy.GunTracy70transactionScanResult',{
+			border: false,
+			optimaModule: this.optimaModule,
+			_data: formData,
+			listeners: {
+				quit: function() {
+					this.handleInit() ;
+				},
+				scope: this
+			}
+		}) ;
+		this.removeAll() ;
+		this.add(listPanel) ;
+	},
 	
 	handleInit: function() {
 		this.openBlank() ;
