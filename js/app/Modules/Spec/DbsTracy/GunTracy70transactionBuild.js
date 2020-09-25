@@ -4,6 +4,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70transactionBuild',{
 		'Ext.grid.column.Action'
 	],
 	mixins: {
+		focusable: 'Optima5.Modules.Spec.DbsTracy.GunFocusableMixin',
 		loadmaskable: 'Optima5.Modules.Spec.DbsTracy.GunLoadmaskableMixin'
 	},
 	
@@ -121,7 +122,9 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70transactionBuild',{
 		});
 		this.callParent() ;
 		this.mixins.loadmaskable.constructor.call(this);
+		this.mixins.focusable.constructor.call(this);
 		
+		this.registerFocusableComponent( this.down('#txtScan') ) ;
 		this.doLoad() ;
 	},
 	handleScan: function(dontSend) {
@@ -165,8 +168,6 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70transactionBuild',{
 		
 		this.down('form').getForm().setValues(ajaxData.header) ;
 		this.down('grid').getStore().loadData(ajaxData.grid) ;
-		
-		this.down('#txtScan').focus() ;
 	},
 	
 	handleAbort: function() {
