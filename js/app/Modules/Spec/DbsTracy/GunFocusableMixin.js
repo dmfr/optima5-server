@@ -9,6 +9,9 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunFocusableMixin',{
 	},
 	
 	registerFocusableComponent: function(cmp) {
+		if( !Optima5.Modules.Spec.DbsTracy.GunHelper.isRegisterFocus() ) {
+			return ;
+		}
 		if( this._component ) {
 			this.unregisterFocusableComponent() ;
 		}

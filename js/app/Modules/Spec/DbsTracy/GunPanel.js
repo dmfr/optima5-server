@@ -65,6 +65,9 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunPanel',{
 				this.switchToMainMenu() ;
 			},this,{single:true}) ;
 		}
+		if( this._registerFocus ) {
+			helperCache.setRegisterFocus(true) ;
+		}
 	},
 	switchToMainMenu: function() {
 		var me = this ;
