@@ -132,5 +132,10 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70selectTrspt',{
 	
 	doQuit: function() {
 		this.fireEvent('quit',this) ;
+	},
+	onDestroy: function() {
+		if( this.floatingPanel ) {
+			this.floatingPanel.destroy() ;
+		}
 	}
 }) ;

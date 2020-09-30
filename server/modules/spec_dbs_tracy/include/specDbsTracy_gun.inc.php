@@ -161,22 +161,35 @@ function specDbsTracy_gun_t70_transactionGetSummary($post_data) {
 		$json = specDbsTracy_trspt_getRecords(array('filter_trsptFilerecordId_arr'=>json_encode(array($trspt_filerecord_id)))) ;
 		$trspt_row = $json['data'][0] ;
 		
-		$arr_hatparcelFilerecordIds = array() ;
-		foreach( $trspt_row['hats'] as $hat_row ) {
-			foreach( $hat_row['parcels'] as $hatparcel_row ) {
-				$arr_hatparcelFilerecordIds[] = $hatparcel_row['hatparcel_filerecord_id'] ;
+		$has_warning = FALSE ;
+		foreach( $trspt_row['orders'] as $order_row ) {
+			if( $order_row['warning_is_on'] ) {
+				$has_warning = TRUE ;
 			}
 		}
 		
+		foreach( $trspt_row['hats'] as $hat_row ) {
+			$hat_filerecord_id = $hat_row['hat_filerecord_id'] ;
 		
-		$data_grid[] = array(
-			'trspt_filerecord_id' => $trspt_filerecord_id,
-			'id_doc' => $trspt_row['id_doc'],
-			'atr_consignee' => $trspt_row['atr_consignee'],
-			'atr_consignee_txt' => $mapConsignee_code_txt[$trspt_row['atr_consignee']],
-			'count_parcel_scan' => count(array_intersect($arr_hatparcelFilerecordIds,$obj_brt['arr_hatparcelFilerecordIds'])),
-			'count_parcel_total' => count($arr_hatparcelFilerecordIds)
-		);
+			$arr_hatparcelFilerecordIds = array() ;
+			foreach( $hat_row['parcels'] as $hatparcel_row ) {
+				$arr_hatparcelFilerecordIds[] = $hatparcel_row['hatparcel_filerecord_id'] ;
+			}
+			
+			$data_grid[] = array(
+				'trspt_filerecord_id' => $trspt_filerecord_id,
+				'hat_filerecord_id' => $hat_filerecord_id,
+				'id_doc' => $trspt_row['id_doc'],
+				'id_hat' => $hat_row['id_hat'],
+				'atr_consignee' => $trspt_row['atr_consignee'],
+				'atr_consignee_txt' => $mapConsignee_code_txt[$trspt_row['atr_consignee']],
+				'count_parcel_scan' => count(array_intersect($arr_hatparcelFilerecordIds,$obj_brt['arr_hatparcelFilerecordIds'])),
+				'count_parcel_total' => count($arr_hatparcelFilerecordIds),
+				'is_warning' => $has_warning
+			);
+		}
+		
+		
 	}
 	
 	

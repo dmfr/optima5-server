@@ -24,10 +24,12 @@ Ext.define('DbsTracyGun70selectTrspt',{
 });
 Ext.define('DbsTracyGun70transactionSummary',{
 	extend: 'Ext.data.Model',
-	idProperty: 'trspt_filerecord_id',
+	idProperty: 'hat_filerecord_id',
 	fields: [
 		{name: 'trspt_filerecord_id', type:'int'},
 		{name: 'id_doc', type:'string'},
+		{name: 'hat_filerecord_id', type:'int'},
+		{name: 'id_hat', type:'string'},
 		{name: 'atr_consignee', type:'string'},
 		{name: 'count_parcel_scan', type:'int'},
 		{name: 'count_parcel_total', type:'int'},

@@ -1,7 +1,8 @@
 Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70transactionBuild',{
 	extend:'Ext.panel.Panel',
 	requires: [
-		'Ext.grid.column.Action'
+		'Ext.grid.column.Action',
+		'Optima5.Modules.Spec.DbsTracy.GunTracy70transactionBuildWarning'
 	],
 	mixins: {
 		focusable: 'Optima5.Modules.Spec.DbsTracy.GunFocusableMixin',
@@ -84,7 +85,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70transactionBuild',{
 				store: {
 					model: 'DbsTracyGun70transactionSummary',
 					sorters: [{
-						property: 'trspt_filerecord_id',
+						property: 'id_hat',
 						direction: 'ASC'
 					}],
 					proxy: {
@@ -95,7 +96,26 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70transactionBuild',{
 					}
 				},
 				columns: [{
-					dataIndex: 'id_doc',
+				xtype: 'actioncolumn',
+				align: 'center',
+				width: 36,
+				items: [{
+					getClass: function(v,metadata,r) {
+						if( r.get('is_warning') ) {
+							return 'op5-spec-dbstracy-gun-warning-on' ;
+						} else {
+							return 'op5-spec-dbstracy-gun-warning-off' ;
+						}
+					},
+					//tooltip: 'Take',
+					handler: function(grid, rowIndex, colIndex) {
+						var rec = grid.getStore().getAt(rowIndex);
+						this.openWarningPanel( rec.getData() ) ;
+					},
+					scope: this
+				}]
+			},{
+					dataIndex: 'id_hat',
 					width: 100,
 					text: '#Doc',
 				},{
@@ -199,7 +219,46 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70transactionBuild',{
 		this.fireEvent('validate',this) ;
 	},
 	
+	openWarningPanel: function(gridRow) {
+		this.getEl().mask() ;
+		// Open panel
+		var createPanel = Ext.create('Optima5.Modules.Spec.DbsTracy.GunTracy70transactionBuildWarning',{
+			_gridRow: gridRow,
+			
+			optimaModule: this.optimaModule,
+			width:400, // dummy initial size, for border layout to work
+			height:null, // ...
+			floating: true,
+			draggable: true,
+			resizable: true,
+			renderTo: this.getEl(),
+			tools: [{
+				type: 'close',
+				handler: function(e, t, p) {
+					p.ownerCt.destroy();
+				},
+				scope: this
+			}]
+		});
+		createPanel.on('submit', function(p) {
+			p.destroy() ;
+		},this,{single:true}) ;
+		createPanel.on('destroy',function(p) {
+			this.getEl().unmask() ;
+			this.floatingPanel = null ;
+		},this,{single:true}) ;
+		
+		createPanel.show();
+		createPanel.getEl().alignTo(this.getEl(), 'c-c?');
+		this.floatingPanel = createPanel ;
+	},
+	
 	doQuit: function() {
 		this.fireEvent('quit',this) ;
+	},
+	onDestroy: function() {
+		if( this.floatingPanel ) {
+			this.floatingPanel.destroy() ;
+		}
 	}
 }) ;

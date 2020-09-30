@@ -43,6 +43,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunFiltersMixin',{
 		
 		createPanel.show();
 		createPanel.getEl().alignTo(this.getEl(), 'c-c?');
+		this.floatingPanel = createPanel ;
 	},
 	getFilterValues: function() {
 		var filterValues = {} ;

@@ -23,7 +23,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunHelper',{
 	
 	isReady: false,
 	
-	registerFocus: false,
+	registerFocusOn: false,
 	
 	constructor: function(config) {
 		//build store
@@ -124,9 +124,9 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunHelper',{
 	},
 	
 	registerFocus(torf) {
-		this.registerFocus = torf ;
+		this.registerFocusOn = torf ;
 	},
 	isRegisterFocus() {
-		return this.registerFocus ;
+		return this.registerFocusOn ;
 	}
 });
