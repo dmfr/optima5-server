@@ -186,6 +186,8 @@ Ext.define('DbsTracyFileTrsptModel',{
 		{name: 'customs_date_cleared', dateFormat:'Y-m-d H:i:s'},
 		{name: 'pod_doc', type:'string'},
 		{name: 'spec_tms_status', type:'string'},
+		{name: 'trsptpick_filerecord_id', type:'int'},
+		{name: 'trsptpick_id', type:'string'},
 		
 		{name: 'sword_edi_1_warn', type:'boolean'},
 		{name: 'sword_edi_1_warn_txt', type:'string'},

@@ -159,6 +159,28 @@ function specDbsTracy_trspt_getRecords( $post_data ) {
 		$filter_orderFilerecordId_arr[] = $arr['field_FILE_CDE_ID'] ;
 	}
 	
+	$query = "SELECT p.filerecord_id as trsptpick_filerecord_id
+					, p.field_ID_PICK as trsptpick_id
+					, pt.field_FILE_TRSPT_ID as trspt_filerecord_id
+				FROM view_file_TRSPTPICK p
+				JOIN view_file_TRSPTPICK_TRSPT pt ON pt.filerecord_parent_id=p.filerecord_id AND pt.field_LINK_IS_CANCEL='0'
+				WHERE 1" ;
+	if( isset($filter_trsptFilerecordId_list) ) {
+		$query.= " AND pt.field_FILE_TRSPT_ID IN {$filter_trsptFilerecordId_list}" ;
+	} elseif( !$filter_archiveIsOn ) {
+		$query.= " AND pt.field_FILE_TRSPT_ID IN (SELECT filerecord_id FROM view_file_TRSPT WHERE field_ARCHIVE_IS_ON='0')" ;
+	}
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		if( !isset($TAB_trspt[$arr['trspt_filerecord_id']]) ) {
+			continue ;
+		}
+		$TAB_trspt[$arr['trspt_filerecord_id']] += array(
+			'trsptpick_filerecord_id' => $arr['trsptpick_filerecord_id'],
+			'trsptpick_id' => $arr['trsptpick_id']
+		);
+	}
+	
 	$ttmp = specDbsTracy_order_getRecords( array(
 		'filter_socCode' => $filter_socCode,
 		'filter_orderFilerecordId_arr'=> json_encode($filter_orderFilerecordId_arr),

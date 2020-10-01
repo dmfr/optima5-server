@@ -526,6 +526,13 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 					optimaModule: this.optimaModule,
 					bibleId: 'LIST_CARRIER'
 				}
+			},{
+				text: 'Manifest #',
+				dataIndex: 'trsptpick_id',
+				width: 90,
+				filter: {
+					type: 'string'
+				}
 			}]
 		},{
 			text: 'Orders',
