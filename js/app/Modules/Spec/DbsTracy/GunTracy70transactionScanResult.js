@@ -39,12 +39,19 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70transactionScanResult',{
 				break ;
 				
 			case 'success' :
-			case 'repeat' :
 				bodyCls = 'ux-noframe-bg' ;
 				iconCls = 'op5-spec-dbstracy-gun-result-ok' ;
 				title = 'Scan success' ;
 				caption = 'Scanned item has been recorded' ;
 				deferQuit = true ;
+				break ;
+				
+			case 'repeat' :
+				bodyCls = 'ux-noframe-bg-alert' ;
+				iconCls = 'op5-spec-dbstracy-gun-result-ok' ;
+				title = 'Scan duplicate' ;
+				caption = 'Scanned item already recorded' ;
+				deferQuit = false ;
 				break ;
 				
 			case 'failure' :
@@ -64,6 +71,14 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70transactionScanResult',{
 				caption: caption
 			}
 		}) );
+		
+		if( !Ext.isEmpty(data.primary_key) ) {
+			formItems.push( {
+				xtype: 'hiddenfield',
+				name: data.primary_key.name,
+				value: data.primary_key.value
+			} );
+		}
 		
 		if( !Ext.isEmpty(data.fields) ) {
 			var fieldsetItems = [] ;
@@ -104,29 +119,72 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70transactionScanResult',{
 		this.add(formItems) ;
 		
 		// Bottom btn
-		this.add({
-			xtype: 'container',
-			padding: 6,
-			layout: {
-				type: 'hbox',
-				pack: 'center'
-			},
-			items: [{
-				xtype: 'button',
-				scale: 'large',
-				style: 'min-width: 100px',
-				text: 'Dismiss',
-				listeners: {
-					click: function() {
-						this.doQuit() ;
+		switch( data.header.result_type ) {
+			case 'repeat' :
+				this.add({
+					xtype: 'container',
+					padding: 6,
+					layout: {
+						type: 'hbox',
+						pack: 'center'
 					},
-					afterrender: function(btn) {
-						btn.focus() ;
+					items: [{
+						xtype: 'button',
+						scale: 'large',
+						style: 'min-width: 100px',
+						text: 'Ok',
+						listeners: {
+							click: function() {
+								this.doQuit() ;
+							},
+							afterrender: function(btn) {
+								btn.focus() ;
+							},
+							scope: this
+						}
+					},{
+						xtype: 'box',
+						width: 8
+					},{
+						xtype: 'button',
+						scale: 'large',
+						style: 'min-width: 100px',
+						text: 'Eject',
+						listeners: {
+							click: function() {
+								this.doAfterAction('eject') ;
+							},
+							scope: this
+						}
+					}]
+				});
+				break ;
+			default :
+				this.add({
+					xtype: 'container',
+					padding: 6,
+					layout: {
+						type: 'hbox',
+						pack: 'center'
 					},
-					scope: this
-				}
-			}]
-		});
+					items: [{
+						xtype: 'button',
+						scale: 'large',
+						style: 'min-width: 100px',
+						text: 'Next',
+						listeners: {
+							click: function() {
+								this.doQuit() ;
+							},
+							afterrender: function(btn) {
+								btn.focus() ;
+							},
+							scope: this
+						}
+					}]
+				});
+				break ;
+		}
 		
 		if( deferQuit ) {
 			Ext.defer( function(){
@@ -135,6 +193,9 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70transactionScanResult',{
 		}
 	},
 	
+	doAfterAction: function(afterAction) {
+		this.fireEvent('afteraction',this, afterAction) ;
+	},
 	doQuit: function() {
 		this.fireEvent('quit',this) ;
 	}

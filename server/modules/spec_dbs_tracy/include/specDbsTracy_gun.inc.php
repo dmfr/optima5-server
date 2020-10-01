@@ -270,6 +270,19 @@ function specDbsTracy_gun_t70_transactionPostAction($post_data) {
 			
 			return array('success'=>true, 'transaction_id'=>$transaction_id) ;
 		
+		case 'eject' :
+			$p_hatparcelFilerecordId = $post_data['hatparcel_filerecord_id'] ;
+			$obj_brt = $_SESSION['transactions'][$p_transactionId]['obj_brt'] ;
+			if( !$obj_brt ) {
+				return array('success'=>false) ;
+			}
+			if( ($idx=array_search($p_hatparcelFilerecordId,$obj_brt['arr_hatparcelFilerecordIds'])) === FALSE ) {
+				return array('success'=>false) ;
+			}
+			unset( $obj_brt['arr_hatparcelFilerecordIds'][$idx] ) ;
+			$_SESSION['transactions'][$p_transactionId]['obj_brt'] = $obj_brt ;
+			return array('success'=>true) ;
+		
 		case 'scan' :
 			$obj_brt = $_SESSION['transactions'][$p_transactionId]['obj_brt'] ;
 			if( !$obj_brt ) {
@@ -335,6 +348,11 @@ function specDbsTracy_gun_t70_transactionPostAction($post_data) {
 						}
 						$arr = $_opDB->fetch_row($result) ;
 						$trspt_filerecord_id = $arr[1] ;
+						
+						$primary_key = array(
+							'name' => 'hatparcel_filerecord_id',
+							'value' => $hatparcel_filerecord_id
+						);
 						break ;
 						
 					case 'trspt_id_doc' :
@@ -345,6 +363,11 @@ function specDbsTracy_gun_t70_transactionPostAction($post_data) {
 						}
 						$arr = $_opDB->fetch_row($result) ;
 						$trspt_filerecord_id = $arr[0] ;
+						
+						$primary_key = array(
+							'name' => 'trpst_filerecord_id',
+							'value' => $trspt_filerecord_id
+						);
 						break ;
 				}
 				break ;
@@ -448,6 +471,9 @@ function specDbsTracy_gun_t70_transactionPostAction($post_data) {
 				$arr_hatparcelFilerecordIds = array() ;
 				if( $hatparcel_filerecord_id ) {
 					$arr_hatparcelFilerecordIds[] = $hatparcel_filerecord_id ;
+					if( in_array($hatparcel_filerecord_id,$obj_brt['arr_hatparcelFilerecordIds']) ) {
+						$result_type = 'repeat' ;
+					}
 				} else {
 					foreach( $trspt_row['hats'] as $iter_hat_row ) {
 						foreach( $iter_hat_row['parcels'] as $iter_hatparcel_row ) {
@@ -472,6 +498,7 @@ function specDbsTracy_gun_t70_transactionPostAction($post_data) {
 				'success'=>true,
 				'data' => array(
 					'header'=>array('result_type' => $result_type),
+					'primary_key' => $primary_key,
 					'fields' => $fields,
 					'reason' => $reason
 				)
