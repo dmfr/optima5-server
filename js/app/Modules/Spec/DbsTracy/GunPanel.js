@@ -33,6 +33,8 @@ Ext.define('DbsTracyGun70transactionSummary',{
 		{name: 'atr_consignee', type:'string'},
 		{name: 'count_parcel_scan', type:'int'},
 		{name: 'count_parcel_total', type:'int'},
+		{name: 'is_warning', type:'boolean'},
+		{name: 'is_warning_code', type:'string'},
 	]
 });
 

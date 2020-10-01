@@ -27,6 +27,12 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70transactionBuildWarning',{
 				fieldStyle: 'font-weight:bold',
 				value: this._gridRow.id_doc
 			},{
+				hidden: !this._gridRow.is_warning,
+				xtype: 'displayfield',
+				fieldLabel: 'Warning',
+				fieldStyle: 'font-weight:bold',
+				value: this._gridRow.is_warning_code
+			},{
 				xtype: 'checkboxfield',
 				name: 'is_warning',
 				boxLabel: 'Has warning ?',
@@ -48,10 +54,6 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70transactionBuildWarning',{
 			}]
 		}) ;
 		this.callParent() ;
-	},
-	doReset: function() {
-		this.getForm().reset() ;
-		this.doApply() ;
 	},
 	doApply: function() {
 		this.fireEvent('submit',this,this.getForm().getValues()) ;

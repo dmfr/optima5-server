@@ -115,6 +115,8 @@ switch( $post_data['_action'] )
 	return specDbsTracy_gun_t70_transactionGetSummary($post_data) ;
 	case 'gun_t70_transactionPostAction' :
 	return specDbsTracy_gun_t70_transactionPostAction($post_data) ;
+	case 'gun_t70_setWarning' :
+	return specDbsTracy_gun_t70_setWarning($post_data) ;
 	
 	default :
 	return NULL ;

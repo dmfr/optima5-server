@@ -96,25 +96,25 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70transactionBuild',{
 					}
 				},
 				columns: [{
-				xtype: 'actioncolumn',
-				align: 'center',
-				width: 36,
-				items: [{
-					getClass: function(v,metadata,r) {
-						if( r.get('is_warning') ) {
-							return 'op5-spec-dbstracy-gun-warning-on' ;
-						} else {
-							return 'op5-spec-dbstracy-gun-warning-off' ;
-						}
-					},
-					//tooltip: 'Take',
-					handler: function(grid, rowIndex, colIndex) {
-						var rec = grid.getStore().getAt(rowIndex);
-						this.openWarningPanel( rec.getData() ) ;
-					},
-					scope: this
-				}]
-			},{
+					xtype: 'actioncolumn',
+					align: 'center',
+					width: 36,
+					items: [{
+						getClass: function(v,metadata,r) {
+							if( r.get('is_warning') ) {
+								return 'op5-spec-dbstracy-gun-warning-on' ;
+							} else {
+								return 'op5-spec-dbstracy-gun-warning-off' ;
+							}
+						},
+						//tooltip: 'Take',
+						handler: function(grid, rowIndex, colIndex) {
+							var rec = grid.getStore().getAt(rowIndex);
+							this.openWarningPanel( rec.getData() ) ;
+						},
+						scope: this
+					}]
+				},{
 					dataIndex: 'id_hat',
 					width: 100,
 					text: '#Doc',
@@ -137,7 +137,14 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70transactionBuild',{
 						metadata.style += 'font-weight: bold;' ;
 						return v ;
 					}
-				}]
+				}],
+				viewConfig: {
+					getRowClass: function(record) {
+						if( record.get('is_warning') ) {
+							return 'op5-spec-dbstracy-files-warning' ;
+						}
+					}
+				}
 			}]
 		});
 		this.callParent() ;
@@ -240,8 +247,9 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70transactionBuild',{
 				scope: this
 			}]
 		});
-		createPanel.on('submit', function(p) {
+		createPanel.on('submit', function(p,warningValues) {
 			p.destroy() ;
+			this.onWarningValues(warningValues) ;
 		},this,{single:true}) ;
 		createPanel.on('destroy',function(p) {
 			this.getEl().unmask() ;
@@ -251,6 +259,29 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70transactionBuild',{
 		createPanel.show();
 		createPanel.getEl().alignTo(this.getEl(), 'c-c?');
 		this.floatingPanel = createPanel ;
+	},
+	onWarningValues: function(warningValues) {
+		this.showLoadmask() ;
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_dbs_tracy',
+				_action: 'gun_t70_setWarning',
+				trspt_filerecord_id: warningValues.trspt_filerecord_id,
+				warning_action: warningValues.is_warning ? 'set' : 'unset'
+			},
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					var error = ajaxResponse.success || 'Error' ;
+					Ext.MessageBox.alert('Error',error) ;
+					return ;
+				}
+			},
+			callback: function() {
+				this.doLoad() ;
+			},
+			scope: this
+		}) ;
 	},
 	
 	doQuit: function() {

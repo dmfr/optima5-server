@@ -165,6 +165,8 @@ function specDbsTracy_gun_t70_transactionGetSummary($post_data) {
 		foreach( $trspt_row['orders'] as $order_row ) {
 			if( $order_row['warning_is_on'] ) {
 				$has_warning = TRUE ;
+				$has_warning_code = $order_row['warning_code'] ;
+				break ;
 			}
 		}
 		
@@ -185,7 +187,8 @@ function specDbsTracy_gun_t70_transactionGetSummary($post_data) {
 				'atr_consignee_txt' => $mapConsignee_code_txt[$trspt_row['atr_consignee']],
 				'count_parcel_scan' => count(array_intersect($arr_hatparcelFilerecordIds,$obj_brt['arr_hatparcelFilerecordIds'])),
 				'count_parcel_total' => count($arr_hatparcelFilerecordIds),
-				'is_warning' => $has_warning
+				'is_warning' => $has_warning,
+				'is_warning_code' => $has_warning_code
 			);
 		}
 		
@@ -483,8 +486,16 @@ function specDbsTracy_gun_t70_transactionPostAction($post_data) {
 			
 			$json = specDbsTracy_gun_t70_transactionGetSummary( array('_transaction_id'=>$p_transactionId) ) ;
 			foreach( $json['data']['grid'] as $trsptsum_row ) {
+				if( $trsptsum_row['is_warning'] ) {
+					continue ;
+				}
 				if( $trsptsum_row['count_parcel_scan'] < $trsptsum_row['count_parcel_total'] ) {
-					return array('success'=>false, 'debug'=>$json['data']['grid']) ;
+					return array('success'=>false, 'error'=>'Missing parcels / Partial take') ;
+				}
+			}
+			foreach( $json['data']['grid'] as $trsptsum_row ) {
+				if( $trsptsum_row['is_warning'] && $trsptsum_row['count_parcel_scan'] ) {
+					return array('success'=>false, 'error'=>'Parcels on warning') ;
 				}
 			}
 			
@@ -613,5 +624,51 @@ function specDbsTracy_gun_t70_transactionPostAction($post_data) {
 	
 }
 
-
+function specDbsTracy_gun_t70_setWarning($post_data) {
+	// HACK! force bible entry
+	$treenode_key = 'GUN' ;
+	$arr_ins = array() ;
+	$arr_ins['field_NODE'] = $treenode_key ;
+	paracrm_lib_data_insertRecord_bibleTreenode('LIST_WARNINGCODE',$treenode_key,'',$arr_ins) ;
+	$entry_key = '999-GUN-T70' ;
+	$arr_ins = array() ;
+	$arr_ins['field_CODE'] = $entry_key ;
+	$arr_ins['field_TXT'] = 'Warning Gun T70' ;
+	paracrm_lib_data_insertRecord_bibleEntry('LIST_WARNINGCODE', $entry_key, $treenode_key, $arr_ins ) ;
+	
+	
+	$p_trsptFilerecordId = $post_data['trspt_filerecord_id'] ;
+	$p_warningAction = $post_data['warning_action'] ;
+	
+	switch( $p_warningAction ) {
+		case 'set' :
+			$form_data = array(
+				'warning_is_on' => true,
+				'warning_code' => $entry_key,
+				'warning_txt' => 'Set on '.date('d/m/Y H:i')
+			);
+			break ;
+			
+		case 'unset' :
+			$form_data = array(
+				'warning_is_on' => false
+			);
+			break ;
+	}
+	
+	$json = specDbsTracy_trspt_getRecords(array('filter_trsptFilerecordId_arr'=>json_encode(array($p_trsptFilerecordId)))) ;
+	$trspt_row = $json['data'][0] ;
+	foreach( $trspt_row['orders'] as $order_row ) {
+		if( $order_row['warning_is_on'] == $form_data['warning_is_on'] ) {
+			continue ;
+		}
+		
+		$forward_post = array(
+			'order_filerecord_id' => $order_row['order_filerecord_id'],
+			'data' => json_encode($form_data)
+		);
+		specDbsTracy_order_setWarning($forward_post) ;
+	}
+	return array('success'=>true) ;
+}
 ?>

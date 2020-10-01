@@ -239,6 +239,13 @@
 	background: url('../images/modules/dbstracy-puzzle-green-16.png') ;
 }
 
+.op5-spec-dbstracy-gun-warning-off {
+	background: url('../images/op5img/ico_info_small.gif') ;
+}
+.op5-spec-dbstracy-gun-warning-on {
+	background: url('../images/modules/crmbase-warning-16.png') ;
+}
+
 
 .op5-spec-dbstracy-gun-result-ok {
 	background: url('../images/modules/dbstracy-gunresult-ok-48.png') ;

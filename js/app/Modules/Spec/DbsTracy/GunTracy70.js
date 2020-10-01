@@ -212,7 +212,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70',{
 			success: function(response) {
 				var ajaxResponse = Ext.decode(response.responseText) ;
 				if( ajaxResponse.success == false ) {
-					var error = ajaxResponse.success || 'Manifest build incomplete' ;
+					var error = ajaxResponse.error || 'Manifest build incomplete' ;
 					Ext.MessageBox.alert('Error',error, function(){this.openTransactionBuild(this._run_tracy70transactionId);},this) ;
 					return ;
 				}
