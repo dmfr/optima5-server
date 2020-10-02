@@ -739,6 +739,13 @@ function specDbsTracy_trspt_printDoc( $post_data ) {
 	
 	$trspt_record = $ttmp['data'][0] ;
 	
+	if( $post_data['print_type'] == '_trsptpick' ) {
+		if( $trspt_record['trsptpick_filerecord_id'] ) {
+			return specDbsTracy_trsptpick_printDoc(array('trsptpick_filerecord_id'=>$trspt_record['trsptpick_filerecord_id'])) ;
+		}
+		return array('success'=>false) ;
+	}
+	
 	// 12/11/18 : interro Carrier
 	$carrier_entryKey = $trspt_record['mvt_carrier'] ;
 	$query = "SELECT field_TYPE FROM view_bible_LIST_CARRIER_entry WHERE entry_key='{$carrier_entryKey}'" ;
@@ -1275,5 +1282,231 @@ function specDbsTracy_trspt_printTMS( $post_data ) {
 	}
 	return array('success'=>true) ;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function specDbsTracy_trsptpick_printDoc( $post_data ) {
+	global $_opDB ;
+	
+	$p_trsptpickFilerecordId = $post_data['trsptpick_filerecord_id'] ;
+	
+	$app_root = $GLOBALS['app_root'] ;
+	$resources_root=$app_root.'/resources' ;
+	$templates_dir=$resources_root.'/server/templates' ;
+	$_IMG['DBS_logo_bw'] = file_get_contents($templates_dir.'/'.'DBS_logo_bw.png') ;
+	
+	$query = "SELECT * FROM view_file_TRSPTPICK WHERE filerecord_id='{$p_trsptpickFilerecordId}'" ;
+	$result = $_opDB->query($query) ;
+	$arrDB_trsptpick = $_opDB->fetch_assoc($result) ;
+	
+	$arr_trsptFilerecordIds = array() ;
+	$query = "SELECT field_FILE_TRSPT_ID FROM view_file_TRSPTPICK_TRSPT WHERE filerecord_parent_id='{$p_trsptpickFilerecordId}' AND field_LINK_IS_CANCEL='0'" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+		$arr_trsptFilerecordIds[] = $arr[0] ;
+	}
+	
+	$ttmp = specDbsTracy_trspt_getRecords( array(
+		'filter_trsptFilerecordId_arr' => json_encode( $arr_trsptFilerecordIds )
+	) );
+	if( count($ttmp['data']) < 1 ) {
+		return array('success'=>false) ;
+	}
+	
+	$trspt_records = $ttmp['data'] ;
+	$trspt_record = $ttmp['data'][0] ;
+	
+	
+		
+		$buffer.= '<DIV></DIV>' ;
+		$buffer.= "<table border='0' cellspacing='1' cellpadding='1'>" ;
+		$buffer.= "<tr><td align='center' valign='middle' width='600'>" ;
+			$buffer.= "<table cellspacing='0' cellpadding='1'>";
+			$buffer.= "<tr><td><span class=\"huge\"><b>{$title}</span></td></tr>" ;
+			$buffer.= "<tr><td align='center'><span class=\"huge\"><b>SAFRAN / TRANSPORT MANIFEST</span></td></tr>" ;
+			//{$data_commande['date_exp']}
+			$buffer.= "</table>";
+		$buffer.= "</td><td valign='middle' align='center' width='120'>" ;
+			$buffer.= "<img src=\"data:image/jpeg;base64,".base64_encode($_IMG['DBS_logo_bw'])."\" />" ;
+		$buffer.= "</td></tr><tr><td height='25'/></tr></table>" ;
+		
+		
+		$query = "SELECT * FROM view_bible_LIST_CARRIER_entry WHERE entry_key='{$trspt_record['mvt_carrier']}'" ;
+		$result = $_opDB->query($query) ;
+		$row_bible_CARRIER = $_opDB->fetch_assoc($result) ;
+		$row_bible_CARRIER_address = $row_bible_CARRIER['field_ADDRESS'] ;
+		$row_bible_CARRIER_address_NEW = '' ;
+		foreach( explode("\n",$row_bible_CARRIER_address) as $line ) {
+			$line = trim($line) ;
+			if( strlen($line) > 35 ) {
+				$line = substr($line,0,35) ;
+			}
+			$row_bible_CARRIER_address_NEW.= $line."\n" ;
+		}
+		//print_r($row_bible_CARRIER) ;
+		
+		$buffer.= "<table border='0' cellspacing='5' cellpadding='5' width='800'>" ;
+		$buffer.= "<tr>" ;
+		$buffer.= "<td width='33%' style='border: 1px solid gray'>" ;
+			$buffer.= "<table border='0' cellspacing='4' cellpadding='4'>" ;
+				$buffer.= "<tr><td><span class='mybig'>Manifest #</span></td><td><span class='mybig'><b>{$arrDB_trsptpick['field_ID_PICK']}</td></tr>" ;
+				$buffer.= "<tr><td><span class='mybig'>Driver</span></td><td><span class='mybig'><b>{$arrDB_trsptpick['field_ATR_NAME']}</td></tr>" ;
+				$buffer.= "<tr><td><span class='mybig'>Plate</span></td><td><span class='mybig'><b>{$arrDB_trsptpick['field_ATR_LPLATE']}</td></tr>" ;
+			$buffer.= "</table>" ;
+		$buffer.= "</td>" ;
+		$buffer.= "<td>&nbsp;</td>" ;
+		$buffer.= "<td width='33%'  valign='top' style='border: 1px solid gray'>" ;
+			$buffer.= "<div style='padding-bottom:6px'><i>Enlevement</i></div>" ;
+			$buffer.= '<span class="mybig">' ;
+			$buffer.= '<b>'.'DB SCHENKER C/O SAFRAN'.'</b><br>' ;
+			$buffer.= ''.'Rue René Cassin'.'<br>' ;
+			$buffer.= ''.'ZAC de la Vilette aux Aulnes'.'<br>' ;
+			$buffer.= ''.'77290 Mitry Mory'.'<br>' ;
+			$buffer.= "</span>" ;
+		$buffer.= "</td>" ;
+		$buffer.= "<td>&nbsp;</td>" ;
+		$buffer.= "<td width='33%' valign='top' style='border: 1px solid gray'>" ;
+			$buffer.= "<div style='padding-bottom:6px'><i>{$header_adr}</i></div>" ;
+			$buffer.= '<span class="mybig" style="white-space: nowrap;">' ;
+			$buffer.= '<b>'.$trspt_record['mvt_carrier'].'</b><br>' ;
+			$buffer.= ''.nl2br(htmlentities($row_bible_CARRIER_address_NEW)).'<br>' ;
+			$buffer.= "</span>" ;
+		$buffer.= "</td>" ;
+		$buffer.= "</tr></table>" ;
+		
+		$buffer.= "<br>" ;
+				
+		$buffer.= "<table width='90%' class='tabledonnees'>" ;
+			$buffer.= '<thead>' ;
+				$buffer.= "<tr>";
+					$buffer.= "<th width='20%'>Ship Group #</th>";
+					$buffer.= "<th width='20%'>Delivery ID(s) #</th>";
+					$buffer.= "<th width='60%'>Destination</th>";
+					$buffer.= "<th width='10%'>Nb Parcels</th>";
+					$buffer.= "<th width='10%'>Weight (kg)</th>";
+					$buffer.= "<th width='10%'>Dimensions</th>";
+				$buffer.= "</tr>" ;
+			$buffer.= '</thead>' ;
+			
+			$tot_vol_count = 0 ;
+			$tot_vol_kg = 0 ;
+			$buffer.= "<tbody>" ;
+			foreach( $trspt_records as $trspt_record ) {
+				$map_orderId_orderRow = array() ;
+				foreach( $trspt_record['orders'] as $row_order ) {
+					$map_orderId_orderRow[$row_order['order_filerecord_id']] = $row_order ;
+				}
+				foreach( $trspt_record['hats'] as $row_hat ) {
+					$buffer.= "<tr>" ;
+						$buffer.= "<td><span class=\"verybig\">{$row_hat['id_hat']}</span></td>" ;
+						
+						$buffer.= "<td align='center'><span class=\"verybig\">" ;
+						foreach( $row_hat['orders'] as $row_hat_order ) {
+							$order_filerecord_id = $row_hat_order['order_filerecord_id'] ;
+							$row_order = $map_orderId_orderRow[$order_filerecord_id] ;
+							$buffer.= $row_order['id_dn'].'<br>' ;
+						}
+						$buffer.= "</span></td>" ;
+						
+						$buffer.= "<td class=\"$class\" align='left'><span>".nl2br(htmlentities($row_order['txt_location_full']))."</span></td>" ;
+						
+						$vol_count = 0 ;
+						foreach( $row_hat['parcels'] as $row_hat_parcel ) {
+							$vol_count += $row_hat_parcel['vol_count'] ;
+						}
+						$tot_vol_count += $vol_count ;
+						$buffer.= "<td align='center'><span class=\"mybig\"><b>".(float)$vol_count."</b>"."</span></td>" ;
+						
+						$vol_kg = 0 ;
+						foreach( $row_hat['parcels'] as $row_hat_parcel ) {
+							$vol_kg += $row_hat_parcel['vol_kg'] ;
+						}
+						$tot_vol_kg += $vol_kg ;
+						$buffer.= "<td align='center'><span class=\"mybig\"><b>".(float)$vol_kg."</b>&#160;kg"."</span></td>" ;
+						
+						$buffer.= "<td align='center'><span class=\"\">" ;
+						foreach( $row_hat['parcels'] as $row_hat_parcel ) {
+							$buffer.= implode(' x ',$row_hat_parcel['vol_dims']).'<br>' ;
+						}
+						$buffer.= "</span></td>" ;
+						
+					$buffer.= "</tr>" ;
+				}
+				foreach( $trspt_record['orders'] as $row_order ) {
+					if( $row_order['calc_hat_is_active'] ) {
+						continue ;
+					}
+					$buffer.= "<tr>" ;
+						$buffer.= "<td><span class=\"verybig\">&nbsp;</span></td>" ;
+						
+						$buffer.= "<td><span class=\"verybig\">{$row_order['id_dn']}</span></td>" ;
+						
+						$buffer.= "<td class=\"$class\" align='left'><span>".nl2br(htmlentities($row_order['txt_location_full']))."</span></td>" ;
+						
+						$buffer.= "<td colspan='3'>&nbsp;</td>" ;
+					$buffer.= "</tr>" ;
+				}
+			}
+			$buffer.= "</tbody>" ;
+			
+			$buffer.= '<tfoot>' ;
+				$buffer.= "<tr>";
+					$buffer.= "<td>&nbsp;</td>";
+					$buffer.= "<td>&nbsp;</td>";
+					$buffer.= "<td>&nbsp;</td>";
+					$buffer.= "<td align='center'><span class=\"mybig\"><b>".(float)$tot_vol_count."</b>"."</span></td>";
+					$buffer.= "<td align='center'><span class=\"mybig\"><b>".(float)$tot_vol_kg."</b>&#160;kg"."</span></td>";
+					$buffer.= "<td>&nbsp;</td>";
+				$buffer.= "</tr>" ;
+			$buffer.= '</tfoot>' ;
+			
+		$buffer.= "</table>" ;
+		
+		$buffer.= "<br>" ;
+		
+	
+	$app_root = $GLOBALS['app_root'] ;
+	$resources_root=$app_root.'/resources' ;
+	$templates_dir=$resources_root.'/server/templates' ;
+	$inputFileName = $templates_dir.'/'.'DBS_TRACY_blank.html' ;
+	$inputBinary = file_get_contents($inputFileName) ;
+	
+	
+	//echo $inputFileName ;
+	$doc = new DOMDocument();
+	@$doc->loadHTML($inputBinary);
+	
+	$elements = $doc->getElementsByTagName('body');
+	$i = $elements->length - 1;
+	while ($i > -1) {
+		$body_element = $elements->item($i); 
+		$i--; 
+		
+		libxml_use_internal_errors(true);
+
+		$tpl = new DOMDocument;
+		$tpl->loadHtml('<?xml encoding="UTF-8">'.$buffer);
+		libxml_use_internal_errors(false);
+
+		
+		$body_element->appendChild($doc->importNode($tpl->documentElement, TRUE)) ;
+	}
+	
+	$html = $doc->saveHTML() ;
+	return array('success'=>true, 'html'=>$html, 'pdf_base64'=>base64_encode(media_pdf_html2pdf($html,'A4')) ) ;
+}
+
 
 ?>
