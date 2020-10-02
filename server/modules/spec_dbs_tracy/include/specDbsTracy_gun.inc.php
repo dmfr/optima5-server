@@ -528,7 +528,16 @@ function specDbsTracy_gun_t70_transactionPostAction($post_data) {
 			
 			$arr_trsptFilerecordIds = array() ;
 			foreach( $obj_brt['arr_trsptFilerecordIds'] as $trspt_filerecord_id ) {
-				$arr_trsptFilerecordIds[] = $trspt_filerecord_id ;
+				foreach( $json['data']['grid'] as $trsptsum_row ) {
+					if( $trsptsum_row['trspt_filerecord_id'] == $trspt_filerecord_id 
+					&& !$trsptsum_row['is_warning'] ) {
+						$arr_trsptFilerecordIds[] = $trspt_filerecord_id ;
+					}
+				}
+			}
+			
+			if( !$arr_trsptFilerecordIds ) {
+				return array('success'=>false, 'error'=>'Empty manifest') ;
 			}
 			
 			$weight_kg = $count_parcel = 0 ;
