@@ -76,6 +76,9 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70',{
 			optimaModule: this.optimaModule,
 			_data: formData,
 			listeners: {
+				afteraction: function(p,afterAction) {
+					this.handleTransactionScanAfter(p._data,afterAction) ;
+				},
 				quit: function() {
 					this.openTransactionBuild(this._run_tracy70transactionId) ;
 				},
@@ -193,6 +196,33 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70',{
 					return ;
 				}
 				this.openTransactionScanResult( ajaxResponse.data ) ;
+			},
+			callback: function() {},
+			scope: this
+		}) ;
+	},
+	handleTransactionScanAfter: function(formData, afterAction) {
+		this.openBlank() ;
+		var ajaxParams = {
+			_moduleId: 'spec_dbs_tracy',
+			_action: 'gun_t70_transactionPostAction',
+			
+			_transaction_id: this._run_tracy70transactionId,
+			_subaction: afterAction
+		};
+		if( formData.primary_key ) {
+			ajaxParams[formData.primary_key.name] = formData.primary_key.value ;
+		}
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: ajaxParams,
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					var error = ajaxResponse.success || 'Error' ;
+					Ext.MessageBox.alert('Error',error, function(){this.openTransactionBuild(this._run_tracy70transactionId);},this) ;
+					return ;
+				}
+				this.openTransactionBuild(this._run_tracy70transactionId) ;
 			},
 			callback: function() {},
 			scope: this

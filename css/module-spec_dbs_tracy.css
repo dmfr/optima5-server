@@ -239,6 +239,9 @@
 	background: url('../images/modules/dbstracy-puzzle-green-16.png') ;
 }
 
+.op5-spec-dbstracy-gun-warning-done {
+	background: url('../images/dot_green_16.gif') ;
+}
 .op5-spec-dbstracy-gun-warning-off {
 	background: url('../images/op5img/ico_info_small.gif') ;
 }
