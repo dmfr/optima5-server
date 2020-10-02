@@ -118,6 +118,11 @@ switch( $post_data['_action'] )
 	case 'gun_t70_setWarning' :
 	return specDbsTracy_gun_t70_setWarning($post_data) ;
 	
+	case 'trsptpick_printDoc' :
+	return specDbsTracy_trsptpick_printDoc( $post_data ) ;
+	case 'trsptpick_fetchPdf' :
+	return specDbsTracy_trsptpick_fetchPdf( $post_data ) ;
+	
 	default :
 	return NULL ;
 }

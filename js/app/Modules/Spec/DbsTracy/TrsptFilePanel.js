@@ -655,26 +655,36 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 						items: [{
 							//iconCls: 'op5-spec-dbstracy-label',
 							getClass: function(v,m,record) {
-								switch( record.get('spec_tms_status') ) {
-									case 'ok' :
-									case 'cancel' :
-									case 'error' :
-										return 'op5-spec-dbstracy-label-'+record.get('spec_tms_status') ;
-									default:
-										return '' ;
+								if( record.get('spec_tms_on') ) {
+									switch( record.get('spec_tms_status') ) {
+										case 'ok' :
+										case 'cancel' :
+										case 'error' :
+											return 'op5-spec-dbstracy-label-'+record.get('spec_tms_status') ;
+										default:
+											return '' ;
+									}
+								}
+								if( record.get('trsptpick_is_on') ) {
+									return 'op5-spec-dbstracy-pdf' ;
 								}
 							},
 							
 							//tooltip: 'TMS',
 							handler : function(grid, rowIndex, colIndex) {
 								var record = grid.getStore().getAt(rowIndex);
-								this.openLabelPanel( record.get('trsptevent_filerecord_id') ) ;
+								if( record.get('spec_tms_on') ) {
+									this.openLabelPanel( record.get('trsptevent_filerecord_id') ) ;
+								}
+								if( record.get('trsptpick_is_on') ) {
+									this.openTrsptpickPdf( record.get('trsptpick_filerecord_id') ) ;
+								}
 							},
 							scope : this,
 				
 							disabledCls: 'x-item-invisible',
 							isDisabled: function(view,rowIndex,colIndex,item,record ) {
-								if( record.get('spec_tms_on') ) {
+								if( record.get('spec_tms_on') || record.get('trsptpick_is_on') ) {
 									return false ;
 								}
 								return true ;
@@ -1676,5 +1686,33 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 		createPanel.applySizeFromParent(this) ;
 		
 		createPanel.loadFromTrsptEvent( this._trsptFilerecordId, trspteventFilerecordId ) ;
-	}
+	},
+	
+	openTrsptpickPdf: function(trsptpickFilerecordId) {
+		if( this._readonlyMode ) {
+			return ;
+		}
+		this.showLoadmask() ;
+		
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_dbs_tracy',
+				_action: 'trsptpick_fetchPdf',
+				trsptpick_filerecord_id: trsptpickFilerecordId
+			},
+			success: function(response) {
+				var jsonResponse = Ext.JSON.decode(response.responseText) ;
+				if( jsonResponse.success == true ) {
+					this.openPrintPopupDo( jsonResponse.pdf_title, null, jsonResponse.pdf_base64 ) ;
+					this.doReload() ;
+				} else {
+					Ext.MessageBox.alert('Error','Print system disabled') ;
+				}
+			},
+			callback: function() {
+				this.hideLoadmask() ;
+			},
+			scope: this
+		}) ;
+	},
 });

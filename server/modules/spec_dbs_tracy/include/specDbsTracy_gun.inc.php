@@ -579,7 +579,7 @@ function specDbsTracy_gun_t70_transactionPostAction($post_data) {
 			$prefix = 'PICK/' ;
 			$prefix_len = strlen($prefix) ;
 			$offset = $prefix_len+1 ;
-			$query = "SELECT max(substring(field_ID_DOC,{$offset},5)) FROM view_file_TRSPT WHERE field_ID_DOC LIKE '{$prefix}%'" ;
+			$query = "SELECT max(substring(field_ID_DOC,{$offset},5)) FROM view_file_TRSPTPICK WHERE field_ID_DOC LIKE '{$prefix}%'" ;
 			$max_idx = $_opDB->query_uniqueValue($query) ;
 			
 			$max_idx++ ;
@@ -616,6 +616,17 @@ function specDbsTracy_gun_t70_transactionPostAction($post_data) {
 				$arr_ins['field_FILE_TRSPT_ID'] = $trspt_filerecord_id ;
 				$arr_ins['field_LINK_IS_CANCEL'] = 0 ;
 				$picklink_filerecord_id = paracrm_lib_data_insertRecord_file( 'TRSPTPICK_TRSPT', $pick_filerecord_id, $arr_ins );
+			}
+			
+			// PDF create
+			$json_pdf = specDbsTracy_trsptpick_printDoc(array('trsptpick_filerecord_id'=>$pick_filerecord_id)) ;
+			if( $json_pdf['pdf_base64'] ) {
+				$_domain_id = DatabaseMgr_Base::dbCurrent_getDomainId() ;
+				$_sdomain_id = DatabaseMgr_Sdomain::dbCurrent_getSdomainId() ;
+				media_contextOpen( $_sdomain_id ) ;
+				$tmp_media_id = media_bin_processBuffer( base64_decode($json_pdf['pdf_base64']) ) ;
+				media_bin_move( $tmp_media_id , media_bin_toolFile_getId('TRSPTPICK',$pick_filerecord_id) ) ;
+				media_contextClose() ;
 			}
 			
 			$fields = array() ;

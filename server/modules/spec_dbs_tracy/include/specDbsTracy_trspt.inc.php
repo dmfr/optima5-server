@@ -117,6 +117,13 @@ function specDbsTracy_trspt_getRecords( $post_data ) {
 			'event_txt' => $arr['field_EVENT_TXT']
 		);
 		switch( $arr['field_EVENTLINK_FILE'] ) {
+			case 'TRSPTPICK' :
+				$map_printIds = json_decode($arr['field_EVENTLINK_IDS_JSON'],true) ;
+				if( is_array($map_printIds) ) {
+					$row_event['trsptpick_is_on'] = true ;
+					$row_event['trsptpick_filerecord_id'] = reset($map_printIds) ;
+				}
+				break ;
 			case 'TMS_STORE' :
 				$row_event['spec_tms_on'] = true ;
 				if( $load_details ) {
@@ -1361,7 +1368,7 @@ function specDbsTracy_trsptpick_printDoc( $post_data ) {
 		$buffer.= "<tr>" ;
 		$buffer.= "<td width='33%' style='border: 1px solid gray'>" ;
 			$buffer.= "<table border='0' cellspacing='4' cellpadding='4'>" ;
-				$buffer.= "<tr><td><span class='mybig'>Manifest #</span></td><td><span class='mybig'><b>{$arrDB_trsptpick['field_ID_PICK']}</td></tr>" ;
+				$buffer.= "<tr><td><span class='mybig'>Manifest</span></td><td><span class='mybig'><b>{$arrDB_trsptpick['field_ID_PICK']}</td></tr>" ;
 				$buffer.= "<tr><td><span class='mybig'>Driver</span></td><td><span class='mybig'><b>{$arrDB_trsptpick['field_ATR_NAME']}</td></tr>" ;
 				$buffer.= "<tr><td><span class='mybig'>Plate</span></td><td><span class='mybig'><b>{$arrDB_trsptpick['field_ATR_LPLATE']}</td></tr>" ;
 			$buffer.= "</table>" ;
@@ -1506,6 +1513,25 @@ function specDbsTracy_trsptpick_printDoc( $post_data ) {
 	
 	$html = $doc->saveHTML() ;
 	return array('success'=>true, 'html'=>$html, 'pdf_base64'=>base64_encode(media_pdf_html2pdf($html,'A4')) ) ;
+}
+function specDbsTracy_trsptpick_fetchPdf( $post_data ) {
+	global $_opDB ;
+	$p_trsptpickFilerecordId = $post_data['trsptpick_filerecord_id'] ;
+	
+	$query = "SELECT * FROM view_file_TRSPTPICK WHERE filerecord_id='{$p_trsptpickFilerecordId}'" ;
+	$result = $_opDB->query($query) ;
+	$arrDB_trsptpick = $_opDB->fetch_assoc($result) ;
+	
+	$_domain_id = DatabaseMgr_Base::dbCurrent_getDomainId() ;
+	$_sdomain_id = DatabaseMgr_Sdomain::dbCurrent_getSdomainId() ;
+	media_contextOpen( $_sdomain_id ) ;
+	$binary_pdf = media_bin_getBinary( media_bin_toolFile_getId('TRSPTPICK',$p_trsptpickFilerecordId) ) ;
+	media_contextClose() ;
+	
+	if( !$binary_pdf ) {
+		return array('success'=>false) ;
+	}
+	return array('success'=>true, 'pdf_title'=>$arrDB_trsptpick['field_ID_PICK'], 'pdf_base64'=>base64_encode($binary_pdf) ) ;
 }
 
 
