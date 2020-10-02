@@ -579,7 +579,7 @@ function specDbsTracy_gun_t70_transactionPostAction($post_data) {
 			$prefix = 'PICK/' ;
 			$prefix_len = strlen($prefix) ;
 			$offset = $prefix_len+1 ;
-			$query = "SELECT max(substring(field_ID_DOC,{$offset},5)) FROM view_file_TRSPTPICK WHERE field_ID_DOC LIKE '{$prefix}%'" ;
+			$query = "SELECT max(substring(field_ID_PICK,{$offset},5)) FROM view_file_TRSPTPICK WHERE field_ID_PICK LIKE '{$prefix}%'" ;
 			$max_idx = $_opDB->query_uniqueValue($query) ;
 			
 			$max_idx++ ;
@@ -660,7 +660,7 @@ function specDbsTracy_gun_t70_transactionPostAction($post_data) {
 			return array(
 				'success'=>true,
 				'data' => array(
-					'header'=>array('result_type' => 'success'),
+					'header'=>array('result_type' => 'final'),
 					'fields' => $fields
 				)
 			) ;
