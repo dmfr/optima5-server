@@ -237,6 +237,9 @@ if( !$my_module ) {
 	header("HTTP/1.0 404 Not Found");
 	doExit() ;
 }
+if( $_REQUEST['__qsql'] || $_REQUEST['__token'] ) {
+	$my_module = 'crmbase' ;
+}
 if( $my_module == 'crmbase_dsc' ) {
 	$my_module = 'crmbase' ;
 }
