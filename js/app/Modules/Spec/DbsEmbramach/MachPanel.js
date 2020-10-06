@@ -15,6 +15,8 @@ Ext.define('DbsEmbramachMachFlowRowModel', {
 		{name: 'warning_is_on', type: 'boolean', allowNull: true},
 		{name: 'warning_code', type: 'string'},
 		{name: 'warning_txt', type: 'string'},
+		{name: 'warning_date', type: 'date', dateFormat:'Y-m-d H:i:s'},
+		{name: 'warning_fields', type: 'auto'}
 	]
 });
 Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{

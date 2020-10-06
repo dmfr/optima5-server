@@ -86,7 +86,12 @@ function specDbsEmbramach_cfg_getConfig() {
 						$lib[] = $arr[$entry_field['entry_field_code']] ;
 					}
 				}
-				$records[] = array('node'=>$node, 'id'=>$id, 'text'=>implode(' - ',$lib)) ;
+				$records[] = array(
+					'node'=>$node,
+					'id'=>$id,
+					'text'=>implode(' - ',$lib),
+					'input_fields'=>json_decode($arr['field_INPUT_FIELDS'],true)
+				) ;
 			}
 			
 			$TAB_list[] = array(
@@ -484,6 +489,7 @@ function specDbsEmbramach_mach_getGridData( $post_data ) {
 			'event_is_warning' => $arr['field_EVENT_IS_WARNING'],
 			'event_code' => $arr['field_EVENT_CODE'],
 			'event_txt' => $arr['field_EVENT_TXT'],
+			'event_fields' => $arr['field_EVENT_JSONDATA'] ? json_decode($arr['field_EVENT_JSONDATA'],true) : array()
 		);
 	}
 	foreach( $TAB as &$row ) {
@@ -492,7 +498,9 @@ function specDbsEmbramach_mach_getGridData( $post_data ) {
 			$row += array(
 				'warning_is_on' => $last_warning['event_is_warning'],
 				'warning_code' => $last_warning['event_code'],
-				'warning_txt' => $last_warning['event_txt']
+				'warning_date' => $last_warning['event_date'],
+				'warning_txt' => $last_warning['event_txt'],
+				'warning_fields' => $last_warning['event_fields']
 			);
 		} else {
 			$row += array(
@@ -771,6 +779,7 @@ function specDbsEmbramach_mach_setWarning( $post_data ) {
 		$arr_ins['field_EVENT_CODE'] = $form_data['warning_code'] ;
 		$arr_ins['field_EVENT_IS_WARNING'] = 1 ;
 		$arr_ins['field_EVENT_TXT'] = $form_data['warning_txt'] ;
+		$arr_ins['field_EVENT_JSONDATA'] = is_array($form_data['warning_fields']) ? json_encode($form_data['warning_fields']) : '' ;
 	} else {
 		$arr_ins = array() ;
 		$arr_ins['field_EVENT_DATE'] = date('Y-m-d H:i:s') ;
