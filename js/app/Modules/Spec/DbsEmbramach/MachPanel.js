@@ -973,5 +973,8 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 		if( this.autoRefreshTask ) {
 			this.autoRefreshTask.cancel() ;
 		}
+		if( this.floatingPanel ) {
+			this.floatingPanel.destroy() ;
+		}
 	}
 });
