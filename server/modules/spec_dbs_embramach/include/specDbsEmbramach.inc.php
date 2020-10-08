@@ -808,6 +808,25 @@ function specDbsEmbramach_mach_setWarning( $post_data ) {
 		media_contextClose() ;
 	}
 	
+	// Query spec code
+	$query = "SELECT * FROM view_bible_LIST_WARNINGCODE_entry WHERE entry_key='{$form_data['warning_code']}'" ;
+	$result = $_opDB->query($query) ;
+	$arr = $_opDB->fetch_assoc($result) ;
+	if( $arr['field_FORWARD_TO'] ) {
+		$ttmp = explode(';',$arr['field_FORWARD_TO']) ;
+		$arr_params = array() ;
+		foreach( $ttmp as $word ) {
+			$tword = explode('=',$word) ;
+			if( count($tword) != 2 ) {
+				continue ;
+			}
+			$arr_params[$tword[0]] = $tword[1] ;
+		}
+		if( $arr_params['SMTP'] ) {
+			specDbsEmbramach_postprocEvent_SMTP($flowpickingevent_filerecord_id,$arr_params) ;
+		}
+	}
+	
 	return array('success'=>true, 'id'=>$flowpickingevent_filerecord_id) ;
 }
 

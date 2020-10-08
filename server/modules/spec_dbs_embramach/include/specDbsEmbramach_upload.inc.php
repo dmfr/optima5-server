@@ -1,5 +1,124 @@
 <?php
 
+function specDbsEmbramach_postprocEvent_SMTP( $flowpickingevent_filerecord_id, $arr_params_SMTP ) {
+	global $_opDB ;
+	$_domain_id = DatabaseMgr_Base::dbCurrent_getDomainId() ;
+	$_sdomain_id = DatabaseMgr_Sdomain::dbCurrent_getSdomainId() ;
+	
+	
+	$query = "SELECT * FROM view_file_FLOW_PICKING_EVENT WHERE filerecord_id='{$flowpickingevent_filerecord_id}'" ;
+	$result = $_opDB->query($query) ;
+	$arrDB_event = $_opDB->fetch_assoc($result) ;
+	
+	$query = "SELECT * FROM view_file_FLOW_PICKING WHERE filerecord_id='{$arrDB_event['filerecord_parent_id']}'" ;
+	$result = $_opDB->query($query) ;
+	$arrDB_picking = $_opDB->fetch_assoc($result) ;
+	
+	$query = "SELECT * FROM view_bible_LIST_WARNINGCODE_entry WHERE entry_key='{$arrDB_event['field_EVENT_CODE']}'" ;
+	$result = $_opDB->query($query) ;
+	$arrDB_warning = $_opDB->fetch_assoc($result) ;
+	
+	
+	
+	if( $arrDB_event['field_EVENT_JSONDATA'] ) {
+		foreach( json_decode($arrDB_event['field_EVENT_JSONDATA'],true) as $row ) {
+			if( $row['name']=='file_upload' ) {
+				$attach_name = $row['value'] ;
+				
+				$_domain_id = DatabaseMgr_Base::dbCurrent_getDomainId() ;
+				$_sdomain_id = DatabaseMgr_Sdomain::dbCurrent_getSdomainId() ;
+				media_contextOpen( $_sdomain_id ) ;
+				$attach_binary = media_bin_getBinary( media_bin_toolFile_getId('FLOW_PICKING_EVENT',$flowpickingevent_filerecord_id) ) ;
+				media_contextClose() ;
+			}
+		}
+	}
+	
+	print_r($arr_params_SMTP) ;
+	print_r($arrDB_picking) ;
+	print_r($arrDB_event) ;
+	
+	
+	$txt_buffer = '' ;
+	
+	$txt_buffer.= "\r\n" ;
+	$txt_buffer.= 'Hello,'."\r\n" ;
+	$txt_buffer.= "\r\n" ;
+	$txt_buffer.= 'Special status has been applied over MACH picking.'."\r\n" ;
+	$txt_buffer.= 'Find details below :'."\r\n" ;
+	
+	$txt_buffer.= "\r\n" ;
+	
+	$txt_buffer.= "Company : {$arrDB_picking['field_SOC_ID']}\r\n" ;
+	$txt_buffer.= "Picking reference : {$arrDB_picking['field_DELIVERY_ID']}\r\n" ;
+	$txt_buffer.= "Consignee code : {$arrDB_picking['field_SHIPTO_CODE']}\r\n" ;
+	$txt_buffer.= "Consignee name : {$arrDB_picking['field_SHIPTO_NAME']}\r\n" ;
+	
+	$txt_buffer.= "\r\n" ;
+	
+	$txt_buffer.= "Event date : {$arrDB_event['field_EVENT_DATE']}\r\n" ;
+	$txt_buffer.= "Event code : {$arrDB_event['field_EVENT_CODE']} - {$arrDB_warning['field_TXT']}\r\n" ;
+	$txt_buffer.= "Description : {$arrDB_event['field_EVENT_TXT']}\r\n" ;
+	$txt_buffer.= "Attachment name : {$attach_name}\r\n" ;
+	$txt_buffer.= "\r\n" ;
+	
+	$static_location = 'MITRY MORY' ;
+	$txt_buffer.= "Localisation : {$static_location}\r\n" ;
+	
+	$txt_buffer.= "\r\n" ;
+	
+	$txt_buffer.= 'This is an automated email from DB Schenker. Do not reply to this message'."\r\n" ;
+	$txt_buffer.= "\r\n" ;
+	$txt_buffer.= 'Best regards.'."\r\n" ;
+	$txt_buffer.= "\r\n" ;
+	$txt_buffer.= "\r\n" ;
+	
+	
+
+	
+	
+	
+	$email_subject = "[MACH] Picking {$arrDB_picking['field_SOC_ID']}/{$arrDB_picking['field_DELIVERY_ID']} - Event {$arrDB_event['field_EVENT_CODE']}" ;
+	
+	$mail = PhpMailer::getInstance() ;
+	if( !$mail ) {
+		return FALSE ;
+	}
+	try {
+		$mail->isSMTP();
+		$mail->Host = $arr_params_SMTP['SMTP'] ;
+		$mail->SMTPOptions = array(
+			'ssl' => array(
+				'verify_peer' => false,
+				'verify_peer_name' => false,
+				'allow_self_signed' => true
+			)
+		);
+		
+		$mail->CharSet = "utf-8";
+		$mail->setFrom($arr_params_SMTP['EMAIL_FROM']);
+		foreach( explode(',',$arr_params_SMTP['EMAIL_TO']) as $email_to ) {
+			$mail->addAddress($email_to) ;
+		}
+		$mail->Subject  = $email_subject ;
+		$mail->Body = $txt_buffer ;
+		if( $attach_binary ) {
+			$mail->addStringAttachment($attach_binary, $attach_name) ;
+		}
+		$mail->send() ;
+		
+		
+		//echo $mail->ErrorInfo ;
+	
+	} catch (Exception $e) {
+		echo "Message could not be sent. Mailer Error: {$mail->ErrorInfo}";
+		return false ;
+	}
+
+	return true ;
+	
+}
+
 function specDbsEmbramach_reportList( $post_data ) {
 	global $_opDB ;
 	
