@@ -34,10 +34,6 @@ function specDbsEmbramach_postprocEvent_SMTP( $flowpickingevent_filerecord_id, $
 		}
 	}
 	
-	print_r($arr_params_SMTP) ;
-	print_r($arrDB_picking) ;
-	print_r($arrDB_event) ;
-	
 	
 	$txt_buffer = '' ;
 	
