@@ -772,6 +772,13 @@ function specDbsEmbramach_mach_setWarning( $post_data ) {
 	
 	$form_data = json_decode($post_data['data'],true) ;
 	
+	foreach( $form_data['warning_fields'] as &$row ) {
+		if( $row['name']=='file_upload' ) {
+			$row['value'] = $_FILES['file_upload']['name'] ;
+		}
+	}
+	unset($row) ;
+	
 	if( $form_data['warning_is_on'] ) {
 		$arr_ins = array() ;
 		$arr_ins['field_EVENT_DATE'] = date('Y-m-d H:i:s') ;
@@ -788,9 +795,20 @@ function specDbsEmbramach_mach_setWarning( $post_data ) {
 		$arr_ins['field_EVENT_IS_WARNING'] = 0 ;
 		$arr_ins['field_EVENT_TXT'] = 'Warning suppressed' ;
 	}
-	$filerecord_id = paracrm_lib_data_insertRecord_file( $file_code, $post_data['_filerecord_id'], $arr_ins );
+	$flowpickingevent_filerecord_id = paracrm_lib_data_insertRecord_file( $file_code, $post_data['_filerecord_id'], $arr_ins );
 	
-	return array('success'=>true, 'id'=>$filerecord_id) ;
+	if( $_FILES['file_upload'] ) {
+		$binary = file_get_contents($_FILES['file_upload']['tmp_name']) ;
+		
+		$_domain_id = DatabaseMgr_Base::dbCurrent_getDomainId() ;
+		$_sdomain_id = DatabaseMgr_Sdomain::dbCurrent_getSdomainId() ;
+		media_contextOpen( $_sdomain_id ) ;
+		$tmp_media_id = media_bin_processBuffer( $binary ) ;
+		media_bin_move( $tmp_media_id , media_bin_toolFile_getId($file_code,$flowpickingevent_filerecord_id) ) ;
+		media_contextClose() ;
+	}
+	
+	return array('success'=>true, 'id'=>$flowpickingevent_filerecord_id) ;
 }
 
 

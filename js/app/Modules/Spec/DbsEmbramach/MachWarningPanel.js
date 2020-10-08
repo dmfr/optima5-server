@@ -192,29 +192,27 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachWarningPanel',{
 			msg:"Please wait..."
 		}).show();
 		
-		this.optimaModule.getConfiguredAjaxConnection().request({
-			params: {
-				_moduleId: 'spec_dbs_embramach',
-				_action: 'mach_setWarning',
-				flow_code: this.flowCode,
-				_filerecord_id: this.machRecord.get('_filerecord_id'),
-				data: Ext.JSON.encode(recordData)
-			},
-			success: function(response) {
-				var ajaxResponse = Ext.decode(response.responseText) ;
-				if( ajaxResponse.success == false ) {
-					var error = ajaxResponse.success || 'File not saved !' ;
-					Ext.MessageBox.alert('Error',error) ;
-					return ;
-				}
+		var ajaxParams = this.optimaModule.getConfiguredAjaxParams() ;
+		Ext.apply( ajaxParams, {
+			_moduleId: 'spec_dbs_embramach',
+			_action: 'mach_setWarning',
+			flow_code: this.flowCode,
+			_filerecord_id: this.machRecord.get('_filerecord_id'),
+			data: Ext.JSON.encode(recordData)
+		}) ;
+		form.submit({
+			url: Optima5.Helper.getApplication().desktopGetBackendUrl(),
+			params: ajaxParams,
+			success : function(form,action){
 				this.optimaModule.postCrmEvent('datachange',{}) ;
 				this.machRecord.set(recordData) ;
 				this.destroy() ;
 			},
-			callback: function() {
+			failure: function(fp, o) {
 				this.loadMask.destroy() ;
 			},
 			scope: this
-		}) ;
+		});
+		
 	}
 }) ;
