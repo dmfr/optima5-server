@@ -64,7 +64,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachWarningPanel',{
 				itemId: 'btnSubmit',
 				text: 'Validation',
 				handler: function() {
-					this.onSubmit() ;
+					this.handleSubmit() ;
 				},
 				scope: this
 			}]
@@ -162,7 +162,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachWarningPanel',{
 		return headerCfg ;
 	},
 	
-	onSubmit: function() {
+	handleSubmit: function() {
 		var formPanel = this.down('#pForm'),
 			form = formPanel.getForm(),
 			formData = form.getValues(false,false,false,true) ;
@@ -170,6 +170,27 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachWarningPanel',{
 			Ext.MessageBox.alert('Error', 'Incomplete warning description');
 			return ;
 		}
+		var cfgWarningRows = Optima5.Modules.Spec.DbsEmbramach.HelperCache.getListData('LIST_WARNINGCODE'),
+			cfgWarningRow = null ;
+		Ext.Array.each( cfgWarningRows, function(row) {
+			if( row.id==formData['warning_code'] ) {
+				cfgWarningRow = row ;
+			}
+		}) ;
+		if( !Ext.isEmpty(cfgWarningRow.input_confirm) ) {
+			Ext.MessageBox.confirm('Confirm ?', cfgWarningRow.input_confirm,function(btn){
+				if( btn=='yes' ) {
+					this.doSubmit() ;
+				}
+			},this);
+			return ;
+		}
+		return this.doSubmit() ;
+	},
+	doSubmit: function() {
+		var formPanel = this.down('#pForm'),
+			form = formPanel.getForm(),
+			formData = form.getValues(false,false,false,true) ;
 		
 		var fieldsData = [] ;
 		Ext.Array.each( formPanel.down('#fsInputfields').query('field'), function(field) {

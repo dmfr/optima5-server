@@ -13,7 +13,8 @@ Ext.define('DbsEmbramachCfgListItemModel',{
 		{name: 'node', type:'string'},
 		{name: 'id', type:'string'},
 		{name: 'text', type:'string'},
-		{name: 'input_fields', type:'auto'}
+		{name: 'input_fields', type:'auto'},
+		{name: 'input_confirm', type:'string'}
 	]
 });
 Ext.define('DbsEmbramachCfgListModel',{

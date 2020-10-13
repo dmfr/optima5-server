@@ -90,7 +90,8 @@ function specDbsEmbramach_cfg_getConfig() {
 					'node'=>$node,
 					'id'=>$id,
 					'text'=>implode(' - ',$lib),
-					'input_fields'=>json_decode($arr['field_INPUT_FIELDS'],true)
+					'input_fields'=>json_decode($arr['field_INPUT_FIELDS'],true),
+					'input_confirm' => $arr['field_INPUT_CONFIRM'] ? $arr['field_INPUT_CONFIRM'] : null
 				) ;
 			}
 			
