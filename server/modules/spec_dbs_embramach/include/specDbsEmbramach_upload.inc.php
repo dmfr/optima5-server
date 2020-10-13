@@ -47,10 +47,33 @@ function specDbsEmbramach_postprocEvent_SMTP( $flowpickingevent_filerecord_id, $
 	
 	$txt_buffer.= "Company : {$arrDB_picking['field_SOC_ID']}\r\n" ;
 	$txt_buffer.= "Picking reference : {$arrDB_picking['field_DELIVERY_ID']}\r\n" ;
-	$txt_buffer.= "Consignee code : {$arrDB_picking['field_SHIPTO_CODE']}\r\n" ;
-	$txt_buffer.= "Consignee name : {$arrDB_picking['field_SHIPTO_NAME']}\r\n" ;
+	$txt_buffer.= "Receipt code : {$arrDB_picking['field_SHIPTO_CODE']}\r\n" ;
+	$txt_buffer.= "Receipt name : {$arrDB_picking['field_SHIPTO_NAME']}\r\n" ;
+	if( TRUE ) {
+		$dbtab = "op5_dbs_prod_dwr.view_table_{$arrDB_picking['field_SOC_ID']}_CLIENT" ;
+		$query = "SELECT * FROM {$dbtab} WHERE CODE_CLIENT='{$arrDB_picking['field_SHIPTO_CODE']}'" ;
+		$result = $_opDB->query($query) ;
+		$arr = $_opDB->fetch_assoc($result) ;
+		if( $arr ) {
+			$txt_buffer.= "Receipt adr : {$arr['ADRESSE_CLIENT']} / {$arr['VILLE_CLIENT']} / {$arr['CODE_PAYS']}\r\n" ;
+		}
+	}
 	
 	$txt_buffer.= "\r\n" ;
+	
+	while( TRUE ) {
+		$dbtab = "op5_dbs_prod_dwr.view_table_{$arrDB_picking['field_SOC_ID']}_VL06F_MST" ;
+		$query = "SELECT * FROM {$dbtab} WHERE LIVRAISON='{$arrDB_picking['field_DELIVERY_ID']}'" ;
+		$result = $_opDB->query($query) ;
+		if( $_opDB->num_rows($result)==0 ) {
+			break ;
+		}
+		while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+			$txt_buffer.= "Ecode : {$arr['ARTICLE']} / Lot : {$arr['LOT']}\r\n" ;
+		}
+		$txt_buffer.= "\r\n" ;
+		break ;
+	}
 	
 	$txt_buffer.= "Event date : {$arrDB_event['field_EVENT_DATE']}\r\n" ;
 	$txt_buffer.= "Event code : {$arrDB_event['field_EVENT_CODE']} - {$arrDB_warning['field_TXT']}\r\n" ;
@@ -60,6 +83,15 @@ function specDbsEmbramach_postprocEvent_SMTP( $flowpickingevent_filerecord_id, $
 	
 	$static_location = 'MITRY MORY' ;
 	$txt_buffer.= "Localisation : {$static_location}\r\n" ;
+	if( $user_code = strtoupper($_SESSION['login_data']['delegate_userId']) ) {
+		$query = "SELECT field_USER_NAME FROM view_bible_USER_entry WHERE entry_key='{$user_code}'" ;
+		$user_name = $_opDB->query_uniqueValue($query) ;
+		if( $user_name ) {
+			$txt_buffer.= "User : {$user_name}\r\n" ;
+		} else {
+			$txt_buffer.= "User : {$user_code}\r\n" ;
+		}
+	}
 	
 	$txt_buffer.= "\r\n" ;
 	
