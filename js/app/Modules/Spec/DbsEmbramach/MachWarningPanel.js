@@ -205,7 +205,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachWarningPanel',{
 			params: ajaxParams,
 			success : function(form,action){
 				this.optimaModule.postCrmEvent('datachange',{}) ;
-				this.machRecord.set(recordData) ;
+				this.fireEvent('eventsaved',this,this.machRecord.get('_filerecord_id'),recordData) ;
 				this.destroy() ;
 			},
 			failure: function(fp, o) {

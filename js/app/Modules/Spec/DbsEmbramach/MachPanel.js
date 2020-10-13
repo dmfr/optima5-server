@@ -566,6 +566,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 		
 		Ext.define(this.tmpModelName, {
 			extend: 'DbsEmbramachMachFlowRowModel',
+			idProperty: '_filerecord_id',
 			fields: pushModelfields
 		});
 		
@@ -877,6 +878,16 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 				},
 				scope: this
 			}],
+			listeners: {
+				eventsaved: function(p,rowFilerecordId, warningData) {
+					var grid = this.down('#pCenter').down('grid') ;
+						gridRecord = grid.getStore().getById(rowFilerecordId) ;
+					if( gridRecord ) {
+						gridRecord.set(warningData) ;
+					}
+				},
+				scope: this
+			},
 			
 			title: 'Warning / RedFlag'
 		});
