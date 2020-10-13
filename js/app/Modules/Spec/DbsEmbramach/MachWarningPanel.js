@@ -152,6 +152,10 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachWarningPanel',{
 							'</table>',
 						'</div>',
 					'</div>',
+					'<div class="op5-spec-dbsembramach-emailheader-actions-bottom">',
+							'<div class="op5-spec-dbsembramach-emailheader-action-btn op5-spec-dbsembramach-emailheader-action-btn-attachments">',
+							'</div>',
+					'</div>',
 				'</div>',
 				{
 					disableFormats: true
