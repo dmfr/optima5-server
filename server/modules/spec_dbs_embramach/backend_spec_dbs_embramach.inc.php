@@ -22,6 +22,8 @@ switch( $post_data['_action'] )
 	return specDbsEmbramach_mach_getGridXls( $post_data ) ;
 	case 'mach_setWarning' :
 	return specDbsEmbramach_mach_setWarning( $post_data ) ;
+	case 'mach_getEventBinary' :
+	return specDbsEmbramach_mach_getEventBinary( $post_data ) ;
 	
 	case 'upload' :
 	case 'mach_upload' :

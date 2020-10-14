@@ -11,6 +11,8 @@ Ext.define('DbsEmbramachMachFlowRowModel', {
 		
 		{name: 'calc_lateness', type: 'number'},
 		{name: 'calc_success', type: 'boolean'},
+		
+		{name: 'events', type: 'auto'},
 		  
 		{name: 'warning_is_on', type: 'boolean', allowNull: true},
 		{name: 'warning_code', type: 'string'},
@@ -26,7 +28,8 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 		'Ext.ux.grid.filters.filter.StringList',
 		'Optima5.Modules.Spec.DbsEmbramach.CfgParamFilter',
 		'Optima5.Modules.Spec.DbsEmbramach.CfgParamSocButton',
-		'Optima5.Modules.Spec.DbsEmbramach.MachWarningPanel'
+		'Optima5.Modules.Spec.DbsEmbramach.MachWarningPanel',
+		'Optima5.Modules.Spec.DbsEmbramach.MachHistoryPanel'
 	],
 	
 	flowCode: null,
@@ -886,6 +889,15 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 						gridRecord.set(warningData) ;
 					}
 				},
+				historyopen: function(p,rowFilerecordId) {
+					var grid = this.down('#pCenter').down('grid') ;
+						gridRecord = grid.getStore().getById(rowFilerecordId) ;
+					if( !gridRecord ) {
+						return ;
+					}
+					p.destroy() ;
+					this.openWarningHistory(gridRecord) ;
+				},
 				scope: this
 			},
 			
@@ -903,6 +915,44 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 		machWarningPanel.getEl().alignTo(this.getEl(), 'c-c?');
 		
 		this.floatingPanel = machWarningPanel ;
+	},
+	openWarningHistory: function( machRecord ) {
+		if( this._readonlyMode ) {
+			return ;
+		}
+		var postParams = {} ;
+		var machHistoryPanel = Ext.create('Optima5.Modules.Spec.DbsEmbramach.MachHistoryPanel',{
+			optimaModule: this.optimaModule,
+			flowCode: this.flowCode,
+			machRecord: machRecord,
+			width:700, // dummy initial size, for border layout to work
+			height:null, // ...
+			floating: true,
+			draggable: true,
+			resizable: true,
+			renderTo: this.getEl(),
+			tools: [{
+				type: 'close',
+				handler: function(e, t, p) {
+					p.ownerCt.destroy();
+				},
+				scope: this
+			}],
+			
+			title: 'Events history'
+		});
+		
+		machHistoryPanel.on('destroy',function(validConfirmPanel) {
+			this.getEl().unmask() ;
+			this.floatingPanel = null ;
+		},this,{single:true}) ;
+		
+		this.getEl().mask() ;
+		
+		machHistoryPanel.show();
+		machHistoryPanel.getEl().alignTo(this.getEl(), 'c-c?');
+		
+		this.floatingPanel = machHistoryPanel ;
 	},
 	
 	

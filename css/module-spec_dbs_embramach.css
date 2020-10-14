@@ -171,6 +171,12 @@
 	border: 2px solid black;
 	font-weight: bold;
 }
+.op5-spec-dbsembramach-gridcell-boldtext .x-grid-cell-inner { 
+	font-weight: bold;
+}
+.op5-spec-dbsembramach-gridcell-italictext .x-grid-cell-inner { 
+	font-style: italic ;
+}
 
 .op5-spec-dbsembramach-colorinfo {
 	background: white
@@ -303,4 +309,19 @@
 	background-image: url("../images/modules/dbsembramach-attachment-22.png") !important;
 }
 
+.op5-spec-dbsembramach-eventgrid-green {
+	background-repeat: no-repeat;
+	background-position: center;
+	background-image: url('../images/dot_green_16.gif') ;
+}
+.op5-spec-dbsembramach-eventgrid-warning {
+	background-repeat: no-repeat;
+	background-position: center;
+	background-image: url("../images/modules/dbstracy-warning-16.png") ;
+}
+.op5-spec-dbsembramach-eventgrid-attach {
+	background-repeat: no-repeat;
+	background-position: center;
+	background-image: url("../images/modules/dbsembramach-attachment-16.png") ;
+}
 

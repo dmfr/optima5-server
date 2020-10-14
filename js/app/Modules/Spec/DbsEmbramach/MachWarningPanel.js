@@ -72,6 +72,12 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachWarningPanel',{
 		
 		this.callParent() ;
 		
+		this.down('#pHeader').on('headeraction',function(h,actionCode) {
+			if( actionCode=='attachments' ) {
+				this.fireEvent('historyopen',this,this.machRecord.get('_filerecord_id')) ;
+			}
+		},this) ;
+		
 		if( this.machRecord ) {
 			var headerData = {
 				delivery_id: this.machRecord.get('field_0'),
@@ -160,7 +166,27 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachWarningPanel',{
 				{
 					disableFormats: true
 				}
-			]
+			],
+			listeners: {
+				afterrender: function(h) {
+					this.onAfterRender(h) ;
+				}
+			},
+			onAfterRender: function(h) {
+				var el = this.getEl(),
+					btnAttachmentsEl = el.down('.op5-spec-dbsembramach-emailheader-action-btn-attachments') ;
+				if( btnAttachmentsEl ) {
+					btnAttachmentsEl.un('click',this.onClickBtn,this) ;
+					btnAttachmentsEl.on('click',this.onClickBtn,this) ;
+				}
+				
+			},
+			onClickBtn: function(event,htmlElement) {
+				var el = Ext.get(htmlElement) ;
+				if( el && el.hasCls('op5-spec-dbsembramach-emailheader-action-btn-attachments') ) {
+					this.fireEvent('headeraction',this,'attachments') ;
+				}
+			}
 		} ;
 		
 		return headerCfg ;

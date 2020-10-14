@@ -830,6 +830,28 @@ function specDbsEmbramach_mach_setWarning( $post_data ) {
 	
 	return array('success'=>true, 'id'=>$flowpickingevent_filerecord_id) ;
 }
+function specDbsEmbramach_mach_getEventBinary( $post_data ) {
+	global $_opDB ;
+	$flow_code = $post_data['flow_code'] ;
+	$file_code = "FLOW_{$flow_code}_EVENT" ;
+	$filerecord_id = $post_data['filerecord_id'] ;
+	if( !paracrm_lib_data_getRecord_file($file_code,$filerecord_id) ) {
+		return array('success'=>false) ;
+	}
+	
+	
+	$_domain_id = DatabaseMgr_Base::dbCurrent_getDomainId() ;
+	$_sdomain_id = DatabaseMgr_Sdomain::dbCurrent_getSdomainId() ;
+	media_contextOpen( $_sdomain_id ) ;
+	$binary = media_bin_getBinary( media_bin_toolFile_getId($file_code,$filerecord_id) ) ;
+	media_contextClose() ;
+	
+	if( !$binary ) {
+		return array('success'=>false) ;
+	}
+	
+	return array('success'=>true, 'binary_base64'=>base64_encode($binary)) ;
+}
 
 
 
