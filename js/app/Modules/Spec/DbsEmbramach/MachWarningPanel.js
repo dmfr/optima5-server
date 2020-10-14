@@ -170,7 +170,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachWarningPanel',{
 		var formPanel = this.down('#pForm'),
 			form = formPanel.getForm(),
 			formData = form.getValues(false,false,false,true) ;
-		if( !form.isValid() ) {
+		if( formData['warning_is_on'] && !form.isValid() ) {
 			Ext.MessageBox.alert('Error', 'Incomplete warning description');
 			return ;
 		}
@@ -181,7 +181,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachWarningPanel',{
 				cfgWarningRow = row ;
 			}
 		}) ;
-		if( !Ext.isEmpty(cfgWarningRow.input_confirm) ) {
+		if( cfgWarningRow && !Ext.isEmpty(cfgWarningRow.input_confirm) ) {
 			Ext.MessageBox.confirm('Confirm ?', cfgWarningRow.input_confirm,function(btn){
 				if( btn=='yes' ) {
 					this.doSubmit() ;
@@ -226,6 +226,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachWarningPanel',{
 			data: Ext.JSON.encode(recordData)
 		}) ;
 		form.submit({
+			clientValidation: false,
 			url: Optima5.Helper.getApplication().desktopGetBackendUrl(),
 			params: ajaxParams,
 			success : function(form,action){
