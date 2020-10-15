@@ -128,13 +128,14 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachWarningPanel',{
 			}
 		}) ;
 		if( cfgWarningRow && cfgWarningRow.input_fields ) {
+			fsInputfields.setVisible(true) ;
 			fsInputfields.removeAll();
 			fsInputfields.add( cfgWarningRow.input_fields ) ;
-			fsInputfields.setVisible(true) ;
 		} else {
 			fsInputfields.removeAll();
 			fsInputfields.setVisible(false) ;
 		}
+		this.doLayout() ;
 	},
 	initHeaderCfg: function() {
 		var headerCfg = {
@@ -207,7 +208,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachWarningPanel',{
 				cfgWarningRow = row ;
 			}
 		}) ;
-		if( cfgWarningRow && !Ext.isEmpty(cfgWarningRow.input_confirm) ) {
+		if( formData['warning_is_on'] && cfgWarningRow && !Ext.isEmpty(cfgWarningRow.input_confirm) ) {
 			Ext.MessageBox.confirm('Confirm ?', cfgWarningRow.input_confirm,function(btn){
 				if( btn=='yes' ) {
 					this.doSubmit() ;

@@ -883,6 +883,8 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 			}],
 			listeners: {
 				eventsaved: function(p,rowFilerecordId, warningData) {
+					this.doLoad() ;
+					return ;
 					var grid = this.down('#pCenter').down('grid') ;
 						gridRecord = grid.getStore().getById(rowFilerecordId) ;
 					if( gridRecord ) {
