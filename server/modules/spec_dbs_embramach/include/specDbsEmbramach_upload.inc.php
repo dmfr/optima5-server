@@ -41,7 +41,7 @@ function specDbsEmbramach_postprocEvent_SMTP( $flowpickingevent_filerecord_id, $
 	$txt_buffer.= 'Bonjour E3-Cortex,'."\r\n" ;
 	$txt_buffer.= "\r\n" ;
 	$txt_buffer.= "Merci de traiter le picking n°:  {$arrDB_picking['field_DELIVERY_ID']} en AOG à la demande d'{$arrDB_picking['field_SOC_ID']}."."\r\n" ;
-	$txt_buffer.= 'Localisation: E3-Cortex / en Transit MIMO'."\r\n" ;
+	//$txt_buffer.= 'Localisation: E3-Cortex / en Transit MIMO'."\r\n" ;
 	
 	$txt_buffer.= "\r\n" ;
 	
@@ -81,8 +81,8 @@ function specDbsEmbramach_postprocEvent_SMTP( $flowpickingevent_filerecord_id, $
 	$txt_buffer.= "Attachment name : {$attach_name}\r\n" ;
 	$txt_buffer.= "\r\n" ;
 	
-	$static_location = 'MITRY MORY' ;
-	$txt_buffer.= "Localisation : {$static_location}\r\n" ;
+	//$static_location = 'MITRY MORY' ;
+	//$txt_buffer.= "Localisation : {$static_location}\r\n" ;
 	if( $user_code = strtoupper($_SESSION['login_data']['delegate_userId']) ) {
 		$query = "SELECT field_USER_NAME FROM view_bible_USER_entry WHERE entry_key='{$user_code}'" ;
 		$user_name = $_opDB->query_uniqueValue($query) ;
