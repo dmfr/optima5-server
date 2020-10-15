@@ -38,10 +38,10 @@ function specDbsEmbramach_postprocEvent_SMTP( $flowpickingevent_filerecord_id, $
 	$txt_buffer = '' ;
 	
 	$txt_buffer.= "\r\n" ;
-	$txt_buffer.= 'Hello,'."\r\n" ;
+	$txt_buffer.= 'Bonjour E3-Cortex,'."\r\n" ;
 	$txt_buffer.= "\r\n" ;
-	$txt_buffer.= 'Special status has been applied over MACH picking.'."\r\n" ;
-	$txt_buffer.= 'Find details below :'."\r\n" ;
+	$txt_buffer.= "Merci de traiter le picking n°:  {$arrDB_picking['field_DELIVERY_ID']} en AOG à la demande d'{$arrDB_picking['field_SOC_ID']}."."\r\n" ;
+	$txt_buffer.= 'Localisation: E3-Cortex / en Transit MIMO'."\r\n" ;
 	
 	$txt_buffer.= "\r\n" ;
 	
@@ -95,9 +95,7 @@ function specDbsEmbramach_postprocEvent_SMTP( $flowpickingevent_filerecord_id, $
 	
 	$txt_buffer.= "\r\n" ;
 	
-	$txt_buffer.= 'This is an automated email from DB Schenker. Do not reply to this message'."\r\n" ;
-	$txt_buffer.= "\r\n" ;
-	$txt_buffer.= 'Best regards.'."\r\n" ;
+	$txt_buffer.= 'Cordialement / Best regards.'."\r\n" ;
 	$txt_buffer.= "\r\n" ;
 	$txt_buffer.= "\r\n" ;
 	
@@ -106,7 +104,7 @@ function specDbsEmbramach_postprocEvent_SMTP( $flowpickingevent_filerecord_id, $
 	
 	
 	
-	$email_subject = "[MACH] Picking {$arrDB_picking['field_SOC_ID']}/{$arrDB_picking['field_DELIVERY_ID']} - Event {$arrDB_event['field_EVENT_CODE']}" ;
+	$email_subject = "[MACH] Picking {$arrDB_picking['field_SOC_ID']}/{$arrDB_picking['field_DELIVERY_ID']} - Demande d'emballage AOG" ;
 	
 	$mail = PhpMailer::getInstance() ;
 	if( !$mail ) {
