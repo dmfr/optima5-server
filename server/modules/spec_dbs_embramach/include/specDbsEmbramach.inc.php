@@ -798,6 +798,10 @@ function specDbsEmbramach_mach_setWarning( $post_data ) {
 	}
 	$flowpickingevent_filerecord_id = paracrm_lib_data_insertRecord_file( $file_code, $post_data['_filerecord_id'], $arr_ins );
 	
+	if( !$form_data['warning_is_on'] ) {
+		return array('success'=>true, 'id'=>$flowpickingevent_filerecord_id) ;
+	}
+	
 	if( $_FILES['file_upload'] && !$_FILES['file_upload']['error'] ) {
 		$binary = file_get_contents($_FILES['file_upload']['tmp_name']) ;
 		
