@@ -111,6 +111,15 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 					this.handleDoLabel() ;
 				},
 				scope:this
+			},{
+				//hidden: !Optima5.Helper.getApplication().desktopGetCfgIsDev(),
+				hidden: true, // DONE: transport manifest 10/2020
+				iconCls: 'op5-spec-dbstracy-label',
+				text: '<b>Generate TRSPTPICK</b>',
+				handler: function() {
+					this.openPrintPopup('_trsptpick') ;
+				},
+				scope:this
 			}],
 			items:[{
 				flex: 2,
