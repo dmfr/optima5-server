@@ -62,6 +62,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.UploadForm',{
 						},{
 							id:'IMPORT_TXTACTION',
 							txt: 'Fiche navette : Actions commentaire'
+						},{
+							id:'IMPORT_ACTION',
+							txt: 'Fiche navette : Modification en masse'
 						}]
 					},
 					valueField: 'id',
