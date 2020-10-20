@@ -384,7 +384,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.MainPanel',{
 			itemId: 'windowGun',
 			width:375,
 			height:500,
-			iconCls: 'op5-crmbase-dataformwindow-icon',
+			iconCls: 'op5-crmbase-authandroidwindow-icon',
 			animCollapse:false,
 			layout: 'fit',
 			items:[Ext.create('Optima5.Modules.Spec.DbsTracy.GunPanel',{
