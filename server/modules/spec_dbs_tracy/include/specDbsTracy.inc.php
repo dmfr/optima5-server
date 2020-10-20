@@ -184,12 +184,27 @@ function specDbsTracy_cfg_getConfig() {
 		}
 	}
 	
+	
+	$TAB_printer = array() ;
+	$query = "SELECT * FROM view_bible_CFG_PRINTER_entry ORDER BY field_PRINTER_IP" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		$TAB_printer[] = array(
+			'printer_uri' => 'spool'.':'.$arr['field_PRINTER_IP'],
+			'printer_type' => $arr['treenode_key'],
+			'printer_spool_ip' => $arr['field_PRINTER_IP'],
+			'printer_desc' => $arr['field_PRINTER_DESC']
+		) ;
+	}
+	
+	
 	$GLOBALS['cache_specDbsTracy_cfg']['getConfig'] = array(
 		'cfg_soc' => $TAB_soc,
 		'cfg_orderflow' => array_values($TAB_orderflow),
 		'cfg_priority' => $TAB_priority,
 		'cfg_list' => $TAB_list,
-		'cfg_kpicode' => $TAB_kpicode
+		'cfg_kpicode' => $TAB_kpicode,
+		'cfg_printer' => $TAB_printer
 	);
 
 	return array('success'=>true, 'data'=>$GLOBALS['cache_specDbsTracy_cfg']['getConfig'])  ;

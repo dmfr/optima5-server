@@ -18,9 +18,6 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunHelper',{
 	
 	singleton:true,
 	
-	// business logic data
-	cfgGunPrinterStore: null,
-	
 	isReady: false,
 	
 	registerFocusOn: false,
@@ -38,10 +35,6 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunHelper',{
 		Ext.defer(function() {
 			me.libCount = 1 ;
 			
-			this.cfgGunPrinterStore = Ext.create('Ext.data.Store',{
-				model: 'DbsTracyGunPrinterModel',
-				data : []
-			}) ;
 			me.fetchConfig() ;
 		},500,me) ;
 	},
@@ -80,40 +73,20 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunHelper',{
 			model: 'DbsTracyCfgSocModel',
 			data : ajaxData.data.cfg_soc
 		}) ;
-		this.cfgPriorityStore = Ext.create('Ext.data.Store',{
-			model: 'DbsTracyCfgPriorityModel',
-			data : ajaxData.data.cfg_priority
+		this.cfgPrinterStore = Ext.create('Ext.data.Store',{
+			model: 'DbsTracyGunPrinterModel',
+			data : ajaxData.data.cfg_printer
 		}) ;
-		this.cfgKpiCodeStore = Ext.create('Ext.data.Store',{
-			model: 'DbsTracyCfgKpiCodeModel',
-			data : ajaxData.data.cfg_kpicode
-		}) ;
-		this.cfgListStore = Ext.create('Ext.data.Store',{
-			model: 'DbsTracyCfgListModel',
-			data : ajaxData.data.cfg_list,
-			proxy: {
-				type: 'memory',
-				reader: {
-					type: 'json'
-				}
-			}
-		}) ;
-		this.cfgOrderflowStore = Ext.create('Ext.data.Store',{
-			model: 'DbsTracyCfgOrderFlowModel',
-			data : ajaxData.data.cfg_orderflow,
-			proxy: {
-				type: 'memory',
-				reader: {
-					type: 'json'
-				}
-			}
-		}) ;
-		
+			
 		this.onLoad() ;
 	},
 	
 	getSocAll: function() {
 		return Ext.pluck( this.cfgSocStore.getRange(), 'data' ) ;
+	},
+	
+	getPrinterAll: function() {
+		return Ext.pluck( this.cfgPrinterStore.getRange(), 'data' ) ;
 	},
 	
 	setFilters: function(filterValues) {

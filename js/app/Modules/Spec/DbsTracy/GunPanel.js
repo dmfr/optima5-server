@@ -1,14 +1,3 @@
-Ext.define('DbsTracyGunPrinter',{
-	extend: 'Ext.data.Model',
-	idProperty: 'printer_uri',
-	fields: [
-		{name: 'printer_uri', type:'string'},
-		{name: 'printer_type', type:'string'},
-		{name: 'printer_spool_ip', type:'string'},
-		{name: 'printer_qz_name', type:'string'},
-		{name: 'printer_desc', type:'string'}
-	]
-});
 Ext.define('DbsTracyGun70selectTrspt',{
 	extend: 'Ext.data.Model',
 	idProperty: 'mvt_carrier',
@@ -38,6 +27,21 @@ Ext.define('DbsTracyGun70transactionSummary',{
 	]
 });
 
+Ext.define('DbsTracyGun60transactionSummary',{
+	extend: 'Ext.data.Model',
+	idProperty: 'hat_filerecord_id',
+	fields: [
+		{name: '_idx', type:'int'},
+		{name: 'trspt_filerecord_id', type:'int'},
+		{name: 'id_doc', type:'string'},
+		{name: 'hat_filerecord_id', type:'int'},
+		{name: 'id_hat', type:'string'},
+		{name: 'atr_consignee', type:'string'},
+		{name: 'count_parcel_scan', type:'int'},
+		{name: 'count_parcel_total', type:'int'}
+	]
+});
+
 
 Ext.define('Optima5.Modules.Spec.DbsTracy.GunPanel',{
 	extend:'Ext.panel.Panel',
@@ -45,7 +49,8 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunPanel',{
 		'Optima5.Modules.Spec.DbsTracy.GunHelper',
 		
 		'Optima5.Modules.Spec.DbsTracy.GunMenu',
-		'Optima5.Modules.Spec.DbsTracy.GunTracy70'
+		'Optima5.Modules.Spec.DbsTracy.GunTracy70',
+		'Optima5.Modules.Spec.DbsTracy.GunTracy60'
 	],
 	
 	initComponent: function() {
@@ -92,6 +97,8 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunPanel',{
 		//console.log("Action: "+actionCode) ;
 		
 		switch( actionCode ) {
+			case 'gun_tracy60' :
+				return me.switchToAppPanel('Optima5.Modules.Spec.DbsTracy.GunTracy60') ;
 			case 'gun_tracy70' :
 				return me.switchToAppPanel('Optima5.Modules.Spec.DbsTracy.GunTracy70') ;
 			default :
