@@ -981,6 +981,7 @@ function specDbsTracy_gun_t60_postAction($post_data) {
 			// - step_code_next
 			// - mvt_carrier
 			// - filter_soc ?
+			// HACK TODO : affichage du statut actuel si erreur
 			$errors = array() ;
 			if( $trspt_row['calc_step'] == '60_TRSPTREADY' ) {
 				$errors[] = 'Already on 60_TRSPTREADY (duplicate)' ;
@@ -1004,12 +1005,6 @@ function specDbsTracy_gun_t60_postAction($post_data) {
 					if( in_array($hatparcel_filerecord_id,$obj_brt['arr_hatparcelFilerecordIds']) ) {
 						$result_type = 'success' ;
 					}
-				} else {
-					foreach( $trspt_row['hats'] as $iter_hat_row ) {
-						foreach( $iter_hat_row['parcels'] as $iter_hatparcel_row ) {
-							$arr_hatparcelFilerecordIds[] = $iter_hatparcel_row['hatparcel_filerecord_id'] ;
-						}
-					}
 				}
 				
 				if( !in_array($trspt_filerecord_id,$obj_brt['arr_trsptFilerecordIds']) ) {
@@ -1024,6 +1019,8 @@ function specDbsTracy_gun_t60_postAction($post_data) {
 			}
 			
 			specDbsTracy_gun_t60_lib_stepValidate($obj_brt) ;
+			
+			// TODO HACK : Bouton impression si tms_printable
 			
 			return array(
 				'success'=>true,
@@ -1041,6 +1038,9 @@ function specDbsTracy_gun_t60_postAction($post_data) {
 	
 }
 function specDbsTracy_gun_t60_getSummary($post_data) {
+
+	// HACK TODO : N'AFFICHER LE RESULTAT QUE DE LA DERNIERE TRANSACTION
+
 	$p_transactionId = $post_data['_transaction_id'] ;
 	if( isset($_SESSION['transactions'][$p_transactionId]) 
 		&& ($_SESSION['transactions'][$p_transactionId]['transaction_code'] == SPECDBSTRACY_GUN_T60_CODE) ) {
