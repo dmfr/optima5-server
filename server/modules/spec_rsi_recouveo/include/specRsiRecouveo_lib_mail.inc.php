@@ -824,6 +824,7 @@ function specRsiRecouveo_lib_mail_buildEmail( $email_record, $test_mode=FALSE ) 
 	
 	
 	$mail = PhpMailer::getInstance() ;
+	$mail->isSMTP();
 	$mail->CharSet = "utf-8";
 	foreach( $email_record['header_adrs'] as $row ) {
 		switch( $row['header'] ) {
