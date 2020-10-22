@@ -20,8 +20,8 @@
 	<div class='signature_text'>
 		<b><qbook-value src_value="header_cr_fullname"></qbook-value></b><br>
 		<qbook-value src_value="header_cr_jobtitle"></qbook-value><br>
-		<b>Tél.</b>&nbsp;:&nbsp;<qbook-value src_value="header_cr_tel"></qbook-value><br>
-		<b>E-mail</b>&nbsp;:&nbsp;<qbook-value src_value="header_cr_email"></qbook-value><br>
+		<qbook-condition value='header_cr_tel'><b>Tél.</b>&nbsp;:&nbsp;<qbook-value src_value="header_cr_tel"></qbook-value><br></qbook-condition>
+		<qbook-condition value='header_cr_email'><b>E-mail</b>&nbsp;:&nbsp;<qbook-value src_value="header_cr_email"></qbook-value><br></qbook-condition>
 		<br>
 	</div>
 </div>
