@@ -1479,6 +1479,32 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 			paracrm_lib_data_updateRecord_file( 'FILE_ACTION', $arr_ins, $fileaction_filerecord_id);
 		}
 	}
+	
+	if( $post_form['link_action']=='TCHAT_OUT' ) {
+		// HACK !!!!
+		while( TRUE ) {
+			// recherche adresse
+			$t_adrTel_name = $t_adrTel_txt = NULL ;
+			$account_record = $json['data'] ;
+			foreach( $account_record['adrbook'] as $adrbook ) {
+				foreach( $adrbook['adrbookentries'] as $adrbookentry ) {
+					if( $adrbookentry['adr_type']=='TEL' && $adrbookentry['status_is_priority'] && !$adrbookentry['status_is_invalid'] ) {
+						$t_adrTel_name = $adrbook['adr_entity'] ;
+						$t_adrTel_txt = $adrbookentry['adr_txt'] ;
+					}
+				}
+			}
+			if( !$t_adrTel_txt ) {
+				break ;
+			}
+			
+			$_smsContent = "Vous avez reçu une réponse suite à votre message.\nMerci de vous reconnecter au portail pour en prendre connaissance" ;
+			
+			$sms_filerecord_id = specRsiRecouveo_lib_sms_createSmsForAction($t_adrTel_txt, $_smsContent, NULL) ;
+			
+			break ;
+		}
+	}
 
 	if( $post_form['link_action']=='SMS_OUT') {
 		// ****** Création sms ************
