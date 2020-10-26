@@ -34,6 +34,8 @@ function specRsiRecouveo_extPortal_postForm( $post_data ) {
 		return array('success'=>false) ;
 	}
 	
+	$_action_data['next_action_save'] = true ;
+	
 	$forward_post = array(
 		'_action' => 'action_doFileAction',
 		'file_filerecord_id' => $accountFileOn_filerecordId,
