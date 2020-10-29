@@ -31,6 +31,10 @@ function specRsiRecouveo_upload( $post_data ) {
 			$ret = specRsiRecouveo_lib_edi_post($_SESSION["login_data"]["userstr"],'upload_ACCOUNT_PROPERTIES',$handle) ;
 			break ;
 		
+		case 'IMPORT_ACTION' :
+			$ret = specRsiRecouveo_lib_edi_post($_SESSION["login_data"]["userstr"],'upload_ACTION',$handle) ;
+			break ;
+		
 		default :
 			return array('success'=>false);
 	}

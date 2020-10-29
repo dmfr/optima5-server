@@ -144,6 +144,50 @@ function specRsiRecouveo_lib_edi_convert_UPL_ACCTXTACTION_to_mapMethodJson($hand
 		"account_txtaction" => $actions_json
 	) ;
 }
+function specRsiRecouveo_lib_edi_convert_UPL_ACTION_to_mapMethodJson($handle) {
+	if (true){
+		$handle = specRsiRecouveo_lib_edi_upload_preHandle($handle) ;
+	}
+
+	$headers =fgetcsv($handle) ;
+	$map_header_csvIdx = array() ;
+	foreach ($headers as $csv_idx => $head){
+		switch ($head) {
+			case 'Société':
+				$head = "IdSoc" ;
+				break ;
+			case "Numéro client":
+				$head = "IdCli" ;
+				break ;
+			case "Titre";
+				$head = "TxtTitle" ;
+				break ;
+			case "Texte":
+				$head = "Txt" ;
+				break ;
+		}
+		if( trim($head)=='' ) {
+			continue ;
+		}
+		$map_header_csvIdx[$head] = $csv_idx ;
+	}
+	$action_rows = array() ;
+	while ($data = fgetcsv($handle)){
+		if( !$data ) {
+			continue ;
+		}
+		$row = array() ;
+		foreach( $map_header_csvIdx as $mkey => $idx ) {
+			$row[$mkey] = trim($data[$idx]) ;
+		}
+		$action_rows[] = $row ;
+	}
+	$actions_json = json_encode($action_rows) ;
+
+	return array(
+		"action" => $actions_json
+	) ;
+}
 function specRsiRecouveo_lib_edi_convert_UPLCOMPTES_to_mapMethodJson( $handle ) {
 	if (true){
 		$handle = specRsiRecouveo_lib_edi_upload_preHandle($handle) ;
@@ -422,6 +466,7 @@ function specRsiRecouveo_lib_edi_post($apikey_code, $transaction, $handle) {
 		case 'record' :
 		case 'record_lettermissing' :
 		case 'notification' :
+		case 'action' :
 		case 'DEV_purgeall' :
 			$mapMethodJson = array($transaction => stream_get_contents($handle_in)) ;
 			break ;
@@ -440,6 +485,9 @@ function specRsiRecouveo_lib_edi_post($apikey_code, $transaction, $handle) {
 			break ;
 		case 'upload_ACCOUNT_TXTACTION':
 			$mapMethodJson = specRsiRecouveo_lib_edi_convert_UPL_ACCTXTACTION_to_mapMethodJson($handle_in) ;
+			break ;
+		case 'upload_ACTION':
+			$mapMethodJson = specRsiRecouveo_lib_edi_convert_UPL_ACTION_to_mapMethodJson($handle_in) ;
 			break ;
 		default :
 			break ;
@@ -543,6 +591,9 @@ function specRsiRecouveo_lib_edi_postJson($apikey_code, $transaction, $json_str)
 		case 'notification':
 			$ret = specRsiRecouveo_lib_edi_post_notification( $json_rows ) ;
 			break ;
+		case 'action':
+			$ret = specRsiRecouveo_lib_edi_post_action( $json_rows ) ;
+			break ;
 		case 'DEV_purgeall':
 			$ret = specRsiRecouveo_lib_edi_post_devpurge( $json_rows ) ;
 			break ;
@@ -609,6 +660,42 @@ function specRsiRecouveo_lib_edi_validateSocCli( $id_soc, $id_cli=NULL, $test_cl
 		}
 	}
 	return $id_cli ;
+}
+function specRsiRecouveo_lib_edi_validateCliRecord( $id_cli, $id_record ) {
+	global $_opDB;
+	if( !$id_cli ) {
+		return NULL ;
+	}
+	$query_base = "SELECT filerecord_id FROM view_file_RECORD WHERE field_LINK_ACCOUNT='{$id_cli}'" ;
+	
+	if( is_numeric($id_record) ) {
+		$query = $query_base." AND filerecord_id='{$id_record}'" ;
+		$result = $_opDB->query($query) ;
+		if( $_opDB->num_rows($result) == 1 ) {
+			$arr = $_opDB->fetch_row($result) ;
+			return $arr[0] ;
+		}
+	}
+	
+	if( TRUE ) {
+		$query = $query_base." AND field_RECORD_ID='{$id_record}'" ;
+		$result = $_opDB->query($query) ;
+		if( $_opDB->num_rows($result) == 1 ) {
+			$arr = $_opDB->fetch_row($result) ;
+			return $arr[0] ;
+		}
+	}
+	
+	if( TRUE ) {
+		$query = $query_base." AND field_RECORD_REF='{$id_record}'" ;
+		$result = $_opDB->query($query) ;
+		if( $_opDB->num_rows($result) == 1 ) {
+			$arr = $_opDB->fetch_row($result) ;
+			return $arr[0] ;
+		}
+	}
+	
+	return NULL ;
 }
 
 function specRsiRecouveo_lib_edi_post_adrbook($json_rows){
@@ -1088,6 +1175,57 @@ function specRsiRecouveo_lib_edi_post_notification($json_rows) {
 		
 		$count_success++ ;
 	}
+
+	return array("count_success" => $count_success, "errors" => $ret_errors) ;
+}
+function specRsiRecouveo_lib_edi_post_action($json_rows) {
+	global $_opDB;
+	
+	$TAB_work = array() ;
+	
+	$mandatory = array('IdSoc','IdCli') ;
+	
+	$count_success = 0 ;
+	$ret_errors = array() ;
+	foreach( $json_rows as $idx => $json_row ) {
+		$missing = array() ;
+		foreach( $mandatory as $field ) {
+			if( !isset($json_row[$field]) ) {
+				$missing[] = $field ;
+			}
+		}
+		if( count($missing) > 0 ) {
+			$ret_errors[] = "ERR Idx={$idx} : missing field(s) ".implode(',',$missing) ;
+			continue ;
+		}
+		
+		// MANDATORY : IdCli
+		$txt_IdSoc = $json_row['IdSoc'] ;
+		$json_row['IdSoc'] = specRsiRecouveo_lib_edi_validateSocCli($json_row['IdSoc']) ;
+		if( !$json_row['IdSoc'] ) {
+			$ret_errors[] = "ERR Idx={$idx} : unknown IdSoc={$txt_IdSoc}" ;
+			continue ;
+		}
+		$json_row['IdCli'] = specRsiRecouveo_lib_edi_validateSocCli($json_row['IdSoc'],$json_row['IdCli']) ;
+		
+		
+		// OPT : IdRecord
+		if( $txt_IdRecord = $json_row['IdRecord'] ) {
+			$json_row['IdRecord'] = specRsiRecouveo_lib_edi_validateCliRecord($json_row['IdCli'],$json_row['IdRecord']) ;
+			if( !$json_row['IdRecord'] ) {
+				$ret_errors[] = "ERR Idx={$idx} : unknown IdRecord={$txt_IdRecord}" ;
+				continue ;
+			}
+		}
+		
+		
+		$TAB_work[] = array(
+			'IdCli' => $json_row['IdCli'],
+			'IdRecord' => array( $json_row['IdRecord'] )
+		);
+	}
+	
+	print_r($TAB_work) ;
 
 	return array("count_success" => $count_success, "errors" => $ret_errors) ;
 }
