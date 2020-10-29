@@ -159,12 +159,11 @@ function specRsiRecouveo_lib_edi_convert_UPL_ACTION_to_mapMethodJson($handle) {
 			case "Numéro client":
 				$head = "IdCli" ;
 				break ;
-			case "Titre";
-				$head = "TxtTitle" ;
+			case "Id facture";
+				$head = "IdRecord" ;
 				break ;
-			case "Texte":
-				$head = "Txt" ;
-				break ;
+			
+			// ....................
 		}
 		if( trim($head)=='' ) {
 			continue ;
@@ -1181,7 +1180,18 @@ function specRsiRecouveo_lib_edi_post_notification($json_rows) {
 function specRsiRecouveo_lib_edi_post_action($json_rows) {
 	global $_opDB;
 	
-	$TAB_work = array() ;
+	$search_actions = function($action_mode, $action_param, $acc_id) use (&$TAB_actions) {
+		foreach( $TAB_actions as $action_idx => $action_row ) {
+			if( ($action_row['action_mode']==$action_mode)
+					&& ($action_row['action_param']==$action_param)
+					&& ($action_row['acc_id']==$acc_id) ) {
+				return $action_idx ;
+			}
+		}
+		return FALSE ;
+	};
+	
+	$TAB_actions = array() ;
 	
 	$mandatory = array('IdSoc','IdCli') ;
 	
@@ -1196,6 +1206,41 @@ function specRsiRecouveo_lib_edi_post_action($json_rows) {
 		}
 		if( count($missing) > 0 ) {
 			$ret_errors[] = "ERR Idx={$idx} : missing field(s) ".implode(',',$missing) ;
+			continue ;
+		}
+		
+		// ACTION_MODE
+		if( $json_row['StatusPrimary'] ) {
+			$json_row['ActionMode'] = 'status' ;
+			
+			$query = "SELECT treenode_key FROM view_bible_CFG_STATUS_tree 
+					WHERE field_CODE='{$json_row['StatusPrimary']}' OR field_TXT='{$json_row['StatusPrimary']}'" ;
+			$json_row['ActionParam'] = $_opDB->query_uniqueValue($query) ;
+			
+			if( $json_row['StatusSub'] ) {
+				$bible_code = NULL ;
+				switch( $json_row['ActionParam'] ) {
+					case 'S2J_JUDIC' :
+						$bible_code = 'OPT_JUDIC' ;
+						break ;
+					case 'S2L_LITIG' :
+						$bible_code = 'OPT_LITIG' ;
+						break ;
+					case 'SX_CLOSE' :
+						$bible_code = 'OPT_CLOSEASK' ;
+						break ;
+				}
+				if( $bible_code ) {
+					$query = "SELECT treenode_key FROM view_bible_{$bible_code}_tree 
+							WHERE field_OPT_ID='{$json_row['StatusSub']}' OR field_OPT_TXT='{$json_row['StatusSub']}'" ;
+					if( $sub_param = $_opDB->query_uniqueValue($query) ) {
+						$json_row['ActionParam'].= ':'.$sub_param ;
+					}
+				}
+			}
+		}
+		if( !$json_row['ActionMode'] || !$json_row['ActionParam'] ) {
+			$ret_errors[] = "ERR Idx={$idx} : no action specified / unsupported" ;
 			continue ;
 		}
 		
@@ -1218,14 +1263,29 @@ function specRsiRecouveo_lib_edi_post_action($json_rows) {
 			}
 		}
 		
-		
-		$TAB_work[] = array(
-			'IdCli' => $json_row['IdCli'],
-			'IdRecord' => array( $json_row['IdRecord'] )
-		);
+		$action_idx = $search_actions($json_row['ActionMode'],$json_row['ActionParam'],$json_row['IdCli']) ;
+		if( $action_idx===FALSE ) {
+			$TAB_actions[] = array(
+				'action_mode' => $json_row['ActionMode'],
+				'action_param' => $json_row['ActionParam'],
+				'acc_id' => $json_row['IdCli']
+			);
+			$action_idx = (count($TAB_actions) - 1) ;
+		}
+		if( !$json_row['IdRecord'] ) {
+			$TAB_actions[$action_idx]['arr_recordFilerecordIds'] = NULL ;
+		}
+		if( $json_row['IdRecord'] ) {
+			if( !isset($TAB_actions[$action_idx]['arr_recordFilerecordIds']) ) {
+				$TAB_actions[$action_idx]['arr_recordFilerecordIds'] = array() ;
+			}
+			if( is_array($TAB_actions[$action_idx]['arr_recordFilerecordIds']) ) {
+				$TAB_actions[$action_idx]['arr_recordFilerecordIds'][] = $json_row['IdRecord'] ;
+			}
+		}
 	}
 	
-	print_r($TAB_work) ;
+	print_r($TAB_actions) ;
 
 	return array("count_success" => $count_success, "errors" => $ret_errors) ;
 }
