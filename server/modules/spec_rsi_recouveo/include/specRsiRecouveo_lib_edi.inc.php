@@ -1213,13 +1213,29 @@ function specRsiRecouveo_lib_edi_post_action($json_rows) {
 		if( $json_row['StatusPrimary'] ) {
 			$json_row['ActionMode'] = 'status' ;
 			
-			$query = "SELECT treenode_key FROM view_bible_CFG_STATUS_tree 
+			$query = "SELECT field_SCHED_LOCK, field_CODE FROM view_bible_CFG_STATUS_tree 
 					WHERE field_CODE='{$json_row['StatusPrimary']}' OR field_TXT='{$json_row['StatusPrimary']}'" ;
-			$json_row['ActionParam'] = $_opDB->query_uniqueValue($query) ;
-			
+			$result = $_opDB->query($query) ;
+			if( $_opDB->num_rows($result) == 1 ) {
+				$arr = $_opDB->fetch_row($result) ;
+				if( $arr[0] ) { // schedlock
+					$json_row['ActionParam'] = $arr[1] ;
+				} else { // encours
+					$json_row['ActionParam'] = '_' ;
+				}
+			}
 			if( $json_row['StatusSub'] ) {
 				$bible_code = NULL ;
 				switch( $json_row['ActionParam'] ) {
+					case 'S2P_PAY' :
+						//echo $json_row['StatusSub'] ;
+						//echo strtotime($json_row['StatusSub']) ;
+						if( strtotime($json_row['StatusSub']) ) {
+							$json_row['ActionParam'].= ':'.date('Y-m-d',strtotime($json_row['StatusSub'])) ;
+						} else {
+							$json_row['ActionParam'].= ':'.date('Y-m-d') ;
+						}
+						break ;
 					case 'S2J_JUDIC' :
 						$bible_code = 'OPT_JUDIC' ;
 						break ;
@@ -1283,9 +1299,164 @@ function specRsiRecouveo_lib_edi_post_action($json_rows) {
 				$TAB_actions[$action_idx]['arr_recordFilerecordIds'][] = $json_row['IdRecord'] ;
 			}
 		}
+		$count_success++ ;
 	}
 	
-	print_r($TAB_actions) ;
+	foreach( $TAB_actions as $row_action ) {
+		$acc_id = $row_action['acc_id'] ;
+		
+		// account_open
+		$json = specRsiRecouveo_account_open( array('acc_id'=>$acc_id) ) ;
+		if( !$json['success'] ) {
+			continue ;
+		}
+		$account_row = $json['data'] ;
+		//print_r($account_row) ;
+		
+		// 
+		
+		// statut actuel
+		$map_recordFilerecordId_status = array() ;
+		$map_recordFilerecordId_amount = array() ;
+		$targetFile_openFilerecordId = NULL ;
+		foreach( $account_row['files'] as $file_row ) {
+			switch( $accountFile_record['status'] ) {
+				case 'S1_OPEN' :
+				case 'S1_SEARCH' :
+					$targetFile_openFilerecordId = $accountFile_record['file_filerecord_id'] ;
+					break ;
+			}
+			
+			$file_status = ($file_row['status_is_schedlock'] ? $file_row['status'] : '_' ) ;
+			if( strpos($file_row['status_substatus'],$file_row['status'])===0 ) {
+				$file_status = $file_row['status_substatus'] ;
+			}
+			if( $file_row['status']=='S2P_PAY' ) {
+				$file_status.= ':'.date('Y-m-d',strtotime($file_row['next_date'])) ;
+			}
+			
+			foreach( $file_row['records'] as $record_row ) {
+				$map_recordFilerecordId_status[$record_row['record_filerecord_id']] = $file_status ;
+				$map_recordFilerecordId_amount[$record_row['record_filerecord_id']] = $record_row['amount'] ;
+			}
+		}
+		//print_r($map_recordFilerecordId_status) ;
+		
+		// HACK : si pas de pièces spécifiées => mutation globale
+		if( !isset($row_action['arr_recordFilerecordIds']) ) {
+			// TMP : abort
+			continue ;
+			$row_action['arr_recordFilerecordIds'] = array_values($map_recordFilerecordId_status) ;
+		}
+		
+		
+		if( $row_action['action_mode'] == 'status' ) {
+			$target_status = $row_action['action_param'] ;
+			$transaction_recordFilerecordIds = array() ;
+			foreach( $row_action['arr_recordFilerecordIds'] as $record_filerecord_id ) {
+				// if status_src = status_dst : rien à faire 
+				if( $map_recordFilerecordId_status[$record_filerecord_id] == $target_status ) {
+					continue ;
+				}
+				$transaction_recordFilerecordIds[] = $record_filerecord_id ;
+			}
+			
+			// if status_src != _
+			// => move to encours $targetFile_openFilerecordId
+			$moveback_recordFilerecordIds = array() ;
+			foreach( $transaction_recordFilerecordIds as $record_filerecord_id ) {
+				if( $map_recordFilerecordId_status[$record_filerecord_id] != '_' ) {
+					$moveback_recordFilerecordIds[] = $record_filerecord_id ;
+				}
+			}
+			if( $moveback_recordFilerecordIds ) {
+				specRsiRecouveo_file_allocateRecordTemp( array(
+					'file_filerecord_id' => $targetFile_openFilerecordId,
+					'arr_recordFilerecordIds' => json_encode($moveback_recordFilerecordIds)
+				)) ;
+			}
+			
+			
+			// if status_dst != _
+			// => specRsiRecouveo_file_createForAction
+			if( ($target_status != '_') && $transaction_recordFilerecordIds ) {
+				$ttmp = explode(':',$target_status) ;
+				$target_status_base = $ttmp[0] ;
+				$target_status_suffix = $ttmp[1] ;
+				
+				$forward_post = NULL ;
+				switch( $target_status_base ) {
+					case 'S2P_PAY' :
+						$agree_amount = 0 ;
+						foreach( $transaction_recordFilerecordIds as $record_filerecord_id ) {
+							$agree_amount += $map_recordFilerecordId_amount[$record_filerecord_id] ;
+						}
+						$forward_post = array(
+							'acc_id' => $acc_id,
+							'arr_recordIds' => json_encode($transaction_recordFilerecordIds),
+							'new_action_code' => 'AGREE_START',
+							'form_data' => json_encode(array(
+								'new_action_id' => 'AGREE_START',
+								'agree_period' => 'SINGLE',
+								'agree_date' => $target_status_suffix,
+								'agree_amount' => $agree_amount
+							))
+						);
+						break ;
+						
+					case 'S2L_LITIG' :
+						$forward_post = array(
+							'acc_id' => $acc_id,
+							'arr_recordIds' => json_encode($transaction_recordFilerecordIds),
+							'new_action_code' => 'LITIG_START',
+							'form_data' => json_encode(array(
+								'new_action_id' => 'LITIG_START',
+								'litig_code' => $target_status_suffix,
+								'litig_nextdate' => date('Y-m-d',strtotime('+7 days')),
+								'litig_txt' => 'Modification en masse'
+							))
+						);
+						break ;
+						
+					case 'S2J_JUDIC' :
+						$forward_post = array(
+							'acc_id' => $acc_id,
+							'arr_recordIds' => json_encode($transaction_recordFilerecordIds),
+							'new_action_code' => 'JUDIC_START',
+							'form_data' => json_encode(array(
+								'new_action_id' => 'JUDIC_START',
+								'judic_code' => $target_status_suffix,
+								'judic_nextdate' => date('Y-m-d',strtotime('+7 days')),
+								'judic_txt' => 'Modification en masse'
+							))
+						);
+						break ;
+						
+					case 'SX_CLOSE' :
+						$forward_post = array(
+							'acc_id' => $acc_id,
+							'arr_recordIds' => json_encode($transaction_recordFilerecordIds),
+							'new_action_code' => 'CLOSE_ASK',
+							'form_data' => json_encode(array(
+								'new_action_id' => 'CLOSE_ASK',
+								'close_code' => $target_status_suffix,
+								'close_txt' => 'Modification en masse'
+							))
+						);
+						break ;
+				
+					default :
+						break ;
+				}
+				if( $forward_post ) {
+					specRsiRecouveo_file_createForAction($forward_post) ;
+				}
+			}
+		}
+		
+		specRsiRecouveo_file_lib_updateStatus($acc_id) ;
+		specRsiRecouveo_file_lib_manageActivate($acc_id) ;
+	}
 
 	return array("count_success" => $count_success, "errors" => $ret_errors) ;
 }
