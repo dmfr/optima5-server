@@ -130,7 +130,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.EmailLoadTemplateButton',{
 		});
 	},
 	handleSelectTpl: function(tplId) {
-		console.log('Loading tpl = '+tplId) ;
+		this.toggleWindow() ;
+		this.fireEvent('select',this,tplId) ;
 	},
 	onDestroyMyself: function(myself) {
 		if( this.floatingWindow ) {

@@ -223,7 +223,15 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusEmailPanel',{
 					},
 					items: [
 						Ext.create('Optima5.Modules.Spec.RsiRecouveo.EmailLoadTemplateButton',{
-							renderTarget: this._actionForm.getEl()
+							_actionForm: this._actionForm,
+							optimaModule: this.optimaModule,
+							renderTarget: this._actionForm.getEl(),
+							listeners: {
+								select: function(p,tplId) {
+									this.onSelectTpl(tplId) ;
+								},
+								scope: this
+							}
 						})
 					]
 				}]
@@ -537,6 +545,39 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusEmailPanel',{
 			return true ;
 		}
 		return errors ;
+	},
+	
+	onSelectTpl: function( tplId ) {
+		this.getEl().mask() ;
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_rsi_recouveo',
+				_action: 'action_execMailAutoTemplate',
+				file_filerecord_id: this._fileRecord.get('file_filerecord_id'),
+				fileaction_filerecord_id: this._fileActionFilerecordId,
+				tpl_id: tplId,
+				adr_type: 'EMAIL'
+			},
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					var error = ajaxResponse.success || 'File not saved !' ;
+					Ext.MessageBox.alert('Error',error) ;
+					return ;
+				}
+				
+				var formData = {} ;
+				formData['email_outmodel_preprocess_banner'] = false ;
+				formData['email_outmodel_preprocess_attachrecords'] = true ;
+				formData['email_subject'] = ajaxResponse.data.subject ;
+				formData['email_body'] = ajaxResponse.data.body_html.replace(/(\r\n|\n|\r)/gm, "") ;
+				this._actionForm.getForm().setValues(formData) ;
+			},
+			callback: function() {
+				this.getEl().unmask() ;
+			},
+			scope: this
+		}) ;
 	},
 	
 	statics: {

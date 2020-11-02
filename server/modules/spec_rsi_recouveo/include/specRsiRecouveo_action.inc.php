@@ -1,4 +1,107 @@
 <?php
+function specRsiRecouveo_action_execMailAutoTemplate( $post_data ) {
+	$ttmp = specRsiRecouveo_cfg_getConfig() ;
+	$cfg_email = $ttmp['data']['cfg_email'] ;
+	$cfg_template = $ttmp['data']['cfg_template'] ;
+	
+	$p_fileFilerecordId = $post_data['file_filerecord_id'] ;
+	$p_tplId = $post_data['tpl_id'] ;
+
+	$json_file = specRsiRecouveo_file_getRecords( array(
+		'filter_fileFilerecordId_arr' => json_encode(array($p_fileFilerecordId))
+	)) ;
+	$file = $json_file['data'][0] ;
+	if( $file['file_filerecord_id'] != $p_fileFilerecordId ) {
+		return array('success'=>false) ;
+	}
+	
+	switch( $post_data['adr_type'] ) {
+		case 'POSTAL' :
+			return array('success'=>false) ;
+			
+		case 'EMAIL' :
+			$t_adrEmail_dest = $t_adrEmail_src = NULL ;
+			$json = specRsiRecouveo_account_open( array('acc_id'=>$file['acc_id']) ) ;
+			$account = $json['data'] ;
+			
+			$htmls = specRsiRecouveo_doc_getMailOut(array(
+				'tpl_id' => $p_tplId,
+				'tpl_lang' => null, //TODO
+				'file_filerecord_id' => $p_fileFilerecordId,
+				'record_filerecord_ids' => null,
+				'adr_type' => 'EMAIL',
+				'input_fields' => json_encode(array())
+			),$real=FALSE,$htmlraw=TRUE) ;
+			
+			$html_body = $htmls[0] ;
+			
+			$attachments = array() ;
+			for( $i=1 ; $i<count($htmls) ; $i++ ) {
+				$binary_html = $htmls[$i] ;
+				$binary_pdf = specRsiRecouveo_util_htmlToPdf_buffer($binary_html) ;
+				
+				$_domain_id = DatabaseMgr_Base::dbCurrent_getDomainId() ;
+				$_sdomain_id = DatabaseMgr_Sdomain::dbCurrent_getSdomainId() ;
+				
+				media_contextOpen( $_sdomain_id ) ;
+				$attachments[] = array(
+					'filename' => preg_replace("/[^a-zA-Z0-9]/", "", $file['acc_id']).'_'.date('Ymd').'.pdf',
+					'outmodel_tmp_media_id' => media_bin_processBuffer( $binary_pdf )
+				);
+				media_contextClose() ;
+			}
+			
+			// subject ?
+			foreach( $cfg_template as $tpl_row ) {
+				if( $tpl_row['tpl_id'] == $p_tplId ) {
+					$subject = $tpl_row['html_title'] ;
+					break ;
+				}
+			}
+				// ******** 06/02/2019 : attributs, probe LANG atr *********
+				$probe_lang_atrField = NULL ;
+				$ttmp = specRsiRecouveo_cfg_getConfig() ;
+				$cfg_atr = $ttmp['data']['cfg_atr'] ;
+				foreach( $cfg_atr as $atr_record ) {
+					$atr_id = $atr_record['atr_id'] ;
+					$ttmp = explode('@',$atr_id) ;
+					$atr_code = $ttmp[1] ;
+					if( $atr_record['atr_type']=='account' && $atr_code=='LANG' ) {
+						$probe_lang_atrField = $atr_record['atr_field'] ;
+						break ;
+					}
+				}
+				if( $probe_lang_atrField && $account ) {
+					$_lang_code = $account[$probe_lang_atrField] ;
+					$_lang_code = strtoupper(substr($_lang_code,0,2)) ;
+				}
+				if( !$_lang_code ) { // HACK Recouveo
+					$_lang_code='FR' ;
+				}
+				if( $_lang_code ) {
+					$doc = new DOMDocument();
+					@$doc->loadHTML('<?xml encoding="UTF-8"><html>'.$subject.'</html>');
+					specRsiRecouveo_doc_replaceLang($doc,$_lang_code) ;
+					$subject = strip_tags($doc->saveHTML()) ;
+				}
+				
+			return array(
+				'success' => true,
+				'data' => array(
+					'body_html' => $html_body,
+					'subject' => $subject
+				)
+			);
+			
+		case 'TEL' : // mode SMS
+			return array('success'=>false) ;
+			
+		default :
+			break ;
+	}
+	
+	return array('success'=>false) ;
+}
 function specRsiRecouveo_action_execMailAutoPreview( $post_data ) {
 	$ttmp = specRsiRecouveo_cfg_getConfig() ;
 	$cfg_email = $ttmp['data']['cfg_email'] ;
