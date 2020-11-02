@@ -159,7 +159,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.EmailOutDestField',{
 Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusEmailPanel',{
 	extend:'Ext.form.Panel',
 	
-	requires: ['Optima5.Modules.Spec.RsiRecouveo.EmailAttachmentsFieldButton'],
+	requires: [
+		'Optima5.Modules.Spec.RsiRecouveo.EmailAttachmentsFieldButton',
+		'Optima5.Modules.Spec.RsiRecouveo.EmailLoadTemplateButton'
+	],
 	
 	_fileRecord: null,
 	
@@ -210,6 +213,19 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusEmailPanel',{
 					xtype: 'displayfield',
 					fieldLabel: 'Action',
 					value: '<b>Email sortant</b>'
+				},{
+					itemId: 'btnTemplates',
+					xtype: 'container',
+					height: 48,
+					layout: {
+						type: 'hbox',
+						pack: 'end'
+					},
+					items: [
+						Ext.create('Optima5.Modules.Spec.RsiRecouveo.EmailLoadTemplateButton',{
+							renderTarget: this._actionForm.getEl()
+						})
+					]
 				}]
 			},{
 				xtype: 'fieldset',
@@ -493,6 +509,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusEmailPanel',{
 			emailAttachmentsField.doImportFromReuse( origEmailRecord.get('email_filerecord_id') ) ;
 		}
 		
+		this.down('#btnTemplates').setVisible(false) ;
 	},
 	
 	checkEmailSendable: function() {
