@@ -563,6 +563,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 			idProperty: 'record_filerecord_id',
 			fields: pushModelFieldsRecord,
 			hasMany: [{
+				model: 'RsiRecouveoRecordTxtModel',
+				name: 'txt_rows',
+				associationKey: 'txt_rows'
+			},{
 				model: 'RsiRecouveoRecordLinkModel',
 				name: 'all_links',
 				associationKey: 'all_links'

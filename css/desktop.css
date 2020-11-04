@@ -702,3 +702,19 @@ body {    background: none repeat scroll 0 0 #F8F8F8;}
     text-overflow: ellipsis;
     display: block;
 }
+
+.x-grid-cell-overflowvisible {
+	overflow: visible ;
+}
+.x-grid-cell-overflowvisible .x-grid-cell-inner {
+	overflow: visible ;
+	text-overflow: visible ;
+	
+}
+.x-grid-cell-alignright {
+	text-align: right !important;
+}
+.x-grid-cell-alignright .x-grid-cell-inner {
+	text-align: right !important;
+	
+}

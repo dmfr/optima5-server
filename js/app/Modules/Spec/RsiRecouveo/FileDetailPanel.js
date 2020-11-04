@@ -25,7 +25,11 @@ Ext.define('RsiRecouveoFileDetailRecordsTreeModel', {
 		  
 		  {name: 'letter_node', type: 'boolean'},
 		  {name: 'letter_code', type: 'string'},
-		  {name: 'letter_is_confirm', type: 'boolean'}
+		  {name: 'letter_is_confirm', type: 'boolean'},
+		  
+		  {name: 'txt_is_leaf', type: 'boolean'},
+		  {name: 'txt_date', type: 'date'},
+		  {name: 'txt_content', type: 'string'}
      ]
 });
 Ext.define('RsiRecouveoExtPortalGridModel',{
@@ -343,12 +347,17 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			text: 'Dossier/Fact',
 			dataIndex: 'id',
 			width: 250,
+			align: '',
 			renderer: function( v, meta, r ) {
 				if( !Ext.isEmpty(r.get('file_id_ref')) ) {
 					return '<b>'+r.get('file_id_ref')+'</b>' ;
 				}
 				if( r.get('letter_node') ) {
 					return '<b>'+r.get('letter_code')+'</b>' ;
+				}
+				if( r.get('txt_is_leaf') ) {
+					meta.tdCls+= ' '+'x-grid-cell-alignright' ; // align=right
+					return Ext.util.Format.date(r.get('txt_date'),'d/m/Y') ;
 				}
 				return r.get('record_ref') ;
 			}
@@ -367,7 +376,13 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			dataIndex: 'record_date',
 			align: 'center',
 			width: 90,
-			renderer: Ext.util.Format.dateRenderer('d/m/Y')
+			renderer: function( v, meta, r ) {
+				if( r.get('txt_is_leaf') ) {
+					meta.tdCls+= ' '+'x-grid-cell-overflowvisible' ; // colspan=2 
+					return Ext.util.Format.nl2br( Ext.String.htmlEncode( r.get('txt_content') ) ) ;
+				}
+				return Ext.util.Format.date(v,'d/m/Y') ;
+			}
 		},{
 			text: 'Echeance',
 			dataIndex: 'record_datevalue',
@@ -380,6 +395,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			align: 'right',
 			width: 90,
 			renderer: function( v, meta, r ) {
+				if( r.get('txt_is_leaf') ) {
+					v = '' ;
+				}
 				if( Ext.isNumber(v) ) {
 					v = Ext.util.Format.number(v,'0,000.00') ;
 				}
@@ -1927,6 +1945,23 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 					record_type: fileRecordRecord.get('type'),
 					record_readonly: (Ext.isEmpty(fileRecordRecord.get('type_temprec')) || fileRecordRecord.get('bank_is_alloc'))
 				};
+				if( fileRecordRecord.txt_rows().getCount() > 0 ) {
+					var txtChildren = [] ;
+					fileRecordRecord.txt_rows().sort({property:'txt_date',direction:'DESC'}) ;
+					fileRecordRecord.txt_rows().each( function(trec) {
+						txtChildren.push({
+							leaf: true,
+							txt_is_leaf: true,
+							txt_date: trec.get('txt_date'),
+							txt_content: trec.get('txt_content')
+						});
+					}) ;
+					Ext.apply(record,{
+						leaf: false,
+						expanded: true,
+						children: txtChildren
+					}) ;
+				}
 				Ext.Array.each(atrRecFields, function(atrRecField) {
 					record[atrRecField] = fileRecordRecord.get(atrRecField) ;
 				});

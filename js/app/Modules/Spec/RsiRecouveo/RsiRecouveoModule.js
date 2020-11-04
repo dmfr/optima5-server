@@ -181,6 +181,8 @@ Ext.define('RsiRecouveoRecordTplModel',{ // TO: RsiRecouveoRecordModel
 		{name: 'calc_is_inv', type:'boolean'},
 		{name: 'calc_amount_due', type:'number'},
 		
+		{name: 'link_txt', type:'string'},
+		
 		{name: 'recordgroup_id', type: 'string'},
 		{name: 'bank_is_alloc', type: 'string'},
 		{name: 'notification_is_on', type: 'boolean'},
@@ -200,6 +202,15 @@ Ext.define('RsiRecouveoRecordLinkModel',{
 		{name: 'link_is_active', type:'boolean'},
 		{name: 'date_link_on', type:'date', dateFormat:'Y-m-d H:i:s'},
 		{name: 'date_link_off', type:'date', dateFormat:'Y-m-d H:i:s'}
+	]
+}) ;
+Ext.define('RsiRecouveoRecordTxtModel',{
+	extend: 'Ext.data.Model',
+	idProperty: 'recordtxt_filerecord_id',
+	fields: [
+		{name: 'recordtxt_filerecord_id', type:'int'},
+		{name: 'txt_date', type:'date', dateFormat:'Y-m-d H:i:s'},
+		{name: 'txt_content', type:'string'}
 	]
 }) ;
 

@@ -389,6 +389,7 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
 		$file_filerecord_id = $arr['file_filerecord_id'] ;
+		$record_filerecord_id = $arr['filerecord_id'] ;
 		$record_row = array(
 			'record_filerecord_id' => $arr['filerecord_id'],
 			
@@ -412,7 +413,9 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 			'letter_is_confirm' => ($arr['field_LETTER_IS_CONFIRM']==1),
 			'letter_date' => $arr['field_LETTER_DATE'],
 			'bank_is_alloc' => ($arr['field_BANK_LINK_FILE_ID']>0),
-			'notification_is_on' => false
+			'notification_is_on' => false,
+			
+			'txt_rows' => array()
 		);
 		foreach( $cfg_atr as $atr_record ) {
 			if( $atr_record['atr_type']=='record' ) {
@@ -433,8 +436,66 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 		if( !isset($TAB_files[$file_filerecord_id]) ) {
 			continue ;
 		}
-		$TAB_files[$file_filerecord_id]['records'][] = $record_row ;
+		$TAB_files[$file_filerecord_id]['records'][$record_filerecord_id] = $record_row ;
 	}
+	
+	
+	$query = "SELECT f.filerecord_id AS file_filerecord_id, rt.filerecord_parent_id as record_filerecord_id, rt.*" ;
+	$query.= " FROM view_file_FILE f" ;
+	$query.= " JOIN view_file_RECORD_LINK rl ON rl.field_LINK_FILE_ID=f.filerecord_id AND rl.field_LINK_IS_ON='1'" ;
+	$query.= " JOIN view_file_RECORD_TXT rt ON rt.filerecord_parent_id=rl.filerecord_parent_id" ;
+	$query.= " JOIN view_bible_LIB_ACCOUNT_entry la ON la.entry_key = f.field_LINK_ACCOUNT" ;
+	$query.= " WHERE 1" ;
+	if( isset($filter_fileFilerecordId_list) ) {
+		$query.= " AND f.filerecord_id IN {$filter_fileFilerecordId_list}" ;
+		if( $filter_archiveIsOff ) {
+			$query.= " AND f.field_STATUS_CLOSED_VOID='0' AND f.field_STATUS_CLOSED_END='0'" ;
+		}
+	} else {
+		if( $filter_atr ) {
+			foreach( $cfg_atr as $atr_record ) {
+				$atr_id = $atr_record['atr_id'] ;
+				$atr_dbfield = 'field_'.$atr_record['atr_field'] ;
+				switch( $atr_record['atr_type'] ) {
+					case 'account' : $atr_dbalias='la' ; break ;
+					default : continue 2 ;
+				}
+				if( $filter_atr[$atr_id] ) {
+					$mvalue = $filter_atr[$atr_id] ;
+					$query.= " AND {$atr_dbalias}.{$atr_dbfield} IN ".$_opDB->makeSQLlist($mvalue) ;
+				}
+			}
+		}
+		if( $filter_atr_Rsub ) {
+			$query.= " AND f.field_LINK_ACCOUNT IN ({$filter_atr_Rsub})" ;
+		}
+		if( $filter_soc ) {
+			$query.= " AND la.treenode_key IN ".$_opDB->makeSQLlist($filter_soc) ;
+		}
+		if( !$filter_archiveIsOn ) {
+			$query.= " AND f.field_STATUS_CLOSED_VOID='0' AND f.field_STATUS_CLOSED_END='0'" ;
+		} else {
+			$query.= " AND f.field_STATUS_CLOSED_VOID='0'" ;
+		}
+	}
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		$file_filerecord_id = $arr['file_filerecord_id'] ;
+		$record_filerecord_id = $arr['record_filerecord_id'] ;
+		$recordtxt_row = array(
+			'recordtxt_filerecord_id' => $arr['filerecord_id'],
+			'txt_date' => $arr['field_TXT_DATE'],
+			'txt_content' => $arr['field_TXT_CONTENT']
+		);
+		if( !isset($TAB_files[$file_filerecord_id]) ) {
+			continue ;
+		}
+		if( !isset($TAB_files[$file_filerecord_id]['records'][$record_filerecord_id]) ) {
+			continue ;
+		}
+		$TAB_files[$file_filerecord_id]['records'][$record_filerecord_id]['txt_rows'][] = $recordtxt_row ;
+	}
+	
 	
 	$map_etaRange_maxDays = array() ;
 	foreach( $cfg_action_eta as $row ) {
@@ -669,6 +730,8 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 		if( $post_data['filter_fastMode'] ) {
 			unset($file_row['records']) ;
 			//unset($file_row['actions']) ;
+		} else {
+			$file_row['records'] = array_values($file_row['records']) ;
 		}
 	}
 	unset($file_row) ;
