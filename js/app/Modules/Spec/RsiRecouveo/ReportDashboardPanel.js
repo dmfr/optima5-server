@@ -143,10 +143,19 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPanel',{
 		if( Ext.isEmpty(pageClass) ) {
 			pCenter.add({
 				xtype: 'box',
-				cls:'op5-waiting'
+				//cls:'op5-waiting'
 			}) ;
 			return ;
 		}
+		if( pageClass===true ) {
+			if( this._installedPage != pageClass ) {
+				return this.doInstallPage(this._installedPage) ;
+			} else {
+				return ;
+			}
+		}
+		
+		this._installedPage = pageClass ;
 		
 		var currentFilterValues = this.getFilterValues(),
 			datePeriod = currentFilterValues['filter_date']['date_period'] ;
@@ -224,6 +233,11 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportDashboardPanel',{
 	},
 	
 	onTbarChanged: function( filterValues ) {
+		if( filterValues.filter_null ) {
+			this.doInstallPage(null) ;
+			return ;
+		}
+		this.doInstallPage(true) ;
 		this.doReloadPage() ;
 	},
 	

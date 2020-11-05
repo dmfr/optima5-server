@@ -1263,3 +1263,9 @@
 	font-family: sans-serif ;
 	text-align: left;
 }
+
+.op5-spec-rsiveo-searchbox {
+	background-position: center ;
+	background-repeat: no-repeat;
+	background-image: url("../images/modules/rsiveo-search-16.gif") !important;
+}

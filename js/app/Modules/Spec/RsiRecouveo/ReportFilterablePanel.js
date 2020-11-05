@@ -3,61 +3,102 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportFilterablePanel',{
 	
 	initComponent: function() {
 		Ext.apply(this,{
-			tbar:[{
-				hidden: this._reportMode,
-				icon: 'images/modules/rsiveo-back-16.gif',
-				text: '<u>Menu</u>',
-				itemId: 'menu',
-				handler: function(){
-					this.doQuit() ;
-				},
-				scope: this
-			},'-',Ext.create('Optima5.Modules.Spec.RsiRecouveo.CfgParamButton',{
-				itemId: 'tbSoc',
-				cfgParam_id: 'SOC',
-				icon: 'images/modules/rsiveo-blocs-16.gif',
-				selectMode: 'MULTI',
-				optimaModule: this.optimaModule,
-				listeners: {
-					change: {
-						fn: function() {
-							this.onSocSet() ;
-						},
-						scope: this
-					},
-					ready: {
-						fn: function() {
-							
-						},
-						scope: this
-					}
-				}
-			}),{
-				itemId: 'tbAtr',
-				border: false,
+			tbar: [{
 				xtype: 'toolbar',
-				items: []
-			},'-',Ext.create('Optima5.Modules.Spec.RsiRecouveo.CfgParamButton',{
-				itemId: 'tbUser',
-				cfgParam_id: 'USER',
-				icon: 'images/modules/rsiveo-users-16.png',
-				selectMode: 'SINGLE',
-				optimaModule: this.optimaModule,
-				listeners: {
-					change: {
-						fn: function() {
-							this.onUserSet() ;
-						},
-						scope: this
+				itemId: 'tbSearch',
+				items: [{
+					hidden: this._reportMode,
+					icon: 'images/modules/rsiveo-back-16.gif',
+					text: 'Retour filtres',
+					itemId: 'menu',
+					handler: function(){
+						this.toggleToolbar('tbStandard') ;
 					},
-					ready: {
-						fn: function() {
-							
-						},
+					scope: this
+				},'-',{
+					xtype: 'box',
+					width: 24,
+					height: 24,
+					cls: 'op5-spec-rsiveo-searchbox'
+				},Ext.create('Optima5.Modules.Spec.RsiRecouveo.SearchCombo',{
+					optimaModule: this.optimaModule,
+					
+					hidden: this._reportMode,
+					itemId: 'btnSearch',
+					width: 150,
+					listeners: {
+						beforequeryload: this.onSearchBeforeQueryLoad,
+						select: this.onSearchSelect,
 						scope: this
 					}
-				}
-			}),'->',{
+				}),{
+					xtype: 'hiddenfield',
+					itemId: 'fHidden',
+					value: ''
+				},{
+					xtype: 'displayfield',
+					itemId: 'fDisplay',
+					value: ''
+				}]
+			},{
+				xtype: 'toolbar',
+				hidden: true,
+				itemId: 'tbStandard',
+				items: [{
+					icon: 'images/modules/rsiveo-search-16.gif',
+					hidden: this._reportMode,
+					itemId: 'btnSearchIcon',
+					handler: function(btn) {
+						this.toggleToolbar('tbSearch') ;
+					},
+					scope: this
+				},Ext.create('Optima5.Modules.Spec.RsiRecouveo.CfgParamButton',{
+					itemId: 'tbSoc',
+					cfgParam_id: 'SOC',
+					icon: 'images/modules/rsiveo-blocs-16.gif',
+					selectMode: 'MULTI',
+					optimaModule: this.optimaModule,
+					listeners: {
+						change: {
+							fn: function() {
+								this.onSocSet() ;
+							},
+							scope: this
+						},
+						ready: {
+							fn: function() {
+								
+							},
+							scope: this
+						}
+					}
+				}),{
+					itemId: 'tbAtr',
+					border: false,
+					xtype: 'toolbar',
+					items: []
+				},'-',Ext.create('Optima5.Modules.Spec.RsiRecouveo.CfgParamButton',{
+					itemId: 'tbUser',
+					cfgParam_id: 'USER',
+					icon: 'images/modules/rsiveo-users-16.png',
+					selectMode: 'SINGLE',
+					optimaModule: this.optimaModule,
+					listeners: {
+						change: {
+							fn: function() {
+								this.onUserSet() ;
+							},
+							scope: this
+						},
+						ready: {
+							fn: function() {
+								
+							},
+							scope: this
+						}
+					}
+				})]
+			},'->',{
 				itemId: 'btnFilterDate',
 				xtype: 'button',
 				textBase: 'Dates période',
@@ -167,7 +208,15 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportFilterablePanel',{
 		}) ;
 		this.callParent() ;
 		
+		this.toggleToolbar('tbStandard') ;
 		this.buildToolbar() ;
+	},
+	toggleToolbar: function(itemId) {
+		Ext.Array.each( this.query('>toolbar>toolbar'), function(tb) {
+			tb.setVisible( itemId==tb.itemId ) ;
+		}) ;
+		this.setSearchAccount(null) ;
+		this.doTbarChanged() ;
 	},
 	buildToolbar: function() {
 		var tbAtr = this.down('#tbAtr') ;
@@ -302,6 +351,17 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportFilterablePanel',{
 	},
 	
 	getFilterValues: function() {
+		var filterDateForm = this.down('#btnFilterDate').menu.down('form'),
+			filterDateValues = filterDateForm.getForm().getValues() ;
+		if( this.down('#tbSearch').isVisible(true) ) {
+			var accId = this.down('#tbSearch').down('#fHidden').getValue() ;
+			if( Ext.isEmpty(accId) ) {
+				return {filter_null: true, filter_date: filterDateValues} ;
+			} else {
+				return {filter_account: [accId], filter_date: filterDateValues} ;
+			}
+		}
+		
 		var objAtrFilter = {}, arrSocFilter=null, arrUserFilter=null ;
 		Ext.Array.each( this.query('toolbar > [cfgParam_id]'), function(cfgParamBtn) {
 			var cfgParam_id = cfgParamBtn.cfgParam_id ;
@@ -363,6 +423,47 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportFilterablePanel',{
 			}
 		}) ;
 		
+	},
+	
+	
+	onSearchBeforeQueryLoad: function(store,options) {
+		//console.dir(arguments) ;
+	},
+	onSearchSelect: function(searchcombo,selrec) {
+		
+		this.setSearchAccount(selrec.get('acc_id')) ;
+	},
+	setSearchAccount: function( accId ) {
+		if( accId == null ) {
+			this.down('#tbSearch').down('#fDisplay').setValue('') ;
+			this.down('#tbSearch').down('#fHidden').setValue('') ;
+			return ;
+		}
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_rsi_recouveo',
+				_action: 'account_open',
+				acc_id: accId,
+				//filter_atr: Ext.JSON.encode(filterAtr),
+				filter_archiveIsOff: true
+			},
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					Ext.MessageBox.alert('Error','Error') ;
+					return ;
+				}
+				this.onSearchLoadAccount( ajaxResponse.data ) ;
+			},
+			callback: function() {
+			},
+			scope: this
+		}) ;
+	},
+	onSearchLoadAccount: function( accData ) {
+		this.down('#tbSearch').down('#fDisplay').setValue('<b>'+accData.acc_id+'</b>'+'&nbsp;'+accData.acc_txt) ;
+		this.down('#tbSearch').down('#fHidden').setValue(accData.acc_id) ;
+		this.doTbarChanged() ;
 	}
 	
 }) ;
