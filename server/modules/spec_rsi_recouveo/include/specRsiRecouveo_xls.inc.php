@@ -281,6 +281,10 @@ function specRsiRecouveo_xls_create_writer($accId){
 			foreach ($metaDesc as $value) {
 				$factures[$i][$value['Desc']] = $record[$value['Field']] ;
 			}
+			$factures[$i]['arr_txt'] = array() ;
+			foreach ($record['txt_rows'] as $txt_row) {
+				$factures[$i]['arr_txt'][] = $txt_row['txt_content'] ;
+			}
 			$i += 1 ;
 		}
 	}
@@ -452,16 +456,28 @@ function specRsiRecouveo_xls_create_writer($accId){
 			$newKey = $key+2;
 			$sheet3->setCellValue($columnValue.$newKey, $facture[$meta['Desc']]) ;
 		}
-
 		$columnValue++ ;
 	}
+	foreach($factures as $key => $facture){
+		foreach( $facture['arr_txt'] as $row_txt ) {
+			$newKey = $key+2;
+			$sheet3->setCellValue($columnValue.$newKey, trim($row_txt)) ;
+			$columnValue++ ;
+		}
+	}
+	
 	$columnValue = 'A' ;
 	for ($i=0;$i<$countFact;$i++){
 		$sheet3->getColumnDimension($columnValue)->setAutoSize(true);
 		$columnValue++ ;
 	}
+	foreach($factures as $key => $facture){
+		$newKey = $key+2;
+		//$sheet3->getRowDimension($newKey)->setRowHeight(-1);
+	}
 	$sheet3->getStyle('A1:Z1')->getFont()->setBold(true) ;
-
+	
+	
 	$sheet4 =$workbook->createSheet() ;
 	$sheet4->setTitle('Actions') ;
 	$sheet4->setCellValue('A1','Dossier: ');

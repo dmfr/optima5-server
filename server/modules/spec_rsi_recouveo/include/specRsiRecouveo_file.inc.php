@@ -478,6 +478,7 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 			$query.= " AND f.field_STATUS_CLOSED_VOID='0'" ;
 		}
 	}
+	$query.= " ORDER BY rt.filerecord_id" ;
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
 		$file_filerecord_id = $arr['file_filerecord_id'] ;
