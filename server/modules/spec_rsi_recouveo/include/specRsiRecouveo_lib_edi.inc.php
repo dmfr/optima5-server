@@ -1193,7 +1193,7 @@ function specRsiRecouveo_lib_edi_post_action($json_rows) {
 	
 	$TAB_actions = array() ;
 	
-	$mandatory = array('IdSoc','IdCli') ;
+	$mandatory = array('IdSoc','IdCli','IdRecord') ;
 	
 	$count_success = 0 ;
 	$ret_errors = array() ;
@@ -1206,6 +1206,24 @@ function specRsiRecouveo_lib_edi_post_action($json_rows) {
 		}
 		if( count($missing) > 0 ) {
 			$ret_errors[] = "ERR Idx={$idx} : missing field(s) ".implode(',',$missing) ;
+			continue ;
+		}
+		
+		// MANDATORY : IdCli
+		$txt_IdSoc = $json_row['IdSoc'] ;
+		$json_row['IdSoc'] = specRsiRecouveo_lib_edi_validateSocCli($json_row['IdSoc']) ;
+		if( !$json_row['IdSoc'] ) {
+			$ret_errors[] = "ERR Idx={$idx} : unknown IdSoc={$txt_IdSoc}" ;
+			continue ;
+		}
+		$json_row['IdCli'] = specRsiRecouveo_lib_edi_validateSocCli($json_row['IdSoc'],$json_row['IdCli']) ;
+		
+		
+		// MANDATORY : IdRecord
+		$txt_IdRecord = $json_row['IdRecord'] ;
+		$json_row['IdRecord'] = specRsiRecouveo_lib_edi_validateCliRecord($json_row['IdCli'],$json_row['IdRecord']) ;
+		if( !$json_row['IdRecord'] ) {
+			$ret_errors[] = "ERR Idx={$idx} : unknown IdRecord={$txt_IdRecord}" ;
 			continue ;
 		}
 		
@@ -1254,57 +1272,52 @@ function specRsiRecouveo_lib_edi_post_action($json_rows) {
 					}
 				}
 			}
-		}
-		if( !$json_row['ActionMode'] || !$json_row['ActionParam'] ) {
-			$ret_errors[] = "ERR Idx={$idx} : no action specified / unsupported" ;
-			continue ;
-		}
-		
-		// MANDATORY : IdCli
-		$txt_IdSoc = $json_row['IdSoc'] ;
-		$json_row['IdSoc'] = specRsiRecouveo_lib_edi_validateSocCli($json_row['IdSoc']) ;
-		if( !$json_row['IdSoc'] ) {
-			$ret_errors[] = "ERR Idx={$idx} : unknown IdSoc={$txt_IdSoc}" ;
-			continue ;
-		}
-		$json_row['IdCli'] = specRsiRecouveo_lib_edi_validateSocCli($json_row['IdSoc'],$json_row['IdCli']) ;
-		
-		
-		// OPT : IdRecord
-		if( $txt_IdRecord = $json_row['IdRecord'] ) {
-			$json_row['IdRecord'] = specRsiRecouveo_lib_edi_validateCliRecord($json_row['IdCli'],$json_row['IdRecord']) ;
-			if( !$json_row['IdRecord'] ) {
-				$ret_errors[] = "ERR Idx={$idx} : unknown IdRecord={$txt_IdRecord}" ;
+			if( !$json_row['ActionMode'] || !$json_row['ActionParam'] ) {
+				$ret_errors[] = "ERR Idx={$idx} : no action specified / unsupported" ;
 				continue ;
 			}
+			
+			// stockage de l'action
+			$action_idx = $search_actions($json_row['ActionMode'],$json_row['ActionParam'],$json_row['IdCli']) ;
+			if( $action_idx===FALSE ) {
+				$TAB_actions[] = array(
+					'action_mode' => $json_row['ActionMode'],
+					'action_param' => $json_row['ActionParam'],
+					'acc_id' => $json_row['IdCli']
+				);
+				$action_idx = (count($TAB_actions) - 1) ;
+			}
+			if( !$json_row['IdRecord'] ) {
+				$TAB_actions[$action_idx]['arr_recordFilerecordIds'] = NULL ;
+			}
+			if( $json_row['IdRecord'] ) {
+				if( !isset($TAB_actions[$action_idx]['arr_recordFilerecordIds']) ) {
+					$TAB_actions[$action_idx]['arr_recordFilerecordIds'] = array() ;
+				}
+				if( is_array($TAB_actions[$action_idx]['arr_recordFilerecordIds']) ) {
+					$TAB_actions[$action_idx]['arr_recordFilerecordIds'][] = $json_row['IdRecord'] ;
+				}
+			}
 		}
 		
-		$action_idx = $search_actions($json_row['ActionMode'],$json_row['ActionParam'],$json_row['IdCli']) ;
-		if( $action_idx===FALSE ) {
+		if( $json_row['RecordTxt'] ) {
 			$TAB_actions[] = array(
-				'action_mode' => $json_row['ActionMode'],
-				'action_param' => $json_row['ActionParam'],
-				'acc_id' => $json_row['IdCli']
+				'action_mode' => 'record_txt',
+				'action_param' => trim($json_row['RecordTxt']),
+				'record_filerecord_id' => $json_row['IdRecord']
 			);
-			$action_idx = (count($TAB_actions) - 1) ;
 		}
-		if( !$json_row['IdRecord'] ) {
-			$TAB_actions[$action_idx]['arr_recordFilerecordIds'] = NULL ;
-		}
-		if( $json_row['IdRecord'] ) {
-			if( !isset($TAB_actions[$action_idx]['arr_recordFilerecordIds']) ) {
-				$TAB_actions[$action_idx]['arr_recordFilerecordIds'] = array() ;
-			}
-			if( is_array($TAB_actions[$action_idx]['arr_recordFilerecordIds']) ) {
-				$TAB_actions[$action_idx]['arr_recordFilerecordIds'][] = $json_row['IdRecord'] ;
-			}
-		}
+		
 		$count_success++ ;
 	}
 	
+	// PROCESS : action_mode=status
 	foreach( $TAB_actions as $row_action ) {
-		$acc_id = $row_action['acc_id'] ;
+		if( $row_action['action_mode'] != 'status' ) {
+			continue ;
+		}
 		
+		$acc_id = $row_action['acc_id'] ;
 		// account_open
 		$json = specRsiRecouveo_account_open( array('acc_id'=>$acc_id) ) ;
 		if( !$json['success'] ) {
@@ -1456,6 +1469,27 @@ function specRsiRecouveo_lib_edi_post_action($json_rows) {
 		
 		specRsiRecouveo_file_lib_updateStatus($acc_id) ;
 		specRsiRecouveo_file_lib_manageActivate($acc_id) ;
+	}
+	
+	// PROCESS : action_mode=record_txt
+	foreach( $TAB_actions as $row_action ) {
+		if( $row_action['action_mode'] != 'record_txt' ) {
+			continue ;
+		}
+		
+		$record_filerecord_id = $row_action['record_filerecord_id'] ;
+		
+		$sql_recordTxt = $_opDB->escape_string($row_action['action_param']) ;
+		$query = "SELECT filerecord_id FROM view_file_RECORD_TXT 
+				WHERE filerecord_parent_id='{$record_filerecord_id}' AND field_TXT_CONTENT='{$sql_recordTxt}'" ;
+		if( $_opDB->query_uniqueValue($query) > 0 ) {
+			continue ;
+		}
+		
+		$arr_ins = array() ;
+		$arr_ins['field_TXT_DATE'] = date('Y-m-d H:i:s') ;
+		$arr_ins['field_TXT_CONTENT'] = $row_action['action_param'] ;
+		paracrm_lib_data_insertRecord_file( 'RECORD_TXT', $record_filerecord_id, $arr_ins );
 	}
 
 	return array("count_success" => $count_success, "errors" => $ret_errors) ;
