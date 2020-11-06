@@ -458,7 +458,9 @@ function specRsiRecouveo_xls_create_writer($accId){
 		}
 		$columnValue++ ;
 	}
+	$baseColumnValue = $columnValue ;
 	foreach($factures as $key => $facture){
+		$columnValue = $baseColumnValue ;
 		foreach( $facture['arr_txt'] as $row_txt ) {
 			$newKey = $key+2;
 			$sheet3->setCellValue($columnValue.$newKey, trim($row_txt)) ;

@@ -379,7 +379,12 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			renderer: function( v, meta, r ) {
 				if( r.get('txt_is_leaf') ) {
 					meta.tdCls+= ' '+'x-grid-cell-overflowvisible' ; // colspan=2 
-					return Ext.util.Format.nl2br( Ext.String.htmlEncode( r.get('txt_content') ) ) ;
+					var str = r.get('txt_content'),
+						wrapWidth = 64,
+						wrapStr = str.replace(
+							new RegExp(`(?![^\\n]{1,${wrapWidth}}$)([^\\n]{1,${wrapWidth}})\\s`, 'g'), '$1\n'
+						);
+					return Ext.util.Format.nl2br( Ext.String.htmlEncode( wrapStr ) ) ;
 				}
 				return Ext.util.Format.date(v,'d/m/Y') ;
 			}
@@ -467,7 +472,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		Ext.Array.each( atrRecColumns, function(atrRecColumn) {
 			treeColumns.push(atrRecColumn) ;
 		}) ;
-
 
 		Ext.apply(this,{
 			layout: {
