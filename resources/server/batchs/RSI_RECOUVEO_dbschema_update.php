@@ -14,8 +14,44 @@ include("$server_root/modules/media/include/media.inc.php");
 
 include( "$server_root/include/database/mysql_DB.inc.php" ) ;
 $_opDB = new mysql_DB( );
-$_opDB->connect_mysql( $mysql_host, $mysql_db, $mysql_user, $mysql_pass );
+$_opDB->connect_mysql( $mysql_host, '', $mysql_user, $mysql_pass );
 $_opDB->query("SET NAMES UTF8") ;
+
+include("$server_root/modules/spec_rsi_recouveo/backend_spec_rsi_recouveo.inc.php");
+
+
+if( $mysql_db == '' ) {
+	$query = "SHOW databases LIKE 'op5\_%'" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+		do_update_rsiveo_database($arr[0]) ;
+	}
+} else {
+	do_update_rsiveo_database($mysql_db) ;
+}
+
+function do_update_rsiveo_database( $db ) {
+global $_opDB ;
+$GLOBALS['mysql_db'] = $db ;
+$_opDB->select_db($db) ;
+
+$_domain_id = DatabaseMgr_Base::dbCurrent_getDomainId() ;
+$_sdomain_id = DatabaseMgr_Sdomain::dbCurrent_getSdomainId() ;
+
+$_domain_db = DatabaseMgr_Base::getBaseDb( $_domain_id ) ;
+if( $_domain_db == $db ) {
+	return ;
+}
+$query = "SELECT module_id FROM {$_domain_db}.sdomain WHERE sdomain_id='{$_sdomain_id}'" ;
+$_module_id = $_opDB->query_uniqueValue($query) ;
+
+//echo $db.' : '.$_module_id."\n" ;
+
+if( $_module_id != 'spec_rsi_recouveo' ) {
+	return ;
+}
+
+echo "Update DB : {$db} ... " ;
 
 $working_dir = dirname($_SERVER['SCRIPT_NAME']) ;
 $dbschema_path = $working_dir."/"."RSI_RECOUVEO_dbschema.json" ;
@@ -70,8 +106,11 @@ $t = new DatabaseMgr_Sdomain( DatabaseMgr_Base::dbCurrent_getDomainId() );
 $t->sdomainDefine_buildAll( DatabaseMgr_Sdomain::dbCurrent_getSdomainId() ) ;
 
 // specRsiRecouveo_lib_metafields_build
-include("$server_root/modules/spec_rsi_recouveo/backend_spec_rsi_recouveo.inc.php");
 specRsiRecouveo_lib_metafields_build($dopurge_unused=TRUE) ;
+
+echo "OK\n" ;
+
+}
 
 die() ;
 ?>
