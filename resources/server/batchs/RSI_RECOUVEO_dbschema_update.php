@@ -106,6 +106,7 @@ $t = new DatabaseMgr_Sdomain( DatabaseMgr_Base::dbCurrent_getDomainId() );
 $t->sdomainDefine_buildAll( DatabaseMgr_Sdomain::dbCurrent_getSdomainId() ) ;
 
 // specRsiRecouveo_lib_metafields_build
+unset($GLOBALS['cache_specRsiRecouveo_cfg']) ; // HACK !!
 specRsiRecouveo_lib_metafields_build($dopurge_unused=TRUE) ;
 
 echo "OK\n" ;
