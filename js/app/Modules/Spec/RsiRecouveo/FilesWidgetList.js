@@ -321,6 +321,15 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesWidgetList', {
 				text: 'Contacts privilégiés',
 				columns: [{
 					hideable: false,
+					text: 'SIREN/SIRET',
+					dataIndex: 'acc_siret',
+					width:150,
+					align: 'center',
+					filter: {
+						type: 'string'
+					}
+				},{
+					hideable: false,
 					text: 'Adresse',
 					dataIndex: 'adr_postal_is_prio',
 					dataIndexExport: 'adr_postal',
@@ -621,6 +630,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesWidgetList', {
 		this.headerCt.down('[dataIndex="record_xe_currency_code"]').setVisible(hasXe) ;
 		
 		this._viewMode = viewMode ;
+		this._viewMode_showAddress = showAddress ;
 	},
 
 	loadFilesData: function( ajaxData, doClearFilters ){
@@ -653,82 +663,90 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesWidgetList', {
 	    }
 
 	    if( this._viewMode == 'account' ) {
-		    var newAjaxData = {} ;
-		    var c = 0 ;
-		    Ext.Array.each( ajaxData, function(fileRow) {
-			    var accId = fileRow['acc_id'] ;
-			    if( !newAjaxData.hasOwnProperty(accId) ) {
-				    c++ ;
-				    newAjaxData[accId] = {
-					    file_filerecord_id: fileRow['file_filerecord_id'],
-					    acc_id: fileRow['acc_id'],
-					    acc_txt: fileRow['acc_txt'],
-					    inv_nb_total: 0,
-					    inv_amount_due: 0,
-					    inv_amount_total: 0,
-					    inv_balage: {},
-					    next_actions: []
-				    } ;
-
-
-				    var additionalData = {
-					    soc_id: fileRow['soc_id'],
-					    soc_txt: fileRow['soc_txt']
-				    };
-				    Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAllAtrIds(), function(atrId) {
-					    var atrRecord = Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAtrHeader(atrId),
-						    atrField = atrRecord.atr_field,
-						    atrType = atrRecord.atr_type ;
-					    if( atrType=='account' ) {
-						    additionalData[atrField] = fileRow[atrField] ;
-					    }
-				    });
-				    Ext.apply( newAjaxData[accId], additionalData) ;
-			    }
-			    newAjaxData[accId]['inv_amount_due'] += fileRow['inv_amount_due'] ;
-			    newAjaxData[accId]['inv_amount_total'] += fileRow['inv_amount_total'] ;
-			    newAjaxData[accId]['inv_nb_total'] += fileRow['inv_nb_total'] ;
-			    Ext.Object.each( fileRow.inv_balage, function(k,v) {
-				    if( !newAjaxData[accId].inv_balage.hasOwnProperty(k) ) {
-					    newAjaxData[accId].inv_balage[k] = 0 ;
-				    }
-				    newAjaxData[accId].inv_balage[k] += v ;
-			    }) ;
-			    newAjaxData[accId]['next_actions'].push({
-				    next_fileaction_filerecord_id: fileRow['next_fileaction_filerecord_id'],
-				    next_action: fileRow['next_action'],
-				    next_action_suffix: fileRow['next_action_suffix'],
-				    next_txt: fileRow['next_txt'],
-				    next_date: fileRow['next_date'],
-				    next_eta_range: fileRow['next_eta_range']
-			    });
-		    }) ;
-
-		    var findNextFn = function(nextActions) {
-			    var nextDate = null,
-				    nextIdx = -1 ;
-
-			    Ext.Array.each( nextActions, function(nextAction,idx) {
-				    if( !nextAction.next_date ) {
-					    return ;
-				    }
-				    if( nextDate == null || nextDate > nextAction.next_date ) {
-					    nextDate = nextAction.next_date ;
-					    nextIdx = idx ;
-				    }
-			    }) ;
-			    if( nextIdx >= 0 ) {
-				    return nextActions[nextIdx] ;
-			    }
-		    };
-		    Ext.Object.each( newAjaxData, function(accId, accountRow) {
-			    var nextAction ;
-			    if( nextAction = findNextFn(accountRow.next_actions) ) {
-				    Ext.apply( accountRow, nextAction ) ;
-			    }
-		    }) ;
-
-		    ajaxData = Ext.Object.getValues(newAjaxData) ;
+			var newAjaxData = {} ;
+			var showAddress = this._viewMode_showAddress ;
+			var c = 0 ;
+			Ext.Array.each( ajaxData, function(fileRow) {
+				var accId = fileRow['acc_id'] ;
+				if( !newAjaxData.hasOwnProperty(accId) ) {
+					c++ ;
+					newAjaxData[accId] = {
+						file_filerecord_id: fileRow['file_filerecord_id'],
+						acc_id: fileRow['acc_id'],
+						acc_txt: fileRow['acc_txt'],
+						acc_siret: fileRow['acc_siret'],
+						inv_nb_total: 0,
+						inv_amount_due: 0,
+						inv_amount_total: 0,
+						inv_balage: {},
+						next_actions: []
+					} ;
+					if( showAddress ) {
+						var mergeObj = {} ;
+						Ext.Array.each(
+							['adr_postal','adr_postal_is_prio','adr_tel','adr_tel_is_prio','adr_email','adr_email_is_prio'],
+							function(mkey){mergeObj[mkey]=fileRow[mkey];}
+						) ;
+						Ext.apply(newAjaxData[accId],mergeObj);
+					}
+					var additionalData = {
+						soc_id: fileRow['soc_id'],
+						soc_txt: fileRow['soc_txt']
+					};
+					Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAllAtrIds(), function(atrId) {
+						var atrRecord = Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAtrHeader(atrId),
+							atrField = atrRecord.atr_field,
+							atrType = atrRecord.atr_type ;
+						if( atrType=='account' ) {
+							additionalData[atrField] = fileRow[atrField] ;
+						}
+					});
+					Ext.apply( newAjaxData[accId], additionalData) ;
+				}
+				newAjaxData[accId]['inv_amount_due'] += fileRow['inv_amount_due'] ;
+				newAjaxData[accId]['inv_amount_total'] += fileRow['inv_amount_total'] ;
+				newAjaxData[accId]['inv_nb_total'] += fileRow['inv_nb_total'] ;
+				Ext.Object.each( fileRow.inv_balage, function(k,v) {
+					if( !newAjaxData[accId].inv_balage.hasOwnProperty(k) ) {
+						newAjaxData[accId].inv_balage[k] = 0 ;
+					}
+					newAjaxData[accId].inv_balage[k] += v ;
+				}) ;
+				newAjaxData[accId]['next_actions'].push({
+					next_fileaction_filerecord_id: fileRow['next_fileaction_filerecord_id'],
+					next_action: fileRow['next_action'],
+					next_action_suffix: fileRow['next_action_suffix'],
+					next_txt: fileRow['next_txt'],
+					next_date: fileRow['next_date'],
+					next_eta_range: fileRow['next_eta_range']
+				});
+			}) ;
+			
+			var findNextFn = function(nextActions) {
+				var nextDate = null,
+					nextIdx = -1 ;
+				
+				Ext.Array.each( nextActions, function(nextAction,idx) {
+					if( !nextAction.next_date ) {
+						return ;
+					}
+					if( nextDate == null || nextDate > nextAction.next_date ) {
+						nextDate = nextAction.next_date ;
+						nextIdx = idx ;
+					}
+				}) ;
+				if( nextIdx >= 0 ) {
+					return nextActions[nextIdx] ;
+				}
+			};
+			Ext.Object.each( newAjaxData, function(accId, accountRow) {
+				var nextAction ;
+				if( nextAction = findNextFn(accountRow.next_actions) ) {
+					Ext.apply( accountRow, nextAction ) ;
+				}
+			}) ;
+			
+			ajaxData = Ext.Object.getValues(newAjaxData) ;
 	    }
 
 
