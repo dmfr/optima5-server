@@ -127,7 +127,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesWidgetList', {
 			    type: 'date'
 		    }
 	    },{
-		    dataIndex: 'record_amount_raw',
+		    dataIndex: 'record_amount',
 		    text: 'Montant',
 		    align: 'center',
 		    renderer: Ext.util.Format.numberRenderer('0,000.00'),
@@ -139,16 +139,11 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesWidgetList', {
 			    return Ext.util.Format.number(value,'0,000.00') ;
 		    }
 	    },{
-		    dataIndex: 'record_amount_calcpaid',
-		    text: 'Payé',
+		    dataIndex: 'record_type',
 		    align: 'center',
-		    renderer: Ext.util.Format.numberRenderer('0,000.00'),
+		    text: 'Type spec.',
 		    filter: {
-			    type: 'number'
-		    },
-		    summaryType: 'sum',
-		    summaryRenderer: function(value,summaryData,field,metaData) {
-			    return Ext.util.Format.number(value,'0,000.00') ;
+			    type: 'stringlist'
 		    }
 	    },{
 		    dataIndex: 'record_xe_currency_amount',
@@ -197,8 +192,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesWidgetList', {
 		    {name: 'record_ref', type: 'string'},
 		    {name: 'record_date', type: 'date', dateFormat:'Y-m-d H:i:s'},
 		    {name: 'record_dateload', type: 'date', dateFormat:'Y-m-d H:i:s'},
-		    {name: 'record_amount_raw', type: 'number'},
-		    {name: 'record_amount_calcpaid', type: 'number'},
+		    {name: 'record_amount', type: 'number'},
+		    {name: 'record_type', type: 'string'},
 		    {name: 'record_xe_currency_amount', type: 'number'},
 		    {name: 'record_xe_currency_sign', type: 'string'}
 	    ] ;
@@ -638,21 +633,14 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesWidgetList', {
 		    //var indexedFiles = [] ;
 		    var newAjaxData = [] ;
 		    Ext.Array.each( ajaxData, function(fileRow) {
-			    var coef = ( (fileRow['inv_amount_total']!=0) ? (1-(fileRow['inv_amount_due']/fileRow['inv_amount_total'])) : 0 ) ;
-			    if( coef > 1 ) {
-				    //coef = 1 ;
-			    }
 			    Ext.Array.each(fileRow.records, function(fileRecordRow) {
-				    if( !Ext.isEmpty(fileRecordRow['type']) ) {
-					    return ;
-				    }
 				    var newRow = {} ;
 				    Ext.apply(newRow,fileRow) ;
 				    Ext.apply(newRow,fileRecordRow) ;
-				    newRow['record_amount_raw'] =  fileRecordRow['amount'] ;
-				    newRow['record_amount_calcpaid'] = fileRecordRow['amount'] * coef ;
+				    newRow['record_amount'] =  fileRecordRow['amount'] ;
 				    newRow['record_dateload'] = fileRecordRow['date_load'] ;
 				    newRow['record_date'] = fileRecordRow['date_record'] ;
+				    newRow['record_type'] = fileRecordRow['type'] ;
 				    newRow['record_xe_currency_amount'] = fileRecordRow['xe_currency_amount'] ;
 				    newRow['record_xe_currency_sign'] = fileRecordRow['xe_currency_sign'] ;
 				    newRow['record_xe_currency_code'] = fileRecordRow['xe_currency_code'] ;

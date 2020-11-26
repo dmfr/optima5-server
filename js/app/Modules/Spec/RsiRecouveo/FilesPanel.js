@@ -121,7 +121,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 						iconCls: 'op5-spec-rsiveo-grid-view-order'
 					},{
 						itemId: 'record',
-						text: 'Vue par facture',
+						text: 'Vue par pièce',
 						iconCls: 'op5-spec-rsiveo-grid-view-facture'
 					},{
 						xtype: 'menuseparator'
