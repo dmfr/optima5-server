@@ -28,28 +28,30 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusMailOutPanel',{
 					fieldLabel: 'Action',
 					value: '<b>Courrier / Mail Sortant</b>'
 				},{
-					flex: 1,
-					xtype: 'combobox',
-					name: 'tpl_id',
-					fieldLabel: 'Modèle lettre',
-					forceSelection: true,
-					editable: false,
-					store: {
-						model: 'RsiRecouveoCfgTemplateModel',
-						data: Optima5.Modules.Spec.RsiRecouveo.HelperCache.getTemplateAll()
+					itemId: 'btnTemplates',
+					xtype: 'container',
+					height: 48,
+					layout: {
+						type: 'hbox',
+						pack: 'end'
 					},
-
-					queryMode: 'local',
-					displayField: 'tpl_name',
-					valueField: 'tpl_id',
-					listeners: {
-						change: function(cmb,value) {
-							var record = cmb.getStore().getById(value) ;
-							this.onTplChange(record) ;
-						},
-						scope: this
-					}
-				}]
+					items: [{
+						xtype: 'hiddenfield',
+						name: 'tpl_id'
+					},
+						Ext.create('Optima5.Modules.Spec.RsiRecouveo.EmailLoadTemplateButton',{
+							_actionForm: this._actionForm,
+							optimaModule: this.optimaModule,
+							renderTarget: this._actionForm.getEl(),
+							listeners: {
+								select: function(p,tplId) {
+									this.onSelectTpl(tplId) ;
+								},
+								scope: this
+							}
+						})
+					]
+ 				}]
 			},{
 				xtype: 'container',
 				layout: {
@@ -118,7 +120,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusMailOutPanel',{
 				xtype: 'textfield',
 				fieldLabel: 'Titre',
 				itemId: 'input_title',
-				name: 'input_title'
+				name: 'input_title',
+				readOnly: true
 			},{
 				xtype: 'htmleditor',
 				enableColors: true,
@@ -130,32 +133,37 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusMailOutPanel',{
 
 		this.callParent() ;
 	},
-	onTplChange: function(tplRecord){
-		var jsonFields = tplRecord.get('input_fields_json'),
-			fields = Ext.JSON.decode(jsonFields,true),
-			fsMailFieldsCnt = this.down('#fsMailFieldsCnt'),
-			fsFields = [] ;
-			
-		fsMailFieldsCnt.removeAll() ;
-		if( Ext.isArray(fields) ) {
-			Ext.Array.each( fields, function(fieldDefinition) {
-				fsFields.push(fieldDefinition) ;
-			}) ;
-		}
-		fsMailFieldsCnt.setVisible( Ext.isArray(fields) && (fields.length>0) && false ) ; //Damien 28/02 , disable fsMailFieldsCnt
-		fsMailFieldsCnt.add(fsFields) ;
+	onSelectTpl: function( tplId ) {
+		// DM 26/11/2020 : tpl_id pour repagination au niveau -action-
+		this.getForm().findField('tpl_id').setValue(tplId) ;
 		
-		 
-		var inputTitle = tplRecord.get('html_title') ;
-		var inputHtml = tplRecord.get('html_body') ;
-		var showFields = (!tplRecord || tplRecord.get('manual_is_on')) ;
-		
-		var titleField = this.down('#input_title') ;
-		titleField.setVisible(showFields) ;
-		titleField.setValue(inputTitle) ;
-		
-		var bodyField = this.down('#input_html') ;
-		bodyField.setVisible(showFields) ;
-		bodyField.setValue(inputHtml) ;
-	}
+		this.getEl().mask() ;
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_rsi_recouveo',
+				_action: 'action_execMailAutoTemplate',
+				file_filerecord_id: this._fileRecord.get('file_filerecord_id'),
+				fileaction_filerecord_id: this._fileActionFilerecordId,
+				tpl_id: tplId,
+				adr_type: 'POSTAL'
+			},
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					var error = ajaxResponse.success || 'File not saved !' ;
+					Ext.MessageBox.alert('Error',error) ;
+					return ;
+				}
+				
+				var formData = {} ;
+				formData['input_title'] = ajaxResponse.data.subject ;
+				formData['input_html'] = ajaxResponse.data.body_html.replace(/(\r\n|\n|\r)/gm, "") ;
+				this._actionForm.getForm().setValues(formData) ;
+			},
+			callback: function() {
+				this.getEl().unmask() ;
+			},
+			scope: this
+		}) ;
+	},
 }) ;

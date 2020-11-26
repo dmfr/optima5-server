@@ -17,8 +17,6 @@ function specRsiRecouveo_action_execMailAutoTemplate( $post_data ) {
 	
 	switch( $post_data['adr_type'] ) {
 		case 'POSTAL' :
-			return array('success'=>false) ;
-			
 		case 'EMAIL' :
 			$t_adrEmail_dest = $t_adrEmail_src = NULL ;
 			$json = specRsiRecouveo_account_open( array('acc_id'=>$file['acc_id']) ) ;
@@ -31,10 +29,12 @@ function specRsiRecouveo_action_execMailAutoTemplate( $post_data ) {
 				'record_filerecord_ids' => null,
 				'adr_type' => 'EMAIL',
 				'input_fields' => json_encode(array())
-			),$real=FALSE,$htmlraw=TRUE) ;
+			),$real=FALSE,$htmlraw='BODY') ;
 			
 			$html_body = $htmls[0] ;
 			
+			/*
+			// DM 26/11/2020 : jamais de pièces jointes en mode manuel
 			$attachments = array() ;
 			for( $i=1 ; $i<count($htmls) ; $i++ ) {
 				$binary_html = $htmls[$i] ;
@@ -50,6 +50,7 @@ function specRsiRecouveo_action_execMailAutoTemplate( $post_data ) {
 				);
 				media_contextClose() ;
 			}
+			*/
 			
 			// subject ?
 			foreach( $cfg_template as $tpl_row ) {

@@ -111,8 +111,12 @@ function specRsiRecouveo_doc_buildTemplate(&$tplData, $media_type, $lang_code){
 	$resources_root=$app_root.'/resources' ;
 	$templates_dir=$resources_root.'/server/templates' ;
 	
-	$inputFileName = $templates_dir.'/'.$tplData['html_src_file'] ;
-	$inputBinary = file_get_contents($inputFileName) ;
+	if( $tplData['html_src_file'] ) {
+		$inputFileName = $templates_dir.'/'.$tplData['html_src_file'] ;
+		$inputBinary = file_get_contents($inputFileName) ;
+	} else {
+		$inputBinary = '<?xml encoding="UTF-8"><html>'."\r\n".'<div>'.$tplData['html_body'].'</div></html>' ;
+	}
 
 	$doc = new DOMDocument();
 	@$doc->loadHTML($inputBinary);
@@ -351,6 +355,13 @@ function specRsiRecouveo_doc_getHtmlPayment( $paymentBinary ) {
 	return $doc->saveHTML() ; ;
 }
 function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE, $stopAsHtml=FALSE ) {
+	/*
+	**** DM 26/11/2020 *****
+	$stopAsHtml
+	- false : full template (POSTAL direct) TODO: supprimer ce mode, joindre les pages au niveau -action-
+	- true : corps complet (entete+body) + attach séparés
+	- "BODY" : body uniquement
+	*/
 	$json = specRsiRecouveo_config_loadMeta(array()) ;
 	$config_meta = $json['data'] ;
 	
@@ -770,6 +781,9 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE, $stopAsHtm
 
 
 	// ************ TEMPLATE ***********************
+	if( $stopAsHtml==='BODY' ) {
+		unset($tplData['html_src_file']) ;
+	}
 	$tplHtml = specRsiRecouveo_doc_buildTemplate($tplData,$p_adrType,$_lang_code) ;
 	if( $p_adrType=='TEL' ) {
 		$tplHtml = specRsiRecouveo_doc_buildSMS($tplData,$p_adrType,$_lang_code) ;

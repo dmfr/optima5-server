@@ -567,8 +567,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusEmailPanel',{
 				}
 				
 				var formData = {} ;
-				formData['email_outmodel_preprocess_banner'] = false ;
-				formData['email_outmodel_preprocess_attachrecords'] = true ;
+				formData['email_outmodel_preprocess_banner'] = true ;
+				formData['email_outmodel_preprocess_attachrecords'] = false ;
 				formData['email_subject'] = ajaxResponse.data.subject ;
 				formData['email_body'] = ajaxResponse.data.body_html.replace(/(\r\n|\n|\r)/gm, "") ;
 				this._actionForm.getForm().setValues(formData) ;

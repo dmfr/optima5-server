@@ -370,7 +370,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 			tplFieldLang = this.getForm().findField('tpl_lang'),
 			tplModes = this.down('#cntTplModes'),
 			tplDefer = this.down('#cntTplDefer') ;
-		if( tplField ) {
+		if( tplField && tplField.isXType('combobox') ) {
 			while(true) {
 				if( this.isCurrentActionAuto() ) {
 					tplField.getStore().clearFilter();
@@ -706,6 +706,14 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 				
 				errors.push(error) ;
 				txtField.markInvalid(error) ;
+			}
+		}
+		var tplField = this.getForm().findField('tpl_id') ;
+		if( tplField ) {
+			if( Ext.isEmpty(postData['tpl_id']) && (this.getCurrentAction()['action_id']!='BUMP') ) {
+				var error = 'Modèle de courrier non sélectionné' ;
+				
+				errors.push(error) ;
 			}
 		}
 		
