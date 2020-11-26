@@ -1,4 +1,4 @@
-Ext.define('Optima5.Modules.Spec.RsiRecouveo.EmailLoadTemplateButton',{
+Ext.define('Optima5.Modules.Spec.RsiRecouveo.CommonMailTemplateButton',{
 	extend:'Ext.button.Button',
 	
 	panelWidth: 300,
@@ -24,6 +24,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.EmailLoadTemplateButton',{
 				property: 'tpl_name',
 				operator: '!=',
 				value: ''
+			},{
+				property: 'manual_is_on',
+				operator: '=',
+				value: true
 			}],
 			proxy: {
 				type: 'memory',

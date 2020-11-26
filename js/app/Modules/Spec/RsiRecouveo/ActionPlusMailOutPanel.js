@@ -1,6 +1,10 @@
 Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusMailOutPanel',{
 	extend:'Ext.form.Panel',
 	
+	requires: [
+		'Optima5.Modules.Spec.RsiRecouveo.CommonMailTemplateButton'
+	],
+	
 	_fileRecord: null,
 	
 	initComponent: function() {
@@ -39,7 +43,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusMailOutPanel',{
 						xtype: 'hiddenfield',
 						name: 'tpl_id'
 					},
-						Ext.create('Optima5.Modules.Spec.RsiRecouveo.EmailLoadTemplateButton',{
+						Ext.create('Optima5.Modules.Spec.RsiRecouveo.CommonMailTemplateButton',{
 							_actionForm: this._actionForm,
 							optimaModule: this.optimaModule,
 							renderTarget: this._actionForm.getEl(),

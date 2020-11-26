@@ -161,7 +161,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusEmailPanel',{
 	
 	requires: [
 		'Optima5.Modules.Spec.RsiRecouveo.EmailAttachmentsFieldButton',
-		'Optima5.Modules.Spec.RsiRecouveo.EmailLoadTemplateButton'
+		'Optima5.Modules.Spec.RsiRecouveo.CommonMailTemplateButton'
 	],
 	
 	_fileRecord: null,
@@ -222,7 +222,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusEmailPanel',{
 						pack: 'end'
 					},
 					items: [
-						Ext.create('Optima5.Modules.Spec.RsiRecouveo.EmailLoadTemplateButton',{
+						Ext.create('Optima5.Modules.Spec.RsiRecouveo.CommonMailTemplateButton',{
 							_actionForm: this._actionForm,
 							optimaModule: this.optimaModule,
 							renderTarget: this._actionForm.getEl(),
