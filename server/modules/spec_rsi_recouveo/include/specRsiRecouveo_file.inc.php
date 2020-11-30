@@ -1800,6 +1800,11 @@ function specRsiRecouveo_file_lib_managePre( $acc_id ) {
 				continue ;
 			}
 			
+			if( !$scen_presteps ) {
+				// creation, mod 27/11/2020 uniquement des étapes sont prévues
+				continue ;
+			}
+			
 			$target_filesubFilerecordId = NULL ;
 			foreach( $map_subfileFilerecordId_dateValue as $filesub_filerecord_id => $sub_dateValue ) {
 				if( $sub_dateValue==$date_value ) {
@@ -1808,15 +1813,12 @@ function specRsiRecouveo_file_lib_managePre( $acc_id ) {
 				}
 			}
 			if( !$target_filesubFilerecordId ) {
-				if( $scen_presteps ) {
-					// creation, mod 27/11/2020 ssi des étapes sont prévues
-					$arr_ins = array() ;
-					$arr_ins['field_FILESUB_TXT'] = 'Echeance '.$date_value ;
-					$arr_ins['field_FILESUB_DATEVALUE'] = $date_value ;
-					$target_filesubFilerecordId = paracrm_lib_data_insertRecord_file( 'FILE_SUB', $file_filerecord_id, $arr_ins );
-					$map_subfileFilerecordId_recordIds[$target_filesubFilerecordId] = array() ;
-					$map_subfileFilerecordId_dateValue[$target_filesubFilerecordId] = $date_value ;
-				}
+				$arr_ins = array() ;
+				$arr_ins['field_FILESUB_TXT'] = 'Echeance '.$date_value ;
+				$arr_ins['field_FILESUB_DATEVALUE'] = $date_value ;
+				$target_filesubFilerecordId = paracrm_lib_data_insertRecord_file( 'FILE_SUB', $file_filerecord_id, $arr_ins );
+				$map_subfileFilerecordId_recordIds[$target_filesubFilerecordId] = array() ;
+				$map_subfileFilerecordId_dateValue[$target_filesubFilerecordId] = $date_value ;
 			} else {
 				$query = "UPDATE view_file_FILE_SUB SET field_FILESUB_IS_VOID='0' WHERE filerecord_id='{$target_filesubFilerecordId}'" ;
 				$_opDB->query($query) ;
