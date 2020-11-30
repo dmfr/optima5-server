@@ -1831,6 +1831,20 @@ function specRsiRecouveo_file_lib_managePre( $acc_id ) {
 			$_opDB->query($query) ;
 			$map_subfileFilerecordId_recordIds[$target_filesubFilerecordId][] = $record_filerecord_id ;
 			$map_recordFilerecordId_subfileFilerecordId[$record_filerecord_id] = $target_filesubFilerecordId ;
+			foreach( $map_subfileFilerecordId_recordIds as $filesub_filerecord_id => $arr_recordIds ) {
+				if( $filesub_filerecord_id == $target_filesubFilerecordId ) {
+					continue ;
+				}
+				$toDeleteIdx = -1 ;
+				foreach( $arr_recordIds as $idx => $cur_recordFilerecordId ) {
+					if( $cur_recordFilerecordId == $record_filerecord_id ) {
+						$toDeleteIdx = $idx ;
+					}
+				}
+				if( $toDeleteIdx >= 0 ) {
+					unset( $map_subfileFilerecordId_recordIds[$filesub_filerecord_id][$toDeleteIdx] ) ;
+				}
+			}
 		}
 		
 		
