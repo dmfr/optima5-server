@@ -1731,6 +1731,23 @@ function specRsiRecouveo_file_lib_managePre( $acc_id ) {
 			continue ;
 		}
 		
+		// NEXT : refresh scenario presteps
+		$scen_code = $accountFile_row['scen_code'] ;
+		$scen_presteps = array() ;
+		$scen_prestep_hotPotato = FALSE ;
+		foreach( $data_scenarios as $scen_row ) {
+			if( $scen_row['scen_code'] == $scen_code ) {
+				$scen_presteps = $scen_row['presteps'] ;
+				break ;
+			}
+		}
+		if( count($scen_presteps) == 1 ) {
+			$unique_prestep = reset($scen_presteps) ;
+			if( $unique_prestep['prestep_daybefore'] == 0 ) {
+				$scen_prestep_hotPotato = TRUE ;
+			}
+		}
+		
 		$map_recordFilerecordId_dateValue = array() ;
 		$map_recordFilerecordId_amount = array() ;
 		$map_recordFilerecordId_subfileFilerecordId = array() ;
@@ -1758,6 +1775,9 @@ function specRsiRecouveo_file_lib_managePre( $acc_id ) {
 			$record_filerecord_id = $record_row['record_filerecord_id'] ;
 			
 			$date_value = date('Y-m-d',strtotime($record_row['date_value'])) ;
+			if( $scen_prestep_hotPotato ) {
+				$date_value = date('Y-m-d',strtotime($record_row['date_load'])) ;
+			}
 			$map_recordFilerecordId_dateValue[$record_filerecord_id] = $date_value ;
 			$map_recordFilerecordId_amount[$record_filerecord_id] = (float)$record_row['amount'] ;
 			
@@ -1780,7 +1800,6 @@ function specRsiRecouveo_file_lib_managePre( $acc_id ) {
 				continue ;
 			}
 			
-			
 			$target_filesubFilerecordId = NULL ;
 			foreach( $map_subfileFilerecordId_dateValue as $filesub_filerecord_id => $sub_dateValue ) {
 				if( $sub_dateValue==$date_value ) {
@@ -1789,13 +1808,15 @@ function specRsiRecouveo_file_lib_managePre( $acc_id ) {
 				}
 			}
 			if( !$target_filesubFilerecordId ) {
-				// creation
-				$arr_ins = array() ;
-				$arr_ins['field_FILESUB_TXT'] = 'Echeance '.$date_value ;
-				$arr_ins['field_FILESUB_DATEVALUE'] = $date_value ;
-				$target_filesubFilerecordId = paracrm_lib_data_insertRecord_file( 'FILE_SUB', $file_filerecord_id, $arr_ins );
-				$map_subfileFilerecordId_recordIds[$target_filesubFilerecordId] = array() ;
-				$map_subfileFilerecordId_dateValue[$target_filesubFilerecordId] = $date_value ;
+				if( $scen_presteps ) {
+					// creation, mod 27/11/2020 ssi des étapes sont prévues
+					$arr_ins = array() ;
+					$arr_ins['field_FILESUB_TXT'] = 'Echeance '.$date_value ;
+					$arr_ins['field_FILESUB_DATEVALUE'] = $date_value ;
+					$target_filesubFilerecordId = paracrm_lib_data_insertRecord_file( 'FILE_SUB', $file_filerecord_id, $arr_ins );
+					$map_subfileFilerecordId_recordIds[$target_filesubFilerecordId] = array() ;
+					$map_subfileFilerecordId_dateValue[$target_filesubFilerecordId] = $date_value ;
+				}
 			} else {
 				$query = "UPDATE view_file_FILE_SUB SET field_FILESUB_IS_VOID='0' WHERE filerecord_id='{$target_filesubFilerecordId}'" ;
 				$_opDB->query($query) ;
@@ -1822,19 +1843,6 @@ function specRsiRecouveo_file_lib_managePre( $acc_id ) {
 			}
 			$query = "UPDATE view_file_FILE_SUB SET field_FILESUB_IS_VOID='1' WHERE filerecord_id='{$filesub_filerecord_id}'" ;
 			$_opDB->query($query) ;
-		}
-		
-		
-		// NEXT : refresh scenario presteps
-		$scen_code = $accountFile_row['scen_code'] ;
-		//echo $scen_code."\n" ;
-		//print_r($data_scenarios) ;
-		$scen_presteps = array() ;
-		foreach( $data_scenarios as $scen_row ) {
-			if( $scen_row['scen_code'] == $scen_code ) {
-				$scen_presteps = $scen_row['presteps'] ;
-				break ;
-			}
 		}
 		
 		
@@ -1870,7 +1878,11 @@ function specRsiRecouveo_file_lib_managePre( $acc_id ) {
 					if( $scen_prestep['prestep_daybefore'] < 0 ) {
 						continue ;
 					} elseif( $scen_prestep['prestep_daybefore'] == 0 ) {
-						$date_sched = date('Y-m-d').' '.'00:00:00' ;
+						if( $scen_prestep_hotPotato ) {
+							$date_sched = date('Y-m-d').' '.'00:00:00' ;
+						} else {
+							continue ;
+						}
 					} else {
 						$date_sched = date('Y-m-d H:i:s',strtotime('- '.$scen_prestep['prestep_daybefore'].' days',strtotime($date_value))) ;
 					}
