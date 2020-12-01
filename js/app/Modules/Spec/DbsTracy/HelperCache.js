@@ -78,6 +78,15 @@ Ext.define('DbsTracyCfgOrderFlowModel',{
 		associationKey: 'steps'
 	}]
 });
+Ext.define('DbsTracyCfgPrinterModel',{
+	extend: 'Ext.data.Model',
+	idProperty: 'printer_ip',
+	fields: [
+		{name: 'printer_ip', type:'string'},
+		{name: 'printer_type', type:'string'},
+		{name: 'printer_desc', type:'string'}
+	]
+});
 
 
 Ext.define('Optima5.Modules.Spec.DbsTracy.HelperCache',{
@@ -202,6 +211,10 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.HelperCache',{
 					type: 'json'
 				}
 			}
+		}) ;
+		this.cfgPrinterStore = Ext.create('Ext.data.Store',{
+			model: 'DbsTracyCfgPrinterModel',
+			data : ajaxData.data.cfg_printer
 		}) ;
 		
 		this.onLoad() ;

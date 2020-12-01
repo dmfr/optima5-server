@@ -40,7 +40,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunMenu',{
 		);
 		 
 		var itemsStore = Ext.create('Ext.data.Store',{
-			model:'DbsLamMenuItemModel',
+			model:'DbsTracyMenuItemModel',
 			data:[{
 				type_header:true
 			},{

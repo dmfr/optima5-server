@@ -96,7 +96,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunHelper',{
 		return this._savedFilterValues ;
 	},
 	
-	registerFocus(torf) {
+	setRegisterFocus(torf) {
 		this.registerFocusOn = torf ;
 	},
 	isRegisterFocus() {

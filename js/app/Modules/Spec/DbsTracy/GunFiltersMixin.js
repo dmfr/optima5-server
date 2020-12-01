@@ -8,6 +8,8 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunFiltersMixin',{
 	constructor : function () {
 		var filterValues = Optima5.Modules.Spec.DbsTracy.GunHelper.getFilters() ;
 		this._filterValues = filterValues || {} ;
+		
+		this.on('beforedestroy', this.onFiltersMixinBeforeDestroy, this) ;
 	},
 	
 	openModalFilters: function() {
@@ -60,5 +62,12 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunFiltersMixin',{
 	},
 	onFilterChanged: function() {
 		// to be overridden
+	},
+	onFiltersMixinBeforeDestroy: function() {
+		console.log('onFiltersMixinBeforeDestroy') ;
+		if( this.floatingPanel ) {
+			this.floatingPanel.destroy() ;
+			this.floatingPanel = null ;
+		}
 	}
 }) ;

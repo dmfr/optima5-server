@@ -18,7 +18,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70selectTrspt',{
 				scope: this
 			},'->',{
 				itemId: 'btnFilters',
-				iconCls: 'op5-spec-dbslam-transfer-add',
+				iconCls: 'op5-spec-dbstracy-gun-filters',
 				textBase: 'Filters',
 				text: '',
 				handler: function() {

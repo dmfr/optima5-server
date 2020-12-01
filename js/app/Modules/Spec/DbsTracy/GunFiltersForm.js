@@ -1,5 +1,8 @@
 Ext.define('Optima5.Modules.Spec.DbsTracy.GunFiltersForm',{
 	extend: 'Ext.form.Panel',
+	requires: [
+		'Ext.form.field.ComboBox'
+	],
 	
 	_filterValues: null ,
 	

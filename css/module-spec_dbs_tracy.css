@@ -260,6 +260,12 @@
 	background: url('../images/modules/dbstracy-gunresult-fail-48.png') ;
 }
 
+.op5-spec-dbstracy-gun-filters {
+	background: url('../images/modules/dbslam-transfer-add-16.png') no-repeat 4px center ;
+	line-height: 20px ;
+}
+
+
 
 .op5-spec-dbstracy-pdf {
 	background: url('../images/op5img/ico_pdf_16.png') no-repeat center center ;
