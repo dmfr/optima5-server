@@ -461,6 +461,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.AdrbookEntityPanel',{
 				adrbook_entity_txt: '',
 				adrbook_entity_select: this._adrbookEntity
 			}) ;
+			form.findField('adrbook_entity_select').setRawValue(this._adrbookEntity) ; //HACK
 			this.doSelectEntity(this._adrbookEntity) ;
 		}
 	},
