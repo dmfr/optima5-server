@@ -660,6 +660,12 @@ Ext.onReady(function () {
 		}
 	}) ;
 	
+	
+	// HACK : disable Touch supports
+	Ext.supports.Touch = false ;
+	Ext.supports.TouchEvents = false ;
+	Ext.supports.touchScroll = 0 ;
+	
 	// onReady : bootstrap Optima app.
 	Ext.create('Optima5.App',{}) ;
 	
