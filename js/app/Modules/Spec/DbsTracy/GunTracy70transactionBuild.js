@@ -154,7 +154,16 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70transactionBuild',{
 		this.mixins.focusable.constructor.call(this);
 		
 		this.registerFocusableComponent( this.down('#txtScan') ) ;
+		this.mon(this.optimaModule,'op5broadcast',this.onCrmeventBroadcast,this) ;
+		
 		this.doLoad() ;
+	},
+	onCrmeventBroadcast: function(crmEvent,eventParams) {
+		switch( crmEvent ) {
+			case 'scan' :
+				this.fireEvent('scan',this,eventParams.scanResult) ;
+				break ;
+		}
 	},
 	handleScan: function(dontSend) {
 		var scanval = this.down('#txtScan').getValue() ;

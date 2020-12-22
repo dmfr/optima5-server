@@ -101,6 +101,8 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy60summary',{
 		this.mixins.focusable.constructor.call(this);
 		
 		this.registerFocusableComponent( this.down('#txtScan') ) ;
+		this.mon(this.optimaModule,'op5broadcast',this.onCrmeventBroadcast,this) ;
+		
 		this.doLoad() ;
 	},
 	handleScan: function(dontSend) {

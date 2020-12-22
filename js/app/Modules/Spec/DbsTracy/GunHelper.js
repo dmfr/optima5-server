@@ -101,5 +101,9 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunHelper',{
 	},
 	isRegisterFocus() {
 		return this.registerFocusOn ;
+	},
+	
+	getActiveModule() {
+		return this.optimaModule ;
 	}
 });
