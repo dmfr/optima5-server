@@ -1,8 +1,10 @@
 Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailRiskPanel', {
 	extend: 'Ext.panel.Panel',
+	requires: ['Optima5.Modules.Spec.RsiRecouveo.FileDetailRiskXmlBox'],
 	_token: null,
 	_safeNo: null,
 	initComponent: function () {
+		var rawXml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<svcOnlineOrderRequest lang="FR" version="2.1"><admin><client><contractId>45353</contractId><userPrefix>GEOCOM</userPrefix><userId>NN411025</userId><password>OICZ5M45OBMD</password><privateReference type="order">AE1296544</privateReference></client><context><appId version="1">WSOM</appId><date>2011-12-13T17:38:15+01:00</date></context></admin><request><id type="register" idName="SIREN">831549209</id><product range="101003" version="10"/><deliveryOptions><outputMethod>raw</outputMethod></deliveryOptions></request></svcOnlineOrderRequest>' ;
 
 		Ext.apply(this, {
 			//scrollable: 'vertical',
@@ -151,7 +153,11 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailRiskPanel', {
 					grow: true,
 					labelAlign: "top"
 				}
-			},{
+			},Ext.create('Optima5.Modules.Spec.RsiRecouveo.FileDetailRiskXmlBox',{
+				xtype: 'box',
+				height: 600,
+				xmlString: rawXml
+			}),{
 				xtype: "panel",
 				layout: "center",
 				width: "100%",
@@ -174,6 +180,5 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailRiskPanel', {
 		});
 
 		this.callParent();
-		//this.setSiren();
 	}
 })
