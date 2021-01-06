@@ -1269,3 +1269,46 @@
 	background-repeat: no-repeat;
 	background-image: url("../images/modules/rsiveo-search-16.gif") !important;
 }
+
+
+
+
+.op5-spec-rsiveo-xmlbox ul {
+    list-style: none;
+    margin: 0px;
+    padding-left: 32px;
+}
+.op5-spec-rsiveo-xmlbox {
+    font-family: 'Courier New';
+}
+.op5-spec-rsiveo-xmlbox-comment {
+    color: green;
+}
+.op5-spec-rsiveo-xmlbox-tagHeader {
+    color: blue;
+}
+.op5-spec-rsiveo-xmlbox-cdata {
+    color: gray;
+}
+.op5-spec-rsiveo-xmlbox-tagValue {
+    color: darkred;
+}
+.op5-spec-rsiveo-xmlbox-collapsedText {
+    color: lightgray;
+}
+.op5-spec-rsiveo-xmlbox-attrName {
+	color: red;
+}
+.op5-spec-rsiveo-xmlbox-attrValue {
+	color: blue;
+}
+.op5-spec-rsiveo-xmlbox span.op5-spec-rsiveo-xmlbox-expander, .op5-spec-rsiveo-xmlbox span.op5-spec-rsiveo-xmlbox-expanderClose {
+    height: 9px;
+    width: 9px;
+    display: inline-block;
+}
+.op5-spec-rsiveo-xmlbox span.op5-spec-rsiveo-xmlbox-expanderHeader {
+    cursor: pointer;
+}
+
+

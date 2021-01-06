@@ -50,7 +50,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailRiskXmlBox', {
 		}
 		
 		var wrapperNode = document.createElement("span");
-		Ext.fly(wrapperNode).addCls('simpleXML') ;
+		Ext.fly(wrapperNode).addCls('op5-spec-rsiveo-xmlbox') ;
 		this.buildXmlViewNode(wrapperNode,xml) ;
 		this.fillContainerNode(wrapperNode) ;
 	},
@@ -84,10 +84,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailRiskXmlBox', {
                     var hasChildNodes = xml.childNodes.length > 0;
                     var expandingNode = hasChildNodes && (xml.childNodes.length > 1 || xml.childNodes[0].nodeType != 3);
 
-                    var expanderHeader = expandingNode ? makeSpan("", "simpleXML-expanderHeader") : parent;
+                    var expanderHeader = expandingNode ? makeSpan("", "op5-spec-rsiveo-xmlbox-expanderHeader") : parent;
 
-                    expanderHeader.appendChild(makeSpan("<", "simpleXML-tagHeader"));
-                    expanderHeader.appendChild(makeSpan(xml.nodeName, "simpleXML-tagValue"));
+                    expanderHeader.appendChild(makeSpan("<", "op5-spec-rsiveo-xmlbox-tagHeader"));
+                    expanderHeader.appendChild(makeSpan(xml.nodeName, "op5-spec-rsiveo-xmlbox-tagValue"));
 
                     if( expandingNode)
                         parent.appendChild(expanderHeader);
@@ -96,16 +96,16 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailRiskXmlBox', {
 					var attributes = xml.attributes;
 					for( var attrIdx = 0 ; attrIdx < attributes.length ; attrIdx++ ) {
 						expanderHeader.appendChild( makeSpan( " "));
-						expanderHeader.appendChild( makeSpan( attributes [attrIdx].name, "simpleXML-attrName"));
+						expanderHeader.appendChild( makeSpan( attributes [attrIdx].name, "op5-spec-rsiveo-xmlbox-attrName"));
 						expanderHeader.appendChild( makeSpan( '="' ));
-						expanderHeader.appendChild( makeSpan( attributes [attrIdx].value, "simpleXML-attrValue" ));
+						expanderHeader.appendChild( makeSpan( attributes [attrIdx].value, "op5-spec-rsiveo-xmlbox-attrValue" ));
 						expanderHeader.appendChild( makeSpan( '"' ));
 					}
 					
                     // Handle child nodes
                     if (hasChildNodes) {
 
-                        parent.appendChild(makeSpan(">", "simpleXML-tagHeader"));
+                        parent.appendChild(makeSpan(">", "op5-spec-rsiveo-xmlbox-tagHeader"));
 
                         if (expandingNode) {
                             var ulElement = document.createElement("ul");
@@ -115,20 +115,20 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailRiskXmlBox', {
                                 ulElement.appendChild(liElement);
                             }
 
-                             ulElement.setAttribute("class", "simpleXML-content");
+                             ulElement.setAttribute("class", "op5-spec-rsiveo-xmlbox-content");
                             //parent.appendChild(collapsedTextSpan);
                             parent.appendChild(ulElement);
 
-                            parent.appendChild(makeSpan("", "simpleXML-expanderClose"));
+                            parent.appendChild(makeSpan("", "op5-spec-rsiveo-xmlbox-expanderClose"));
                         }
                         else {
                             parent.appendChild(makeSpan(xml.childNodes[0].nodeValue));
                         }
 
                         // Closing tag
-                        parent.appendChild(makeSpan("</", "simpleXML-tagHeader"));
-                        parent.appendChild(makeSpan(xml.nodeName, "simpleXML-tagValue"));
-                        parent.appendChild(makeSpan(">", "simpleXML-tagHeader"));
+                        parent.appendChild(makeSpan("</", "op5-spec-rsiveo-xmlbox-tagHeader"));
+                        parent.appendChild(makeSpan(xml.nodeName, "op5-spec-rsiveo-xmlbox-tagValue"));
+                        parent.appendChild(makeSpan(">", "op5-spec-rsiveo-xmlbox-tagHeader"));
                     } else {
                         var closingSpan = document.createElement("span");
                         closingSpan.innerText = "/>";
@@ -140,7 +140,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailRiskXmlBox', {
             case 3: // text
                 {
 					if( xml.nodeValue.trim() !== "" ) {
-						parent.appendChild(makeSpan("", "simpleXML-expander"));
+						parent.appendChild(makeSpan("", "op5-spec-rsiveo-xmlbox-expander"));
 						parent.appendChild(makeSpan(xml.nodeValue));
 					}
                 }
@@ -148,17 +148,17 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailRiskXmlBox', {
 
             case 4: // cdata
                 {
-                    parent.appendChild(makeSpan("", "simpleXML-expander"));
-                    parent.appendChild(makeSpan("<![CDATA[", "simpleXML-tagHeader"));
-                    parent.appendChild(makeSpan(xml.nodeValue, "simpleXML-cdata"));
-                    parent.appendChild(makeSpan("]]>", "simpleXML-tagHeader"));
+                    parent.appendChild(makeSpan("", "op5-spec-rsiveo-xmlbox-expander"));
+                    parent.appendChild(makeSpan("<![CDATA[", "op5-spec-rsiveo-xmlbox-tagHeader"));
+                    parent.appendChild(makeSpan(xml.nodeValue, "op5-spec-rsiveo-xmlbox-cdata"));
+                    parent.appendChild(makeSpan("]]>", "op5-spec-rsiveo-xmlbox-tagHeader"));
                 }
                 break;
 
             case 8: // comment
                 {
-                    parent.appendChild(makeSpan("", "simpleXML-expander"));
-                    parent.appendChild(makeSpan("<!--" + xml.nodeValue + "-->", "simpleXML-comment"));
+                    parent.appendChild(makeSpan("", "op5-spec-rsiveo-xmlbox-expander"));
+                    parent.appendChild(makeSpan("<!--" + xml.nodeValue + "-->", "op5-spec-rsiveo-xmlbox-comment"));
                 }
                 break;
 
