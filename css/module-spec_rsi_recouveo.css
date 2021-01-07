@@ -1280,6 +1280,7 @@
 }
 .op5-spec-rsiveo-xmlbox {
     font-family: 'Courier New';
+    white-space:nowrap;
 }
 .op5-spec-rsiveo-xmlbox-comment {
     color: green;

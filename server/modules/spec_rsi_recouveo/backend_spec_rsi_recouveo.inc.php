@@ -223,6 +223,9 @@ switch( $post_data['_action'] )
         return   specRsiRecouveo_edi_createApiKey( $post_data ) ;
 
 	
+	case 'risk_doSearch' :
+		return specRsiRecouveo_risk_doSearch( $post_data ) ;
+	
 	default :
 	return NULL ;
 }

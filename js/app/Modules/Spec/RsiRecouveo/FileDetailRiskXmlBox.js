@@ -3,7 +3,7 @@
  */
 Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailRiskXmlBox', {
 	extend: 'Ext.Component',
-	style: 'background-color: white',
+	style: 'background-color: #eeeeee',
 	scrollable: true,
 	
 	renderTpl: [

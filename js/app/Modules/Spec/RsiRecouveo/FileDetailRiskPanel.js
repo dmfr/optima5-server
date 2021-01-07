@@ -12,7 +12,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailRiskPanel', {
 	
 	
 	initComponent: function () {
-		var rawXml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<svcOnlineOrderRequest lang="FR" version="2.1"><admin><client><contractId>45353</contractId><userPrefix>GEOCOM</userPrefix><userId>NN411025</userId><password>OICZ5M45OBMD</password><privateReference type="order">AE1296544</privateReference></client><context><appId version="1">WSOM</appId><date>2011-12-13T17:38:15+01:00</date></context></admin><request><id type="register" idName="SIREN">831549209</id><product range="101003" version="10"/><deliveryOptions><outputMethod>raw</outputMethod></deliveryOptions></request></svcOnlineOrderRequest>' ;
+		this.rawXml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<svcOnlineOrderRequest lang="FR" version="2.1"><admin><client><contractId>45353</contractId><userPrefix>GEOCOM</userPrefix><userId>NN411025</userId><password>OICZ5M45OBMD</password><privateReference type="order">AE1296544</privateReference></client><context><appId version="1">WSOM</appId><date>2011-12-13T17:38:15+01:00</date></context></admin><request><id type="register" idName="SIREN">831549209</id><product range="101003" version="10"/><deliveryOptions><outputMethod>raw</outputMethod></deliveryOptions></request></svcOnlineOrderRequest>' ;
 
 		Ext.apply(this, {
 			//scrollable: 'vertical',
@@ -49,10 +49,47 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailRiskPanel', {
 				border: false,
 				xtype: 'toolbar',
 				items: [{
+					width: 120,
+					itemId: 'tbSearchMode',
+					xtype: 'combobox',
+					queryMode: 'local',
+					displayField: 'mode_txt',
+					valueField: 'mode_code',
+					editable: false,
+					forceSelection: true,
+					store: {
+						fields: ['mode_txt','mode_code'],
+						data: [
+							{mode_code: '_', mode_txt: '- Automatique -'},
+							{mode_code: 'ID', mode_txt: 'SIREN/TVA'},
+							{mode_code: 'NAME_CITY', mode_txt: 'Société (,Ville)'},
+							{mode_code: 'MANAGER', mode_txt: 'Nom (,Prénom)'},
+						]
+					},
+					value: '_',
+					listeners: {
+						select: function(cmb,rec) {
+							var val = rec.get('mode_code'),
+								txtField = cmb.up().down('#tbSearchTxt') ;
+							txtField.setVisible( val && val!='_' ) ;
+						}
+					}
+				},{
+					hidden: true,
+					itemId: 'tbSearchTxt',
 					flex: 1,
 					xtype: 'textfield'
 				},{
-					icon: 'images/modules/rsiveo-search-16.gif'
+					icon: 'images/modules/rsiveo-search-16.gif',
+					handler: function(btn) {
+						var mode = btn.up().down('#tbSearchMode').getValue(),
+							txt = btn.up().down('#tbSearchTxt').getValue() ;
+						if( mode!='_' && Ext.isEmpty(txt) ) {
+							return ;
+						}
+						this.doSearch( mode, txt );
+					},
+					scope: this
 				}]
 			},{
 				hidden: true,
@@ -99,21 +136,30 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailRiskPanel', {
 			this.optimaModule = this._parentCmp.optimaModule ;
 			//this._accId = this._parentCmp._accId ;
 			this.mon(this._parentCmp,'doreload',this.onDoReload,this) ;
-			this.on('show',this.onFirstVisible,this,{single: true}) ;
+			this.on('show',this.onVisible,this,{single: true}) ;
 		}
 	},
-	onFirstVisible: function() {
-		this._onVisibleActive = true ;
-		
-		//search or result ??
-		
-		//for test :
-		this._viewMode = 'result' ;
-		this.applyView() ;
+	onDoReload: function(parentCmp,accId) {
+		//parent has been (re)loaded
+		if( !this._onVisibleActive ) {
+			this._onVisibleAccId = accId ;
+			return ;
+		}
+		if( accId != this._accId ) {
+			this.queryAccount(accId) ;
+		}
 	},
-	onDoReload: function() {
-		//parent has been reloaded
-		// TODO
+	onVisible: function() {
+		this._onVisibleActive = true ;
+		this.queryAccount(this._onVisibleAccId) ;
+	},
+	
+	queryAccount: function(accId) {
+		//TODO : TMP
+		this._accId = accId ;
+		//for test :
+		this._viewMode = 'search' ;
+		this.applyView() ;
 	},
 	
 	applyView: function() {
@@ -168,7 +214,120 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailRiskPanel', {
 		},2000,this) ;
 	},
 	setupResultMode: function() {
-		this.buildWaitPanel() ;
+		this.removeAll() ;
+		this.add({
+					scrollable: true,
+					flex: 1,
+					xtype: 'form',
+					//bodyCls: 'ux-noframe-bg',
+					layout: 'anchor',
+					cls: 'op5-spec-rsiveo-risk-displayform',
+					fieldDefaults: {
+						anchor: "100%",
+						labelWidth: 130,
+						labelSeparator : " :",
+					},
+					items: [{
+						xtype: 'fieldset',
+						title: 'SCORES',
+						items: [{
+							xtype: 'displayfield',
+							fieldLabel: 'Note globale',
+							fieldStyle: {
+								"font-size": '14px',
+								"line-height": '15px'
+							},
+							value: '&#160;'
+						},{
+							xtype: 'displayfield',
+							fieldLabel: 'Limite',
+							value: '&#160;'
+						},{
+							xtype: 'displayfield',
+							fieldLabel: 'Statut',
+							value: '&#160;'
+						},{
+							xtype: 'displayfield',
+							fieldLabel: 'DBT Score',
+							value: '&#160;'
+						},{
+							xtype: 'displayfield',
+							fieldLabel: 'Privilège(s)',
+							value: '&#160;'
+						},{
+							xtype: 'fieldset',
+							title: 'Indicateur d\'exposition',
+							items: [{
+								xtype: 'displayfield',
+								fieldLabel: 'Activité',
+								value: '&#160;'
+							},{
+								xtype: 'displayfield',
+								fieldLabel: 'Entreprise',
+								value: '&#160;'
+							}]
+						}]
+					},{
+						xtype: 'fieldset',
+						title: 'TENDANCES',
+						items: [{
+							xtype: 'box',
+							height: 48
+						}]
+					},{
+						xtype: 'fieldset',
+						title: 'DIRIGEANTS',
+						items: [{
+							xtype: 'displayfield',
+							fieldLabel: 'Nombre de dirigeants',
+							value: '&#160;'
+						},{
+							xtype: 'displayfield',
+							fieldLabel: 'Détail',
+							value: '&#160;'
+						}]
+					},{
+						xtype: 'fieldset',
+						title: 'MAISON MÈRE ULTIME',
+						items: [{
+							xtype: 'displayfield',
+							fieldLabel: 'Raison sociale',
+							value: '&#160;'
+						},{
+							xtype: 'displayfield',
+							labelStyle: "font-weight:normal",
+							fieldLabel: 'SAFE number',
+							value: '&#160;'
+						},{
+							xtype: 'displayfield',
+							fieldLabel: 'Pays',
+							value: '&#160;'
+						},{
+							xtype: 'displayfield',
+							fieldLabel: 'SIREN',
+							value: '&#160;'
+						}]
+					},{
+						xtype: 'fieldset',
+						title: 'JUGEMENTS & PRIVILÈGES',
+						items: [{
+							xtype: 'box',
+							height: 48
+						}]
+					},{
+						xtype: 'fieldset',
+						title: 'COMPORTEMENTS DE PAIEMENT',
+						items: [{
+							xtype: 'displayfield',
+							fieldLabel: 'DBS Score',
+							value: '&#160;'
+						},{
+							xtype: 'displayfield',
+							fieldLabel: 'DBS secteur',
+							value: '&#160;'
+						}]
+					}]
+			});
 	},
 	buildWaitPanel: function() {
 		this.removeAll() ;
@@ -188,6 +347,106 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailRiskPanel', {
 				'text-align': 'center'
 			},
 			html: '<i>Aucun résultat associé</i>'
+		});
+	},
+	
+	doSearch: function(mode,txt) {
+		if( !this._accId ) {
+			return ;
+		}
+		
+		this.buildWaitPanel() ;
+		
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_rsi_recouveo',
+				_action: 'risk_doSearch',
+				acc_id: this._accId,
+				data: Ext.JSON.encode({
+					search_mode: mode,
+					search_txt: txt
+				})
+			},
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					return ;
+				}
+				this.onSearch(ajaxResponse.data) ;
+			},
+			scope: this
+		}) ;
+	},
+	onSearch: function(ajaxData) {
+		var xmlItems = [] ;
+		Ext.Array.each( ajaxData.arr_xml, function(xml) {
+			xmlItems.push({
+				xtype: 'box',
+				margin: '10px 0px 4px 0px',
+				html: xml.type
+			});
+			xmlItems.push(Ext.create('Optima5.Modules.Spec.RsiRecouveo.FileDetailRiskXmlBox',{
+				xmlString: xml.binary
+			})) ;
+		}) ;
+		
+		this.removeAll() ;
+		this.add({
+			xtype: 'tabpanel',
+			items: [{
+				title: 'Recherche',
+				xtype: 'grid',
+				//itemId: 'gridScenarios',
+				columns: [{
+					align: 'center',
+					xtype:'actioncolumn',
+					width:24,
+					disabledCls: 'x-item-invisible',
+					items: [{
+						icon: 'images/op5img/ico_pdf_16.png',
+						tooltip: 'Rapport',
+						handler: function(grid, rowIndex, colIndex, item, e) {
+							
+						},
+						scope: this,
+						disabledCls: 'x-item-invisible',
+						isDisabled: function(view,rowIndex,colIndex,item,record ) {
+							return false ;
+						}
+					}]
+				},{
+					flex: 1,
+					text: 'Entités',
+					dataIndex: 'id',
+					renderer: function(v,metaData,r) {
+						var txt = '' ;
+						txt += '<b>' + r.get('name') + '</b><br>' ;
+						txt += '&nbsp;&nbsp;<b>SIREN</b>:&nbsp;' + r.get('id') + '<br>' ;
+						txt += '&nbsp;&nbsp;<b>Adr</b>:&nbsp;' + r.get('adr') + '<br>' ;
+						txt += '&nbsp;&nbsp;<b>Activité</b>:&nbsp;' + r.get('activity') + '<br>' ;
+						return txt ;
+					}
+				}],
+				store: {
+					fields: ['id','name','adr','activity'],
+					data: ajaxData.rows
+				},
+				listeners: {
+					selectionchange: function(grid,record) {
+						//this.setupScenario() ;
+					},
+					scope: this
+				}
+			},{
+				xtype: 'panel',
+				scrollable: 'vertical',
+				title: 'XML interface',
+				layout: {
+					type: 'vbox',
+					align: 'stretch'
+				},
+				items: xmlItems
+			}]
 		});
 	}
 }) ;
