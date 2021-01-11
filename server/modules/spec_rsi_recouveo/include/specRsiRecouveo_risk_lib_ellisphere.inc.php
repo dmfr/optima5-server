@@ -1,15 +1,146 @@
 <?php
+function specRsiRecouveo_risk_lib_ES_utilParseAdr( $account_row ) {
+	$fn_parseAdr = function( $acc_txt, $adr_string ) {
+		$return_obj = array(
+			'adr_nom' => $acc_txt
+		) ;
+		
+		$adr_string = trim($adr_string) ;
+		
+		$adr_array = array() ;
+		foreach( explode("\n",$adr_string) as $adr_line ) {
+			$adr_line = trim($adr_line) ;
+			$adr_line = str_replace('&','et',$adr_line) ;
+			$adr_line = preg_replace('/[\x00-\x1F\x7F]/u', '', $adr_line);
+			if( !trim($adr_line) ) {
+				continue ;
+			}
+			$adr_array[] = $adr_line ;
+		}
+		
+		$isCpVilleLine = function( $str ) {
+			// multiword ? + hasDigits ?
+			$words = explode(' ',$str) ;
+			if( count($words) <= 1 ) {
+				return FALSE ;
+			}
+			foreach( $words as $word ) {
+				if( preg_match('~[0-9]~', $word) ) {
+					return TRUE ;
+				}
+			}
+		};
+		$isFr = function( &$adr_array ) use($isCpVilleLine)  {
+			$cnt = count($adr_array) ;
+			$last_idx = $cnt - 1 ;
+			$beforelast_idx = $cnt - 2 ;
+			$last_line = $adr_array[$last_idx] ;
+			$beforelast_line = $adr_array[$beforelast_idx] ;
+			foreach( explode(' ',$last_line) as $lastline_word ) {
+				if( in_array(strtolower($lastline_word),array('france','fr')) ) {
+					unset($adr_array[$last_idx]) ;
+					return TRUE ;
+				}
+			}
+			if( $isCpVilleLine($last_line) ) {
+				return TRUE ;
+			}
+			return FALSE ;
+		};
+		$sanitizeFrCpVilleLine = function( $line ) {
+			$words = explode(' ',$line,2) ;
+			$cp_word = $words[0] ;
+			$cp_word = str_pad($cp_word, 5, "0", STR_PAD_LEFT) ;
+			$ville_word = $words[1] ;
+			return array(
+				'adr_cp' => $cp_word,
+				'adr_ville' => $ville_word,
+				'adr_pays' => 'FR'
+			);
+		};
+		
+		if( !$isFr($adr_array) ) {
+			$return_obj += array(
+				'adr_pays' => 'FR'
+			);
+			return $return_obj ;
+		}
+		
+		for( $i=0 ; $i<count($adr_array)-1 ; $i++ ) {
+			if( $i > 1 ) {
+				break ;
+			}
+			$mkey = 'adr_adr'.($i+1) ;
+			$adr_line = $adr_array[$i] ;
+			
+			$return_obj[$mkey] = $adr_line ;
+		}
+		$return_obj += $sanitizeFrCpVilleLine(end($adr_array)) ;
+		
+		return $return_obj ;
+	};
+	
+	$mapAdr_type_txt = array() ;
+	foreach( $account_row['adrbook'] as $adrbook_row ) {
+		foreach( $adrbook_row['adrbookentries'] as $adrbookentry_row ) {
+			if( $adrbookentry_row['status_is_priority'] && !$adrbookentry_row['status_is_invalid'] ) {
+				$mapAdr_type_txt[$adrbookentry_row['adr_type']] = $adrbookentry_row['adr_txt'] ;
+			}
+		}
+	}
+	return $fn_parseAdr($account_row['acc_txt'],$mapAdr_type_txt['POSTAL']) ;
+}
 
 function specRsiRecouveo_risk_lib_ES_getSearchObj( $acc_id, $mode, $txt ) {
+	$ttmp = specRsiRecouveo_account_open(array('acc_id'=>$acc_id)) ;
+	$account_record = $ttmp['data'] ;
+	if( !$account_record ) {
+		return NULL ;
+	}
+
 	
 	$arr_xml = array() ;
 	$rows = array() ;
 	
-	
 	$arr_pings = array() ;
 	switch( $mode ) {
 		case '_' :
-			//TODO
+			$account_record['acc_txt'] = preg_replace('/\s+/', ' ',$account_record['acc_txt']);
+			if($account_record['acc_siret']) {
+				$arr_pings[] = array(
+					'mode' => 'id_register',
+					'parm1' => $account_record['acc_siret']
+				) ;
+			}
+			if( ($arr_adr = specRsiRecouveo_risk_lib_ES_utilParseAdr($account_record)) && ($arr_adr['adr_pays']=='FR') ) {
+				$arr_pings[] = array(
+					'mode' => 'name_city',
+					'parm1' => $account_record['acc_txt'],
+					'parm2' => $arr_adr['adr_cp']
+				) ;
+				$arr_pings[] = array(
+					'mode' => 'name_city',
+					'parm1' => $account_record['acc_txt'],
+					'parm2' => $arr_adr['adr_ville']
+				) ;
+				if( count($ttmp=explode(' ',$account_record['acc_txt'])) > 2 ) {
+					$txt = $ttmp[0].' '.$ttmp[1] ;
+					$arr_pings[] = array(
+						'mode' => 'name_city',
+						'parm1' => $txt,
+						'parm2' => $arr_adr['adr_cp']
+					) ;
+					$arr_pings[] = array(
+						'mode' => 'name_city',
+						'parm1' => $txt,
+						'parm2' => $arr_adr['adr_ville']
+					) ;
+				}
+			}
+			$arr_pings[] = array(
+				'mode' => 'name_city',
+				'parm1' => $account_record['acc_txt']
+			) ;
 			break ;
 		case 'ID' :
 			$arr_pings[] = array(
@@ -44,18 +175,18 @@ function specRsiRecouveo_risk_lib_ES_getSearchObj( $acc_id, $mode, $txt ) {
 		$arr_xml[] = array('type'=>'request','binary'=>$res[0]) ;
 		$arr_xml[] = array('type'=>'response','binary'=>$res[1]) ;
 		
-		
-		
 		if( $res[1] ) {
 			$xml = simplexml_load_string( $res[1], 'SimpleXMLElement', LIBXML_NOCDATA);
 			$xml_json = json_encode((array)$xml, JSON_PRETTY_PRINT) ;
 			$xml = json_decode($xml_json,true) ;
 			
 			$establishment_rows = array() ;
-			if( $xml['response']['providedHits'] > 1 ) {
-				$establishment_rows = $xml['response']['establishment'] ;
-			} elseif( $xml['response']['providedHits'] == 1 ) {
-				$establishment_rows[] = $xml['response']['establishment'] ;
+			if( isset($xml['response']['establishment']) ) {
+				if( $xml['response']['providedHits'] > 1 ) {
+					$establishment_rows = $xml['response']['establishment'] ;
+				} elseif( $xml['response']['providedHits'] == 1 ) {
+					$establishment_rows = array($xml['response']['establishment']) ;
+				}
 			}
 			
 			foreach( $establishment_rows as $establishment_row ) {
@@ -67,6 +198,9 @@ function specRsiRecouveo_risk_lib_ES_getSearchObj( $acc_id, $mode, $txt ) {
 				$row['adr'] = $establishment_row['address']['addressLine'].', '.$establishment_row['address']['cityCode'].' '.$establishment_row['address']['cityName'] ;
 				
 				$rows[] = $row ;
+			}
+			if( $establishment_rows ) {
+				break ;
 			}
 		}
 	}
@@ -89,9 +223,21 @@ $GLOBALS['specRsiRecouveo_risk_lib_ES_userId'] = 'NN411025' ;
 $GLOBALS['specRsiRecouveo_risk_lib_ES_password'] = 'OICZ5M45OBMD' ;
 
 function specRsiRecouveo_risk_lib_ES_pingSearch( $mode, $parm1, $parm2=NULL ) {
+	$parm1 = htmlspecialchars(trim($parm1)) ;
+	if( $parm2 ) {
+		$parm2 = htmlspecialchars(trim($parm2)) ;
+	}
+	
 	switch( $mode ) {
 		case 'id_register' : 
-			$xml_part = "<id type=\"register-estb\">{$parm1}</id>" ;
+			switch( strlen($parm1) ) {
+				case 14 :
+					$xml_part = "<id type=\"register-estb\">{$parm1}</id>" ;
+					break ;
+				default :
+					$xml_part = "<id type=\"register\">{$parm1}</id>" ;
+					break ;
+			}
 			break ;
 		case 'id_vat' :
 			$xml_part = "<id type=\"vat\">{$parm1}</id>" ;

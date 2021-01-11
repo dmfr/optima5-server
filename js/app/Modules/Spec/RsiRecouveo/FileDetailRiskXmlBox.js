@@ -25,7 +25,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailRiskXmlBox', {
 	
 	fillContainerNode: function( childNode ) {
 		if( this.rendered ) {
-			console.dir( this.cntEl ) ;
 			this.cntEl.dom.innerHTML='' ;
 			if( childNode ) {
 				this.cntEl.dom.appendChild(childNode) ;

@@ -12,8 +12,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailRiskPanel', {
 	
 	
 	initComponent: function () {
-		this.rawXml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<svcOnlineOrderRequest lang="FR" version="2.1"><admin><client><contractId>45353</contractId><userPrefix>GEOCOM</userPrefix><userId>NN411025</userId><password>OICZ5M45OBMD</password><privateReference type="order">AE1296544</privateReference></client><context><appId version="1">WSOM</appId><date>2011-12-13T17:38:15+01:00</date></context></admin><request><id type="register" idName="SIREN">831549209</id><product range="101003" version="10"/><deliveryOptions><outputMethod>raw</outputMethod></deliveryOptions></request></svcOnlineOrderRequest>' ;
-
 		Ext.apply(this, {
 			//scrollable: 'vertical',
 			//cls: 'ux-noframe-bg',
@@ -80,14 +78,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailRiskPanel', {
 					flex: 1,
 					xtype: 'textfield'
 				},{
+					itemId: 'tbSearchBtn',
 					icon: 'images/modules/rsiveo-search-16.gif',
 					handler: function(btn) {
-						var mode = btn.up().down('#tbSearchMode').getValue(),
-							txt = btn.up().down('#tbSearchTxt').getValue() ;
-						if( mode!='_' && Ext.isEmpty(txt) ) {
-							return ;
-						}
-						this.doSearch( mode, txt );
+						this.handleSearch() ;
 					},
 					scope: this
 				}]
@@ -206,12 +200,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailRiskPanel', {
 		}
 	},
 	setupSearchMode: function() {
-		this.buildWaitPanel() ;
-		
-		// resultat existant ?
-		Ext.defer(function() {
-			this.buildEmptyPanel() ;
-		},2000,this) ;
+		this.down('#tbSearch').down('#tbSearchMode').setValue('_') ;
+		this.down('#tbSearch').down('#tbSearchTxt').reset() ;
+		this.handleSearch() ;
 	},
 	setupResultMode: function() {
 		this.removeAll() ;
@@ -350,8 +341,15 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailRiskPanel', {
 		});
 	},
 	
-	doSearch: function(mode,txt) {
+	handleSearch: function(mode,txt) {
 		if( !this._accId ) {
+			return ;
+		}
+		
+		var mode = this.down('#tbSearch').down('#tbSearchMode').getValue(),
+			txt = this.down('#tbSearch').down('#tbSearchTxt').getValue() ;
+		if( mode!='_' && Ext.isEmpty(txt) ) {
+			this.buildEmptyPanel() ;
 			return ;
 		}
 		
@@ -396,6 +394,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailRiskPanel', {
 			items: [{
 				title: 'Recherche',
 				xtype: 'grid',
+				viewConfig: {
+					enableTextSelection: true
+				},
 				//itemId: 'gridScenarios',
 				columns: [{
 					align: 'center',

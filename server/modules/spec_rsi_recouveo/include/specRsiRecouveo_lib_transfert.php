@@ -113,7 +113,7 @@ function specRsiRecouveo_lib_transfert_create_RECORD_row($acc_id, $idSoc) {
 			$letter_code = 'ANNULE' ;
 		}
 		// HACK: 24/06/2020 : pas de lettrage auto en mode transfert
-		//$letter_confirm = ($letter_code ? TRUE : FALSE) ;
+		$letter_confirm = ($letter_code ? TRUE : FALSE) ;
 		
 		$record_row["IdSoc"] = $idSoc ;
 		$record_row["IdCli"] = $arr["field_LINK_ACCOUNT"] ;
