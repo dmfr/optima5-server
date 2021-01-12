@@ -339,6 +339,61 @@ function specRsiRecouveo_risk_lib_ES_pingSearch( $mode, $parm1, $parm2=NULL ) {
 }
 
 
+function specRsiRecouveo_risk_lib_ES_pingPdf( $id_register ) {
+	
+	$xml_request = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+		<svcOnlineOrderRequest lang="FR" version="2.1">
+			<admin>
+				<client>
+				<contractId>'.$GLOBALS['specRsiRecouveo_risk_lib_ES_contractId'].'</contractId>
+				<userPrefix>'.$GLOBALS['specRsiRecouveo_risk_lib_ES_userPrefix'].'</userPrefix>
+				<userId>'.$GLOBALS['specRsiRecouveo_risk_lib_ES_userId'].'</userId>
+				<password>'.$GLOBALS['specRsiRecouveo_risk_lib_ES_password'].'</password>
+				<privateReference type="order">TEST20210107</privateReference>
+				</client>
+				<context>
+				<appId version="1">WSOM</appId>
+				<date>2011-12-13T17:38:15+01:00</date>
+				</context>
+			</admin>
+			<request>
+				<id type="register" idName="SIREN">'.$id_register.'</id>
+				<product range="101003" version="10" />
+				<deliveryOptions>
+							<outputMethod>content</outputMethod>
+							<format>PDF</format>
+				</deliveryOptions>
+			</request>
+		</svcOnlineOrderRequest>' ;
+	
+	$xml = simplexml_load_string( $xml_request, 'SimpleXMLElement', LIBXML_NOCDATA);
+	$dom = new DOMDocument('1.0');
+	$dom->preserveWhiteSpace = false;
+	$dom->formatOutput = false;
+	$dom->loadXML($xml->asXML());
+	$xml_binary = $dom->saveXML();
 
+				$post_url = 'https://services.data-access-gateway.com/1/rest/svcOnlineOrder' ;
+				$params = array('http' => array(
+				'method' => 'POST',
+				'content' => $xml_binary,
+				'timeout' => 600,
+				'ignore_errors' => true,
+				'header'=> "Content-type: application/xml\r\n"
+				));
+				$ctx = stream_context_create($params);
+				$fp = fopen($post_url, 'rb', false, $ctx);
+				if( !$fp ) {
+					//break 2 ;
+				}
+				$status_line = $http_response_header[0] ;
+				preg_match('{HTTP\/\S*\s(\d{3})}', $status_line, $match);
+				$status = $match[1];
+				$response_success = ($status == 200) ;
+
+
+	$pdf_binary = stream_get_contents($fp) ;
+	return $pdf_binary ;
+}
 
 ?>

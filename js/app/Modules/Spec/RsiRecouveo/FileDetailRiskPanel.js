@@ -11,6 +11,35 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailRiskPanel', {
 	_resultViewMode:null,
 	
 	
+	showLoadmask: function() {
+		if( this.rendered ) {
+			this.doShowLoadmask() ;
+		} else {
+			this.on('afterrender',this.doShowLoadmask,this,{single:true}) ;
+		}
+	},
+	doShowLoadmask: function() {
+		if( this.loadMask ) {
+			return ;
+		}
+		this.loadMask = Ext.create('Ext.LoadMask',{
+			target: this,
+			msg: RsiRecouveoLoadMsg.loadMsg
+		}).show();
+	},
+	hideLoadmask: function() {
+		this.un('afterrender',this.doShowLoadmask,this) ;
+		if( this.loadMask ) {
+			this.loadMask.destroy() ;
+			this.loadMask = null ;
+		}
+	},
+	
+	sendEvent: function(eventname) {
+		this.fireEvent(eventname,this) ;
+	},
+
+	
 	initComponent: function () {
 		Ext.apply(this, {
 			//scrollable: 'vertical',
@@ -407,7 +436,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailRiskPanel', {
 						icon: 'images/op5img/ico_pdf_16.png',
 						tooltip: 'Rapport',
 						handler: function(grid, rowIndex, colIndex, item, e) {
-							
+							var rec = grid.getStore().getAt(rowIndex);
+							this.handlePdfDownload(rec.get('id')) ;
 						},
 						scope: this,
 						disabledCls: 'x-item-invisible',
@@ -449,5 +479,44 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailRiskPanel', {
 				items: xmlItems
 			}]
 		});
+	},
+	
+	handlePdfDownload: function(riskRegisterId, forcedl=false) {
+		if( !riskRegisterId ) {
+			return ;
+		}
+		this.sendEvent('attachclick') ;
+		this.showLoadmask() ;
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_rsi_recouveo',
+				_action: 'risk_fetchPdf',
+				acc_id: this._accId,
+				confirm: (forcedl ? 'true' : ''),
+				data: Ext.JSON.encode({
+					id_register: riskRegisterId
+				})
+			},
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					return ;
+				}
+				if( ajaxResponse.confirm == true ) {
+					Ext.Msg.confirm('Confirmation','Document existant. Mettre à jour ?', function(btn) {
+						if( btn=='yes' ) {
+							this.handlePdfDownload(riskRegisterId,true) ;
+						}
+					},this) ;
+					return ;
+				}
+				this.sendEvent('attachsaved') ;
+			},
+			callback: function() {
+				this.hideLoadmask() ;
+			},
+			scope: this
+		}) ;
+		
 	}
 }) ;

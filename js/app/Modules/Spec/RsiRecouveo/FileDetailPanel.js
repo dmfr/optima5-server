@@ -603,6 +603,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 					xtype: 'splitter'
 				},{
 					flex: 3,
+					itemId: 'tpHeaderData',
 					xtype: 'tabpanel',
 					items:[{
 						title: 'Contacts',
@@ -1443,7 +1444,19 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 					scrollable: 'vertical',
 					hidden: !Optima5.Helper.getApplication().desktopGetCfgIsDev(),
 					title: 'Analyse risque',
-					_parentCmp: this
+					_parentCmp: this,
+					listeners: {
+						attachsaved: function(cmp) {
+							this.doReload() ;
+						},
+						attachclick: function(cmp) {
+							console.log('attachclick') ;
+							var tabpanel = this.down('#tpHeaderData') ;
+								attachmentsPanel = tabpanel.down('#pAttachments') ;
+							tabpanel.setActiveTab(attachmentsPanel) ;
+						},
+						scope: this
+					}
 				})]
 			},{xtype: 'splitter', cls: 'op5-spec-rsiveo-splitter'},{
 				flex: 1,
