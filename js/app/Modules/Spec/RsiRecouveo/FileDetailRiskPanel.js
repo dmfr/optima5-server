@@ -422,14 +422,14 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailRiskPanel', {
 					renderer: function(v,metaData,r) {
 						var txt = '' ;
 						txt += '<b>' + r.get('name') + '</b><br>' ;
-						txt += '&nbsp;&nbsp;<b>SIREN</b>:&nbsp;' + r.get('id') + '<br>' ;
+						txt += '&nbsp;&nbsp;<b>SIREN</b>:&nbsp;' + r.get('register') + '<br>' ;
 						txt += '&nbsp;&nbsp;<b>Adr</b>:&nbsp;' + r.get('adr') + '<br>' ;
 						txt += '&nbsp;&nbsp;<b>Activité</b>:&nbsp;' + r.get('activity') + '<br>' ;
 						return txt ;
 					}
 				}],
 				store: {
-					fields: ['id','name','adr','activity'],
+					fields: ['id','register','name','adr','activity'],
 					data: ajaxData.rows
 				},
 				listeners: {

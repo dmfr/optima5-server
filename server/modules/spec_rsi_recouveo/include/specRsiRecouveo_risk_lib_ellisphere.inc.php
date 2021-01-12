@@ -177,30 +177,38 @@ function specRsiRecouveo_risk_lib_ES_getSearchObj( $acc_id, $mode, $txt ) {
 		
 		if( $res[1] ) {
 			$xml = simplexml_load_string( $res[1], 'SimpleXMLElement', LIBXML_NOCDATA);
-			$xml_json = json_encode((array)$xml, JSON_PRETTY_PRINT) ;
-			$xml = json_decode($xml_json,true) ;
+			$xml_response = $xml->response ;
 			
-			$establishment_rows = array() ;
-			if( isset($xml['response']['establishment']) ) {
-				if( $xml['response']['providedHits'] > 1 ) {
-					$establishment_rows = $xml['response']['establishment'] ;
-				} elseif( $xml['response']['providedHits'] == 1 ) {
-					$establishment_rows = array($xml['response']['establishment']) ;
-				}
-			}
-			
-			foreach( $establishment_rows as $establishment_row ) {
+			if( isset($xml_response->establishment) ) {
+			foreach( $xml_response->establishment as $xml_r_e ) {
 				$row = array() ;
-				$row['name'] = is_array($ttmp=$establishment_row['name']) ? ($ttmp[0].' ('.$ttmp[1].')') : $ttmp ;
-				$row['activity'] = $establishment_row['activity'] ;
-				$row['id'] = is_array($ttmp=$establishment_row['id']) ? end($ttmp) : $ttmp ;
+				$row['name'] = $xml_r_e->name->count() > 1 ? 
+									''.$xml_r_e->name[0].' ('.$xml_r_e->name[1].')' : ''.$xml_r_e->name[0] ;
 				
-				$row['adr'] = $establishment_row['address']['addressLine'].', '.$establishment_row['address']['cityCode'].' '.$establishment_row['address']['cityName'] ;
+				$row['activity'] = $xml_r_e->activity->count() > 0 ? ''.$xml_r_e->activity[0] : '' ;
+				
+				$row['id'] = is_array($ttmp=$establishment_row['id']) ? 
+								end($ttmp) : $ttmp ;
+				$tmapIds_type_value = array() ;
+				foreach( $xml_r_e->id as $xml_r_e_id ) {
+					//var_dump($xml_r_e_id) ;
+					if( $xml_r_e_id->attributes()->orderable == 'true' ) {
+						$mkey = 'id' ;
+					} else {
+						$mkey = ''.$xml_r_e_id->attributes()->idName ;
+						
+					}
+					$tmapIds_type_value[$mkey] = ''.$xml_r_e_id ;
+				}
+				$row['id'] = $tmapIds_type_value['id'] ;
+				$row['register'] = $tmapIds_type_value['SIRET'] ? $tmapIds_type_value['SIRET'] : $tmapIds_type_value['SIREN'] ;
+				
+				$xml_r_e_adr = $xml_r_e->address ;
+				$row['adr'] = ''.$xml_r_e_adr->addressLine.', '.$xml_r_e_adr->cityCode.' '.$xml_r_e_adr->cityName ;
 				
 				$rows[] = $row ;
 			}
-			if( $establishment_rows ) {
-				break ;
+			break ;
 			}
 		}
 	}
@@ -294,25 +302,19 @@ function specRsiRecouveo_risk_lib_ES_pingSearch( $mode, $parm1, $parm2=NULL ) {
 				</searchCriteria>
 			</request>
 		</svcSearchRequest>' ;
-		
-		
-$xml = simplexml_load_string( $xml_request, 'SimpleXMLElement', LIBXML_NOCDATA);
-$xml_array = json_decode(json_encode((array)$xml), TRUE);
-//print_r($xml_array);
-
-
-$dom = new DOMDocument('1.0');
-$dom->preserveWhiteSpace = false;
-$dom->formatOutput = false;
-$dom->loadXML($xml->asXML());
-$xml_binary = $dom->saveXML();
+	
+	$xml = simplexml_load_string( $xml_request, 'SimpleXMLElement', LIBXML_NOCDATA);
+	$dom = new DOMDocument('1.0');
+	$dom->preserveWhiteSpace = false;
+	$dom->formatOutput = false;
+	$dom->loadXML($xml->asXML());
+	$xml_binary = $dom->saveXML();
 
 //echo $xml_binary ;
 //die() ;
 
 
 
-				//$binary_zpl = base64_decode($json['labelData']) ;
 				$post_url = 'https://services.data-access-gateway.com/1/rest/svcSearch' ;
 				$params = array('http' => array(
 				'method' => 'POST',
@@ -332,12 +334,7 @@ $xml_binary = $dom->saveXML();
 				$response_success = ($status == 200) ;
 
 
-$xml_response = stream_get_contents($fp) ;
-$xml = simplexml_load_string( $xml_response, 'SimpleXMLElement', LIBXML_NOCDATA);
-$xml_json = json_encode((array)$xml, JSON_PRETTY_PRINT) ;
-		
-		
-	
+	$xml_response = stream_get_contents($fp) ;
 	return array($xml_request,$xml_response,$xml) ;
 }
 
