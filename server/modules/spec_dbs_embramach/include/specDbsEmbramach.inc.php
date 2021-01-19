@@ -239,6 +239,12 @@ function specDbsEmbramach_mach_getGridCfg_lib_getFields($flow_code) {
 		case 'INBOUND' :
 			$arr_fields = array() ;
 			$arr_fields[] = array(
+				'dataIndex' => 'soc_id',
+				'text' => 'Soc',
+				'width' => 65,
+				'source' => array('field_SOC_ID')
+			);
+			$arr_fields[] = array(
 				'text' => 'Doc Ref',
 				'width' => 130,
 				'widthBig' => 'big',
@@ -249,19 +255,31 @@ function specDbsEmbramach_mach_getGridCfg_lib_getFields($flow_code) {
 				'source' => array('field_D_DOCREF')
 			);
 			$arr_fields[] = array(
-				'text' => 'Type',
-				'width' => 80,
-				'widthBig' => 'big',
+				'text' => 'Volume',
+				'width' => 90,
+				//'widthBig' => 'big',
 				'filter' => array(
-					'type' => 'stringlist'
+					'type' => 'string'
 				),
-				'source' => array('field_D_TYPE')
+				'source' => array('field_D_VOLUME')
+			);
+			$arr_fields[] = array(
+				'dataIndex' => 'priority_code',
+				'text' => 'Priority',
+				'width' => 60,
+				'widthBig' => 'big',
+				'renderer' => 'priority',
+				'filter' => array(
+					'type' => 'bible',
+					'bible_code' => 'FLOW_PRIO'
+				),
+				'source' => array('field_PRIORITY')
 			);
 			$arr_fields[] = array(
 				'text' => 'AWB',
 				'width' => 200,
 				'filter' => array(
-					'type' => 'stringlist'
+					'type' => 'string'
 				),
 				'source' => array('field_D_AWB')
 			);
