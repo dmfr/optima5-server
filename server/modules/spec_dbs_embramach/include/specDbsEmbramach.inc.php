@@ -561,16 +561,26 @@ function specDbsEmbramach_mach_getGridData( $post_data ) {
 			$this_milestone = array() ;
 			$this_milestone['milestone_code'] = $milestone_code ;
 			if( $first_step ) {
-			
+				//start time
+				$step_milestone = $milestone_desc['step_end'] ;
+				$firstStep_timestamp = strtotime($row['obj_steps'][$step_milestone]) ;
 			}
 			$step_milestone = $milestone_desc['step_end'] ;
 			if( $milestone_desc['monitor_is_on'] ) {
-				$total_allowed_time_s += $thisRow_baseTAT_s * $milestone_desc['monitor_tat_ratio'] ;
-				
-				$available_time_s = $total_allowed_time_s - $total_spent_time_s ;
-				$ETA_timestamp = $lastStep_timestamp + $available_time_s ;
-				$this_milestone['ETA_timestamp'] = $ETA_timestamp ;
-				$this_milestone['ETA_dateSql'] = date('Y-m-d H:i:s',$ETA_timestamp) ;
+				if( $milestone_desc['monitor_tat_ratio'] ) {
+					// Legacy mode : each step ratio
+					$total_allowed_time_s += $thisRow_baseTAT_s * $milestone_desc['monitor_tat_ratio'] ;
+					
+					$available_time_s = $total_allowed_time_s - $total_spent_time_s ;
+					$ETA_timestamp = $lastStep_timestamp + $available_time_s ;
+					$this_milestone['ETA_timestamp'] = $ETA_timestamp ;
+					$this_milestone['ETA_dateSql'] = date('Y-m-d H:i:s',$ETA_timestamp) ;
+				} else {
+					// 19/01/2021 : no ratio mode
+					$ETA_timestamp = $firstStep_timestamp + $thisRow_baseTAT_s ;
+					$this_milestone['ETA_timestamp'] = $ETA_timestamp ;
+					$this_milestone['ETA_dateSql'] = date('Y-m-d H:i:s',$ETA_timestamp) ;
+				}
 				
 				if( $row['obj_steps'][$step_milestone] ) {
 					$ACTUAL_timestamp = strtotime($row['obj_steps'][$step_milestone]) ;
