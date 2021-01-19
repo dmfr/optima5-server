@@ -632,6 +632,23 @@ function specDbsEmbramach_mach_getGridData( $post_data ) {
 			}
 			$map_prioCode_spentTimesS[$row['priority_code']][] = $total_spent_time_s ;
 			
+			// Cfg Prio + cfg warnings
+			$target_tat_base = $target_tat_extra = 0 ;
+			$target_tat_base = $json_cfg_prio[$row['priority_code']]['tat_hour'] ;
+			if( $row['warning_is_on'] ) {
+				$warning_code = $row['warning_code'] ;
+				$query = "SELECT * FROM view_bible_LIST_WARNINGCODE_entry WHERE entry_key='{$arrDB_event['field_EVENT_CODE']}'" ;
+				$result = $_opDB->query($query) ;
+				$arrDB_warning = $_opDB->fetch_assoc($result) ;
+				if( $arrDB_warning['field_EXTRA_TAT_HOUR'] ) {
+					$target_tat_extra = $arrDB_warning['field_EXTRA_TAT_HOUR'] ;
+				}
+			}
+			// Règle de 3
+			if( $target_tat_base && $target_tat_extra ) {
+				$total_spent_time_s = ($total_spent_time_s * ($target_tat_base+$target_tat_extra) / $target_tat_base) ;
+			}
+			
 			// Cache stats
 			$arr_ins = array() ;
 			$arr_ins['field_STAT_TAT_H'] = $total_spent_time_s / 3600 ;
