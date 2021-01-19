@@ -426,6 +426,8 @@ function specDbsEmbramach_mach_getGridData( $post_data ) {
 		$row['obj_steps'] = array() ;
 		$row['events'] = array() ;
 		
+		$row['calc_tat_h'] = $arr['field_STAT_TAT_H'] ;
+		
 		$row['calc_lateness'] = 0 ;
 		$row['calc_lateness_blank'] = TRUE ;
 		
@@ -652,7 +654,9 @@ function specDbsEmbramach_mach_getGridData( $post_data ) {
 			// Cache stats
 			$arr_ins = array() ;
 			$arr_ins['field_STAT_TAT_H'] = $total_spent_time_s / 3600 ;
-			$_opDB->update("view_file_FLOW_{$flow_code}",$arr_ins, array('filerecord_id'=>$filerecord_id)) ;
+			if( round($arr_ins['field_STAT_TAT_H']) != round($row['calc_tat_h']) ) {
+				$_opDB->update("view_file_FLOW_{$flow_code}",$arr_ins, array('filerecord_id'=>$filerecord_id)) ;
+			}
 			//paracrm_lib_data_updateRecord_file( "FLOW_{$flow_code}", $arr_ins, $filerecord_id ) ;
 			
 			$row['calc_success'] = ($total_spent_time_s <= $thisRow_baseTAT_s) ;
