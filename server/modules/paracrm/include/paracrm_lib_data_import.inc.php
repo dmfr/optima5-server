@@ -807,7 +807,7 @@ function paracrm_lib_dataImport_preHandle( $handle_in ) {
 		return $handle_out ;
 	}
 	
-	$SAP_tries = 5 ;
+	$SAP_tries = 10 ;
 	while( $SAP_tries > 0 ) {
 		$lig = trim($lig) ;
 		$chars = array() ;
