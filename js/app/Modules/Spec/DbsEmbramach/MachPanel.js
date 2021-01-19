@@ -124,7 +124,69 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 						scope: this
 					}
 				}
-			}),'->',Ext.create('Optima5.Modules.Spec.DbsEmbramach.CfgParamButton',{
+			}),{
+				itemId: 'btnSearchSeparator',
+				xtype: 'tbseparator'
+			},{
+				icon: 'images/op5img/ico_reload_small.gif',
+				itemId: 'btnSearchIcon',
+				handler: function(btn) {
+					btn.up().down('#btnSearch').reset() ;
+					this.doLoad(true) ;
+				},
+				scope: this
+			},{
+				xtype: 'combobox',
+				itemId: 'btnSearch',
+				width: 150,
+				forceSelection:true,
+				allowBlank:true,
+				editable:true,
+				typeAhead:false,
+				queryMode: 'remote',
+				displayField: 'search_txt',
+				valueField: 'filerecord_id',
+				queryParam: 'filter_searchTxt',
+				minChars: 2,
+				checkValueOnChange: function() {}, //HACK
+				store: {
+					fields: ['filerecord_id','search_txt'],
+					proxy: this.optimaModule.getConfiguredAjaxProxy({
+						extraParams : {
+							_moduleId: 'spec_dbs_embramach',
+							_action: 'mach_getSuggest',
+							flow_code: this.flowCode,
+							limit: 20
+						},
+						reader: {
+							type: 'json',
+							rootProperty: 'data'
+						}
+					}),
+					listeners: {
+						beforeload: function(store,options) {
+							var tbSoc = this.down('#btnSoc'),
+								tbSocsSelected = tbSoc.getLeafNodesKey() ;
+							
+							var params = options.getParams() ;
+							Ext.apply(params,{
+								filter_soc: (tbSocsSelected ? Ext.JSON.encode(tbSocsSelected):'')
+							}) ;
+							options.setParams(params) ;
+						},
+						scope: this
+					}
+				},
+				listeners: {
+					change: function() {
+						if( this.autoRefreshTask ) {
+							this.autoRefreshTask.cancel() ;
+						}
+					},
+					select: this.onSearchSelect,
+					scope: this
+				}
+			},'->',Ext.create('Optima5.Modules.Spec.DbsEmbramach.CfgParamButton',{
 				cfgParam_id: 'FILTER_LATENESS',
 				icon: 'images/op5img/ico_zoom_16.png',
 				text: 'Filter status',
@@ -709,6 +771,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 		pEast.add( tmpGaugesCfg ) ;
 		
 		this.down('#btnStatus').setValue('ACTIVE',true) ;
+		this.updateToolbar() ;
 		this.doLoad() ;
 		
 		
@@ -724,8 +787,23 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 	},
 	
 	onFilterSet: function() {
-		//this.updateToolbar() ;
+		this.updateToolbar() ;
 		this.doLoad() ;
+	},
+	updateToolbar: function() {
+		var showSearch = true ;
+		if( Ext.isEmpty(this.down('#btnSoc').getValue()) ) {
+			showSearch = false ;
+		}
+		if( !showSearch ) {
+			this.down('#btnSearch').reset() ;
+		}
+		this.down('#btnSearchSeparator').setVisible(showSearch) ;
+		this.down('#btnSearchIcon').setVisible(showSearch) ;
+		this.down('#btnSearch').setVisible(showSearch) ;
+	},
+	onSearchSelect: function() {
+		this.doLoad(true) ;
 	},
 	
 	doLoad: function(doReset) {
@@ -742,6 +820,12 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 			filter_soc: (tbSocsSelected ? Ext.JSON.encode(tbSocsSelected):''),
 			filter_status: (tbStatusSelected ? Ext.JSON.encode(tbStatusSelected):'')
 		};
+		if( !Ext.isEmpty(this.down('#btnSearch').getValue()) ) {
+			var filterParams = {
+				filter_soc: (tbSocsSelected ? Ext.JSON.encode(tbSocsSelected):''),
+				filter_filerecordIds: Ext.JSON.encode([this.down('#btnSearch').getValue()])
+			};
+		}
 		
 		this.showLoadmask() ;
 		this.optimaModule.getConfiguredAjaxConnection().request({

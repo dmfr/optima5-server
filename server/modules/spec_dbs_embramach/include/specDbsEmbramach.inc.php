@@ -185,6 +185,7 @@ function specDbsEmbramach_mach_getGridCfg_lib_getFields($flow_code) {
 				'filter' => array(
 					'type' => 'string'
 				),
+				'searchable' => true,
 				'source' => array('field_DELIVERY_ID')
 			);
 			$arr_fields[] = array(
@@ -310,6 +311,41 @@ function specDbsEmbramach_mach_getGridCfg_lib_getFields($flow_code) {
 	return $arr_fields ;
 }
 
+function specDbsEmbramach_mach_getSuggest( $post_data ) {
+	global $_opDB ;
+	
+	$flow_code = $post_data['flow_code'] ;
+	
+	$json_cfg = specDbsEmbramach_mach_getGridCfg( $post_data ) ;
+	foreach( $json_cfg['data']['fields'] as $field ) {
+		if( !$field['searchable'] ) {
+			continue ;
+		}
+		if( count($field['source']) != 1 ) {
+			continue ;
+		}
+		$src_field = reset($field['source']) ;
+		
+		
+		if( $filter_soc = json_decode($post_data['filter_soc'],true) ) {
+			$where_clause.= " AND f.field_SOC_ID IN ".$_opDB->makeSQLlist($filter_soc) ;
+		}
+		if( $filter_txt = $post_data['filter_searchTxt'] ) {
+			$where_clause.= " AND f.{$src_field} LIKE '{$filter_txt}%'" ;
+		}
+		
+		$data = array() ;
+		$query = "SELECT f.filerecord_id, f.{$src_field} FROM view_file_FLOW_{$flow_code} f WHERE 1 " ;
+		$query.= $where_clause ;
+		$query.= " ORDER BY f.{$src_field} LIMIT 10" ;
+		$result = $_opDB->query($query) ;
+		while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+			$data[] = array('filerecord_id'=>$arr[0], 'search_txt'=>$arr[1]) ;
+		}
+	}
+	return array('success'=>true, 'data'=>$data) ;
+
+}
 function specDbsEmbramach_mach_getGridData( $post_data ) {
 	global $_opDB ;
 	
@@ -364,6 +400,9 @@ function specDbsEmbramach_mach_getGridData( $post_data ) {
                 }
 
 		$_filter_filerecordIds = array_intersect($_filter1,$_filter2) ;
+	}
+	if( $filter_ids = json_decode($post_data['filter_filerecordIds'],true) ) {
+		$_filter_filerecordIds = $filter_ids ;
 	}
 	
 	

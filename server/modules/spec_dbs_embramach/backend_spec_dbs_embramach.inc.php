@@ -25,6 +25,9 @@ switch( $post_data['_action'] )
 	case 'mach_getEventBinary' :
 	return specDbsEmbramach_mach_getEventBinary( $post_data ) ;
 	
+	case 'mach_getSuggest' :
+	return specDbsEmbramach_mach_getSuggest( $post_data ) ;
+	
 	case 'upload' :
 	case 'mach_upload' :
 	return specDbsEmbramach_upload( $post_data ) ;
