@@ -105,6 +105,13 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy60summary',{
 		
 		this.doLoad() ;
 	},
+	onCrmeventBroadcast: function(crmEvent,eventParams) {
+		switch( crmEvent ) {
+			case 'scan' :
+				this.fireEvent('scan',this,eventParams.scanResult) ;
+				break ;
+		}
+	},
 	handleScan: function(dontSend) {
 		var scanval = this.down('#txtScan').getValue() ;
 		scanval = scanval.trim().toUpperCase() ;
