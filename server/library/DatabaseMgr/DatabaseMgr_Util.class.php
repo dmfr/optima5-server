@@ -597,7 +597,7 @@ class DatabaseMgr_Util {
 		}
 	}
 	
-	public static function feed_DB( $handle, $db_name, $skip_store=FALSE ) {
+	public static function feed_DB( $handle, $db_name, $skip_store=FALSE, $skip_truncate_all=FALSE ) {
 		global $_opDB ;
 		$dst_db = $db_name ;
 		
@@ -617,8 +617,10 @@ class DatabaseMgr_Util {
 				continue ;
 			}
 			
-			$query = "TRUNCATE TABLE {$dst_db}.{$arr[0]}" ;
-			$_opDB->query($query) ;
+			if( !$skip_truncate_all ) {
+				$query = "TRUNCATE TABLE {$dst_db}.{$arr[0]}" ;
+				$_opDB->query($query) ;
+			}
 			
 			$arr_dst_tables[] = $arr[0] ;
 		}
