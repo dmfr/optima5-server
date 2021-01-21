@@ -128,6 +128,11 @@ switch( $post_data['_action'] )
 	case 'trsptpick_fetchPdf' :
 	return specDbsTracy_trsptpick_fetchPdf( $post_data ) ;
 	
+	case 'upload_tmpCloneActiveGet' :
+	return specDbsTracy_upload_tmpCloneActiveGet( $post_data ) ;
+	case 'upload_tmpCloneActiveFetch' :
+	return specDbsTracy_upload_tmpCloneActiveFetch( $post_data ) ;
+	
 	default :
 	return NULL ;
 }

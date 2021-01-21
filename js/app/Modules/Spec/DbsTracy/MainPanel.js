@@ -98,6 +98,8 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.MainPanel',{
 				return me.openReportPopup() ;
 			case 'panel_live' :
 				return me.openLivePanel() ;
+			case 'form_copydemo' :
+				return me.askCopyDemo() ;
 			default :
 				return ;
 		}
@@ -397,5 +399,35 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.MainPanel',{
 				}
 			})]
 		}) ;
-	}
+	},
+	
+	askCopyDemo: function() {
+		Ext.MessageBox.confirm('Confirmation','Réinitialisation base démo ?',function(btn) {
+			if( btn=='yes' ) {
+				this.doCopyDemo() ;
+			}
+		},this) ;
+	},
+	doCopyDemo: function() {
+		var msgbox = Ext.Msg.wait('Please wait...');
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			timeout: (10 * 60 * 1000),
+			params: {
+				_moduleId: 'spec_dbs_tracy',
+				_action: 'upload_tmpCloneActiveFetch'
+			},
+			success: function(response) {
+				msgbox.close() ;
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					Ext.MessageBox.alert('Error','Error') ;
+					return ;
+				}
+				Ext.MessageBox.alert('Success','Success') ;
+			},
+			callback: function() {
+			},
+			scope: this
+		}) ;
+	},
 }) ;

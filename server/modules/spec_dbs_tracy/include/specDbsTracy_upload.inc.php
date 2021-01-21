@@ -183,4 +183,90 @@ function specDbsTracy_upload_DATAIMPORT( $handle, $file_code ) {
 	return true ;
 }
 
+
+
+
+
+
+$GLOBALS['__specDbsTracy_tmpClone_URL'] = '' ;
+
+function specDbsTracy_upload_tmpCloneActiveGet($post_data) {
+	global $_opDB ;
+	
+	$handle = tmpfile() ;
+	
+	$arr_tables = array('store_file_CDE','store_file_HAT','store_file_TRSPT') ;
+	foreach( $arr_tables as $table_base ) {
+		$arr_db_tabs = array() ;
+		$query = "SHOW FULL TABLES LIKE '{$table_base}%'" ;
+		$result = $_opDB->query($query) ;
+		while( ($arr = $_opDB->fetch_row($result)) != FALSE )
+		{
+			if( $arr[1] && $arr[1] != 'BASE TABLE' ) {
+				continue ;
+			}
+			$arr_db_tabs[] = $arr[0] ;
+		}
+		
+		foreach($arr_db_tabs as $db_tab) {
+			fwrite($handle,"***BEGIN_TABLE**{$db_tab}***\r\n") ;
+		
+			$arr_columns = array() ;
+			$query = "SHOW COLUMNS FROM $db_tab" ;
+			$result = $_opDB->query($query) ;
+			while( ($arr = $_opDB->fetch_row($result)) != FALSE )
+			{
+				$arr_columns[] = $arr[0] ;
+			}
+			fwrite($handle,implode(',',$arr_columns)."\r\n") ;
+
+			if( $db_tab==$table_base ) {
+				$query = "SELECT t.* FROM $table_base t
+							WHERE t.field_ARCHIVE_IS_ON_int='0'" ;
+			} else {
+				$query = "SELECT t.* FROM $db_tab t
+							JOIN $table_base p ON p.filerecord_id=t.filerecord_parent_id
+							WHERE p.field_ARCHIVE_IS_ON_int='0'" ;
+			}
+			$result = $_opDB->query($query) ;
+			while( ($arr = $_opDB->fetch_row($result)) != FALSE )
+			{
+				DatabaseMgr_Util::my_fputcsv( $handle , $arr , ',' ,'"') ;
+			}
+		}
+	}
+	
+	fseek($handle,0) ;
+	$binary = stream_get_contents($handle) ;
+	fclose($handle) ;
+	return array('success'=>true,'data'=>$binary) ;
+}
+
+function specDbsTracy_upload_tmpCloneActiveFetch($post_data) {
+	global $_opDB ;
+	if( !$GLOBALS['__OPTIMA_TEST'] ) {
+		return array('success'=>false);
+	}
+	if( !$GLOBALS['__specDbsTracy_tmpClone_URL'] ) {
+		return array('success'=>false);
+	}
+	
+	$binary_csv = file_get_contents($GLOBALS['__specDbsTracy_tmpClone_URL']) ;
+	if( !$binary_csv ) {
+		return array('success'=>false);
+	}
+	
+	
+	$t = new DatabaseMgr_Sdomain( DatabaseMgr_Base::dbCurrent_getDomainId() );
+	$current_db = $t->getSdomainDb( DatabaseMgr_Sdomain::dbCurrent_getSdomainId() ) ;
+	
+	$handle = tmpfile() ;
+	fwrite($handle,$binary_csv) ;
+	fseek($handle,0) ;
+	DatabaseMgr_Util::feed_DB( $handle, $current_db, FALSE, TRUE ) ;  // restauration complete
+	fclose($handle) ;
+	
+	return array('success'=>true);
+}
+
 ?>

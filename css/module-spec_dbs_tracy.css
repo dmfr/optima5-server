@@ -94,6 +94,9 @@
 .op5-spec-dbstracy-mmenu-packcheck {
 	background-image: url("../images/modules/dbstracy-packcheck-64.png") !important;
 }
+.op5-spec-dbstracy-mmenu-warning {
+	background-image: url("../images/modules/dbstracy-warning-64.png") !important;
+}
 
 
 .op5-spec-dbstracy-alm .x-grid-cell-inner {
