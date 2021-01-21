@@ -101,10 +101,10 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70transactionBuild',{
 					width: 36,
 					items: [{
 						getClass: function(v,metadata,r) {
-							if( r.get('is_warning') ) {
-								return 'op5-spec-dbstracy-gun-warning-on' ;
-							} else if( r.get('count_parcel_scan') == r.get('count_parcel_total') ) {
+							if( r.get('count_parcel_scan') == r.get('count_parcel_total') ) {
 								return 'op5-spec-dbstracy-gun-warning-done' ;
+							} else if( r.get('is_warning') ) {
+								return 'op5-spec-dbstracy-gun-warning-on' ;
 							} else {
 								return 'op5-spec-dbstracy-gun-warning-off' ;
 							}
