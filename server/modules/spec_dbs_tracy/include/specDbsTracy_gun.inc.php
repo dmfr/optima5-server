@@ -225,7 +225,7 @@ function specDbsTracy_gun_t70_lib_populateTrspt( &$obj_brt ) {
 		}
 	}
 }
-function specDbsTracy_gun_t70_transactionPostAction($post_data) {
+function specDbsTracy_gun_t70_transactionPostAction($post_data, $_recycle=false) {
 	global $_opDB ;
 	
 	// create, Flash, confirm/abort
@@ -373,7 +373,30 @@ function specDbsTracy_gun_t70_transactionPostAction($post_data) {
 				}
 				break ;
 			}
-			if( !$trspt_filerecord_id ) {
+			if( !$trspt_filerecord_id && !$_recycle ) {
+				// 22/12/2020 : cas du flash d'un BL => retrieve du parcel
+				while( TRUE ) { // mode fallback
+					$query = "SELECT filerecord_id FROM view_file_CDE WHERE field_ID_DN='{$p_scanval}'" ;
+					$order_filerecord_id = $_opDB->query_uniqueValue($query) ;
+					if( !$order_filerecord_id ) {
+						break ;
+					}
+					$query = "SELECT h.field_ID_HAT
+								FROM view_file_HAT h
+								JOIN view_file_HAT_CDE hc ON hc.filerecord_parent_id=h.filerecord_id
+								WHERE hc.field_FILE_CDE_ID='{$order_filerecord_id}'" ;
+					$fallback_idHat = $_opDB->query_uniqueValue($query) ;
+					if( $fallback_idHat ) {
+						$forward_post = $post_data ;
+						$forward_post['scanval'] = $fallback_idHat ;
+						return specDbsTracy_gun_t70_transactionPostAction( $forward_post, $_recycle=true ) ;
+					}
+					
+					
+					break ;
+				}
+				
+				
 				return array(
 					'success'=>true,
 					'data' => array(
