@@ -285,6 +285,25 @@ function specDbsTracy_gun_t70_transactionPostAction($post_data, $_recycle=false)
 			return array('success'=>true) ;
 		
 		case 'scan' :
+			$p_scanval = strtoupper(trim($post_data['scanval'])) ;
+			for( $i=0 ; $i<2 ; $i++ ) {
+				$do_santize = !!$i ;
+				if( $do_sanitize ) {
+					$p_scanval = preg_replace("/[^0-9\s]/", "", $p_scanval) ;
+					$p_scanval = (string)(int)$p_scanval ;
+				}
+				$forward_post = $post_data ;
+				$forward_post['_subaction'] = 'scan_pass' ;
+				$forward_post['scanval'] = $p_scanval ;
+				$res = specDbsTracy_gun_t70_transactionPostAction( $forward_post ) ;
+				if( $res['success'] && $res['data']['header']['result_type']=='fail' ) {
+					continue ;
+				}
+				break ;
+			}
+			return $res ;
+			
+		case 'scan_pass' :
 			$obj_brt = $_SESSION['transactions'][$p_transactionId]['obj_brt'] ;
 			if( !$obj_brt ) {
 				return array(
