@@ -84,7 +84,13 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70selectTrspt',{
 				dataIndex: 'count_order_final',
 				width: 50,
 				text: '#DNs'
-			}]
+			}],
+			listeners: {
+				itemclick: function(grid,record) {
+					this.selectTrspt( record.get('mvt_carrier') ) ;
+				},
+				scope: this
+			}
 		});
 		this.callParent() ;
 		this.mixins.gunfilter.constructor.call(this);
