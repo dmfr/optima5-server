@@ -287,7 +287,7 @@ function specDbsTracy_gun_t70_transactionPostAction($post_data, $_recycle=false)
 		case 'scan' :
 			$p_scanval = strtoupper(trim($post_data['scanval'])) ;
 			for( $i=0 ; $i<2 ; $i++ ) {
-				$do_santize = !!$i ;
+				$do_sanitize = !!$i ;
 				if( $do_sanitize ) {
 					$p_scanval = preg_replace("/[^0-9\s]/", "", $p_scanval) ;
 					$p_scanval = (string)(int)$p_scanval ;
