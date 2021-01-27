@@ -50,4 +50,31 @@ function specRsiRecouveo_risk_fetchPdf( $post_data ) {
 }
 
 
+
+function specRsiRecouveo_risk_fetchXml( $post_data ) {
+	$acc_id = $post_data['acc_id'] ;
+	$search_data = json_decode($post_data['data'],true) ;
+	$risk_register_id = preg_replace("/[^a-zA-Z0-9]/", "", $search_data['id_register']) ;
+	if( !$risk_register_id ) {
+		return array('success'=>false) ;
+	}
+	
+	$ttmp = specRsiRecouveo_account_open(array('acc_id'=>$acc_id)) ;
+	$account_record = $ttmp['data'] ;
+	if( !$account_record ) {
+		return array('success'=>false) ;
+	}
+	
+	$xml_binary = specRsiRecouveo_risk_lib_ES_pingXml($risk_register_id) ;
+	
+	return array(
+		'success'=>true,
+		'data' => array(
+			'xml_binary' => $xml_binary,
+			'data_obj' => array()
+		)
+	) ;
+}
+
+
 ?>

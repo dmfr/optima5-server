@@ -11,6 +11,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailRiskPanel', {
 	_resultViewMode:null,
 	
 	
+	_tmpXmlBuffer: '',
+	
+	
 	showLoadmask: function() {
 		if( this.rendered ) {
 			this.doShowLoadmask() ;
@@ -235,6 +238,12 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailRiskPanel', {
 	},
 	setupResultMode: function() {
 		this.removeAll() ;
+		this.add(Ext.create('Optima5.Modules.Spec.RsiRecouveo.FileDetailRiskXmlBox',{
+			xmlString: this._tmpXmlBuffer
+		}));
+		return ;
+		
+		this.removeAll() ;
 		this.add({
 					scrollable: true,
 					flex: 1,
@@ -434,10 +443,28 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailRiskPanel', {
 					disabledCls: 'x-item-invisible',
 					items: [{
 						icon: 'images/op5img/ico_pdf_16.png',
-						tooltip: 'Rapport',
+						tooltip: 'Rapport PDF',
 						handler: function(grid, rowIndex, colIndex, item, e) {
 							var rec = grid.getStore().getAt(rowIndex);
 							this.handlePdfDownload(rec.get('id')) ;
+						},
+						scope: this,
+						disabledCls: 'x-item-invisible',
+						isDisabled: function(view,rowIndex,colIndex,item,record ) {
+							return false ;
+						}
+					}]
+				},{
+					align: 'center',
+					xtype:'actioncolumn',
+					width:24,
+					disabledCls: 'x-item-invisible',
+					items: [{
+						icon: 'images/modules/rsiveo-folder-16.png',
+						tooltip: 'Rapport en ligne',
+						handler: function(grid, rowIndex, colIndex, item, e) {
+							var rec = grid.getStore().getAt(rowIndex);
+							this.handleXmlDownload(rec.get('id')) ;
 						},
 						scope: this,
 						disabledCls: 'x-item-invisible',
@@ -518,5 +545,38 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailRiskPanel', {
 			scope: this
 		}) ;
 		
+	},
+	handleXmlDownload: function(riskRegisterId) {
+		if( !riskRegisterId ) {
+			return ;
+		}
+		this.showLoadmask() ;
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_rsi_recouveo',
+				_action: 'risk_fetchXml',
+				acc_id: this._accId,
+				data: Ext.JSON.encode({
+					id_register: riskRegisterId
+				})
+			},
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					return ;
+				}
+				this.onXmlDownload(ajaxResponse.data) ;
+			},
+			callback: function() {
+				this.hideLoadmask() ;
+			},
+			scope: this
+		}) ;
+		
+	},
+	onXmlDownload: function( ajaxData ) {
+		this._tmpXmlBuffer = ajaxData.xml_binary ;
+		this._viewMode = 'result' ;
+		this.applyView() ;
 	}
 }) ;
