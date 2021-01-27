@@ -35,16 +35,16 @@ $_opDB->query("SET NAMES UTF8") ;
 	
 	
 	
-	$exchange_server = 'exchange07://webmail.quinoa-groupe.fr' ;
-	$email_adr = 'relance@quinoa-groupe.fr' ;
-	$username = 'relance@quinoa-groupe.fr' ;
-	$password = 'c20023Zz1' ;
-	$version = substr($exchange_server, 8, 2) ;
-	$prefix = substr($exchange_server, 13) ;
-	$version22 = "Exchange20".$version ;
+	$exchange_server = 'outlook.office365.com' ;
+	$email_adr = 'recouvrement.havas@havasfs.com' ;
+	$username = 'editeur.recouveo@globalservs.com' ;
+	$password = '2020S4aEEwEjMJ' ;
+	//$version = substr($exchange_server, 8, 2) ;
+	//$prefix = substr($exchange_server, 13) ;
+	$version22 = "Exchange2012" ;
 
 	try {
-		$ews = new \jamesiarmes\PhpEws\Client($prefix, $username, $password, $version22);
+		$ews = new \jamesiarmes\PhpEws\Client($exchange_server, $username, $password, $version22);
 	} catch( Exception $e ) {
 		return FALSE ;
 	}
