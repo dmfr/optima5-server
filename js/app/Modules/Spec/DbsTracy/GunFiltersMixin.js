@@ -64,7 +64,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunFiltersMixin',{
 		// to be overridden
 	},
 	onFiltersMixinBeforeDestroy: function() {
-		console.log('onFiltersMixinBeforeDestroy') ;
+		//console.log('onFiltersMixinBeforeDestroy') ;
 		if( this.floatingPanel ) {
 			this.floatingPanel.destroy() ;
 			this.floatingPanel = null ;

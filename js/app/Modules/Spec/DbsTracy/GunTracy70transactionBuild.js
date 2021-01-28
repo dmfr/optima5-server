@@ -202,7 +202,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70transactionBuild',{
 		}) ;
 	},
 	onLoad: function( ajaxData ) {
-		console.dir(ajaxData) ;
+		//console.dir(ajaxData) ;
 		
 		this.down('form').getForm().setValues(ajaxData.header) ;
 		this.down('grid').getStore().loadData(ajaxData.grid) ;
