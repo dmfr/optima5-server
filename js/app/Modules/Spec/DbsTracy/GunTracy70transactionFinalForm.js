@@ -15,8 +15,17 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70transactionFinalForm',{
 		});
 		
 		this.callParent() ;
+		this.mon(this.optimaModule,'op5broadcast',this.onCrmeventBroadcast,this) ;
 		
 		this.buildForm( this._data ) ;
+	},
+	onCrmeventBroadcast: function(crmEvent,eventParams) {
+		switch( crmEvent ) {
+			case 'sign_result' :
+				this.getForm().findField('signature_base64').setValue(eventParams.imgJpegBase64) ;
+				this.doSubmit() ;
+				break ;
+		}
 	},
 	
 	buildForm: function(data) {
@@ -31,6 +40,32 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70transactionFinalForm',{
 				caption: 'Specify transport details'
 			}
 		}) );
+		
+		formItems.push({
+			xtype: 'hiddenfield',
+			name: 'signature_base64',
+			value: ''
+		});
+		
+		if( !Ext.isEmpty(data.fields) ) {
+			var fieldsetItems = [] ;
+			Ext.Array.each( data.fields, function(field) {
+				fieldsetItems.push({
+					xtype: 'displayfield',
+					fieldLabel: field.label,
+					value: field.text
+				});
+			}) ;
+			formItems.push( {
+				xtype: 'fieldset',
+				title: 'Informations',
+				cls: 'op5-spec-dbstracy-field-narrowline',
+				defaults: {
+					labelStyle: 'font-weight: bold;'
+				},
+				items: fieldsetItems
+			} );
+		}
 		
 		if( true ) {
 			formItems.push({
@@ -52,26 +87,6 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70transactionFinalForm',{
 					fieldLabel: 'License plate'
 				}]
 			});
-		}
-		
-		if( !Ext.isEmpty(data.fields) ) {
-			var fieldsetItems = [] ;
-			Ext.Array.each( data.fields, function(field) {
-				fieldsetItems.push({
-					xtype: 'displayfield',
-					fieldLabel: field.label,
-					value: field.text
-				});
-			}) ;
-			formItems.push( {
-				xtype: 'fieldset',
-				title: 'Informations',
-				cls: 'op5-spec-dbstracy-field-narrowline',
-				defaults: {
-					labelStyle: 'font-weight: bold;'
-				},
-				items: fieldsetItems
-			} );
 		}
 		
 		
@@ -122,6 +137,11 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70transactionFinalForm',{
 			return ;
 		}
 		var values = form.getValues() ;
+		if( Ext.isEmpty(values.signature_base64) ) { // signature vide
+			if( this.optimaModule.postCrmEvent('sign_open',null) === true ) { // Appel du SignaturePad = OK
+				return ;
+			}
+		}
 		this.fireEvent('submit',this, values) ;
 	},
 	doAbort: function() {
