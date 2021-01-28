@@ -1,5 +1,6 @@
 Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70transactionFinalForm',{
 	extend:'Ext.form.Panel',
+	scrollable: 'vertical',
 	requires: ['Optima5.Modules.Spec.DbsTracy.GunFormHeader'],
 	
 	initComponent: function(){
