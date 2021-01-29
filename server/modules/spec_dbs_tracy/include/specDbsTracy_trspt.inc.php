@@ -1308,6 +1308,7 @@ function specDbsTracy_trsptpick_printDoc( $post_data ) {
 	global $_opDB ;
 	
 	$p_trsptpickFilerecordId = $post_data['trsptpick_filerecord_id'] ;
+	$_pAddData = json_decode($post_data['data'],true);
 	
 	$app_root = $GLOBALS['app_root'] ;
 	$resources_root=$app_root.'/resources' ;
@@ -1481,7 +1482,14 @@ function specDbsTracy_trsptpick_printDoc( $post_data ) {
 			
 		$buffer.= "</table>" ;
 		
-		$buffer.= "<br>" ;
+		$buffer.= "<br><br>" ;
+		
+		if( $_pAddData['sign_base64'] ) {
+			$buffer.= "<table style=\"border:2px solid black ; padding:10px\" width='250'><tr><td align='center'>" ; 
+			$buffer.= "<span class=\"mybig\">Driver signature</span><br>" ;
+			$buffer.= "<img src=\"data:image/jpeg;base64,{$_pAddData['sign_base64']}\"/><br>" ;
+			$buffer.= "</td></tr></table>" ;
+		}
 		
 	
 	$app_root = $GLOBALS['app_root'] ;

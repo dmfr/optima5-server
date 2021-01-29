@@ -661,8 +661,35 @@ function specDbsTracy_gun_t70_transactionPostAction($post_data, $_recycle=false)
 				$picklink_filerecord_id = paracrm_lib_data_insertRecord_file( 'TRSPTPICK_TRSPT', $pick_filerecord_id, $arr_ins );
 			}
 			
+			
+			// IMG resize
+			if( $p_data['signature_base64'] ) {
+				$img_src_path = tempnam( sys_get_temp_dir(), "FOO").'.jpg' ;
+				file_put_contents($img_src_path,base64_decode($p_data['signature_base64'])) ;
+				
+				// Get new dimensions
+				list($width, $height) = getimagesize($img_src_path);
+				$new_width = 200 ;
+				$new_height = $new_width * $height / $width ;
+
+				// Resample
+				$image_p = imagecreatetruecolor($new_width, $new_height);
+				$image = imagecreatefromjpeg($img_src_path);
+				imagecopyresampled($image_p, $image, 0, 0, 0, 0, $new_width, $new_height, $width, $height);
+			
+				imagejpeg($image_p, $img_src_path, 90);
+				$p_data['signature_base64'] = base64_encode(file_get_contents($img_src_path)) ;
+				unlink($img_src_path) ;
+			}
+			
+			
 			// PDF create
-			$json_pdf = specDbsTracy_trsptpick_printDoc(array('trsptpick_filerecord_id'=>$pick_filerecord_id)) ;
+			$json_pdf = specDbsTracy_trsptpick_printDoc(array(
+				'trsptpick_filerecord_id'=>$pick_filerecord_id,
+				'data' => json_encode(array(
+					'sign_base64' => $p_data['signature_base64']
+				))
+			)) ;
 			if( $json_pdf['pdf_base64'] ) {
 				$_domain_id = DatabaseMgr_Base::dbCurrent_getDomainId() ;
 				$_sdomain_id = DatabaseMgr_Sdomain::dbCurrent_getSdomainId() ;
