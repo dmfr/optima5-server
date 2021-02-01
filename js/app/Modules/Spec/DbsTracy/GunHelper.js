@@ -9,6 +9,14 @@ Ext.define('DbsTracyGunPrinterModel',{
 		{name: 'printer_desc', type:'string'}
 	]
 });
+Ext.define('DbsTracyGunWarningModel',{
+	extend: 'Ext.data.Model',
+	idProperty: 'warning_code',
+	fields: [
+		{name: 'warning_code', type:'string'},
+		{name: 'warning_txt', type:'string'}
+	]
+});
 
 
 Ext.define('Optima5.Modules.Spec.DbsTracy.GunHelper',{
@@ -77,6 +85,10 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunHelper',{
 			model: 'DbsTracyGunPrinterModel',
 			data : ajaxData.data.cfg_printer
 		}) ;
+		this.cfgWarningStore = Ext.create('Ext.data.Store',{
+			model: 'DbsTracyGunWarningModel',
+			data : ajaxData.data.cfg_gunwarning
+		}) ;
 			
 		this.onLoad() ;
 	},
@@ -84,9 +96,11 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunHelper',{
 	getSocAll: function() {
 		return Ext.pluck( this.cfgSocStore.getRange(), 'data' ) ;
 	},
-	
 	getPrinterAll: function() {
 		return Ext.pluck( this.cfgPrinterStore.getRange(), 'data' ) ;
+	},
+	getWarningAll: function() {
+		return Ext.pluck( this.cfgWarningStore.getRange(), 'data' ) ;
 	},
 	
 	setFilters: function(filterValues) {

@@ -6,14 +6,14 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70transactionBuildWarning',{
 	initComponent: function() {
 		Ext.apply(this,{
 			cls: 'ux-noframe-bg',
-			width: 250,
+			width: 220,
 			bodyPadding: 10,
 			bodyCls: 'ux-noframe-bg',
 			flex: 1,
 			layout: 'anchor',
 			fieldDefaults: {
 				labelAlign: 'left',
-				labelWidth: 80,
+				labelWidth: 60,
 				anchor: '100%'
 			},
 			title: 'Filters',
@@ -36,7 +36,30 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70transactionBuildWarning',{
 				xtype: 'checkboxfield',
 				name: 'is_warning',
 				boxLabel: 'Has warning ?',
-				value: this._gridRow.is_warning
+				value: this._gridRow.is_warning,
+				listeners: {
+					change: function(f,v) {
+						f.up().down('combobox').setVisible(v) ;
+					}
+				}
+			},{
+				hidden: !this._gridRow.is_warning,
+				xtype: 'combobox',
+				width: 450,
+				emptyText: '-Select-',
+				fieldLabel: 'Reason',
+				name: 'is_warning_code',
+				value: this._gridRow.is_warning_code,
+				queryMode: 'local',
+				forceSelection: true,
+				allowBlank: false,
+				editable: false,
+				store: {
+					fields: ['warning_code','warning_txt'],
+					data: Optima5.Modules.Spec.DbsTracy.GunHelper.getWarningAll()
+				},
+				valueField: 'warning_code',
+				displayField: 'warning_txt'
 			},{
 				xtype: 'box',
 				height: 60

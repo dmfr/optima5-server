@@ -278,7 +278,8 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70transactionBuild',{
 				_moduleId: 'spec_dbs_tracy',
 				_action: 'gun_t70_setWarning',
 				trspt_filerecord_id: warningValues.trspt_filerecord_id,
-				warning_action: warningValues.is_warning ? 'set' : 'unset'
+				warning_action: warningValues.is_warning ? 'set' : 'unset',
+				warning_code: warningValues.is_warning ? warningValues.is_warning_code : ''
 			},
 			success: function(response) {
 				var ajaxResponse = Ext.decode(response.responseText) ;

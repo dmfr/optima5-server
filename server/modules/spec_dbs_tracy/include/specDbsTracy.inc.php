@@ -198,13 +198,25 @@ function specDbsTracy_cfg_getConfig() {
 	}
 	
 	
+	$TAB_gunwarning = array() ;
+	$query = "SELECT field_CODE, field_TXT FROM view_bible_LIST_WARNINGCODE_entry WHERE treenode_key='GUN' ORDER BY entry_key" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+			$TAB_gunwarning[] = array(
+				'warning_code' => $arr['field_CODE'],
+				'warning_txt' => $arr['field_TXT']
+			);
+	}
+	
+	
 	$GLOBALS['cache_specDbsTracy_cfg']['getConfig'] = array(
 		'cfg_soc' => $TAB_soc,
 		'cfg_orderflow' => array_values($TAB_orderflow),
 		'cfg_priority' => $TAB_priority,
 		'cfg_list' => $TAB_list,
 		'cfg_kpicode' => $TAB_kpicode,
-		'cfg_printer' => $TAB_printer
+		'cfg_printer' => $TAB_printer,
+		'cfg_gunwarning' => $TAB_gunwarning
 	);
 
 	return array('success'=>true, 'data'=>$GLOBALS['cache_specDbsTracy_cfg']['getConfig'])  ;

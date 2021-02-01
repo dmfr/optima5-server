@@ -762,12 +762,13 @@ function specDbsTracy_gun_t70_setWarning($post_data) {
 	
 	$p_trsptFilerecordId = $post_data['trspt_filerecord_id'] ;
 	$p_warningAction = $post_data['warning_action'] ;
+	$p_warningCode = $post_data['warning_code'] ;
 	
 	switch( $p_warningAction ) {
 		case 'set' :
 			$form_data = array(
 				'warning_is_on' => true,
-				'warning_code' => $entry_key,
+				'warning_code' => $p_warningCode ? $p_warningCode : $entry_key,
 				'warning_txt' => 'Set on '.date('d/m/Y H:i')
 			);
 			break ;
@@ -782,7 +783,8 @@ function specDbsTracy_gun_t70_setWarning($post_data) {
 	$json = specDbsTracy_trspt_getRecords(array('filter_trsptFilerecordId_arr'=>json_encode(array($p_trsptFilerecordId)))) ;
 	$trspt_row = $json['data'][0] ;
 	foreach( $trspt_row['orders'] as $order_row ) {
-		if( $order_row['warning_is_on'] == $form_data['warning_is_on'] ) {
+		if( ($order_row['warning_is_on'] == $form_data['warning_is_on']) 
+			&& ($order_row['warning_code'] == $form_data['warning_code']) ) {
 			continue ;
 		}
 		
