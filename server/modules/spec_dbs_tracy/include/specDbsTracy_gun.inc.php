@@ -215,9 +215,6 @@ function specDbsTracy_gun_t70_lib_populateTrspt( &$obj_brt ) {
 		if( $trsptgroup_row['mvt_carrier'] != $obj_brt['mvt_carrier'] ) {
 			continue ;
 		}
-		if( !$trsptgroup_row['is_integrateur'] ) {
-			continue ;
-		}
 		foreach( $trsptgroup_row['arr_trsptFilerecordIds'] as $trspt_filerecord_id ) {
 			if( !in_array($trspt_filerecord_id,$obj_brt['arr_trsptFilerecordIds']) ) {
 				$obj_brt['arr_trsptFilerecordIds'][] = $trspt_filerecord_id ;
@@ -555,30 +552,33 @@ function specDbsTracy_gun_t70_transactionPostAction($post_data, $_recycle=false)
 			$_SESSION['transactions'][$p_transactionId]['obj_brt'] = $obj_brt ;
 			
 			$json = specDbsTracy_gun_t70_transactionGetSummary( array('_transaction_id'=>$p_transactionId) ) ;
+			
+			$map_trsptFilerecordId_counts = array() ; // array('count_parcel_scan','count_parcel_total')
+			// Modif 31/01/2021 : vérification de cohérence PAR dossier transport
 			foreach( $json['data']['grid'] as $trsptsum_row ) {
-				if( $trsptsum_row['is_warning'] ) {
+				$trspt_filerecord_id = $trsptsum_row['trspt_filerecord_id'] ;
+				if( !$map_trsptFilerecordId_counts[$trspt_filerecord_id] ) {
+					$map_trsptFilerecordId_counts[$trspt_filerecord_id] = array(
+						'count_parcel_scan' => 0,
+						'count_parcel_total'=> 0
+					);
+				}
+				$map_trsptFilerecordId_counts[$trspt_filerecord_id]['count_parcel_scan'] += $trsptsum_row['count_parcel_scan'] ;
+				$map_trsptFilerecordId_counts[$trspt_filerecord_id]['count_parcel_total']+= $trsptsum_row['count_parcel_total'] ;
+			}
+			$arr_trsptFilerecordIds = array() ;
+			$bool_partial = FALSE ;
+			foreach( $map_trsptFilerecordId_counts as $trspt_filerecord_id => $counts ) {
+				if( $counts['count_parcel_scan'] == 0 ) {
+					// transport intégralement non scanné => notification
+					$bool_partial = TRUE ;
 					continue ;
 				}
-				if( $trsptsum_row['count_parcel_scan'] < $trsptsum_row['count_parcel_total'] ) {
+				if( $counts['count_parcel_scan'] < $counts['count_parcel_total'] ) {
 					return array('success'=>false, 'error'=>'Missing parcels / Partial take') ;
 				}
+				$arr_trsptFilerecordIds[] = $trspt_filerecord_id ;
 			}
-			foreach( $json['data']['grid'] as $trsptsum_row ) {
-				if( $trsptsum_row['is_warning'] && $trsptsum_row['count_parcel_scan'] ) {
-					return array('success'=>false, 'error'=>'Parcels on warning') ;
-				}
-			}
-			
-			$arr_trsptFilerecordIds = array() ;
-			foreach( $obj_brt['arr_trsptFilerecordIds'] as $trspt_filerecord_id ) {
-				foreach( $json['data']['grid'] as $trsptsum_row ) {
-					if( $trsptsum_row['trspt_filerecord_id'] == $trspt_filerecord_id 
-					&& !$trsptsum_row['is_warning'] ) {
-						$arr_trsptFilerecordIds[] = $trspt_filerecord_id ;
-					}
-				}
-			}
-			
 			if( !$arr_trsptFilerecordIds ) {
 				return array('success'=>false, 'error'=>'Empty manifest') ;
 			}
@@ -596,6 +596,12 @@ function specDbsTracy_gun_t70_transactionPostAction($post_data, $_recycle=false)
 			
 			if( $p_subaction=='validate' ) {
 				$fields = array() ;
+				if( $bool_partial ) {
+					$fields[] = array(
+						'label' => '',
+						'text' => '<font color="orange"><b>Warning : Partial take</b></font>'
+					);
+				}
 				// build fieldset summary
 				$fields[] = array(
 					'label' => 'Carrier',
