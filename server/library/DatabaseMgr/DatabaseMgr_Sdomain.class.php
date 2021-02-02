@@ -1204,7 +1204,7 @@ EOF;
 			}
 		}
 		if( $_mode_primaryKey && is_array($primaryKey_arrColumns) && count($primaryKey_arrColumns) > 0 ) {
-			$arr_model_keys['CRM_PRIMARY'] = array('non_unique'=>'1','arr_columns'=>$primaryKey_arrColumns) ;
+			//$arr_model_keys['CRM_PRIMARY'] = array('non_unique'=>'1','arr_columns'=>$primaryKey_arrColumns) ;
 		}
 		
 		DatabaseMgr_Util::syncTableStructure( $sdomain_db , $db_table , $arrAssoc_dbField_fieldType , $arr_model_keys, $drop_allowed ) ;
