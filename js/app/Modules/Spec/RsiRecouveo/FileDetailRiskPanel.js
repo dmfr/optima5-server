@@ -238,9 +238,124 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailRiskPanel', {
 	},
 	setupResultMode: function() {
 		this.removeAll() ;
-		this.add(Ext.create('Optima5.Modules.Spec.RsiRecouveo.FileDetailRiskXmlBox',{
-			xmlString: this._tmpXmlBuffer
-		}));
+		this.add({
+			xtype: 'tabpanel',
+			items:[Ext.create('Optima5.Modules.Spec.RsiRecouveo.FileDetailRiskXmlBox',{
+				title: 'Source',
+				xmlString: this._tmpXmlBuffer
+			}),{
+				title: 'Données',
+				scrollable: 'vertical',
+				xtype: 'container',
+				layout: 'anchor',
+				defaults: {
+					anchor: '100%'
+				},
+				items: [{
+					xtype: 'fieldset',
+					//padding: 4,
+					title: 'Identité',
+					items: [{
+						xtype: 'component',
+						tpl: [
+							'<div style="position:relative">',
+								'<tpl for="rows">',
+									'<tpl if="spacer">',
+										'<div style="display: table; height:8px"></div>',
+									'<tpl else>',
+										'<div style="display: table; width:100% ; margin-bottom:4px">',
+											'{[console.dir(values)]}','<div style="display: table-cell; width:{parent.labelWidth}px">{label}</div>',
+											'<div style="display: table-cell">',
+												'<tpl for="values">', 
+													'{.}<br>',
+												'</tpl>',
+											'</div>',
+											'<tpl if="add_invite">',
+											'<div style="display: table-cell; width:34px; position: relative">',
+												'<div class="op5-spec-rsiveo-riskcmp-btn op5-spec-rsiveo-riskcmp-btn-invite" style="position: absolute; right:2px">',
+												'</div>',
+											'</div>',
+											'</tpl>',
+										'</div>',
+									'</tpl>',
+								'</tpl>',
+							'</div>'
+						],
+						data: {
+							labelWidth: 100,
+							rows: [
+								{label: 'Label 1', values: ['Value 1','Value 11'], add_invite: true},
+								{label: 'Label 2', values: ['Value 2','Value 22','Value 222']},
+								{spacer: true},
+								{label: 'Label 4', values: ['Value 444']},
+							]
+						}
+					}]
+				},{
+					xtype: 'fieldset',
+					title: 'Score',
+					layout: {
+						type: 'hbox',
+						align: 'begin'
+					},
+					items: [{
+						xtype: 'component',
+						width: 80,
+						height: 60,
+						tpl: [
+							'<div style="padding:8px ; width:100% ; height: 100%">',
+								'<div style="border-radius: 10%; background: {color}; height:100% ; width:100% ; display:table">',
+									'<div style="display:table-cell ; vertical-align: middle; text-align:center">',
+										'<div style="color:white ; font-size:32px ; line-height:36px">{score}</div>',
+									'</div>',
+								'</div>',
+							'</div>'
+						],
+						data: {
+							score: 5,
+							color: '#ff0000'
+						}
+					},{
+						xtype: 'component',
+						flex: 1,
+						height: 200,
+						html: '<div style="height:100% ; width:100% ">&nbsp;</div>'
+					}]
+				},{
+					xtype: 'fieldset',
+					title: 'Chiffres clés',
+					items: [{
+						xtype: 'grid',
+						columns: {
+							defaults: {
+								menuDisabled: true,
+								draggable: false,
+								sortable: false,
+								hideable: false,
+								resizable: false,
+								groupable: false,
+								lockable: false
+							},
+							items: [
+								{dataIndex: 'mkey', width:135, text: ''},
+								{dataIndex: 'y_2020', width:120, text: '2020'},
+								{dataIndex: 'y_2019', width:120, text: '2019'},
+							]
+						},
+						store: {
+							proxy: { type:'memory' },
+							fields: ['mkey','y_2020','y_2019'],
+							data: [
+								{mkey: 'C.A.', y_2020: '328 158,65', y_2019: '254 147,96'},
+								{mkey: 'Résultat net', y_2020: '328 158,65', y_2019: '254 147,96'},
+								{mkey: 'Fonds propres', y_2020: '328 158,65', y_2019: '254 147,96'},
+								{mkey: 'Endettement', y_2020: '328 158,65', y_2019: '254 147,96'},
+							]
+						}
+					}]
+				}]
+			}]
+		});
 		return ;
 		
 		this.removeAll() ;

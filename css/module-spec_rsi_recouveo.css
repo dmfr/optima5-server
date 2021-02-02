@@ -1313,3 +1313,25 @@
 }
 
 
+
+
+.op5-spec-rsiveo-riskcmp-btn {
+	width: 30px ;
+	height: 30px ;
+	
+	background-repeat: no-repeat;
+	background-position: center center ;
+	 
+	border: 2px solid rgb(180, 180, 180);
+	border-radius: 10px !important;
+	z-index: 2;
+}
+.op5-spec-rsiveo-riskcmp-btn:hover {
+	background-color: rgb(200, 200, 200);
+}
+
+.op5-spec-rsiveo-riskcmp-btn-invite {
+	background-image: url("../images/modules/rsiveo-useradd-16.gif") !important;
+}
+
+
