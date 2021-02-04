@@ -161,6 +161,9 @@ function specDbsTracy_gun_t70_transactionGetSummary($post_data) {
 	foreach( $obj_brt['arr_trsptFilerecordIds'] as $trspt_filerecord_id ) {
 		$json = specDbsTracy_trspt_getRecords(array('filter_trsptFilerecordId_arr'=>json_encode(array($trspt_filerecord_id)))) ;
 		$trspt_row = $json['data'][0] ;
+		if( !$trspt_row ) {
+			continue ;
+		}
 		
 		$has_warning = FALSE ;
 		foreach( $trspt_row['orders'] as $order_row ) {
@@ -286,8 +289,13 @@ function specDbsTracy_gun_t70_transactionPostAction($post_data, $_recycle=false)
 			for( $i=0 ; $i<2 ; $i++ ) {
 				$do_sanitize = !!$i ;
 				if( $do_sanitize ) {
-					$p_scanval = preg_replace("/[^0-9\s]/", "", $p_scanval) ;
-					$p_scanval = (string)(int)$p_scanval ;
+					$p_scanval_new = $p_scanval ;
+					$p_scanval_new = preg_replace("/[^0-9\s]/", "", $p_scanval_new) ;
+					$p_scanval_new = (string)(int)$p_scanval_new ;
+					if( $p_scanval_new==$p_scanval ) {
+						break ;
+					}
+					$p_scanval = $p_scanval_new ;
 				}
 				$forward_post = $post_data ;
 				$forward_post['_subaction'] = 'scan_pass' ;
@@ -389,9 +397,9 @@ function specDbsTracy_gun_t70_transactionPostAction($post_data, $_recycle=false)
 				}
 				break ;
 			}
-			if( !$trspt_filerecord_id && !$_recycle ) {
+			if( !$trspt_filerecord_id ) {
 				// 22/12/2020 : cas du flash d'un BL => retrieve du parcel
-				while( TRUE ) { // mode fallback
+				while( !$_recycle ) { // mode fallback
 					$query = "SELECT filerecord_id FROM view_file_CDE WHERE field_ID_DN='{$p_scanval}'" ;
 					$order_filerecord_id = $_opDB->query_uniqueValue($query) ;
 					if( !$order_filerecord_id ) {
@@ -399,7 +407,7 @@ function specDbsTracy_gun_t70_transactionPostAction($post_data, $_recycle=false)
 					}
 					$query = "SELECT h.field_ID_HAT
 								FROM view_file_HAT h
-								JOIN view_file_HAT_CDE hc ON hc.filerecord_parent_id=h.filerecord_id
+								JOIN view_file_HAT_CDE hc ON hc.filerecord_parent_id=h.filerecord_id AND hc.field_LINK_IS_CANCEL='0'
 								WHERE hc.field_FILE_CDE_ID='{$order_filerecord_id}'" ;
 					$fallback_idHat = $_opDB->query_uniqueValue($query) ;
 					if( $fallback_idHat ) {
