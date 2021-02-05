@@ -88,6 +88,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70transactionBuild',{
 						property: 'id_hat',
 						direction: 'ASC'
 					}],
+					groupField: 'mvt_carrier',
 					proxy: {
 						type: 'memory',
 						reader: {
@@ -117,9 +118,16 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70transactionBuild',{
 						scope: this
 					}]
 				},{
-					dataIndex: 'id_hat',
+					dataIndex: 'mvt_carrier',
 					width: 100,
-					text: '#Doc',
+					text: 'Carrier',
+					renderer: function(v,m,r) {
+						return r.get('mvt_carrier_txt') ;
+					}
+				},{
+					dataIndex: 'id_hat',
+					width: 80,
+					text: 'DN/Inv.',
 				},{
 					dataIndex: 'atr_consignee_txt',
 					width: 150,
@@ -127,7 +135,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70transactionBuild',{
 				},{
 					//dataIndex: 'count_parcel',
 					align: 'center',
-					width: 90,
+					width: 75,
 					text: 'Packs',
 					renderer: function(v,metadata,r) {
 						var v = r.get('count_parcel_scan') + '/' + r.get('count_parcel_total') ;
@@ -146,7 +154,30 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70transactionBuild',{
 							return 'op5-spec-dbstracy-files-warning' ;
 						}
 					}
-				}
+				},
+				features: [{
+					ftype: 'grouping',
+					hideGroupedHeader: true,
+					enableGroupingMenu: false,
+					enableNoGroups: false,
+					groupHeaderTpl:Ext.create('Ext.XTemplate',
+						'<div>{[this.renderer(values)]}</div>',
+						{
+							renderer: function(values) {
+								if( values.rows.length == 0 ) {
+									return '' ;
+								}
+								if( Ext.isEmpty(values.rows[0].data[values.groupField]) ) {
+									return 'Non défini' ;
+								}
+								switch( values.groupField ) {
+									case 'mvt_carrier' :
+										return values.rows[0].data.mvt_carrier_txt ;
+								}
+							}
+						}
+					)
+				}]
 			}]
 		});
 		this.callParent() ;

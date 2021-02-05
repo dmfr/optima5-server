@@ -56,10 +56,17 @@ function specDbsTracy_gun_t70_getTrsptList($post_data) {
 	$json_cfg = $ttmp['data'] ;
 	$mapCarrier_code_txt = array() ;
 	$mapCarrier_code_isIntegrateur = array() ;
+	$mapCarrier_code_parentCode = array() ;
 	foreach( $json_cfg['cfg_list'] as $list ) {
 		if( $list['bible_code'] == 'LIST_CARRIER' ) {
 			foreach( $list['records'] as $carrier_row ) {
 				$mapCarrier_code_txt[$carrier_row['id']] = $carrier_row['text'] ;
+				if( $carrier_row['row']['field_IS_INTEGRATEUR'] ) {
+					$mapCarrier_code_isIntegrateur[$carrier_row['id']] = TRUE ;
+				}
+				if( $carrier_row['row']['field_PARENT_CODE'] && ($carrier_row['row']['field_PARENT_CODE']!=$carrier_row['id']) ) {
+					$mapCarrier_code_parentCode[$carrier_row['id']] = $carrier_row['row']['field_PARENT_CODE'] ;
+				}
 			}
 		}
 	}
@@ -72,6 +79,9 @@ function specDbsTracy_gun_t70_getTrsptList($post_data) {
 	$map_carrierCode_arrTrpstRows = array() ;
 	foreach( $trspt_rows as $trspt_row ) {
 		$carrier_code = $trspt_row['mvt_carrier'] ;
+		if( $mapCarrier_code_parentCode[$carrier_code] ) {
+			$carrier_code = $mapCarrier_code_parentCode[$carrier_code] ;
+		}
 		if( !isset($map_carrierCode_arrTrpstRows[$carrier_code]) ) {
 			$map_carrierCode_arrTrpstRows[$carrier_code] = array() ;
 		}
@@ -187,6 +197,8 @@ function specDbsTracy_gun_t70_transactionGetSummary($post_data) {
 				'hat_filerecord_id' => $hat_filerecord_id,
 				'id_doc' => $trspt_row['id_doc'],
 				'id_hat' => $hat_row['id_hat'],
+				'mvt_carrier' => $trspt_row['mvt_carrier'],
+				'mvt_carrier_txt' => $mapCarrier_code_txt[$trspt_row['mvt_carrier']],
 				'atr_consignee' => $trspt_row['atr_consignee'],
 				'atr_consignee_txt' => $mapConsignee_code_txt[$trspt_row['atr_consignee']],
 				'count_parcel_scan' => count(array_intersect($arr_hatparcelFilerecordIds,$obj_brt['arr_hatparcelFilerecordIds'])),

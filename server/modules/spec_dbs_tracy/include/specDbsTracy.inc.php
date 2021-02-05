@@ -174,7 +174,7 @@ function specDbsTracy_cfg_getConfig() {
 						$lib[] = $arr[$entry_field['entry_field_code']] ;
 					}
 				}
-				$records[] = array('node'=>$node, 'id'=>$id, 'text'=>implode(' - ',$lib)) ;
+				$records[] = array('node'=>$node, 'id'=>$id, 'text'=>implode(' - ',$lib), 'row'=>$arr) ;
 			}
 			
 			$TAB_list[] = array(
