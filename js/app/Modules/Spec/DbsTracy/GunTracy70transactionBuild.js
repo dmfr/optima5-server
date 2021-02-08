@@ -139,12 +139,18 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70transactionBuild',{
 					text: 'Packs',
 					renderer: function(v,metadata,r) {
 						var v = r.get('count_parcel_scan') + '/' + r.get('count_parcel_total') ;
-						if( r.get('count_parcel_scan') < r.get('count_parcel_total') ) {
+						if( r.get('count_parcel_trsptpartial') ) {
+							metadata.style += 'color: orange;' ;
+							metadata.style += 'font-weight: bold;' ;
+						} else if( r.get('count_parcel_scan') == 0 ) {
+							metadata.style += 'color: #999999;' ;
+						} else if( r.get('count_parcel_scan') < r.get('count_parcel_total') ) {
 							metadata.style += 'color: red;' ;
+							metadata.style += 'font-weight: bold;' ;
 						} else {
 							metadata.style += 'color: green;' ;
+							metadata.style += 'font-weight: bold;' ;
 						}
-						metadata.style += 'font-weight: bold;' ;
 						return v ;
 					}
 				}],

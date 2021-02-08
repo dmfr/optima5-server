@@ -212,6 +212,31 @@ function specDbsTracy_gun_t70_transactionGetSummary($post_data) {
 	}
 	
 	
+	// Modif 08/02/2021 : vérification de cohérence PAR dossier transport
+	$map_trsptFilerecordId_counts = array() ;
+	foreach( $data_grid as &$data_grid_row ) {
+		$trspt_filerecord_id = $data_grid_row['trspt_filerecord_id'] ;
+		if( !$map_trsptFilerecordId_counts[$trspt_filerecord_id] ) {
+			$map_trsptFilerecordId_counts[$trspt_filerecord_id] = array(
+				'count_parcel_scan'  => 0,
+				'count_parcel_total' => 0
+			);
+		}
+		$map_trsptFilerecordId_counts[$trspt_filerecord_id]['count_parcel_scan'] += $data_grid_row['count_parcel_scan'] ;
+		$map_trsptFilerecordId_counts[$trspt_filerecord_id]['count_parcel_total']+= $data_grid_row['count_parcel_total'] ;
+	}
+	unset($data_grid_row) ;
+	foreach( $data_grid as &$data_grid_row ) {
+		$trspt_filerecord_id = $data_grid_row['trspt_filerecord_id'] ;
+		$counts_trspt = $map_trsptFilerecordId_counts[$trspt_filerecord_id] ;
+		if( ($counts_trspt['count_parcel_scan'] > 0) && ($counts_trspt['count_parcel_scan']<$counts_trspt['count_parcel_total']) ) {
+			$data_grid_row['count_parcel_trsptpartial'] = TRUE ;
+		}
+	}
+	unset($data_grid_row) ;
+	
+	
+	
 	$data = array(
 		'header' => $data_header,
 		'grid' => $data_grid
@@ -350,6 +375,18 @@ function specDbsTracy_gun_t70_transactionPostAction($post_data, $_recycle=false)
 			$arr_socCodes = array() ;
 			foreach( $json_cfg['cfg_soc'] as $soc_row ) {
 				$arr_socCodes[] = $soc_row['soc_code'] ;
+			}
+			$mapCarrier_code_parentCode = array() ;
+			foreach( $json_cfg['cfg_list'] as $list ) {
+				if( $list['bible_code'] == 'LIST_CARRIER' ) {
+					foreach( $list['records'] as $carrier_row ) {
+						if( $carrier_row['row']['field_PARENT_CODE'] && ($carrier_row['row']['field_PARENT_CODE']!=$carrier_row['id']) ) {
+							$mapCarrier_code_parentCode[$carrier_row['id']] = $carrier_row['row']['field_PARENT_CODE'] ;
+						} else {
+							$mapCarrier_code_parentCode[$carrier_row['id']] = $carrier_row['id'] ;
+						}
+					}
+				}
 			}
 			
 			$scanval_type = 'hat_parcel' ;
@@ -511,7 +548,7 @@ function specDbsTracy_gun_t70_transactionPostAction($post_data, $_recycle=false)
 			if( $trspt_row['calc_step_next'] != '70_PICKUP' ) {
 				$errors[] = 'Not ready for step 70_PICKUP' ;
 			}
-			if( $trspt_row['mvt_carrier'] != $obj_brt['mvt_carrier'] ) {
+			if( $mapCarrier_code_parentCode[$trspt_row['mvt_carrier']] != $obj_brt['mvt_carrier'] ) {
 				$errors[] = 'Trspt doc to wrong carrier' ;
 			}
 			if( $obj_brt['filter_soc'] && ($obj_brt['filter_soc']!=$trspt_row['id_soc']) ) {
