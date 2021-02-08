@@ -396,7 +396,7 @@ function specRsiRecouveo_risk_lib_ES_pingPdf( $id_register ) {
 	return $pdf_binary ;
 }
 
-function specRsiRecouveo_risk_lib_ES_pingXml( $id_register ) {
+function specRsiRecouveo_risk_lib_ES_getResultObj( $id_register ) {
 	
 	$xml_request = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 		<svcOnlineOrderRequest lang="FR" version="2.1">
@@ -450,7 +450,21 @@ function specRsiRecouveo_risk_lib_ES_pingXml( $id_register ) {
 
 
 	$xml_binary = stream_get_contents($fp) ;
-	return $xml_binary ;
+	
+	
+	// DECODE XML
+	$obj_result = array() ;
+	
+	
+	
+	
+	
+	
+	
+	return  array(
+		'data_obj' => $obj_result,
+		'xml_binary' => $xml_binary
+	); ;
 }
 
 ?>

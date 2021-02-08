@@ -669,7 +669,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailRiskPanel', {
 		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: {
 				_moduleId: 'spec_rsi_recouveo',
-				_action: 'risk_fetchXml',
+				_action: 'risk_fetchResult',
 				acc_id: this._accId,
 				data: Ext.JSON.encode({
 					id_register: riskRegisterId
