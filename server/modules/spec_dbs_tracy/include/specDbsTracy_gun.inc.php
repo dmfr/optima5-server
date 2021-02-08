@@ -640,6 +640,7 @@ function specDbsTracy_gun_t70_transactionPostAction($post_data, $_recycle=false)
 				return array('success'=>false, 'error'=>'Empty manifest') ;
 			}
 			
+			$map_carrierCode_arrTrsptFilerecordIds = array() ;
 			$weight_kg = $count_parcel = 0 ;
 			$json = specDbsTracy_trspt_getRecords(array('filter_trsptFilerecordId_arr'=>json_encode($arr_trsptFilerecordIds))) ;
 			foreach( $json['data'] as $trspt_row ) {
@@ -649,7 +650,14 @@ function specDbsTracy_gun_t70_transactionPostAction($post_data, $_recycle=false)
 						$count_parcel++ ;
 					}
 				}
+				$carrier_code = $trspt_row['mvt_carrier'] ;
+				if( !isset($map_carrierCode_arrTrsptFilerecordIds[$carrier_code]) ) {
+					$map_carrierCode_arrTrsptFilerecordIds[$carrier_code] = array() ;
+				}
+				$map_carrierCode_arrTrsptFilerecordIds[$carrier_code][] = $trspt_row['trspt_filerecord_id'] ;
 			}
+			
+			
 			
 			if( $p_subaction=='validate' ) {
 				$fields = array() ;
@@ -675,56 +683,9 @@ function specDbsTracy_gun_t70_transactionPostAction($post_data, $_recycle=false)
 				return array('success'=>true, 'data'=>array('fields'=>$fields)) ;
 			}
 			
+			
+			
 			$p_data ;
-			// - Creation du file TRSPTPICK
-			// - Assoc TRSPTPICK_TRSPT
-			// - passage 70_PICKUP
-			// - genetation du PDF ? //TODO
-			// - pour chaque TRPST : creation TRSPT_EVENT
-			
-			$prefix = 'PICK/' ;
-			$prefix_len = strlen($prefix) ;
-			$offset = $prefix_len+1 ;
-			$query = "SELECT max(substring(field_ID_PICK,{$offset},5)) FROM view_file_TRSPTPICK WHERE field_ID_PICK LIKE '{$prefix}%'" ;
-			$max_idx = $_opDB->query_uniqueValue($query) ;
-			
-			$max_idx++ ;
-			
-			$arr_ins = array() ;
-			$arr_ins['field_ID_PICK'] = $prefix.str_pad((float)$max_idx, 5, "0", STR_PAD_LEFT) ;
-			$arr_ins['field_ATR_NAME'] = trim($p_data['atr_name']) ;
-			$arr_ins['field_ATR_LPLATE'] = trim($p_data['atr_lplate']) ;
-			$arr_ins['field_DATE_CREATE'] = date('Y-m-d H:i:s') ;
-			$pick_filerecord_id = paracrm_lib_data_insertRecord_file( 'TRSPTPICK', 0, $arr_ins );
-			
-			$_id_pick = $arr_ins['field_ID_PICK'] ;
-			
-			foreach( $arr_trsptFilerecordIds as $trspt_filerecord_id ) {
-				$params = array(
-					'trspt_filerecord_id' => $trspt_filerecord_id,
-					'step_code' => '70_PICKUP'
-				) ;
-				$ttmp = specDbsTracy_trspt_stepValidate( $params ) ;
-				
-				$event_txt = "Pickup manifest {$_id_pick}"."\n" ;
-				$event_txt.= '- Driver name : '.$arr_ins['field_ATR_NAME']."\n" ;
-				$event_txt.= '- License plate : '.$arr_ins['field_ATR_LPLATE']."\n" ;
-				
-				$arr_ins = array() ;
-				$arr_ins['field_EVENT_DATE'] = date('Y-m-d H:i:s') ;
-				$arr_ins['field_EVENT_USER'] = 'PICK' ;
-				$arr_ins['field_EVENT_TXT'] = $event_txt ;
-				$arr_ins['field_EVENTLINK_FILE'] = 'TRSPTPICK' ;
-				$arr_ins['field_EVENTLINK_IDS_JSON'] = json_encode(array('PRINT'=>$pick_filerecord_id)) ;
-				$trsptevent_filerecord_id = paracrm_lib_data_insertRecord_file( 'TRSPT_EVENT', $trspt_filerecord_id, $arr_ins );
-				
-				$arr_ins = array() ;
-				$arr_ins['field_FILE_TRSPT_ID'] = $trspt_filerecord_id ;
-				$arr_ins['field_LINK_IS_CANCEL'] = 0 ;
-				$picklink_filerecord_id = paracrm_lib_data_insertRecord_file( 'TRSPTPICK_TRSPT', $pick_filerecord_id, $arr_ins );
-			}
-			
-			
 			// IMG resize
 			if( $p_data['signature_base64'] ) {
 				$img_src_path = tempnam( sys_get_temp_dir(), "FOO").'.jpg' ;
@@ -745,21 +706,71 @@ function specDbsTracy_gun_t70_transactionPostAction($post_data, $_recycle=false)
 				unlink($img_src_path) ;
 			}
 			
-			
-			// PDF create
-			$json_pdf = specDbsTracy_trsptpick_printDoc(array(
-				'trsptpick_filerecord_id'=>$pick_filerecord_id,
-				'data' => json_encode(array(
-					'sign_base64' => $p_data['signature_base64']
-				))
-			)) ;
-			if( $json_pdf['pdf_base64'] ) {
-				$_domain_id = DatabaseMgr_Base::dbCurrent_getDomainId() ;
-				$_sdomain_id = DatabaseMgr_Sdomain::dbCurrent_getSdomainId() ;
-				media_contextOpen( $_sdomain_id ) ;
-				$tmp_media_id = media_bin_processBuffer( base64_decode($json_pdf['pdf_base64']) ) ;
-				media_bin_move( $tmp_media_id , media_bin_toolFile_getId('TRSPTPICK',$pick_filerecord_id) ) ;
-				media_contextClose() ;
+			// - Creation du file TRSPTPICK
+			// - Assoc TRSPTPICK_TRSPT
+			// - passage 70_PICKUP
+			// - genetation du PDF ? //TODO
+			// - pour chaque TRPST : creation TRSPT_EVENT
+			$arr_idsPick = array() ;
+			foreach( $map_carrierCode_arrTrsptFilerecordIds as $arr_trsptFilerecordIds ) {
+				$prefix = 'PICK/' ;
+				$prefix_len = strlen($prefix) ;
+				$offset = $prefix_len+1 ;
+				$query = "SELECT max(substring(field_ID_PICK,{$offset},5)) FROM view_file_TRSPTPICK WHERE field_ID_PICK LIKE '{$prefix}%'" ;
+				$max_idx = $_opDB->query_uniqueValue($query) ;
+				
+				$max_idx++ ;
+				
+				$arr_ins = array() ;
+				$arr_ins['field_ID_PICK'] = $prefix.str_pad((float)$max_idx, 5, "0", STR_PAD_LEFT) ;
+				$arr_ins['field_ATR_NAME'] = trim($p_data['atr_name']) ;
+				$arr_ins['field_ATR_LPLATE'] = trim($p_data['atr_lplate']) ;
+				$arr_ins['field_DATE_CREATE'] = date('Y-m-d H:i:s') ;
+				$pick_filerecord_id = paracrm_lib_data_insertRecord_file( 'TRSPTPICK', 0, $arr_ins );
+				
+				$_id_pick = $arr_ins['field_ID_PICK'] ;
+				$arr_idsPick[] = $_id_pick ;
+				
+				foreach( $arr_trsptFilerecordIds as $trspt_filerecord_id ) {
+					$params = array(
+						'trspt_filerecord_id' => $trspt_filerecord_id,
+						'step_code' => '70_PICKUP'
+					) ;
+					$ttmp = specDbsTracy_trspt_stepValidate( $params ) ;
+					
+					$event_txt = "Pickup manifest {$_id_pick}"."\n" ;
+					$event_txt.= '- Driver name : '.$arr_ins['field_ATR_NAME']."\n" ;
+					$event_txt.= '- License plate : '.$arr_ins['field_ATR_LPLATE']."\n" ;
+					
+					$arr_ins = array() ;
+					$arr_ins['field_EVENT_DATE'] = date('Y-m-d H:i:s') ;
+					$arr_ins['field_EVENT_USER'] = 'PICK' ;
+					$arr_ins['field_EVENT_TXT'] = $event_txt ;
+					$arr_ins['field_EVENTLINK_FILE'] = 'TRSPTPICK' ;
+					$arr_ins['field_EVENTLINK_IDS_JSON'] = json_encode(array('PRINT'=>$pick_filerecord_id)) ;
+					$trsptevent_filerecord_id = paracrm_lib_data_insertRecord_file( 'TRSPT_EVENT', $trspt_filerecord_id, $arr_ins );
+					
+					$arr_ins = array() ;
+					$arr_ins['field_FILE_TRSPT_ID'] = $trspt_filerecord_id ;
+					$arr_ins['field_LINK_IS_CANCEL'] = 0 ;
+					$picklink_filerecord_id = paracrm_lib_data_insertRecord_file( 'TRSPTPICK_TRSPT', $pick_filerecord_id, $arr_ins );
+				}
+				
+				// PDF create
+				$json_pdf = specDbsTracy_trsptpick_printDoc(array(
+					'trsptpick_filerecord_id'=>$pick_filerecord_id,
+					'data' => json_encode(array(
+						'sign_base64' => $p_data['signature_base64']
+					))
+				)) ;
+				if( $json_pdf['pdf_base64'] ) {
+					$_domain_id = DatabaseMgr_Base::dbCurrent_getDomainId() ;
+					$_sdomain_id = DatabaseMgr_Sdomain::dbCurrent_getSdomainId() ;
+					media_contextOpen( $_sdomain_id ) ;
+					$tmp_media_id = media_bin_processBuffer( base64_decode($json_pdf['pdf_base64']) ) ;
+					media_bin_move( $tmp_media_id , media_bin_toolFile_getId('TRSPTPICK',$pick_filerecord_id) ) ;
+					media_contextClose() ;
+				}
 			}
 			
 			$fields = array() ;
@@ -770,7 +781,7 @@ function specDbsTracy_gun_t70_transactionPostAction($post_data, $_recycle=false)
 			);
 			$fields[] = array(
 				'label' => 'Manifest #',
-				'text' => $_id_pick
+				'text' => implode(',',$arr_idsPick)
 			);
 			$fields[] = array(
 				'label' => '<i>Driver name</i>',
