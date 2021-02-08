@@ -1337,13 +1337,15 @@ function specDbsTracy_trsptpick_printDoc( $post_data ) {
 	$trspt_record = $ttmp['data'][0] ;
 	
 	
+		$print_date = date('d/m/Y H:i') ;
 		
 		$buffer.= '<DIV></DIV>' ;
 		$buffer.= "<table border='0' cellspacing='1' cellpadding='1'>" ;
 		$buffer.= "<tr><td align='center' valign='middle' width='600'>" ;
-			$buffer.= "<table cellspacing='0' cellpadding='1'>";
+			$buffer.= "<table cellspacing='1' cellpadding='1'>";
 			$buffer.= "<tr><td><span class=\"huge\"><b>{$title}</span></td></tr>" ;
 			$buffer.= "<tr><td align='center'><span class=\"huge\"><b>SAFRAN / TRANSPORT MANIFEST</span></td></tr>" ;
+			$buffer.= "<tr><td align='center'><span class=\"mybig\">Date : <b>{$print_date}</b></span></td></tr>" ;
 			//{$data_commande['date_exp']}
 			$buffer.= "</table>";
 		$buffer.= "</td><td valign='middle' align='center' width='120'>" ;
