@@ -696,6 +696,7 @@ function specDbsEmbramach_mach_getGridData( $post_data ) {
 		unset($row['obj_steps']) ;
 		
 		if( $row['status_closed'] ) {
+			//print_r($row) ;
 			if( !isset($map_prioCode_spentTimesS[$row['priority_code']]) ) {
 				$map_prioCode_spentTimesS[$row['priority_code']] = array() ;
 			}
@@ -706,7 +707,7 @@ function specDbsEmbramach_mach_getGridData( $post_data ) {
 			$target_tat_base = $json_cfg_prio[$row['priority_code']]['tat_hour'] ;
 			if( $row['warning_is_on'] ) {
 				$warning_code = $row['warning_code'] ;
-				$query = "SELECT * FROM view_bible_LIST_WARNINGCODE_entry WHERE entry_key='{$arrDB_event['field_EVENT_CODE']}'" ;
+				$query = "SELECT * FROM view_bible_LIST_WARNINGCODE_entry WHERE entry_key='{$warning_code}'" ;
 				$result = $_opDB->query($query) ;
 				$arrDB_warning = $_opDB->fetch_assoc($result) ;
 				if( $arrDB_warning['field_EXTRA_TAT_HOUR'] ) {
@@ -715,7 +716,7 @@ function specDbsEmbramach_mach_getGridData( $post_data ) {
 			}
 			// Règle de 3
 			if( $target_tat_base && $target_tat_extra ) {
-				$total_spent_time_s = ($total_spent_time_s * ($target_tat_base+$target_tat_extra) / $target_tat_base) ;
+				$total_spent_time_s = ($total_spent_time_s * $target_tat_base / ($target_tat_base+$target_tat_extra) ) ;
 			}
 			
 			// Cache stats
