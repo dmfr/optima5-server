@@ -1420,7 +1420,10 @@ function specDbsTracy_trsptpick_printDoc( $post_data ) {
 				}
 				foreach( $trspt_record['hats'] as $row_hat ) {
 					$buffer.= "<tr>" ;
-						$buffer.= "<td><span class=\"verybig\">{$row_hat['id_hat']}</span></td>" ;
+						$buffer.= "<td>" ;
+							$buffer.= "<span class=\"verybig\">{$row_hat['id_hat']}</span><br>" ;
+							$buffer.= "<span class=\"mybig\"><b>{$trspt_record['atr_incoterm']}</b></span><br>" ;
+						$buffer.= "</td>" ;
 						
 						$buffer.= "<td align='center'><span class=\"verybig\">" ;
 						foreach( $row_hat['orders'] as $row_hat_order ) {
@@ -1430,7 +1433,12 @@ function specDbsTracy_trsptpick_printDoc( $post_data ) {
 						}
 						$buffer.= "</span></td>" ;
 						
-						$buffer.= "<td class=\"$class\" align='left'><span>".nl2br(htmlentities($row_order['txt_location_full']))."</span></td>" ;
+						$buffer.= "<td class=\"$class\" align='left'>" ;
+							if( $trspt_record['flight_awb'] ) {
+								$buffer.= "<span class=\"mybig\">"."<b>AWB</b> : {$trspt_record['flight_awb']}"."</span><br>" ;
+							}
+							$buffer.= "<span>".nl2br(htmlentities($row_order['txt_location_full']))."</span><br>" ;
+						$buffer.= "</td>" ;
 						
 						$vol_count = 0 ;
 						foreach( $row_hat['parcels'] as $row_hat_parcel ) {
