@@ -545,10 +545,15 @@ function specRsiRecouveo_risk_lib_ES_getResultObj( $id_register ) {
 				continue ;
 			}
 			//var_dump($xml_rrs_child) ;
+			if( !is_numeric((string)$xml_rrs_child->score) ) {
+				continue ;
+			}
 			$score = (int)(string)$xml_rrs_child->score ;
 			$date = date_format(date_create_from_format('Ymd',(string)$xml_rrs_child->update),'Y-m-d') ;
 			$obj_result['score_rows'][] = array(
-				'date' => $date,
+				'date_sql' => $date,
+				'date_txt' => date('d/m/Y',strtotime($date)),
+				'date_txt_short' => date('m/Y',strtotime($date)),
 				'score' => $score,
 				'color' => $fnGetStoreColor($score)
 			);

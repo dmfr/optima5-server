@@ -339,7 +339,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailRiskPanel', {
 		if( dataObj.score_int != null ) {
 			displayElements.push({
 				xtype: 'fieldset',
-				height: 300,
+				//height: 300,
 				title: 'Score',
 				layout: {
 					type: 'hbox',
@@ -364,22 +364,27 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailRiskPanel', {
 					}
 				},{
 					xtype: 'panel',
-					padding: 16,
+					padding: 2,
 					flex: 1,
-					height: 300,
+					height: 160,
 					layout: 'fit',
 					items: [{
 						xtype: 'cartesian',
 						store: {
 							proxy: {type:'memory'},
 							fields: [
-								{name: 'date', type:'string'},
+								{name: 'date_sql', type:'string'},
+								{name: 'date_txt', type:'string'},
+								{name: 'date_txt_short', type:'string'},
 								{name: 'score', type:'number'},
 								{name: 'color', type:'string'}
 							],
 							data: dataObj.score_rows,
+							sorters: [{
+								property: 'date_sql',
+								direction: 'ASC'
+							}]
 						},
-						
 						axes: [{
 								type: 'numeric',
 								position: 'left',
@@ -399,13 +404,13 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailRiskPanel', {
 								type: 'category',
 								position: 'bottom',
 								//grid: true,
-								fields: 'date',
+								fields: 'date_txt_short',
 								renderer: function (v) { 
 									return v ;
 								},
 								label: {
-									fontFamily: 'Play, sans-serif',
-									fontSize: 12,
+									fontFamily: 'sans-serif',
+									fontSize: 10,
 									/*
 									rotate: {
 										degrees: -45
@@ -417,15 +422,33 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailRiskPanel', {
 							type: 'bar',
 							axis: 'left',
 							title: 'Score',
-							xField: 'date',
+							xField: 'date_txt_short',
 							yField: 'score',
 							//stacked: true,
+							renderer: function(sprite, config, rendererData, index) {
+								var store = rendererData.store,
+									record = store.getData().items[index] ;
+								return {
+									fillStyle: record.get('color')
+								};
+							},
 							style: {
 								opacity: 0.80,
 								minGapWidth: 10
 							},
 							highlight: {
 								fillStyle: 'yellow'
+							},
+							tooltip: {
+								style: 'background: #fff',
+								renderer: function(storeItem, item) {
+									var str = '' ;
+									str+= 'Score au ' ;
+									str+= storeItem.get('date_txt') ;
+									str+= ' : ' ;
+									str+= '<b>' + storeItem.get('score') + '/10' + '</b>' ;
+									this.setHtml(str);
+								}
 							}
 						}]
 					}]
