@@ -1,7 +1,7 @@
 /* Copied from
  * https://github.com/borsuksoftware/simpleXML
  */
-Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailRiskXmlBox', {
+Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailSubRiskXmlBox', {
 	extend: 'Ext.Component',
 	style: 'background-color: #eeeeee',
 	scrollable: true,

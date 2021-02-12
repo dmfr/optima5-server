@@ -106,7 +106,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		'Optima5.Modules.Spec.RsiRecouveo.AgreeComparePanel',
 		
 		'Optima5.Modules.Spec.RsiRecouveo.FileDetailSubReportingPanel',
-		'Optima5.Modules.Spec.RsiRecouveo.FileDetailRiskPanel'
+		'Optima5.Modules.Spec.RsiRecouveo.FileDetailSubRiskPanel'
 	],
 	
 	_readonlyMode: false,
@@ -1440,7 +1440,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 				},Ext.create('Optima5.Modules.Spec.RsiRecouveo.FileDetailSubReportingPanel',{
 					title: 'Statistiques',
 					_parentCmp: this
-				}),Ext.create('Optima5.Modules.Spec.RsiRecouveo.FileDetailRiskPanel',{
+				}),Ext.create('Optima5.Modules.Spec.RsiRecouveo.FileDetailSubRiskPanel',{
 					scrollable: 'vertical',
 					hidden: !Optima5.Helper.getApplication().desktopGetCfgIsDev(),
 					title: 'Analyse risque',

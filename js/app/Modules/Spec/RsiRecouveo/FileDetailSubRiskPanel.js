@@ -1,6 +1,6 @@
-Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailRiskPanel', {
+Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailSubRiskPanel', {
 	extend: 'Ext.panel.Panel',
-	requires: ['Optima5.Modules.Spec.RsiRecouveo.FileDetailRiskXmlBox'],
+	requires: ['Optima5.Modules.Spec.RsiRecouveo.FileDetailSubRiskXmlBox'],
 	_token: null,
 	_safeNo: null,
 	
@@ -263,7 +263,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailRiskPanel', {
 	},
 	setupResultModeXml: function() {
 		// Tab : XML source component
-		var xmlPanel = Ext.create('Optima5.Modules.Spec.RsiRecouveo.FileDetailRiskXmlBox',{
+		var xmlPanel = Ext.create('Optima5.Modules.Spec.RsiRecouveo.FileDetailSubRiskXmlBox',{
 			scrollable: true,
 			xmlString: this._ajaxDataResult.xml_binary
 		}) ;
@@ -476,7 +476,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailRiskPanel', {
 		this.removeAll() ;
 		this.add({
 			xtype: 'tabpanel',
-			items:[Ext.create('Optima5.Modules.Spec.RsiRecouveo.FileDetailRiskXmlBox',{
+			items:[Ext.create('Optima5.Modules.Spec.RsiRecouveo.FileDetailSubRiskXmlBox',{
 				title: 'Source',
 				xmlString: this._ajaxDataResult.xml_binary
 			}),{
@@ -749,7 +749,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailRiskPanel', {
 				margin: '10px 0px 4px 0px',
 				html: xml.type
 			});
-			xmlItems.push(Ext.create('Optima5.Modules.Spec.RsiRecouveo.FileDetailRiskXmlBox',{
+			xmlItems.push(Ext.create('Optima5.Modules.Spec.RsiRecouveo.FileDetailSubRiskXmlBox',{
 				xmlString: xml.binary
 			})) ;
 		}) ;
