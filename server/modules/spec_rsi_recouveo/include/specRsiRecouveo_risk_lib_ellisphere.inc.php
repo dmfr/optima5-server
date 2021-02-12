@@ -225,10 +225,10 @@ function specRsiRecouveo_risk_lib_ES_getSearchObj( $acc_id, $mode, $txt ) {
 }
 
 
-$GLOBALS['specRsiRecouveo_risk_lib_ES_contractId'] = '45353' ;
+$GLOBALS['specRsiRecouveo_risk_lib_ES_contractId'] = '45506' ;
 $GLOBALS['specRsiRecouveo_risk_lib_ES_userPrefix'] = 'GEOCOM' ;
-$GLOBALS['specRsiRecouveo_risk_lib_ES_userId'] = 'NN411025' ;
-$GLOBALS['specRsiRecouveo_risk_lib_ES_password'] = 'OICZ5M45OBMD' ;
+$GLOBALS['specRsiRecouveo_risk_lib_ES_userId'] = 'NN413267' ;
+$GLOBALS['specRsiRecouveo_risk_lib_ES_password'] = 'RG4TFAJ6FF2S' ;
 
 function specRsiRecouveo_risk_lib_ES_pingSearch( $mode, $parm1, $parm2=NULL ) {
 	$parm1 = htmlspecialchars(trim($parm1)) ;
@@ -451,12 +451,114 @@ function specRsiRecouveo_risk_lib_ES_getResultObj( $id_register ) {
 
 	$xml_binary = stream_get_contents($fp) ;
 	
+	$xml = simplexml_load_string( $xml_binary, 'SimpleXMLElement', LIBXML_NOCDATA);
+	$xml_rr = $xml->response ? $xml->response->report : null ;
+	if( !$xml_rr ) {
+		return  array(
+			'data_obj' => null,
+			'xml_binary' => $xml_binary
+		);
+	}
 	
 	// DECODE XML
 	$obj_result = array() ;
 	
+	if( $xml_rri = $xml_rr->identityModule ) {
+		$obj_result['status'] = (string)$xml_rri->companyStatus ; // INA / ACT
+		
+		$obj_result['identity_rows'] = array() ;
+		if( ($xml_rrih = $xml_rri->headEstablishment) && ($xml_rriha = $xml_rrih->address) ) {
+			$item = array('label'=>'Adresse','values'=>array(),'add_invite'=>true) ;
+			if( $str = (string)$xml_rriha->attributes()['deliveryAddress'] ) {
+				$item['values'][] = $str ;
+			}
+			if( $str = (string)$xml_rriha->attributes()['addressComplement'] ) {
+				$item['values'][] = $str ;
+			}
+			if( $str = (string)$xml_rriha->attributes()['postalDelivery'] ) {
+				$item['values'][] = $str ;
+			}
+			$obj_result['identity_rows'][] = $item ;
+			
+			if( $str = (string)$xml_rrih->phoneNumber ) {
+				$obj_result['identity_rows'][] = array('label'=>'Téléphone','values'=>array($str),'add_invite'=>true) ;
+			}
+			
+			if( $str = (string)$xml_rrih->email ) {
+				$obj_result['identity_rows'][] = array('label'=>'Email','values'=>array($str),'add_invite'=>true) ;
+			}
+			
+			if( $str = (string)$xml_rrih->website ) {
+				$obj_result['identity_rows'][] = array('label'=>'Site internet','values'=>array($str),'add_invite'=>false) ;
+			}
+		}
+		if( $str = (string)$xml_rri->companyId ) {
+			$str = (string)$xml_rri->companyId.(string)$xml_rri->nic ;
+			$obj_result['identity_rows'][] = array('label'=>'SIREN','values'=>array($str),'add_invite'=>true) ;
+		}
+		if( $str = (string)$xml_rri->vat ) {
+			$obj_result['identity_rows'][] = array('label'=>'TVA','values'=>array($str)) ;
+		}
+		if( ($count = (int)(string)$xml_rri->branchesCount) && $count > 1 ) {
+			$obj_result['identity_rows'][] = array('label'=>'Nb établissements','values'=>array((string)$count)) ;
+		}
+		
+		if( $xml_rr->ultimateParentsModule ) {
+			$item = array('label'=>'Société(s) parente(s)', 'values'=>array()) ;
+			foreach( $xml_rr->ultimateParentsModule->ultimateParents->children() as $xml_up ) {
+				$item['values'][] = (string)$xml_up->officialCompanyName.' - '.(string)$xml_up->companyId ;
+			}
+			$obj_result['identity_rows'][] = $item ;
+		}
+	}
 	
+	//var_dump( $xml_rr->scoreModule ) ;
 	
+	if( $xml_rrs = $xml_rr->scoreModule ) {
+		//var_dump( $xml_rrs ) ;
+		$fnGetStoreColor = function($score) {
+			if( $score >= 6 ) {
+				return '#90bc29' ;
+			} elseif( $score >= 4 ) {
+				return '#f7b200' ;
+			} elseif( $score >= 2 ) {
+				return '#ff7b01' ;
+			} elseif( $score > 0 ) {
+				return '#ee1c01' ;
+			} else {
+				return '#000000' ;
+			}
+		};
+		
+		
+		//var_dump($xml_rrs->actualStore->children()) ;
+	
+		$obj_result['score_int'] = (int)(string)$xml_rrs->actualScore->score ;
+		$obj_result['score_color'] = $fnGetStoreColor($obj_result['score_int']) ;
+		
+		$obj_result['score_rows'] = array() ;
+		foreach( $xml_rrs->children() as $mkey => $xml_rrs_child ) {
+			//echo $mkey."\n" ;
+			//echo $xml_rrs_child->getName() ;
+			//var_dump($val) ;
+			if( !(strpos($xml_rrs_child->getName(),'historicalScore')===0) ) {
+				continue ;
+			}
+			//var_dump($xml_rrs_child) ;
+			$score = (int)(string)$xml_rrs_child->score ;
+			$date = date_format(date_create_from_format('Ymd',(string)$xml_rrs_child->update),'Y-m-d') ;
+			$obj_result['score_rows'][] = array(
+				'date' => $date,
+				'score' => $score,
+				'color' => $fnGetStoreColor($score)
+			);
+		}
+	}
+	
+	foreach( $xml_rr->children() as $node ) {
+		//var_dump( $node ) ;
+		//echo $node->getName()."\n" ;
+	}
 	
 	
 	

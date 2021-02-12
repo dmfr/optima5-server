@@ -11,7 +11,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailRiskPanel', {
 	_resultViewMode:null,
 	
 	
-	_tmpXmlBuffer: '',
+	_ajaxDataResult: null,
 	
 	
 	showLoadmask: function() {
@@ -124,23 +124,23 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailRiskPanel', {
 				border: false,
 				xtype: 'toolbar',
 				items: ['->',{
+					_selectedItemId: null,
 					viewConfig: {forceFit: true},
 					menu: {
 						defaults: {
 							handler:function(menuitem) {
-								//console.log('ch view '+menuitem.itemId) ;
-								//this._viewMode = menuitem.itemId ;
-								//this.applyView() ;
+								menuitem.up().ownerCmp._selectedItemId = menuitem.itemId ;
+								this.setupResultMode() ;
 							},
 							scope:this
 						},
 						items: [{
-							itemId: 'test1',
-							text: 'test1',
+							itemId: 'elements',
+							text: 'Elements',
 							iconCls: 'op5-spec-rsiveo-grid-view-facture'
 						},{
-							itemId: 'test2',
-							text: 'test2',
+							itemId: 'xml',
+							text: 'XML',
 							iconCls: 'op5-spec-rsiveo-grid-view-facture'
 						}]
 					}
@@ -237,12 +237,225 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailRiskPanel', {
 		this.handleSearch() ;
 	},
 	setupResultMode: function() {
+		if( !this._ajaxDataResult ) {
+			this._viewMode = 'search' ;
+			this.applyView() ;
+			return ;
+		}
+		
+		var tbResultBtn = this.down('#tbResult').down('button') ;
+		if( Ext.isEmpty(tbResultBtn._selectedItemId) ) {
+			tbResultBtn._selectedItemId = 'elements' ;
+		}
+		tbResultBtn.menu.items.each( function(menuitem) {
+			if( menuitem.itemId == tbResultBtn._selectedItemId ) {
+				tbResultBtn.setText( menuitem.text ) ;
+				tbResultBtn.setIconCls( menuitem.iconCls ) ;
+			}
+		});
+		
+		switch( tbResultBtn._selectedItemId ) {
+			case 'xml' :
+				return this.setupResultModeXml() ;
+			case 'elements' :
+				return this.setupResultModeElements() ;
+		}
+	},
+	setupResultModeXml: function() {
+		// Tab : XML source component
+		var xmlPanel = Ext.create('Optima5.Modules.Spec.RsiRecouveo.FileDetailRiskXmlBox',{
+			scrollable: true,
+			xmlString: this._ajaxDataResult.xml_binary
+		}) ;
+		
+		this.removeAll() ;
+		this.add(xmlPanel) ;
+	},
+	setupResultModeElements: function() {
+		// Tab : display elements
+		var dataObj = this._ajaxDataResult.data_obj ;
+		if( !dataObj ) {
+			this.removeAll() ;
+			return ;
+		}
+		
+		var tableRowsTpl = [
+			'<div style="position:relative">',
+				'<tpl for="rows">',
+					'<tpl if="spacer">',
+						'<div style="display: table; height:8px"></div>',
+					'<tpl else>',
+						'<div style="display: table; width:100% ; margin-bottom:4px">',
+							//'{[console.dir(values)]}',
+							'<div style="display: table-cell; width:{parent.labelWidth}px"><b>{label}</b></div>',
+							'<div style="display: table-cell">',
+								'<tpl for="values">', 
+									'{.}<br>',
+								'</tpl>',
+							'</div>',
+							'<tpl if="add_invite">',
+							'<div style="display: table-cell; width:34px; height:30px; position: relative">',
+								'<div class="op5-spec-rsiveo-riskcmp-btn op5-spec-rsiveo-riskcmp-btn-invite" style="position: absolute; right:2px">',
+								'</div>',
+							'</div>',
+							'</tpl>',
+						'</div>',
+					'</tpl>',
+				'</tpl>',
+			'</div>'
+		] ;
+		var displayElements = [] ;
+		var titleIdentity ;
+		switch( dataObj.status ) {
+			case 'INA' :
+				titleIdentity = '<font color="red"><b>'+'Entreprise inactive'+'</b></font>' ;
+				break ;
+			case 'ACT' :
+				titleIdentity = 'Entreprise active' ;
+				break ;
+			default :
+				titleIdentity = '<font color="orange"><b>'+'Statut = '+dataObj.status+'</b></font>' ;
+				break ;
+		}
+		if( dataObj.identity_rows ) {
+			displayElements.push({
+				xtype: 'fieldset',
+				//padding: 4,
+				title: titleIdentity,
+				items: [{
+					xtype: 'component',
+					tpl: tableRowsTpl,
+					data: {
+						labelWidth: 130,
+						rows: dataObj.identity_rows
+					}
+				}]
+			}) ;
+		}
+		if( dataObj.characteristics_rows ) {
+			
+			
+		}
+		if( dataObj.score_int != null ) {
+			displayElements.push({
+				xtype: 'fieldset',
+				height: 300,
+				title: 'Score',
+				layout: {
+					type: 'hbox',
+					align: 'begin'
+				},
+				items: [{
+					xtype: 'component',
+					width: 80,
+					height: 60,
+					tpl: [
+						'<div style="padding:8px ; width:100% ; height: 100%">',
+							'<div style="border-radius: 10%; background: {color}; height:100% ; width:100% ; display:table">',
+								'<div style="display:table-cell ; vertical-align: middle; text-align:center">',
+									'<div style="color:white ; font-size:32px ; line-height:36px">{score}</div>',
+								'</div>',
+							'</div>',
+						'</div>'
+					],
+					data: {
+						score: dataObj.score_int,
+						color: dataObj.score_color
+					}
+				},{
+					xtype: 'panel',
+					padding: 16,
+					flex: 1,
+					height: 300,
+					layout: 'fit',
+					items: [{
+						xtype: 'cartesian',
+						store: {
+							proxy: {type:'memory'},
+							fields: [
+								{name: 'date', type:'string'},
+								{name: 'score', type:'number'},
+								{name: 'color', type:'string'}
+							],
+							data: dataObj.score_rows,
+						},
+						
+						axes: [{
+								type: 'numeric',
+								position: 'left',
+								adjustByMajorUnit: true,
+								grid: true,
+								fields: 'score',
+								renderer: function (v) {
+									var str = '' ;
+									if( v ) {
+										str+= '' + Math.round(v) ;
+									}
+									return str ;
+								},
+								minimum: 0,
+								maximum: 10
+						},{
+								type: 'category',
+								position: 'bottom',
+								//grid: true,
+								fields: 'date',
+								renderer: function (v) { 
+									return v ;
+								},
+								label: {
+									fontFamily: 'Play, sans-serif',
+									fontSize: 12,
+									/*
+									rotate: {
+										degrees: -45
+									}
+									*/
+								}
+						}],
+						series: [{
+							type: 'bar',
+							axis: 'left',
+							title: 'Score',
+							xField: 'date',
+							yField: 'score',
+							//stacked: true,
+							style: {
+								opacity: 0.80,
+								minGapWidth: 10
+							},
+							highlight: {
+								fillStyle: 'yellow'
+							}
+						}]
+					}]
+				}]
+			});
+		}
+		var elementsPanel = {
+			title: 'Données',
+			scrollable: 'vertical',
+			xtype: 'container',
+			layout: 'anchor',
+			defaults: {
+				anchor: '100%'
+			},
+			items: displayElements
+		};
+		
+		
+		this.removeAll() ;
+		this.add(elementsPanel);
+		
+		
+		return ;
+		
 		this.removeAll() ;
 		this.add({
 			xtype: 'tabpanel',
 			items:[Ext.create('Optima5.Modules.Spec.RsiRecouveo.FileDetailRiskXmlBox',{
 				title: 'Source',
-				xmlString: this._tmpXmlBuffer
+				xmlString: this._ajaxDataResult.xml_binary
 			}),{
 				title: 'Données',
 				scrollable: 'vertical',
@@ -257,30 +470,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailRiskPanel', {
 					title: 'Identité',
 					items: [{
 						xtype: 'component',
-						tpl: [
-							'<div style="position:relative">',
-								'<tpl for="rows">',
-									'<tpl if="spacer">',
-										'<div style="display: table; height:8px"></div>',
-									'<tpl else>',
-										'<div style="display: table; width:100% ; margin-bottom:4px">',
-											'{[console.dir(values)]}','<div style="display: table-cell; width:{parent.labelWidth}px">{label}</div>',
-											'<div style="display: table-cell">',
-												'<tpl for="values">', 
-													'{.}<br>',
-												'</tpl>',
-											'</div>',
-											'<tpl if="add_invite">',
-											'<div style="display: table-cell; width:34px; position: relative">',
-												'<div class="op5-spec-rsiveo-riskcmp-btn op5-spec-rsiveo-riskcmp-btn-invite" style="position: absolute; right:2px">',
-												'</div>',
-											'</div>',
-											'</tpl>',
-										'</div>',
-									'</tpl>',
-								'</tpl>',
-							'</div>'
-						],
+						tpl: componentTpl,
 						data: {
 							labelWidth: 100,
 							rows: [
@@ -690,7 +880,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailRiskPanel', {
 		
 	},
 	onXmlDownload: function( ajaxData ) {
-		this._tmpXmlBuffer = ajaxData.xml_binary ;
+		this._ajaxDataResult = ajaxData ;
 		this._viewMode = 'result' ;
 		this.applyView() ;
 	}
