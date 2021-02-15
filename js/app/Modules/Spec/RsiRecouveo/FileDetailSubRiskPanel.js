@@ -455,6 +455,75 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailSubRiskPanel', {
 				}]
 			});
 		}
+		if( dataObj.keyfigures_rows != null ) {
+			var colRenderer = function(value, metaData, record, rowIndex, colIndex, store, view) {
+				// style the cell using the dataIndex of the column
+				//console.dir(view) ;
+				var headerCt = view.grid.getHeaderContainer(),
+					column = headerCt.getHeaderAtIndex(colIndex);
+				if( column.dataIndex=='label' ) {
+					return '<b>'+value+'</b>' ;
+				}
+				if( record.get('label_italic') ) {
+					return '<i>'+value+'</i>' ;
+				} else {
+					return Ext.util.Format.number(value,'0,000') ;
+				}
+			}
+			var fields = [
+					{name: 'label', type: 'string'},
+					{name: 'label_italic', type: 'boolean'}
+				],
+				cols = {},
+				rows = {} ;
+			cols['label'] = {
+				text: 'Data',
+				dataIndex: 'label',
+				width: 130,
+				renderer: colRenderer
+			};
+			Ext.Object.each( dataObj.keyfigures_labels, function(k,v) {
+				rows[k] = {label: v, label_italic: (k.slice(-2)=='_i')};
+			});
+			Ext.Array.each( dataObj.keyfigures_rows, function(r) {
+				var dateSql = r.k_date,
+					dateKey = 'c_'+dateSql ;
+				if( !cols.hasOwnProperty(dateKey) ) {
+					cols[dateKey] = {text: dateSql, dataIndex: dateKey, width:150, renderer: colRenderer, align:'center'} ;
+					fields.push({name:dateKey,type:'number'}) ;
+				}
+				Ext.Object.each( r, function(k,v) {
+					if( !rows.hasOwnProperty(k) ) {
+						return ;
+					}
+					rows[k][dateKey] = v ;
+				}) ;
+			});
+			displayElements.push({
+				xtype: 'fieldset',
+				title: 'Chiffres clés',
+				items: [{
+					xtype: 'grid',
+					columns: {
+						defaults: {
+							menuDisabled: true,
+							draggable: false,
+							sortable: false,
+							hideable: false,
+							resizable: false,
+							groupable: false,
+							lockable: false
+						},
+						items: Ext.Object.getValues(cols)
+					},
+					store: {
+						proxy: { type:'memory' },
+						fields: fields,
+						data: Ext.Object.getValues(rows)
+					}
+				}]
+			});
+		}
 		var elementsPanel = {
 			title: 'Données',
 			scrollable: 'vertical',

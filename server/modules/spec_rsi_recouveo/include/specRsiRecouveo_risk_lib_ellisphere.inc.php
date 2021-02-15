@@ -560,6 +560,55 @@ function specRsiRecouveo_risk_lib_ES_getResultObj( $id_register ) {
 		}
 	}
 	
+	$obj_result['keyfigures_rows'] = array() ;
+	if( $xml_rr->keyFiguresModule && ($xml_rrk = $xml_rr->keyFiguresModule->keyFigures) ) {
+		$obj_result['keyfigures_rows'] = array() ;
+		foreach( $xml_rrk->children() as $mkey => $xml_rrk_child ) {
+			if( !(strpos($xml_rrk_child->getName(),'financialYearN')===0) ) {
+				continue ;
+			}
+			if( !is_numeric( (string)$xml_rrk_child->turnover ) ) {
+				continue ;
+			}
+			/*
+			{mkey: 'C.A.', y_2020: '328 158,65', y_2019: '254 147,96'},
+								{mkey: 'Résultat net', y_2020: '328 158,65', y_2019: '254 147,96'},
+								{mkey: 'Fonds propres', y_2020: '328 158,65', y_2019: '254 147,96'},
+								{mkey: 'Endettement', y_2020: '328 158,65', y_2019: '254 147,96'},
+			*/
+			
+			$row = array(
+				'k_date' => date_format(date_create_from_format('Ymd',(string)$xml_rrk_child->financialYearDate),'Y-m-d'),
+				'v_length_i' => (int)(string)$xml_rrk_child->financialYearDuration,
+				'v_turnover' => (int)(string)$xml_rrk_child->turnover,
+				'v_netResult' => (int)(string)$xml_rrk_child->netResult,
+				'v_shareholdersFunds' => (int)(string)$xml_rrk_child->shareholdersFunds,
+				'v_debts' => (int)(string)$xml_rrk_child->debts,
+				'v_purchases' => (int)(string)$xml_rrk_child->purchases,
+				'v_customerCredit_i' => (int)(string)$xml_rrk_child->customerCredit,
+				'v_supplierCredit_i' => (int)(string)$xml_rrk_child->supplierCredit,
+				'v_employees_i' => (int)(string)$xml_rrk_child->employees,
+			);
+			$obj_result['keyfigures_rows'][] = $row ;
+		}
+	}
+	if( count($obj_result['keyfigures_rows']) == 0 ) {
+		unset($obj_result['keyfigures_rows']) ;
+	} else {
+		$obj_result['keyfigures_labels'] = array(
+			'v_length_i' => 'Durée (mois)',
+			'v_turnover' => 'C.A.',
+			'v_netResult' => 'Résultat net',
+			'v_shareholdersFunds' => 'Fonds propres',
+			'v_debts' => 'Endettement',
+			'v_purchases' => 'Achats',
+			'v_customerCredit_i' => 'Cr.clients(j)',
+			'v_supplierCredit_i' => 'Cr.fourn.(j)',
+			'v_employees_i' => 'Nb.Employés'
+		);
+	}
+		
+	
 	foreach( $xml_rr->children() as $node ) {
 		//var_dump( $node ) ;
 		//echo $node->getName()."\n" ;
