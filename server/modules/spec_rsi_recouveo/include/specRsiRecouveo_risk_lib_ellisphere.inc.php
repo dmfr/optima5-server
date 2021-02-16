@@ -637,7 +637,7 @@ function specRsiRecouveo_risk_lib_ES_getResultObj( $id_register ) {
 					$row += array(
 						'pp_civility' => (string)$xml_rr_director->naturalPerson->attributes()['civility'],
 						'pp_name' => (string)$xml_rr_director->naturalPerson->attributes()['name'],
-						'pp_firstName' => (string)$xml_rr_director->naturalPerson->attributes['firstName'],
+						'pp_firstName' => (string)$xml_rr_director->naturalPerson->attributes()['firstName'],
 						
 						'pp_birthPlace' => (string)$xml_rr_director->naturalPerson->birthPlace,
 						'pp_birthDate' => date_format(date_create_from_format('Ymd',(string)$xml_rr_director->naturalPerson->birthDate),'Y-m-d')
