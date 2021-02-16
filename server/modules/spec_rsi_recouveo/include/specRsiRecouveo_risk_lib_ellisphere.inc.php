@@ -583,13 +583,6 @@ function specRsiRecouveo_risk_lib_ES_getResultObj( $id_register ) {
 			if( !is_numeric( (string)$xml_rrk_child->turnover ) ) {
 				continue ;
 			}
-			/*
-			{mkey: 'C.A.', y_2020: '328 158,65', y_2019: '254 147,96'},
-								{mkey: 'Résultat net', y_2020: '328 158,65', y_2019: '254 147,96'},
-								{mkey: 'Fonds propres', y_2020: '328 158,65', y_2019: '254 147,96'},
-								{mkey: 'Endettement', y_2020: '328 158,65', y_2019: '254 147,96'},
-			*/
-			
 			$row = array(
 				'k_date' => date_format(date_create_from_format('Ymd',(string)$xml_rrk_child->financialYearDate),'Y-m-d'),
 				'v_length_i' => (int)(string)$xml_rrk_child->financialYearDuration,
@@ -655,15 +648,9 @@ function specRsiRecouveo_risk_lib_ES_getResultObj( $id_register ) {
 			$obj_result['directors_rows'][] = $row ;
 		}
 	}
-		
-	
-	foreach( $xml_rr->children() as $node ) {
-		//var_dump( $node ) ;
-		//echo $node->getName()."\n" ;
+	if( count($obj_result['directors_rows']) == 0 ) {
+		unset($obj_result['directors_rows']) ;
 	}
-	
-	
-	
 	
 	return  array(
 		'data_obj' => $obj_result,

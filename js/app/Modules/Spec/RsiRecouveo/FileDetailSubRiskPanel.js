@@ -272,7 +272,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailSubRiskPanel', {
 		this.add(xmlPanel) ;
 	},
 	setupResultModeElements: function() {
-		// Tab : display elements
 		var dataObj = this._ajaxDataResult.data_obj ;
 		if( !dataObj ) {
 			this.removeAll() ;
@@ -341,7 +340,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailSubRiskPanel', {
 				}
 			}
 		] ;
+		
 		var displayElements = [] ;
+		
 		var titleIdentity ;
 		switch( dataObj.status ) {
 			case 'INA' :
@@ -369,10 +370,11 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailSubRiskPanel', {
 				}]
 			}) ;
 		}
+		
 		if( dataObj.characteristics_rows ) {
 			
-			
 		}
+		
 		if( dataObj.score_int != null ) {
 			displayElements.push({
 				xtype: 'fieldset',
@@ -503,6 +505,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailSubRiskPanel', {
 				}]
 			});
 		}
+		
 		if( dataObj.keyfigures_rows != null ) {
 			var colRenderer = function(value, metaData, record, rowIndex, colIndex, store, view) {
 				// style the cell using the dataIndex of the column
@@ -572,6 +575,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailSubRiskPanel', {
 				}]
 			});
 		}
+		
 		if( dataObj.directors_rows ) {
 			displayElements.push({
 				xtype: 'fieldset',
@@ -587,6 +591,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailSubRiskPanel', {
 				}]
 			}) ;
 		}
+		
 		var elementsPanel = {
 			title: 'Données',
 			scrollable: 'vertical',
@@ -598,225 +603,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailSubRiskPanel', {
 			items: displayElements
 		};
 		
-		
 		this.removeAll() ;
 		this.add(elementsPanel);
-		
-		
-		return ;
-		
-		this.removeAll() ;
-		this.add({
-			xtype: 'tabpanel',
-			items:[Ext.create('Optima5.Modules.Spec.RsiRecouveo.FileDetailSubRiskXmlBox',{
-				title: 'Source',
-				xmlString: this._ajaxDataResult.xml_binary
-			}),{
-				title: 'Données',
-				scrollable: 'vertical',
-				xtype: 'container',
-				layout: 'anchor',
-				defaults: {
-					anchor: '100%'
-				},
-				items: [{
-					xtype: 'fieldset',
-					//padding: 4,
-					title: 'Identité',
-					items: [{
-						xtype: 'component',
-						tpl: componentTpl,
-						data: {
-							labelWidth: 100,
-							rows: [
-								{label: 'Label 1', values: ['Value 1','Value 11'], add_invite: true},
-								{label: 'Label 2', values: ['Value 2','Value 22','Value 222']},
-								{spacer: true},
-								{label: 'Label 4', values: ['Value 444']},
-							]
-						}
-					}]
-				},{
-					xtype: 'fieldset',
-					title: 'Score',
-					layout: {
-						type: 'hbox',
-						align: 'begin'
-					},
-					items: [{
-						xtype: 'component',
-						width: 80,
-						height: 60,
-						tpl: [
-							'<div style="padding:8px ; width:100% ; height: 100%">',
-								'<div style="border-radius: 10%; background: {color}; height:100% ; width:100% ; display:table">',
-									'<div style="display:table-cell ; vertical-align: middle; text-align:center">',
-										'<div style="color:white ; font-size:32px ; line-height:36px">{score}</div>',
-									'</div>',
-								'</div>',
-							'</div>'
-						],
-						data: {
-							score: 5,
-							color: '#ff0000'
-						}
-					},{
-						xtype: 'component',
-						flex: 1,
-						height: 200,
-						html: '<div style="height:100% ; width:100% ">&nbsp;</div>'
-					}]
-				},{
-					xtype: 'fieldset',
-					title: 'Chiffres clés',
-					items: [{
-						xtype: 'grid',
-						columns: {
-							defaults: {
-								menuDisabled: true,
-								draggable: false,
-								sortable: false,
-								hideable: false,
-								resizable: false,
-								groupable: false,
-								lockable: false
-							},
-							items: [
-								{dataIndex: 'mkey', width:135, text: ''},
-								{dataIndex: 'y_2020', width:120, text: '2020'},
-								{dataIndex: 'y_2019', width:120, text: '2019'},
-							]
-						},
-						store: {
-							proxy: { type:'memory' },
-							fields: ['mkey','y_2020','y_2019'],
-							data: [
-								{mkey: 'C.A.', y_2020: '328 158,65', y_2019: '254 147,96'},
-								{mkey: 'Résultat net', y_2020: '328 158,65', y_2019: '254 147,96'},
-								{mkey: 'Fonds propres', y_2020: '328 158,65', y_2019: '254 147,96'},
-								{mkey: 'Endettement', y_2020: '328 158,65', y_2019: '254 147,96'},
-							]
-						}
-					}]
-				}]
-			}]
-		});
-		return ;
-		
-		this.removeAll() ;
-		this.add({
-					scrollable: true,
-					flex: 1,
-					xtype: 'form',
-					//bodyCls: 'ux-noframe-bg',
-					layout: 'anchor',
-					cls: 'op5-spec-rsiveo-risk-displayform',
-					fieldDefaults: {
-						anchor: "100%",
-						labelWidth: 130,
-						labelSeparator : " :",
-					},
-					items: [{
-						xtype: 'fieldset',
-						title: 'SCORES',
-						items: [{
-							xtype: 'displayfield',
-							fieldLabel: 'Note globale',
-							fieldStyle: {
-								"font-size": '14px',
-								"line-height": '15px'
-							},
-							value: '&#160;'
-						},{
-							xtype: 'displayfield',
-							fieldLabel: 'Limite',
-							value: '&#160;'
-						},{
-							xtype: 'displayfield',
-							fieldLabel: 'Statut',
-							value: '&#160;'
-						},{
-							xtype: 'displayfield',
-							fieldLabel: 'DBT Score',
-							value: '&#160;'
-						},{
-							xtype: 'displayfield',
-							fieldLabel: 'Privilège(s)',
-							value: '&#160;'
-						},{
-							xtype: 'fieldset',
-							title: 'Indicateur d\'exposition',
-							items: [{
-								xtype: 'displayfield',
-								fieldLabel: 'Activité',
-								value: '&#160;'
-							},{
-								xtype: 'displayfield',
-								fieldLabel: 'Entreprise',
-								value: '&#160;'
-							}]
-						}]
-					},{
-						xtype: 'fieldset',
-						title: 'TENDANCES',
-						items: [{
-							xtype: 'box',
-							height: 48
-						}]
-					},{
-						xtype: 'fieldset',
-						title: 'DIRIGEANTS',
-						items: [{
-							xtype: 'displayfield',
-							fieldLabel: 'Nombre de dirigeants',
-							value: '&#160;'
-						},{
-							xtype: 'displayfield',
-							fieldLabel: 'Détail',
-							value: '&#160;'
-						}]
-					},{
-						xtype: 'fieldset',
-						title: 'MAISON MÈRE ULTIME',
-						items: [{
-							xtype: 'displayfield',
-							fieldLabel: 'Raison sociale',
-							value: '&#160;'
-						},{
-							xtype: 'displayfield',
-							labelStyle: "font-weight:normal",
-							fieldLabel: 'SAFE number',
-							value: '&#160;'
-						},{
-							xtype: 'displayfield',
-							fieldLabel: 'Pays',
-							value: '&#160;'
-						},{
-							xtype: 'displayfield',
-							fieldLabel: 'SIREN',
-							value: '&#160;'
-						}]
-					},{
-						xtype: 'fieldset',
-						title: 'JUGEMENTS & PRIVILÈGES',
-						items: [{
-							xtype: 'box',
-							height: 48
-						}]
-					},{
-						xtype: 'fieldset',
-						title: 'COMPORTEMENTS DE PAIEMENT',
-						items: [{
-							xtype: 'displayfield',
-							fieldLabel: 'DBS Score',
-							value: '&#160;'
-						},{
-							xtype: 'displayfield',
-							fieldLabel: 'DBS secteur',
-							value: '&#160;'
-						}]
-					}]
-			});
 	},
 	buildWaitPanel: function() {
 		this.removeAll() ;
