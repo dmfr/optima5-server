@@ -514,25 +514,20 @@ function specRsiRecouveo_risk_lib_ES_getResultObj( $id_register ) {
 	
 	//var_dump( $xml_rr->scoreModule ) ;
 	
-	if( $xml_rrs = $xml_rr->scoreModule ) {
-		//var_dump( $xml_rrs ) ;
-		$fnGetStoreColor = function($score) {
-			if( $score >= 6 ) {
-				return '#90bc29' ;
-			} elseif( $score >= 4 ) {
-				return '#f7b200' ;
-			} elseif( $score >= 2 ) {
-				return '#ff7b01' ;
-			} elseif( $score > 0 ) {
-				return '#ee1c01' ;
-			} else {
-				return '#000000' ;
-			}
-		};
-		
-		
-		//var_dump($xml_rrs->actualStore->children()) ;
-	
+	$fnGetStoreColor = function($score) {
+		if( $score >= 6 ) {
+			return '#90bc29' ;
+		} elseif( $score >= 4 ) {
+			return '#f7b200' ;
+		} elseif( $score >= 2 ) {
+			return '#ff7b01' ;
+		} elseif( $score > 0 ) {
+			return '#ee1c01' ;
+		} else {
+			return '#000000' ;
+		}
+	};
+	if( ($xml_rrs = $xml_rr->scoreModule) && is_numeric((string)$xml_rrs->actualScore->score) ) {
 		$obj_result['score_int'] = (int)(string)$xml_rrs->actualScore->score ;
 		$obj_result['score_color'] = $fnGetStoreColor($obj_result['score_int']) ;
 		
@@ -557,6 +552,24 @@ function specRsiRecouveo_risk_lib_ES_getResultObj( $id_register ) {
 				'score' => $score,
 				'color' => $fnGetStoreColor($score)
 			);
+		}
+	}
+	if( ($xml_rr_payranks = $xml_rr->paymentAnalysisModule) 
+			&& ($xml_rr_payranks = $xml_rr_payranks->paymentBehaviour)
+			&& ($xml_rr_payranks = $xml_rr_payranks->payRanks) ) {
+			
+		$map_date_rank = array() ;
+		foreach( $xml_rr_payranks->children() as $mkey => $xml_rrs_payrank ) {
+			$date = (string)$xml_rrs_payrank->calculationDate ;
+			$value = (string)($xml_rrs_payrank->indicator->attributes()['value']) ;
+			if( is_numeric($value) ) {
+				$map_date_rank[$date] = (int)$value ;
+			}
+		}
+		if( $map_date_rank ) {
+			krsort($map_date_rank) ;
+			$obj_result['payrank_int'] = reset($map_date_rank) ;
+			$obj_result['payrank_color'] = $fnGetStoreColor($obj_result['payrank_int']) ;
 		}
 	}
 	

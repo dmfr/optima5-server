@@ -348,19 +348,30 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailSubRiskPanel', {
 				items: [{
 					xtype: 'component',
 					width: 80,
-					height: 60,
 					tpl: [
-						'<div style="padding:8px ; width:100% ; height: 100%">',
-							'<div style="border-radius: 10%; background: {color}; height:100% ; width:100% ; display:table">',
+						'<div style="padding:8px ; width:80px ; height: 60px">',
+							'<div style="border-radius: 10%; background: {score_color}; height:100% ; width:100% ; display:table">',
 								'<div style="display:table-cell ; vertical-align: middle; text-align:center">',
-									'<div style="color:white ; font-size:32px ; line-height:36px">{score}</div>',
+									'<div style="color:white ; font-size:32px ; line-height:36px">{score_int}</div>',
 								'</div>',
 							'</div>',
-						'</div>'
+						'</div>',
+						'<tpl if="payrank_int">',
+						'<i>Payrank</i>',
+						'<div style="padding:8px ; width:64px ; height: 56px">',
+							'<div style="border-radius: 10%; background: {payrank_color}; height:100% ; width:100% ; display:table">',
+								'<div style="display:table-cell ; vertical-align: middle; text-align:center">',
+									'<div style="color:white ; font-size:28px ; line-height:32px">{payrank_int}</div>',
+								'</div>',
+							'</div>',
+						'</div>',
+						'</tpl>'
 					],
 					data: {
-						score: dataObj.score_int,
-						color: dataObj.score_color
+						score_int: dataObj.score_int,
+						score_color: dataObj.score_color,
+						payrank_int: dataObj.payrank_int || null,
+						payrank_color: dataObj.payrank_color || null,
 					}
 				},{
 					xtype: 'panel',
