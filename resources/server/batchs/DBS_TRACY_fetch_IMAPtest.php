@@ -208,7 +208,26 @@ if( TRUE ) {
 			if( !trim($mkey) ) {
 				continue ;
 			}
-		} else {
+		}
+		if( strpos($email_subject,"EX C ")===0 ) {
+			$email_DAU = TRUE ;
+			$arr_emailSubject = explode('-',$email_subject) ;
+			if( count($arr_emailSubject) != 4 ) {
+				continue  ;
+			}
+			if( trim($arr_emailSubject[1]) != 'BAE' ) {
+				continue  ;
+			}
+			$mkey = trim($arr_emailSubject[2]) ;
+			if( !trim($mkey) ) {
+				continue ;
+			}
+			// HACK bolloré
+			if( $map_idDn_orderRow[$mkey] ) {
+				$map_idHat_ordersRow[$mkey] = array($map_idDn_orderRow[$mkey]) ;
+			}
+		}
+		if( !$email_DAU ) {
 			while( TRUE ) {
 				
 				$arr_emailSubject = explode(':',$email_subject) ;
