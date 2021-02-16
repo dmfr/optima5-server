@@ -620,6 +620,41 @@ function specRsiRecouveo_risk_lib_ES_getResultObj( $id_register ) {
 			'v_employees_i' => 'Nb.Employés'
 		);
 	}
+	
+	$obj_result['directors_rows'] = array() ;
+	if( ($xml_rr_directors = $xml_rr->directorsModule)
+		&& ($xml_rr_directors = $xml_rr_directors->statutoryDirectors) ) {
+		
+		foreach( $xml_rr_directors->children() as $xml_rr_director ) {
+			//var_dump($xml_rr_director) ;
+			$row = array(
+				'type' => (string)$xml_rr_director->type,
+				'appointmentDate' => date_format(date_create_from_format('Ymd',(string)$xml_rr_director->appointmentDate),'Y-m-d'),
+				'function' => (string)$xml_rr_director->function
+			);
+			switch( $row['type'] ) {
+				case 'PP' :
+					$row += array(
+						'pp_civility' => (string)$xml_rr_director->naturalPerson->attributes()['civility'],
+						'pp_name' => (string)$xml_rr_director->naturalPerson->attributes()['name'],
+						'pp_firstName' => (string)$xml_rr_director->naturalPerson->attributes['firstName'],
+						
+						'pp_birthPlace' => (string)$xml_rr_director->naturalPerson->birthPlace,
+						'pp_birthDate' => date_format(date_create_from_format('Ymd',(string)$xml_rr_director->naturalPerson->birthDate),'Y-m-d')
+					);
+					break ;
+			
+				case 'PM' :
+					$row += array(
+						'pm_name' => (string)$xml_rr_director->legalPerson->attributes()['name'],
+						'pm_siren' => (string)$xml_rr_director->legalPerson->companyId
+					);
+					break ;
+			}
+			
+			$obj_result['directors_rows'][] = $row ;
+		}
+	}
 		
 	
 	foreach( $xml_rr->children() as $node ) {

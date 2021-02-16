@@ -304,6 +304,41 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailSubRiskPanel', {
 				'</tpl>',
 			'</div>'
 		] ;
+		var directorsRowsTpl = [
+			'<div style="position:relative">',
+				'<tpl for="rows">',
+					'<div style="display: table; width:100% ; margin-bottom:4px">',
+						//'{[console.dir(values)]}',
+						'<div style="display: table-cell">',
+							'<b>{function}</b><br>depuis {[this.formatDate(values.appointmentDate)]}',
+						'</div>',
+						'<tpl switch="type">',
+							'<tpl case="PP">',
+								'<div style="display: table-cell">',
+									'{pp_civility}&nbsp;<b>{pp_name}</b>&nbsp;{pp_firstName}',
+								'</div>',
+								'<div style="display: table-cell">',
+									'né le {[this.formatDate(values.pp_birthDate)]}<br>à {pp_birthPlace}',
+								'</div>',
+							'<tpl case="PM">',
+								'<div style="display: table-cell">',
+									'<b>{pm_name}</b>',
+								'</div>',
+								'<div style="display: table-cell">',
+									'SIREN : <b>{pm_siren}</b>',
+								'</div>',
+							'<tpl default>',
+								'',
+						'</tpl>',
+					'</div>',
+				'</tpl>',
+			'</div>',
+			{
+				formatDate: function(v) {
+					return Ext.util.Format.date(Ext.Date.parse(v,'Y-m-d'),'d/m/Y') ;
+				}
+			}
+		] ;
 		var displayElements = [] ;
 		var titleIdentity ;
 		switch( dataObj.status ) {
@@ -534,6 +569,21 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailSubRiskPanel', {
 					}
 				}]
 			});
+		}
+		if( dataObj.directors_rows ) {
+			displayElements.push({
+				xtype: 'fieldset',
+				//padding: 4,
+				title: 'Direction',
+				items: [{
+					xtype: 'component',
+					tpl: directorsRowsTpl,
+					data: {
+						//labelWidth: 130,
+						rows: dataObj.directors_rows
+					}
+				}]
+			}) ;
 		}
 		var elementsPanel = {
 			title: 'Données',
