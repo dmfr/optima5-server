@@ -98,6 +98,20 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 		}
 	}
 	
+	$fnGetScoreColor = function($score) {
+		if( $score >= 6 ) {
+			return '#90bc29' ;
+		} elseif( $score >= 4 ) {
+			return '#f7b200' ;
+		} elseif( $score >= 2 ) {
+			return '#ff7b01' ;
+		} elseif( $score > 0 ) {
+			return '#ee1c01' ;
+		} else {
+			return '#000000' ;
+		}
+	};
+	
 	
 	$TAB_files = array() ;
 	
@@ -105,11 +119,14 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 	$query.= ",lat.field_SOC_ID, lat.field_SOC_NAME";
 	$query.= ",user.field_USER_FULLNAME as user_fullname";
 	$query.= ",userext.field_USER_FULLNAME as userext_fullname";
+	$query.= ",IF(risk.field_META_SCORE IS NULL,0,1) as risk_is_on" ;
+	$query.= ",risk.field_META_SCORE as risk_score ,risk.field_META_SCORE_PROG as risk_score_prog ,risk.field_META_PAYRANK as risk_payrank" ;
 	$query.= " FROM view_file_FILE f" ;
 	$query.= " JOIN view_bible_LIB_ACCOUNT_entry la ON la.entry_key = f.field_LINK_ACCOUNT" ;
 	$query.= " JOIN view_bible_LIB_ACCOUNT_tree lat ON lat.treenode_key = la.treenode_key" ;
 	$query.= " LEFT OUTER JOIN view_bible_USER_entry user ON user.entry_key = la.field_LINK_USER_LOCAL" ;
 	$query.= " LEFT OUTER JOIN view_bible_USER_entry userext ON userext.entry_key = f.field_LINK_USER_EXT" ;
+	$query.= " LEFT OUTER JOIN view_file_ACC_RISK risk ON risk.filerecord_id = (SELECT max(filerecord_id) FROM view_file_ACC_RISK WHERE field_ACC_ID=f.field_LINK_ACCOUNT)" ;
 	$query.= " WHERE 1" ;
 	if( isset($filter_fileFilerecordId_list) ) {
 		$query.= " AND f.filerecord_id IN {$filter_fileFilerecordId_list}" ;
@@ -194,6 +211,16 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 			'from_file_filerecord_id' => $arr['field_FROM_FILE_ID'],
 			'from_params_json' => $arr['field_FROM_PARAMS_JSON']
 		);
+		if( $arr['risk_is_on'] ) {
+			$record+= array(
+				'risk_is_on' => !!$arr['risk_is_on'],
+				'risk_score' => (float)$arr['risk_score'],
+				'risk_score_color' => $fnGetScoreColor((float)$arr['risk_score']),
+				'risk_score_prog' => (float)$arr['risk_score_prog'],
+				'risk_payrank' => (float)$arr['risk_payrank'],
+				'risk_payrank_color' => $fnGetScoreColor((float)$arr['risk_payrank'])
+			);
+		}
 		foreach( $cfg_atr as $atr_record ) {
 			$atr_id = $atr_record['atr_id'] ;
 			$mkey = $atr_record['atr_field'] ;

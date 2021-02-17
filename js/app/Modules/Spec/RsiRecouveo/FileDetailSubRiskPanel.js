@@ -191,9 +191,28 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailSubRiskPanel', {
 	queryAccount: function(accId) {
 		//TODO : TMP
 		this._accId = accId ;
-		//for test :
-		this._viewMode = 'search' ;
-		this.applyView() ;
+		
+		this.showLoadmask() ;
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_rsi_recouveo',
+				_action: 'risk_loadResult',
+				acc_id: this._accId
+			},
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success==false || ajaxResponse.data == null ) {
+					this._viewMode = 'search' ;
+					this.applyView() ;
+					return ;
+				}
+				this.onXmlDownload(ajaxResponse.data.risk_register_id, ajaxResponse.data) ;
+			},
+			callback: function() {
+				this.hideLoadmask() ;
+			},
+			scope: this
+		}) ;
 	},
 	
 	applyView: function() {

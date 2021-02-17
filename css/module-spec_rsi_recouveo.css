@@ -1335,3 +1335,22 @@
 }
 
 
+.op5-spec-rsiveo-list-risk-up {
+	background-repeat: no-repeat;
+	background-position: 4px center ;
+	background-image: url("../images/modules/rsiveo-arrow-up-16.png") !important;
+}
+.op5-spec-rsiveo-list-risk-down {
+	background-repeat: no-repeat;
+	background-position: 4px center ;
+	background-image: url("../images/modules/rsiveo-arrow-down-16.png") !important;
+}
+.op5-spec-rsiveo-list-risk-font {
+	color: white;
+	font-weight: bold ;
+}
+.op5-spec-rsiveo-list-risk-border {
+	border: 4px solid white;
+	line-height: 6px ;
+}
+

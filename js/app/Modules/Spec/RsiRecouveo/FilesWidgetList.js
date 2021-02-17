@@ -310,6 +310,61 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesWidgetList', {
 			    }
 		    }]
 	    },{
+		    text: 'Gestion risque',
+		    columns: [{
+			    text: 'Score',
+			    dataIndex: 'risk_score',
+			    width:60,
+			    align: 'center',
+			    filter: {
+				    type: 'number'
+			    },
+				renderer: function(v,m,r) {
+					if( r.get('risk_is_on') ) {
+						m.tdStyle+=';background-color:'+r.get('risk_score_color') ;
+						m.tdCls+= ' op5-spec-rsiveo-list-risk-font' ;
+					}
+					return v ;
+				},
+		    },{
+			    text: '',
+			    dataIndex: 'risk_score_prog',
+			    width:50,
+			    align: 'center',
+				renderer: function(v,m,r) {
+					if( v==null ) {
+						return ;
+					}
+					if( v > 0 ) {
+						m.tdCls += ' op5-spec-rsiveo-list-risk-up' ;
+						return ;
+					}
+					if( v < 0 ) {
+						m.tdCls += ' op5-spec-rsiveo-list-risk-down' ;
+						return ;
+					}
+					if( v == 0 ) {
+						return '-' ;
+					}
+				}
+		    },{
+			    text: 'Pay.',
+			    dataIndex: 'risk_payrank',
+			    width:50,
+			    align: 'center',
+			    filter: {
+				    type: 'number'
+			    },
+				renderer: function(v,m,r) {
+					if( r.get('risk_is_on') ) {
+						//m.tdStyle+=';background-color:'+r.get('risk_payrank_color') ;
+						m.tdStyle+=';background-color:'+r.get('risk_payrank_color') ;
+						m.tdCls+= ' op5-spec-rsiveo-list-risk-font op5-spec-rsiveo-list-risk-border' ;
+					}
+					return v ;
+				},
+		    }]
+	    },{
 				hidden: true,
 				hideable: false,
 				itemId: 'colContacts',

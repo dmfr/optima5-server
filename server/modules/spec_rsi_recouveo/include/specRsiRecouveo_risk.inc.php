@@ -50,12 +50,6 @@ function specRsiRecouveo_risk_fetchPdf( $post_data ) {
 }
 
 
-function specRsiRecouveo_risk_loadResult( $data_data ) {
-
-
-}
-
-
 function specRsiRecouveo_risk_fetchResult( $post_data, $do_save=FALSE ) {
 	$acc_id = $post_data['acc_id'] ;
 	$search_data = json_decode($post_data['data'],true) ;
@@ -101,6 +95,39 @@ function specRsiRecouveo_risk_fetchResult( $post_data, $do_save=FALSE ) {
 }
 function specRsiRecouveo_risk_saveResult( $post_data ) {
 	return specRsiRecouveo_risk_fetchResult( $post_data, $do_save=true ) ;
+}
+function specRsiRecouveo_risk_loadResult( $post_data ) {
+	global $_opDB ;
+	
+	$acc_id = $post_data['acc_id'] ;
+	$query = "SELECT * FROM view_file_ACC_RISK WHERE field_ACC_ID='{$acc_id}' ORDER BY filerecord_id DESC LIMIT 1" ;
+	$result = $_opDB->query($query) ;
+	if( $_opDB->num_rows($result)==0 ) {
+		return array('success'=>true, 'data'=>null) ;
+	}
+	$arr = $_opDB->fetch_assoc($result) ;
+	$accrisk_filerecord_id = $arr['filerecord_id'] ;
+	
+	
+	$_domain_id = DatabaseMgr_Base::dbCurrent_getDomainId() ;
+	$_sdomain_id = DatabaseMgr_Sdomain::dbCurrent_getSdomainId() ;
+	media_contextOpen( $_sdomain_id ) ;
+	$media_id = media_bin_toolFile_getId('ACC_RISK',$accrisk_filerecord_id) ;
+	$xml_binary = media_bin_getBinary($media_id) ;
+	media_contextClose() ;
+	
+	if( !$xml_binary ) {
+		return array('success'=>true, 'data'=>null) ;
+	}
+	
+	return array(
+		'success'=>true,
+		'data' => array(
+			'risk_register_id' => $arr['field_DL_ID'],
+			'xml_binary' => $xml_binary,
+			'data_obj' => specRsiRecouveo_risk_lib_ES_getResultObjDecode($xml_binary)
+		)
+	) ;
 }
 
 

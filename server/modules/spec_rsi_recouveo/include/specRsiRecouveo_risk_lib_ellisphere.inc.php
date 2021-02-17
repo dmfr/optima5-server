@@ -451,17 +451,19 @@ function specRsiRecouveo_risk_lib_ES_getResultObj( $id_register ) {
 
 	$xml_binary = stream_get_contents($fp) ;
 	
+	// DECODE XML
+	$obj_result = specRsiRecouveo_risk_lib_ES_getResultObjDecode($xml_binary) ;
+	return  array(
+		'data_obj' => $obj_result,
+		'xml_binary' => $xml_binary
+	); ;
+}
+function specRsiRecouveo_risk_lib_ES_getResultObjDecode($xml_binary) {
 	$xml = simplexml_load_string( $xml_binary, 'SimpleXMLElement', LIBXML_NOCDATA);
 	$xml_rr = $xml->response ? $xml->response->report : null ;
 	if( !$xml_rr ) {
-		return  array(
-			'data_obj' => null,
-			'xml_binary' => $xml_binary
-		);
+		return  NULL;
 	}
-	
-	// DECODE XML
-	$obj_result = array() ;
 	
 	if( $xml_rri = $xml_rr->identityModule ) {
 		$obj_result['status'] = (string)$xml_rri->companyStatus ; // INA / ACT
@@ -665,10 +667,7 @@ function specRsiRecouveo_risk_lib_ES_getResultObj( $id_register ) {
 		unset($obj_result['directors_rows']) ;
 	}
 	
-	return  array(
-		'data_obj' => $obj_result,
-		'xml_binary' => $xml_binary
-	); ;
+	return  $obj_result ;
 }
 
 ?>

@@ -58,7 +58,14 @@ Ext.define('RsiRecouveoFileTplModel',{ // TO: RsiRecouveoFileModel
 		{name: 'inv_balage', type: 'auto'},
 		
 		{name: 'from_file_filerecord_id', type:'int'},
-		{name: 'from_params_json', type:'string'}
+		{name: 'from_params_json', type:'string'},
+		
+		{name: 'risk_is_on', type:'boolean'},
+		{name: 'risk_score', type:'number', allowNull:true},
+		{name: 'risk_score_color', type:'string', allowNull:true},
+		{name: 'risk_score_prog', type:'number', allowNull:true},
+		{name: 'risk_payrank', type:'number', allowNull:true},
+		{name: 'risk_payrank_color', type:'string', allowNull:true}
 	],
 	statusIsSchedLock: function() {
 		var fileStatus = this.get('status'),
