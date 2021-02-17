@@ -50,8 +50,13 @@ function specRsiRecouveo_risk_fetchPdf( $post_data ) {
 }
 
 
+function specRsiRecouveo_risk_loadResult( $data_data ) {
 
-function specRsiRecouveo_risk_fetchResult( $post_data ) {
+
+}
+
+
+function specRsiRecouveo_risk_fetchResult( $post_data, $do_save=FALSE ) {
 	$acc_id = $post_data['acc_id'] ;
 	$search_data = json_decode($post_data['data'],true) ;
 	$risk_register_id = preg_replace("/[^a-zA-Z0-9]/", "", $search_data['id_register']) ;
@@ -65,10 +70,37 @@ function specRsiRecouveo_risk_fetchResult( $post_data ) {
 		return array('success'=>false) ;
 	}
 	
+	$result_data = specRsiRecouveo_risk_lib_ES_getResultObj($risk_register_id) ;
+	if( !$result_data ) {
+		return array('success'=>false) ;
+	}
+	
+	if( $do_save ) {
+		$arr_ins = array() ;
+		$arr_ins['field_ACC_ID'] = $acc_id ;
+		$arr_ins['field_DL_ID'] = $risk_register_id ;
+		$arr_ins['field_DL_DATE'] = date('Y-m-d H:i:s') ;
+		$arr_ins['field_DL_PROVIDER'] = 'ES' ;
+		$arr_ins['field_META_SCORE'] = $result_data['data_obj']['score_int'] ;
+		$arr_ins['field_META_SCORE_PROG'] = $result_data['data_obj']['score_prog_int'] ;
+		$arr_ins['field_META_PAYRANK'] = $result_data['data_obj']['payrank_int'] ;
+		$accrisk_filerecord_id = paracrm_lib_data_insertRecord_file( 'ACC_RISK', 0, $arr_ins );
+		
+		$_domain_id = DatabaseMgr_Base::dbCurrent_getDomainId() ;
+		$_sdomain_id = DatabaseMgr_Sdomain::dbCurrent_getSdomainId() ;
+		media_contextOpen( $_sdomain_id ) ;
+		$media_id = media_bin_processBuffer($result_data['xml_binary']) ;
+		media_bin_move( $media_id,  media_pdf_toolFile_getId('ACC_RISK',$accrisk_filerecord_id) ) ;
+		media_contextClose() ;
+	}
+	
 	return array(
 		'success'=>true,
-		'data' => specRsiRecouveo_risk_lib_ES_getResultObj($risk_register_id)
+		'data' => $result_data
 	) ;
+}
+function specRsiRecouveo_risk_saveResult( $post_data ) {
+	return specRsiRecouveo_risk_fetchResult( $post_data, $do_save=true ) ;
 }
 
 

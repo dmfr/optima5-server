@@ -229,6 +229,8 @@ switch( $post_data['_action'] )
 		return specRsiRecouveo_risk_fetchPdf( $post_data ) ;
 	case 'risk_fetchResult' :
 		return specRsiRecouveo_risk_fetchResult( $post_data ) ;
+	case 'risk_saveResult' :
+		return specRsiRecouveo_risk_saveResult( $post_data ) ;
 	
 	default :
 	return NULL ;

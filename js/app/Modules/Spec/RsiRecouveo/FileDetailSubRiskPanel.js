@@ -124,6 +124,14 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailSubRiskPanel', {
 				border: false,
 				xtype: 'toolbar',
 				items: ['->',{
+					icon: 'images/op5img/ico_save_16.gif',
+					text: 'Save',
+					handler: function() {
+						this.handleXmlSave() ;
+					},
+					scope: this
+				},{
+					itemId: 'btnMode',
 					_selectedItemId: null,
 					viewConfig: {forceFit: true},
 					menu: {
@@ -243,7 +251,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailSubRiskPanel', {
 			return ;
 		}
 		
-		var tbResultBtn = this.down('#tbResult').down('button') ;
+		var tbResultBtn = this.down('#tbResult').down('#btnMode') ;
 		if( Ext.isEmpty(tbResultBtn._selectedItemId) ) {
 			tbResultBtn._selectedItemId = 'elements' ;
 		}
@@ -798,6 +806,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailSubRiskPanel', {
 		if( !riskRegisterId ) {
 			return ;
 		}
+		
+		this._ajaxDataId = null ;
+		this._ajaxDataResult = null ;
+		
 		this.showLoadmask() ;
 		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: {
@@ -813,16 +825,38 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailSubRiskPanel', {
 				if( ajaxResponse.success == false ) {
 					return ;
 				}
-				this.onXmlDownload(ajaxResponse.data) ;
+				this.onXmlDownload(riskRegisterId, ajaxResponse.data) ;
 			},
 			callback: function() {
 				this.hideLoadmask() ;
 			},
 			scope: this
 		}) ;
-		
 	},
-	onXmlDownload: function( ajaxData ) {
+	handleXmlSave: function() {
+		if( !this._ajaxDataId ) {
+			return ;
+		}
+		this.showLoadmask() ;
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_rsi_recouveo',
+				_action: 'risk_saveResult',
+				acc_id: this._accId,
+				data: Ext.JSON.encode({
+					id_register: this._ajaxDataId
+				})
+			},
+			success: function(response) {
+			},
+			callback: function() {
+				this.hideLoadmask() ;
+			},
+			scope: this
+		}) ;
+	},
+	onXmlDownload: function( riskRegisterId, ajaxData ) {
+		this._ajaxDataId = riskRegisterId ;
 		this._ajaxDataResult = ajaxData ;
 		this._viewMode = 'result' ;
 		this.applyView() ;

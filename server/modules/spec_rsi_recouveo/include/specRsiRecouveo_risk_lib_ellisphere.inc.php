@@ -514,7 +514,7 @@ function specRsiRecouveo_risk_lib_ES_getResultObj( $id_register ) {
 	
 	//var_dump( $xml_rr->scoreModule ) ;
 	
-	$fnGetStoreColor = function($score) {
+	$fnGetScoreColor = function($score) {
 		if( $score >= 6 ) {
 			return '#90bc29' ;
 		} elseif( $score >= 4 ) {
@@ -527,9 +527,20 @@ function specRsiRecouveo_risk_lib_ES_getResultObj( $id_register ) {
 			return '#000000' ;
 		}
 	};
+	$funGetScoreProg = function( $score_int, $score_rows ) {
+		if( count($score_rows) == 0 ) {
+			return 0 ;
+		}
+		$score_avg = 0 ;
+		foreach( $score_rows as $score_row ) {
+			$score_avg+= $score_row['score'] ;
+		}
+		$score_avg = $score_avg / count($score_rows) ;
+		return $score_int - $score_avg ;
+	};
 	if( ($xml_rrs = $xml_rr->scoreModule) && is_numeric((string)$xml_rrs->actualScore->score) ) {
 		$obj_result['score_int'] = (int)(string)$xml_rrs->actualScore->score ;
-		$obj_result['score_color'] = $fnGetStoreColor($obj_result['score_int']) ;
+		$obj_result['score_color'] = $fnGetScoreColor($obj_result['score_int']) ;
 		
 		$obj_result['score_rows'] = array() ;
 		foreach( $xml_rrs->children() as $mkey => $xml_rrs_child ) {
@@ -550,9 +561,11 @@ function specRsiRecouveo_risk_lib_ES_getResultObj( $id_register ) {
 				'date_txt' => date('d/m/Y',strtotime($date)),
 				'date_txt_short' => date('m/Y',strtotime($date)),
 				'score' => $score,
-				'color' => $fnGetStoreColor($score)
+				'color' => $fnGetScoreColor($score)
 			);
 		}
+		
+		$obj_result['score_prog_int'] = $funGetScoreProg($obj_result['score_int'],$obj_result['score_rows']) ;
 	}
 	if( ($xml_rr_payranks = $xml_rr->paymentAnalysisModule) 
 			&& ($xml_rr_payranks = $xml_rr_payranks->paymentBehaviour)
@@ -569,7 +582,7 @@ function specRsiRecouveo_risk_lib_ES_getResultObj( $id_register ) {
 		if( $map_date_rank ) {
 			krsort($map_date_rank) ;
 			$obj_result['payrank_int'] = reset($map_date_rank) ;
-			$obj_result['payrank_color'] = $fnGetStoreColor($obj_result['payrank_int']) ;
+			$obj_result['payrank_color'] = $fnGetScoreColor($obj_result['payrank_int']) ;
 		}
 	}
 	
