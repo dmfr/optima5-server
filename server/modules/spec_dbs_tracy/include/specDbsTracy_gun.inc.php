@@ -827,9 +827,24 @@ function specDbsTracy_gun_t70_transactionPostAction($post_data, $_recycle=false)
 				'success'=>true,
 				'data' => array(
 					'header'=>array('result_type' => 'final'),
+					'primary_key' => array(
+						'name' => 'trsptpick_filerecord_id',
+						'value' => $pick_filerecord_id
+					),
 					'fields' => $fields
 				)
 			) ;
+			
+			
+		case 'print' :
+			sleep(1) ;
+			if( $post_data['trsptpick_filerecord_id'] ) {
+				
+			}
+			return array(
+				'success'=>true
+			) ;
+			break ;
 		
 		default :
 			break ;

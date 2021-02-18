@@ -160,6 +160,45 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70transactionScanResult',{
 					}]
 				});
 				break ;
+			case 'final' :
+				this.add({
+					xtype: 'container',
+					padding: 6,
+					layout: {
+						type: 'hbox',
+						pack: 'center'
+					},
+					items: [{
+						xtype: 'button',
+						scale: 'large',
+						style: 'min-width: 100px',
+						text: 'OK',
+						listeners: {
+							click: function() {
+								this.doQuit() ;
+							},
+							afterrender: function(btn) {
+								btn.focus() ;
+							},
+							scope: this
+						}
+					},{
+						xtype: 'box',
+						width: 8
+					},{
+						xtype: 'button',
+						scale: 'large',
+						style: 'min-width: 100px',
+						text: 'Print...',
+						listeners: {
+							click: function() {
+								this.doPrint() ;
+							},
+							scope: this
+						}
+					}]
+				});
+				break ;
 			default :
 				this.add({
 					xtype: 'container',
@@ -196,6 +235,9 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70transactionScanResult',{
 	
 	doAfterAction: function(afterAction) {
 		this.fireEvent('afteraction',this, afterAction) ;
+	},
+	doPrint: function() {
+		this.fireEvent('print',this) ;
 	},
 	doQuit: function() {
 		this.fireEvent('quit',this) ;
