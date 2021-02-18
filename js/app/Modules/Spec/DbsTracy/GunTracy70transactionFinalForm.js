@@ -19,6 +19,12 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70transactionFinalForm',{
 		this.mon(this.optimaModule,'op5broadcast',this.onCrmeventBroadcast,this) ;
 		
 		this.buildForm( this._data ) ;
+		
+		if( this._data.modal_fields ) {
+			this.on('afterrender',function() {
+				this.openModal(this._data.modal_fields);
+			},this) ;
+		}
 	},
 	onCrmeventBroadcast: function(crmEvent,eventParams) {
 		switch( crmEvent ) {
@@ -147,5 +153,90 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70transactionFinalForm',{
 	},
 	doAbort: function() {
 		this.fireEvent('back',this) ;
+	},
+	
+	
+	
+	openModal: function(modal_fields) {
+		this.getEl().mask() ;
+		
+		// Open panel
+		var fieldsetItems = [] ;
+		Ext.Array.each( modal_fields, function(field) {
+			fieldsetItems.push({
+				xtype: 'displayfield',
+				fieldLabel: field.label,
+				value: field.text
+			});
+		}) ;
+		
+		var createPanel = Ext.create('Ext.form.Panel',{
+			optimaModule: this.optimaModule,
+			width:250, // dummy initial size, for border layout to work
+			height:null, // ...
+			floating: true,
+			draggable: true,
+			resizable: true,
+			renderTo: this.getEl(),
+			
+			title: 'Partial warning',
+			
+			bodyPadding: 10,
+			bodyCls: 'ux-noframe-bg',
+			layout: 'anchor',
+			fieldDefaults: {
+				labelWidth: 75,
+				anchor: '100%'
+			},
+			items: [{
+				xtype: 'fieldset',
+				title: 'Informations',
+				cls: 'op5-spec-dbstracy-field-narrowline',
+				defaults: {
+					labelStyle: 'font-weight: bold;'
+				},
+				items: fieldsetItems
+			},{
+				xtype: 'container',
+				layout: {
+					type: 'hbox',
+					align: 'center',
+					pack: 'middle'
+				},
+				defaults: {iconAlign: 'top', scale: 'medium', minWidth: this.minButtonWidth, margin: '2px 8px'},
+				items: [{
+					xtype: 'button',
+					icon:'images/op5img/ico_ok_16.gif',
+					text: 'Confirm',
+					handler: function(btn){
+						btn.up('form').destroy();
+					}
+				},{
+					xtype: 'button',
+					icon:'images/op5img/ico_reload_small.gif',
+					text: 'Back',
+					handler: function(btn){
+						this.doAbort() ;
+					},
+					scope: this
+				}]
+			}]
+		});
+		
+		createPanel.on('destroy',function(p) {
+			this.getEl().unmask() ;
+			this.floatingPanel = null ;
+		},this,{single:true}) ;
+		
+		createPanel.show();
+		createPanel.getEl().alignTo(this.getEl(), 'c-c?');
+		
+		this.floatingPanel = createPanel ;
+	},
+	onDestroy: function() {
+		if( this.floatingPanel ) {
+			this.floatingPanel.destroy() ;
+		}
 	}
+	
 });

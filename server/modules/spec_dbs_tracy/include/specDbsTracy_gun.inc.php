@@ -625,7 +625,9 @@ function specDbsTracy_gun_t70_transactionPostAction($post_data, $_recycle=false)
 			}
 			$arr_trsptFilerecordIds = array() ;
 			$bool_partial = FALSE ;
+			$count_parcel_expected = 0 ;
 			foreach( $map_trsptFilerecordId_counts as $trspt_filerecord_id => $counts ) {
+				$count_parcel_expected += $counts['count_parcel_total'] ;
 				if( $counts['count_parcel_scan'] == 0 ) {
 					// transport intégralement non scanné => notification
 					$bool_partial = TRUE ;
@@ -680,7 +682,27 @@ function specDbsTracy_gun_t70_transactionPostAction($post_data, $_recycle=false)
 					'label' => 'Weight',
 					'text' => $weight_kg.' '.'kg'
 				);
-				return array('success'=>true, 'data'=>array('fields'=>$fields)) ;
+				
+				$modal_fields = null ;
+				if( $bool_partial ) {
+					$modal_fields = array() ;
+					$modal_fields[] = array(
+						'label' => 'Nb.Parcels',
+						'text' => $count_parcel
+					);
+					$modal_fields[] = array(
+						'label' => 'Expected',
+						'text' => $count_parcel_expected
+					);
+				}
+				
+				return array(
+					'success'=>true,
+					'data'=>array(
+						'fields'=>$fields,
+						'modal_fields' => $modal_fields
+					)
+				) ;
 			}
 			
 			
