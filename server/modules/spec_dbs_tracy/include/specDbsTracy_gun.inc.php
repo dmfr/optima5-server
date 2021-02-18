@@ -839,7 +839,42 @@ function specDbsTracy_gun_t70_transactionPostAction($post_data, $_recycle=false)
 		case 'print' :
 			sleep(1) ;
 			if( $post_data['trsptpick_filerecord_id'] ) {
-				
+				$ttmp = specDbsTracy_trsptpick_fetchPdf( array('trsptpick_filerecord_id'=>$post_data['trsptpick_filerecord_id']) ) ;
+				//echo $ttmp['pdf_base64'] ;
+
+				$GLOBALS['__specDbsTracy_lib_TMS_PRINTURL'] = 'https://services.schenkerfrance.fr/gateway-fat/rest/ship/v1/print' ;
+
+				$_token = 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJzYWZyYW5zbHMiLCJpc3MiOiJFWFQiLCJpYXQiOjE2MDA4NzEyODgsImF1ZCI6ImFwaWdhdGV3YXkvcmVzdC9zaGlwL3YxIiwianRpIjoiNWVlOWIzZGEtOTBkOC00YTYyLTg5NmItNmRhMTZlNGIyYzcyIn0.IiuPnA1KkFxLBcZutUo1iSZCfQo0pxRAKstlt_zJ-Gs' ;
+
+					$post_url = $GLOBALS['__specDbsTracy_lib_TMS_PRINTURL'].'?'.http_build_query(array(
+						'documentName' => 'TracyLabel',
+						'format' => 'PDF',
+						'host' => '10.204.204.58'
+					)) ;
+					$params = array('http' => array(
+						'method' => 'POST',
+						'content' => base64_decode($ttmp['pdf_base64']),
+						'timeout' => 600,
+						'ignore_errors' => true,
+						'header'=>"Authorization: {$_token}\r\n".""."Content-Type: application/octet-stream\r\n"
+					));
+					//print_r($params) ;
+					$ctx = stream_context_create($params);
+					$fp = fopen($post_url, 'rb', false, $ctx);
+					if( !$fp ) {
+						
+					}
+					$status_line = $http_response_header[0] ;
+					$resp = stream_get_contents($fp) ;
+					preg_match('{HTTP\/\S*\s(\d{3})}', $status_line, $match);
+					$status = $match[1];
+					$response_success = (($status == 200) || ($status == 404)) ;
+					//echo $status ;
+					//echo $resp ;
+					if( !$response_success ) {
+						//echo $resp ;
+						//throw new Exception("TMS : Print error code=$status");
+					}
 			}
 			return array(
 				'success'=>true
