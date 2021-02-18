@@ -15,7 +15,13 @@ include("$server_root/modules/spec_dbs_lam/include/specDbsLam_transfer.inc.php")
 
 
 function specDbsLam_util_htmlToPdf( $post_data ) {
-	if( $output_pdf = media_pdf_html2pdf(json_decode($post_data['html'],true),'A4') ) {
+	if( $post_data['pdf_base64'] ) {
+		$output_pdf = base64_decode($post_data['pdf_base64']) ;
+	} elseif( $post_data['html'] ) {
+		$output_pdf = media_pdf_html2pdf(json_decode($post_data['html'],true),'A4') ;
+	}
+	
+	if( $output_pdf ) {
 		$filename = 'PRINT'.'_'.time().'.pdf' ;
 		header("Content-Type: application/force-download; name=\"$filename\""); 
 		header("Content-Disposition: attachment; filename=\"$filename\""); 

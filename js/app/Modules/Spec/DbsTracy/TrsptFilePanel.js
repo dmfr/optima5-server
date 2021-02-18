@@ -1422,7 +1422,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 			success: function(response) {
 				var jsonResponse = Ext.JSON.decode(response.responseText) ;
 				if( jsonResponse.success == true ) {
-					this.openPrintPopupDo( this.getTitle(), jsonResponse.html, jsonResponse.pdf_base64 ) ;
+					this.openPrintPopupDo( this.getTitle(), jsonResponse.pdf_base64 ) ;
 					this.doReload() ;
 				} else {
 					Ext.MessageBox.alert('Error','Print system disabled') ;
@@ -1434,7 +1434,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 			scope: this
 		}) ;
 	},
-	openPrintPopupDo: function(pageTitle, pageHtml, pagePdfBase64) {
+	openPrintPopupDo: function(pageTitle, pagePdfBase64) {
 		this.optimaModule.createWindow({
 			width:850,
 			height:700,
@@ -1443,7 +1443,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 			border: false,
 			layout:'fit',
 			title: pageTitle,
-			_pageHtml: pageHtml,
+			_pagePdfBase64: pagePdfBase64,
 			items:[Ext.create('Ext.ux.dams.IFrameContent',{
 				itemId: 'uxIFrame',
 				src:'data:application/pdf;base64,'+pagePdfBase64
@@ -1472,7 +1472,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 					Ext.apply(exportParams,{
 						_moduleId: 'spec_dbs_lam',
 						_action: 'util_htmlToPdf',
-						html: Ext.JSON.encode(jsWindow._pageHtml)
+						pdf_base64: jsWindow._pagePdfBase64
 					}) ;
 					Ext.create('Ext.ux.dams.FileDownloader',{
 						renderTo: Ext.getBody(),
@@ -1712,7 +1712,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 			success: function(response) {
 				var jsonResponse = Ext.JSON.decode(response.responseText) ;
 				if( jsonResponse.success == true ) {
-					this.openPrintPopupDo( jsonResponse.pdf_title, null, jsonResponse.pdf_base64 ) ;
+					this.openPrintPopupDo( jsonResponse.pdf_title, jsonResponse.pdf_base64 ) ;
 					this.doReload() ;
 				} else {
 					Ext.MessageBox.alert('Error','Print system disabled') ;
