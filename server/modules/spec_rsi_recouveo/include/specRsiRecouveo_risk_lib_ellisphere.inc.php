@@ -575,6 +575,9 @@ function specRsiRecouveo_risk_lib_ES_getResultObjDecode($xml_binary) {
 			
 		$map_date_rank = array() ;
 		foreach( $xml_rr_payranks->children() as $mkey => $xml_rrs_payrank ) {
+			if( !$xml_rrs_payrank->calculationDate || !$xml_rrs_payrank->indicator ) {
+				continue ;
+			}
 			$date = (string)$xml_rrs_payrank->calculationDate ;
 			$value = (string)($xml_rrs_payrank->indicator->attributes()['value']) ;
 			if( is_numeric($value) ) {
