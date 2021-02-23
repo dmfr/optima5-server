@@ -40,7 +40,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70transactionBuild',{
 					},
 					change: {
 						fn: function(field) {
-							this.handleScan(true) ;
+							//this.handleScan(true) ;
 						},
 						buffer: 500,
 						scope: this
