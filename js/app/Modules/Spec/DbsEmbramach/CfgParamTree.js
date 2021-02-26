@@ -54,7 +54,48 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.CfgParamTree',{
 			return ;
 		}
 		var rootNode, rootChildren = [] ;
-		switch( this.cfgParam_id ) {
+		var startCfgParam_id = null ;
+		if( this.cfgParam_id.startsWith('WRN_') ) {
+			var data = Optima5.Modules.Spec.DbsEmbramach.HelperCache.getListData('LIST_'+this.cfgParam_id) ;
+			var map_nodeCode_rows = {} ;
+			Ext.Array.each( data, function(row) {
+				if( !map_nodeCode_rows.hasOwnProperty(row.node) ) {
+					map_nodeCode_rows[row.node] = [] ;
+				}
+				map_nodeCode_rows[row.node].push(row) ;
+			}) ;
+			Ext.Object.each( map_nodeCode_rows, function(node,rows) {
+				flowChildren = [] ;
+				Ext.Array.each( rows, function(row) {
+					flowChildren.push({
+						nodeId: row.id,
+						nodeType: 'entry',
+						nodeKey: row.id,
+						nodeText: row.text,
+						leaf: true
+					});
+				}) ;
+				rootChildren.push({
+					nodeId: 't_'+node,
+					nodeType: 'treenode',
+					nodeKey: node,
+					nodeText: node,
+					expanded: true,
+					children: flowChildren
+				}) ;
+			}) ;
+			rootNode = {
+				root: true,
+				children: rootChildren,
+				nodeText: '<b>Reason codes</b>',
+				expanded: true
+			}
+			
+			startCfgParam_id = 'WRN' ;
+		}
+		switch( startCfgParam_id || this.cfgParam_id ) {
+			case 'WRN' :
+				break ;
 			case 'FILTER_LATENESS' :
 				rootNode = {
 					root: true,
@@ -105,7 +146,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.CfgParamTree',{
 				break ;
 				
 			case 'SOC' :
-				data = Optima5.Modules.Spec.DbsEmbramach.HelperCache.getSocAll() ;
+				var data = Optima5.Modules.Spec.DbsEmbramach.HelperCache.getSocAll() ;
 				Ext.Array.each( data, function(row) {
 					rootChildren.push({
 						nodeId: row.soc_code,
@@ -119,43 +160,6 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.CfgParamTree',{
 					root: true,
 					children: rootChildren,
 					nodeText: '<b>Customers</b>',
-					expanded: true
-				}
-				break ;
-				
-			case 'WARNINGCODE' :
-				data = Optima5.Modules.Spec.DbsEmbramach.HelperCache.getListData('LIST_'+this.cfgParam_id) ;
-				var map_nodeCode_rows = {} ;
-				Ext.Array.each( data, function(row) {
-					if( !map_nodeCode_rows.hasOwnProperty(row.node) ) {
-						map_nodeCode_rows[row.node] = [] ;
-					}
-					map_nodeCode_rows[row.node].push(row) ;
-				}) ;
-				Ext.Object.each( map_nodeCode_rows, function(node,rows) {
-					flowChildren = [] ;
-					Ext.Array.each( rows, function(row) {
-						flowChildren.push({
-							nodeId: row.id,
-							nodeType: 'entry',
-							nodeKey: row.id,
-							nodeText: row.text,
-							leaf: true
-						});
-					}) ;
-					rootChildren.push({
-						nodeId: 't_'+node,
-						nodeType: 'treenode',
-						nodeKey: node,
-						nodeText: node,
-						expanded: true,
-						children: flowChildren
-					}) ;
-				}) ;
-				rootNode = {
-					root: true,
-					children: rootChildren,
-					nodeText: '<b>Reason codes</b>',
 					expanded: true
 				}
 				break ;

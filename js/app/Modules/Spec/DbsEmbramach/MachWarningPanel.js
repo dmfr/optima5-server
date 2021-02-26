@@ -37,7 +37,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachWarningPanel',{
 						fieldLabel: 'Date set',
 						renderer: Ext.util.Format.dateRenderer('d/m/Y H:i')
 					},Ext.create('Optima5.Modules.Spec.DbsEmbramach.CfgParamField',{
-						cfgParam_id: 'WARNINGCODE',
+						cfgParam_id: 'WRN'+'_'+this.flowCode,
 						cfgParam_emptyDisplayText: 'Select...',
 						optimaModule: this.optimaModule,
 						fieldLabel: '<b>Reason codes</b>',
@@ -120,7 +120,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachWarningPanel',{
 	onChangeWarningCode: function(cmb,newValue) {
 		var fsInputfields = this.down('#fsInputfields') ;
 		
-		var cfgWarningRows = Optima5.Modules.Spec.DbsEmbramach.HelperCache.getListData('LIST_WARNINGCODE'),
+		var cfgWarningRows = Optima5.Modules.Spec.DbsEmbramach.HelperCache.getListData('LIST_WRN_'+this.flowCode),
 			cfgWarningRow = null ;
 		Ext.Array.each( cfgWarningRows, function(row) {
 			if( row.id==newValue ) {
@@ -201,7 +201,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachWarningPanel',{
 			Ext.MessageBox.alert('Error', 'Incomplete warning description');
 			return ;
 		}
-		var cfgWarningRows = Optima5.Modules.Spec.DbsEmbramach.HelperCache.getListData('LIST_WARNINGCODE'),
+		var cfgWarningRows = Optima5.Modules.Spec.DbsEmbramach.HelperCache.getListData('LIST_WRN_'+this.flowCode),
 			cfgWarningRow = null ;
 		Ext.Array.each( cfgWarningRows, function(row) {
 			if( row.id==formData['warning_code'] ) {
