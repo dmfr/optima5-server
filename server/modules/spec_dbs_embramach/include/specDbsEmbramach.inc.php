@@ -707,7 +707,7 @@ function specDbsEmbramach_mach_getGridData( $post_data ) {
 			$target_tat_base = $json_cfg_prio[$row['priority_code']]['tat_hour'] ;
 			if( $row['warning_is_on'] ) {
 				$warning_code = $row['warning_code'] ;
-				$query = "SELECT * FROM view_bible_LIST_WARNINGCODE_entry WHERE entry_key='{$warning_code}'" ;
+				$query = "SELECT * FROM view_bible_LIST_WRN_{$flow_code}_entry WHERE entry_key='{$warning_code}'" ;
 				$result = $_opDB->query($query) ;
 				$arrDB_warning = $_opDB->fetch_assoc($result) ;
 				if( $arrDB_warning['field_EXTRA_TAT_HOUR'] ) {
@@ -894,7 +894,7 @@ function specDbsEmbramach_mach_setWarning( $post_data ) {
 	}
 	
 	// Query spec code
-	$query = "SELECT * FROM view_bible_LIST_WARNINGCODE_entry WHERE entry_key='{$form_data['warning_code']}'" ;
+	$query = "SELECT * FROM view_bible_LIST_WRN_{$flow_code}_entry WHERE entry_key='{$form_data['warning_code']}'" ;
 	$result = $_opDB->query($query) ;
 	$arr = $_opDB->fetch_assoc($result) ;
 	if( $arr['field_FORWARD_TO'] ) {

@@ -14,7 +14,7 @@ function specDbsEmbramach_postprocEvent_SMTP( $flowpickingevent_filerecord_id, $
 	$result = $_opDB->query($query) ;
 	$arrDB_picking = $_opDB->fetch_assoc($result) ;
 	
-	$query = "SELECT * FROM view_bible_LIST_WARNINGCODE_entry WHERE entry_key='{$arrDB_event['field_EVENT_CODE']}'" ;
+	$query = "SELECT * FROM view_bible_LIST_WRN_PICKING_entry WHERE entry_key='{$arrDB_event['field_EVENT_CODE']}'" ;
 	$result = $_opDB->query($query) ;
 	$arrDB_warning = $_opDB->fetch_assoc($result) ;
 	
