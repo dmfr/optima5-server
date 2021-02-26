@@ -553,6 +553,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 			dataIndex: 'warning_code',
 			width: 120,
 			align: 'center',
+			variableRowHeight: true,
 			filter: {
 				type: 'op5specdbsembramachcfgfilter',
 				cfgParam_id: 'WARNINGCODE',
