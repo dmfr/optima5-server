@@ -276,6 +276,19 @@ function specDbsEmbramach_mach_getGridCfg_lib_getFields($flow_code) {
 				'source' => array('field_PRIORITY')
 			);
 			$arr_fields[] = array(
+				'dataIndex' => 'flow',
+				'text' => 'Flow',
+				'width' => 70,
+				'widthBig' => 'big',
+				'filter' => array(
+					'type' => 'stringlist'
+				),
+				'source' => array('field_FLOW'),
+				'editor' => array(
+					'list_code' => 'LIST_EAX_FLOW'
+				)
+			);
+			$arr_fields[] = array(
 				'text' => 'AWB',
 				'width' => 200,
 				'filter' => array(
