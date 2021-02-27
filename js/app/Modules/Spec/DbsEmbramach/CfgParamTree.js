@@ -54,9 +54,8 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.CfgParamTree',{
 			return ;
 		}
 		var rootNode, rootChildren = [] ;
-		var startCfgParam_id = null ;
-		if( this.cfgParam_id.startsWith('WRN_') ) {
-			var data = Optima5.Modules.Spec.DbsEmbramach.HelperCache.getListData('LIST_'+this.cfgParam_id) ;
+		if( this.cfgParam_id.startsWith('LIST_') ) {
+			var data = Optima5.Modules.Spec.DbsEmbramach.HelperCache.getListData(this.cfgParam_id) ;
 			var map_nodeCode_rows = {} ;
 			Ext.Array.each( data, function(row) {
 				if( !map_nodeCode_rows.hasOwnProperty(row.node) ) {
@@ -90,12 +89,8 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.CfgParamTree',{
 				nodeText: '<b>Reason codes</b>',
 				expanded: true
 			}
-			
-			startCfgParam_id = 'WRN' ;
 		}
-		switch( startCfgParam_id || this.cfgParam_id ) {
-			case 'WRN' :
-				break ;
+		switch( this.cfgParam_id ) {
 			case 'FILTER_LATENESS' :
 				rootNode = {
 					root: true,
@@ -165,12 +160,16 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.CfgParamTree',{
 				break ;
 				
 			default :
+				if( rootNode ) {
+					break ;
+				}
 				rootNode = {
 					root: true,
 					children: [],
 					nodeText: 'Not defined',
 					expanded: true
 				}
+				break ;
 		}
 		this.getStore().setRootNode(rootNode) ;
 		this.onAfterLoad() ;

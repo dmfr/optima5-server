@@ -556,7 +556,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 			variableRowHeight: true,
 			filter: {
 				type: 'op5specdbsembramachcfgfilter',
-				cfgParam_id: 'WRN'+'_'+this.flowCode,
+				cfgParam_id: 'LIST_WRN'+'_'+this.flowCode,
 				cfgParam_emptyDisplayText: 'Select...',
 				optimaModule: this.optimaModule
 			},

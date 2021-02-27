@@ -37,7 +37,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachWarningPanel',{
 						fieldLabel: 'Date set',
 						renderer: Ext.util.Format.dateRenderer('d/m/Y H:i')
 					},Ext.create('Optima5.Modules.Spec.DbsEmbramach.CfgParamField',{
-						cfgParam_id: 'WRN'+'_'+this.flowCode,
+						cfgParam_id: 'LIST_WRN'+'_'+this.flowCode,
 						cfgParam_emptyDisplayText: 'Select...',
 						optimaModule: this.optimaModule,
 						fieldLabel: '<b>Reason codes</b>',
