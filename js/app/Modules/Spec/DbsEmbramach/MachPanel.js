@@ -438,7 +438,31 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 			if( Ext.isEmpty(fieldCfg.source) ) {
 				dataIndex = fieldCfg.dataIndex ;
 			}
-			var filter, renderer ;
+			var filter, renderer, editor ;
+			if( fieldCfg.editor ) {
+				if( fieldCfg.editor.list_code ) {
+					var data = [] ;
+					Ext.Array.each(Optima5.Modules.Spec.DbsEmbramach.HelperCache.getListData(fieldCfg.editor.list_code), function(row) {
+						data.push({id:row.id, text:row.text}) ;
+					});
+					editor = {
+						xtype: 'combobox',
+						queryMode: 'local',
+						allowBlank:false,
+						forceSelection: true,
+						editable: true,
+						typeAhead: true,
+						//selectOnFocus: true,
+						//autoSelect: true,
+						displayField: 'text',
+						valueField: 'id',
+						store: {
+							fields: ['id','text'],
+							data : data
+						}
+					};
+				}
+			}
 			if( fieldCfg.filter ) {
 				switch( fieldCfg.filter.type ) {
 					case 'bible' :
@@ -523,7 +547,8 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 				align: 'center',
 				tdCls: tdCls,
 				filter: filter,
-				renderer: renderer
+				renderer: renderer,
+				editor: editor
 			}) ;
 			
 			pushModelfields.push({
@@ -661,6 +686,14 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 			columns: columns,
 			plugins: [{
 				ptype: 'uxgridfilters'
+			},{
+				ptype: 'cellediting',
+				clicksToEdit: 2,
+				listeners: {
+					//beforeedit: me.onGridBeforeEdit,
+					//validateedit: me.onGridAfterEdit,
+					scope: this
+				}
 			}],
 			listeners: {
 				itemclick: this.onRowClick,
