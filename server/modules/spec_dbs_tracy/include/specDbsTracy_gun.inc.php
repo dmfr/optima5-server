@@ -168,13 +168,8 @@ function specDbsTracy_gun_t70_transactionGetSummary($post_data) {
 	$data_header['date_create_txt'] = date('d/m/y H:i',strtotime($obj_brt['date_create'])) ;
 	
 	$data_grid = array() ;
-	foreach( $obj_brt['arr_trsptFilerecordIds'] as $trspt_filerecord_id ) {
-		$json = specDbsTracy_trspt_getRecords(array('filter_trsptFilerecordId_arr'=>json_encode(array($trspt_filerecord_id)))) ;
-		$trspt_row = $json['data'][0] ;
-		if( !$trspt_row ) {
-			continue ;
-		}
-		
+	$json = specDbsTracy_trspt_getRecords(array('filter_trsptFilerecordId_arr'=>json_encode($obj_brt['arr_trsptFilerecordIds']))) ;
+	foreach( $json['data'] as $trspt_row ) {
 		$has_warning = FALSE ;
 		foreach( $trspt_row['orders'] as $order_row ) {
 			if( $order_row['warning_is_on'] ) {
@@ -398,18 +393,32 @@ function specDbsTracy_gun_t70_transactionPostAction($post_data, $_recycle=false)
 			while( TRUE ) {
 				switch( $scanval_type ) {
 					case 'hat_parcel' :
-						$query = "SELECT hp.filerecord_id FROM view_file_HAT_PARCEL hp
-									JOIN view_file_HAT h ON h.filerecord_id=hp.filerecord_parent_id
-									WHERE 0
-									OR h.field_ID_HAT='{$p_scanval}' 
-									OR hp.field_SPEC_BARCODE='{$p_scanval}' 
-									OR hp.field_TMS_TRACKING='{$p_scanval}'" ;
-						$result = $_opDB->query($query) ;
-						if( $_opDB->num_rows($result) != 1 ) {
+						$hatparcel_filerecord_id = NULL ;
+						while( TRUE ) {
+							$query = "SELECT hp.filerecord_id FROM view_file_HAT_PARCEL hp
+											WHERE hp.filerecord_parent_id 
+											= (SELECT h.filerecord_id FROM view_file_HAT h WHERE h.field_ID_HAT='{$p_scanval}')
+											LIMIT 1" ;
+							if( $hatparcel_filerecord_id = $_opDB->query_uniqueValue($query) ) {
+								break ;
+							}
+							
+							$query = "SELECT hp.filerecord_id FROM view_file_HAT_PARCEL hp
+											WHERE hp.field_SPEC_BARCODE='{$p_scanval}'" ;
+							if( $hatparcel_filerecord_id = $_opDB->query_uniqueValue($query) ) {
+								break ;
+							}
+							
+							$query = "SELECT hp.filerecord_id FROM view_file_HAT_PARCEL hp
+											WHERE hp.field_SPEC_BARCODE='{$p_scanval}'" ;
+							if( $hatparcel_filerecord_id = $_opDB->query_uniqueValue($query) ) {
+								break ;
+							}
+							break ;
+						}
+						if( !$hatparcel_filerecord_id ) {
 							break 2 ;
 						}
-						$arr = $_opDB->fetch_row($result) ;
-						$hatparcel_filerecord_id = $arr[0] ;
 						
 						$query = "SELECT distinct hp.filerecord_id, tc.filerecord_parent_id 
 									FROM view_file_HAT_PARCEL hp 
@@ -1075,18 +1084,32 @@ function specDbsTracy_gun_t60_postAction($post_data) {
 			while( TRUE ) {
 				switch( $scanval_type ) {
 					case 'hat_parcel' :
-						$query = "SELECT hp.filerecord_id FROM view_file_HAT_PARCEL hp
-									JOIN view_file_HAT h ON h.filerecord_id=hp.filerecord_parent_id
-									WHERE 0
-									OR h.field_ID_HAT='{$p_scanval}' 
-									OR hp.field_SPEC_BARCODE='{$p_scanval}' 
-									OR hp.field_TMS_TRACKING='{$p_scanval}'" ;
-						$result = $_opDB->query($query) ;
-						if( $_opDB->num_rows($result) != 1 ) {
+						$hatparcel_filerecord_id = NULL ;
+						while( TRUE ) {
+							$query = "SELECT hp.filerecord_id FROM view_file_HAT_PARCEL hp
+											WHERE hp.filerecord_parent_id 
+											= (SELECT h.filerecord_id FROM view_file_HAT h WHERE h.field_ID_HAT='{$p_scanval}')
+											LIMIT 1" ;
+							if( $hatparcel_filerecord_id = $_opDB->query_uniqueValue($query) ) {
+								break ;
+							}
+							
+							$query = "SELECT hp.filerecord_id FROM view_file_HAT_PARCEL hp
+											WHERE hp.field_SPEC_BARCODE='{$p_scanval}'" ;
+							if( $hatparcel_filerecord_id = $_opDB->query_uniqueValue($query) ) {
+								break ;
+							}
+							
+							$query = "SELECT hp.filerecord_id FROM view_file_HAT_PARCEL hp
+											WHERE hp.field_SPEC_BARCODE='{$p_scanval}'" ;
+							if( $hatparcel_filerecord_id = $_opDB->query_uniqueValue($query) ) {
+								break ;
+							}
+							break ;
+						}
+						if( !$hatparcel_filerecord_id ) {
 							break 2 ;
 						}
-						$arr = $_opDB->fetch_row($result) ;
-						$hatparcel_filerecord_id = $arr[0] ;
 						
 						$query = "SELECT distinct hp.filerecord_id, tc.filerecord_parent_id 
 									FROM view_file_HAT_PARCEL hp 
