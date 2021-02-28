@@ -28,6 +28,9 @@ switch( $post_data['_action'] )
 	case 'mach_getSuggest' :
 	return specDbsEmbramach_mach_getSuggest( $post_data ) ;
 	
+	case 'mach_setGridData_editor' :
+	return specDbsEmbramach_mach_setGridData_editor( $post_data ) ;
+	
 	case 'upload' :
 	case 'mach_upload' :
 	return specDbsEmbramach_upload( $post_data ) ;

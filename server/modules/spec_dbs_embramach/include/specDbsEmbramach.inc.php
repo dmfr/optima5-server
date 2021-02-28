@@ -949,7 +949,27 @@ function specDbsEmbramach_mach_getEventBinary( $post_data ) {
 	
 	return array('success'=>true, 'binary_base64'=>base64_encode($binary)) ;
 }
-
+function specDbsEmbramach_mach_setGridData_editor( $post_data ) {
+	global $_opDB ;
+	
+	$flow_code = $post_data['flow_code'] ;
+	$filerecord_id = $post_data['filerecord_id'] ;
+	$editor_field = $post_data['editor_field'] ;
+	$editor_row = json_decode($post_data['editor_row'],true) ;
+	
+	$arr_fields = specDbsEmbramach_mach_getGridCfg_lib_getFields($flow_code) ;
+	if( !$arr_fields ) {
+		return array('success'=>false) ;
+	}
+	$field_idx = (int)substr($editor_field,strlen('field_')) ;
+	$field_def = $arr_fields[$field_idx] ;
+	if( $field_def['editor'] && (count($field_def['source'])==1) ) {
+		$mkey = reset($field_def['source']) ;
+		$_opDB->update("view_file_FLOW_{$flow_code}",array($mkey=>$editor_row[$editor_field]),array('filerecord_id'=>$filerecord_id)) ;
+	}
+	
+	return array('success'=>true) ;
+}
 
 
 

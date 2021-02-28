@@ -690,8 +690,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 				ptype: 'cellediting',
 				clicksToEdit: 2,
 				listeners: {
-					//beforeedit: me.onGridBeforeEdit,
-					//validateedit: me.onGridAfterEdit,
+					edit: this.onGridAfterEdit,
 					scope: this
 				}
 			}],
@@ -951,6 +950,29 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 			this.openWarningPanel( record ) ;
 			return ;
 		}
+	},
+	onGridAfterEdit: function(editor, context) {
+		var editedRecord = context.record ;
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_dbs_embramach',
+				_action: 'mach_setGridData_editor',
+				flow_code: this.flowCode,
+				filerecord_id: context.record.get('_filerecord_id'),
+				editor_field: context.field,
+				editor_row: Ext.JSON.encode(context.record.getData())
+			},
+			success: function(response) {
+				var jsonResponse = Ext.JSON.decode(response.responseText) ;
+				if( jsonResponse.success == true ) {
+					editedRecord.commit();
+				}
+			},
+			callback: function() {
+				
+			},
+			scope: this
+		}) ;
 	},
 	
 	showLoadmask: function() {
