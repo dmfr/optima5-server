@@ -179,6 +179,7 @@ function specDbsTracy_gun_t70_transactionGetSummary($post_data) {
 			}
 		}
 		
+		$trspt_filerecord_id = $trspt_row['trspt_filerecord_id'] ;
 		foreach( $trspt_row['hats'] as $hat_row ) {
 			$hat_filerecord_id = $hat_row['hat_filerecord_id'] ;
 		
