@@ -171,13 +171,16 @@ function specRsiRecouveo_risk_lib_ES_getSearchObj( $acc_id, $mode, $txt ) {
 	}
 	
 	foreach( $arr_pings as $ping ) {
-		$res = specRsiRecouveo_risk_lib_ES_pingSearch( $ping['mode'], $ping['parm1'], $ping['parm2'] ) ;
-		$arr_xml[] = array('type'=>'request','binary'=>$res[0]) ;
-		$arr_xml[] = array('type'=>'response','binary'=>$res[1]) ;
+		list($xml_request, $xml_response) = specRsiRecouveo_risk_lib_ES_pingSearch( $ping['mode'], $ping['parm1'], $ping['parm2'] ) ;
+		if( $xml_request ) {
+			$arr_xml[] = array('type'=>'request','binary'=>$xml_request->asXML()) ;
+		}
+		if( $xml_response ) {
+			$arr_xml[] = array('type'=>'response','binary'=>$xml_response->asXML()) ;
+		}
 		
-		if( $res[1] ) {
-			$xml = simplexml_load_string( $res[1], 'SimpleXMLElement', LIBXML_NOCDATA);
-			$xml_response = $xml->response ;
+		if( $xml_response ) {
+			$xml_response = $xml_response->response ;
 			
 			if( isset($xml_response->establishment) ) {
 			foreach( $xml_response->establishment as $xml_r_e ) {
@@ -230,6 +233,87 @@ $GLOBALS['specRsiRecouveo_risk_lib_ES_userPrefix'] = 'GEOCOM' ;
 $GLOBALS['specRsiRecouveo_risk_lib_ES_userId'] = 'NN413267' ;
 $GLOBALS['specRsiRecouveo_risk_lib_ES_password'] = 'RG4TFAJ6FF2S' ;
 
+function specRsiRecouveo_risk_lib_ES_ping( $xml_request ) {
+	if( !is_object($xml_request) || !(get_class($xml_request)=='SimpleXMLElement') ) {
+		return array(null,null) ;
+	}
+	
+	$date_iso8601 = date(DateTime::ISO8601) ;
+	$date_iso8601 = substr($date_iso8601,0,strlen($date_iso8601)-2).':00' ;
+	$xmlstr_request_admin = '
+		<admin>
+			<client>
+			<contractId>'.$GLOBALS['specRsiRecouveo_risk_lib_ES_contractId'].'</contractId>
+			<userPrefix>'.$GLOBALS['specRsiRecouveo_risk_lib_ES_userPrefix'].'</userPrefix>
+			<userId>'.$GLOBALS['specRsiRecouveo_risk_lib_ES_userId'].'</userId>
+			<password>'.$GLOBALS['specRsiRecouveo_risk_lib_ES_password'].'</password>
+			</client>
+			<context>
+			<appId version="1">WSOM</appId>
+			<date>'.$date_iso8601.'</date>
+			</context>
+		</admin>' ;
+	$xml_request_admin = simplexml_load_string( $xmlstr_request_admin, 'SimpleXMLElement', LIBXML_NOCDATA);
+	
+	/*
+	$xml = simplexml_load_string( $xml_request, 'SimpleXMLElement', LIBXML_NOCDATA);
+	$dom = new DOMDocument('1.0');
+	$dom->preserveWhiteSpace = false;
+	$dom->formatOutput = false;
+	$dom->loadXML($xml->asXML());
+	$xml_binary = $dom->saveXML();
+	*/
+	//$xml = simplexml_load_string( $xml_request, 'SimpleXMLElement', LIBXML_NOCDATA);
+	
+	$sxml_append = function(SimpleXMLElement $to, SimpleXMLElement $from) {
+		$toDom = dom_import_simplexml($to);
+		$fromDom = dom_import_simplexml($from);
+		$toDom->appendChild($toDom->ownerDocument->importNode($fromDom, true));
+	};
+	$sxml_append($xml_request,$xml_request_admin) ;
+	
+	// parse code & delivery
+	$output_format = 'XML' ;
+	if( ($xml_rd = $xml_request->request->deliveryOptions) && ($xml_rdo = $xml_rd->outputMethod) ) {
+		if( (string)$xml_rdo == 'content' ) {
+			$output_format = 'BIN' ;
+		}
+	}
+	if( strpos($xml_request->getName(),'Request') !== (strlen($xml_request->getName())-strlen('Request')) ) {
+		return array($xml_request,null) ;
+	}
+	$svcCode = substr($xml_request->getName(),0,(strlen($xml_request->getName())-strlen('Request'))) ;
+	
+	$post_url = "https://services.data-access-gateway.com/1/rest/{$svcCode}" ;
+	$params = array('http' => array(
+		'method' => 'POST',
+		'content' => $xml_request->asXML(),
+		'timeout' => 600,
+		'ignore_errors' => true,
+		'header'=> "Content-type: application/xml\r\n"
+	));
+	$ctx = stream_context_create($params);
+	$fp = fopen($post_url, 'rb', false, $ctx);
+	if( !$fp ) {
+		//break 2 ;
+	}
+	$status_line = $http_response_header[0] ;
+	preg_match('{HTTP\/\S*\s(\d{3})}', $status_line, $match);
+	$status = $match[1];
+	$response_success = ($status == 200) ;
+
+	if( $xmlStr_response = stream_get_contents($fp) ) {
+		switch( $output_format ) {
+			case 'XML' :
+				$xml_response = simplexml_load_string( $xmlStr_response, 'SimpleXMLElement', LIBXML_NOCDATA);
+				return array($xml_request,$xml_response) ;
+			case 'BIN' :
+				return array($xml_request,$xmlStr_response) ;
+		}
+	}
+	return array($xml_request,null) ;
+}
+
 function specRsiRecouveo_risk_lib_ES_pingSearch( $mode, $parm1, $parm2=NULL ) {
 	$parm1 = htmlspecialchars(trim($parm1)) ;
 	if( $parm2 ) {
@@ -281,181 +365,65 @@ function specRsiRecouveo_risk_lib_ES_pingSearch( $mode, $parm1, $parm2=NULL ) {
 			break ;
 	}
 	
-	$xml_request = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+	$xmlStr_request = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 		<svcSearchRequest lang="FR" version="2.1">
-			<admin>
-				<client>
-				<contractId>'.$GLOBALS['specRsiRecouveo_risk_lib_ES_contractId'].'</contractId>
-				<userPrefix>'.$GLOBALS['specRsiRecouveo_risk_lib_ES_userPrefix'].'</userPrefix>
-				<userId>'.$GLOBALS['specRsiRecouveo_risk_lib_ES_userId'].'</userId>
-				<password>'.$GLOBALS['specRsiRecouveo_risk_lib_ES_password'].'</password>
-				<privateReference type="order">TEST20210107</privateReference>
-				</client>
-				<context>
-				<appId version="1">WSOM</appId>
-				<date>2011-12-13T17:38:15+01:00</date>
-				</context>
-			</admin>
+			
 			<request>
 				<searchCriteria>
 				'.$xml_part.'
 				</searchCriteria>
 			</request>
 		</svcSearchRequest>' ;
+	$xml_request = simplexml_load_string( $xmlStr_request, 'SimpleXMLElement', LIBXML_NOCDATA);
 	
-	$xml = simplexml_load_string( $xml_request, 'SimpleXMLElement', LIBXML_NOCDATA);
-	$dom = new DOMDocument('1.0');
-	$dom->preserveWhiteSpace = false;
-	$dom->formatOutput = false;
-	$dom->loadXML($xml->asXML());
-	$xml_binary = $dom->saveXML();
+	list($xml_request, $xml_response) = specRsiRecouveo_risk_lib_ES_ping($xml_request) ;
 
-//echo $xml_binary ;
-//die() ;
-
-
-
-				$post_url = 'https://services.data-access-gateway.com/1/rest/svcSearch' ;
-				$params = array('http' => array(
-				'method' => 'POST',
-				'content' => $xml_binary,
-				'timeout' => 600,
-				'ignore_errors' => true,
-				'header'=> "Content-type: application/xml\r\n"
-				));
-				$ctx = stream_context_create($params);
-				$fp = fopen($post_url, 'rb', false, $ctx);
-				if( !$fp ) {
-					//break 2 ;
-				}
-				$status_line = $http_response_header[0] ;
-				preg_match('{HTTP\/\S*\s(\d{3})}', $status_line, $match);
-				$status = $match[1];
-				$response_success = ($status == 200) ;
-
-
-	$xml_response = stream_get_contents($fp) ;
-	return array($xml_request,$xml_response,$xml) ;
+	return array($xml_request,$xml_response) ;
 }
 
 
 function specRsiRecouveo_risk_lib_ES_pingPdf( $id_register ) {
 	
-	$xml_request = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+	$xmlStr_request = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 		<svcOnlineOrderRequest lang="FR" version="2.1">
-			<admin>
-				<client>
-				<contractId>'.$GLOBALS['specRsiRecouveo_risk_lib_ES_contractId'].'</contractId>
-				<userPrefix>'.$GLOBALS['specRsiRecouveo_risk_lib_ES_userPrefix'].'</userPrefix>
-				<userId>'.$GLOBALS['specRsiRecouveo_risk_lib_ES_userId'].'</userId>
-				<password>'.$GLOBALS['specRsiRecouveo_risk_lib_ES_password'].'</password>
-				<privateReference type="order">TEST20210107</privateReference>
-				</client>
-				<context>
-				<appId version="1">WSOM</appId>
-				<date>2011-12-13T17:38:15+01:00</date>
-				</context>
-			</admin>
 			<request>
 				<id type="register" idName="SIREN">'.$id_register.'</id>
 				<product range="101003" version="10" />
 				<deliveryOptions>
-							<outputMethod>content</outputMethod>
-							<format>PDF</format>
+					<outputMethod>content</outputMethod>
+					<format>PDF</format>
 				</deliveryOptions>
 			</request>
 		</svcOnlineOrderRequest>' ;
+	$xml_request = simplexml_load_string( $xmlStr_request, 'SimpleXMLElement', LIBXML_NOCDATA);
 	
-	$xml = simplexml_load_string( $xml_request, 'SimpleXMLElement', LIBXML_NOCDATA);
-	$dom = new DOMDocument('1.0');
-	$dom->preserveWhiteSpace = false;
-	$dom->formatOutput = false;
-	$dom->loadXML($xml->asXML());
-	$xml_binary = $dom->saveXML();
-
-				$post_url = 'https://services.data-access-gateway.com/1/rest/svcOnlineOrder' ;
-				$params = array('http' => array(
-				'method' => 'POST',
-				'content' => $xml_binary,
-				'timeout' => 600,
-				'ignore_errors' => true,
-				'header'=> "Content-type: application/xml\r\n"
-				));
-				$ctx = stream_context_create($params);
-				$fp = fopen($post_url, 'rb', false, $ctx);
-				if( !$fp ) {
-					//break 2 ;
-				}
-				$status_line = $http_response_header[0] ;
-				preg_match('{HTTP\/\S*\s(\d{3})}', $status_line, $match);
-				$status = $match[1];
-				$response_success = ($status == 200) ;
-
-
-	$pdf_binary = stream_get_contents($fp) ;
+	list($xml_request, $pdf_binary) = specRsiRecouveo_risk_lib_ES_ping($xml_request) ;
+	
 	return $pdf_binary ;
 }
 
 function specRsiRecouveo_risk_lib_ES_getResultObj( $id_register ) {
 	
-	$xml_request = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+	$xmlStr_request = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 		<svcOnlineOrderRequest lang="FR" version="2.1">
-			<admin>
-				<client>
-				<contractId>'.$GLOBALS['specRsiRecouveo_risk_lib_ES_contractId'].'</contractId>
-				<userPrefix>'.$GLOBALS['specRsiRecouveo_risk_lib_ES_userPrefix'].'</userPrefix>
-				<userId>'.$GLOBALS['specRsiRecouveo_risk_lib_ES_userId'].'</userId>
-				<password>'.$GLOBALS['specRsiRecouveo_risk_lib_ES_password'].'</password>
-				<privateReference type="order">TEST20210107</privateReference>
-				</client>
-				<context>
-				<appId version="1">WSOM</appId>
-				<date>2011-12-13T17:38:15+01:00</date>
-				</context>
-			</admin>
 			<request>
 				<id type="register" idName="SIREN">'.$id_register.'</id>
 				<product range="101003" version="10" />
 				<deliveryOptions>
-							<outputMethod>raw</outputMethod>
-							<format>XML</format>
+					<outputMethod>raw</outputMethod>
+					<format>XML</format>
 				</deliveryOptions>
 			</request>
 		</svcOnlineOrderRequest>' ;
+	$xml_request = simplexml_load_string( $xmlStr_request, 'SimpleXMLElement', LIBXML_NOCDATA);
 	
-	$xml = simplexml_load_string( $xml_request, 'SimpleXMLElement', LIBXML_NOCDATA);
-	$dom = new DOMDocument('1.0');
-	$dom->preserveWhiteSpace = false;
-	$dom->formatOutput = false;
-	$dom->loadXML($xml->asXML());
-	$xml_binary = $dom->saveXML();
-
-				$post_url = 'https://services.data-access-gateway.com/1/rest/svcOnlineOrder' ;
-				$params = array('http' => array(
-				'method' => 'POST',
-				'content' => $xml_binary,
-				'timeout' => 600,
-				'ignore_errors' => true,
-				'header'=> "Content-type: application/xml\r\n"
-				));
-				$ctx = stream_context_create($params);
-				$fp = fopen($post_url, 'rb', false, $ctx);
-				if( !$fp ) {
-					//break 2 ;
-				}
-				$status_line = $http_response_header[0] ;
-				preg_match('{HTTP\/\S*\s(\d{3})}', $status_line, $match);
-				$status = $match[1];
-				$response_success = ($status == 200) ;
-
-
-	$xml_binary = stream_get_contents($fp) ;
+	list($xml_request, $xml_response) = specRsiRecouveo_risk_lib_ES_ping($xml_request) ;
 	
 	// DECODE XML
-	$obj_result = specRsiRecouveo_risk_lib_ES_getResultObjDecode($xml_binary) ;
+	$obj_result = specRsiRecouveo_risk_lib_ES_getResultObjDecode($xml_response->asXML()) ;
 	return  array(
 		'data_obj' => $obj_result,
-		'xml_binary' => $xml_binary
+		'xml_binary' => $xml_response->asXML()
 	); ;
 }
 function specRsiRecouveo_risk_lib_ES_getResultObjDecode($xml_binary) {
