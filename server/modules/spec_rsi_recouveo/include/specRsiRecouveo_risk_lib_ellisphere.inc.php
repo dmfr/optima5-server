@@ -228,6 +228,7 @@ function specRsiRecouveo_risk_lib_ES_getSearchObj( $acc_id, $mode, $txt ) {
 }
 
 
+$GLOBALS['specRsiRecouveo_risk_lib_ES_gatewayUrl'] = 'https://services.data-access-gateway.com/1/rest' ;
 $GLOBALS['specRsiRecouveo_risk_lib_ES_contractId'] = '45506' ;
 $GLOBALS['specRsiRecouveo_risk_lib_ES_userPrefix'] = 'GEOCOM' ;
 $GLOBALS['specRsiRecouveo_risk_lib_ES_userId'] = 'NN413267' ;
@@ -284,7 +285,7 @@ function specRsiRecouveo_risk_lib_ES_ping( $xml_request ) {
 	}
 	$svcCode = substr($xml_request->getName(),0,(strlen($xml_request->getName())-strlen('Request'))) ;
 	
-	$post_url = "https://services.data-access-gateway.com/1/rest/{$svcCode}" ;
+	$post_url = "{$GLOBALS['specRsiRecouveo_risk_lib_ES_gatewayUrl']}/{$svcCode}" ;
 	$params = array('http' => array(
 		'method' => 'POST',
 		'content' => $xml_request->asXML(),
