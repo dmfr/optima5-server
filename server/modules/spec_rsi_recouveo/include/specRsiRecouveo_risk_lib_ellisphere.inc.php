@@ -228,14 +228,14 @@ function specRsiRecouveo_risk_lib_ES_getSearchObj( $acc_id, $mode, $txt ) {
 }
 
 
-$GLOBALS['specRsiRecouveo_risk_lib_ES_gatewayUrl'] = 'https://services.data-access-gateway.com/1/rest' ;
-$GLOBALS['specRsiRecouveo_risk_lib_ES_contractId'] = '45506' ;
-$GLOBALS['specRsiRecouveo_risk_lib_ES_userPrefix'] = 'GEOCOM' ;
-$GLOBALS['specRsiRecouveo_risk_lib_ES_userId'] = 'NN413267' ;
-$GLOBALS['specRsiRecouveo_risk_lib_ES_password'] = 'RG4TFAJ6FF2S' ;
 
 function specRsiRecouveo_risk_lib_ES_ping( $xml_request ) {
 	if( !is_object($xml_request) || !(get_class($xml_request)=='SimpleXMLElement') ) {
+		return array(null,null) ;
+	}
+	
+	$cfg_risk = specRsiRecouveo_risk_lib_getConfig() ;
+	if( !$cfg_risk['risk_on'] || !$cfg_risk['risk_es_gatewayUrl'] ) {
 		return array(null,null) ;
 	}
 	
@@ -244,10 +244,10 @@ function specRsiRecouveo_risk_lib_ES_ping( $xml_request ) {
 	$xmlstr_request_admin = '
 		<admin>
 			<client>
-			<contractId>'.$GLOBALS['specRsiRecouveo_risk_lib_ES_contractId'].'</contractId>
-			<userPrefix>'.$GLOBALS['specRsiRecouveo_risk_lib_ES_userPrefix'].'</userPrefix>
-			<userId>'.$GLOBALS['specRsiRecouveo_risk_lib_ES_userId'].'</userId>
-			<password>'.$GLOBALS['specRsiRecouveo_risk_lib_ES_password'].'</password>
+			<contractId>'.$cfg_risk['risk_es_contractId'].'</contractId>
+			<userPrefix>'.$cfg_risk['risk_es_userPrefix'].'</userPrefix>
+			<userId>'.$cfg_risk['risk_es_userId'].'</userId>
+			<password>'.$cfg_risk['risk_es_password'].'</password>
 			</client>
 			<context>
 			<appId version="1">WSOM</appId>
@@ -285,7 +285,7 @@ function specRsiRecouveo_risk_lib_ES_ping( $xml_request ) {
 	}
 	$svcCode = substr($xml_request->getName(),0,(strlen($xml_request->getName())-strlen('Request'))) ;
 	
-	$post_url = "{$GLOBALS['specRsiRecouveo_risk_lib_ES_gatewayUrl']}/{$svcCode}" ;
+	$post_url = "{$cfg_risk['risk_es_gatewayUrl']}/{$svcCode}" ;
 	$params = array('http' => array(
 		'method' => 'POST',
 		'content' => $xml_request->asXML(),

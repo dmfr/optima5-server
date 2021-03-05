@@ -2,6 +2,43 @@
 
 include("$server_root/modules/spec_rsi_recouveo/include/specRsiRecouveo_risk_lib_ellisphere.inc.php") ;
 
+function specRsiRecouveo_risk_lib_getConfig() {
+	$fields = [
+		'risk_on',
+		'risk_provider',
+		'risk_es_gatewayUrl',
+		'risk_es_contractId',
+		'risk_es_userPrefix',
+		'risk_es_userId',
+		'risk_es_password'	
+	];
+	
+	$config_risk = array() ;
+	
+	$json = specRsiRecouveo_config_loadMeta(array()) ;
+	$config_meta = $json['data'] ;
+	foreach( $fields as $field ) {
+		if( !isset($config_meta[$field]) ) {
+			$config_meta[$field] = '' ;
+			$_do_save = TRUE ;
+		}
+		$config_risk[$field] = $config_meta[$field] ;
+	}
+	if( $_do_save ) {
+		specRsiRecouveo_config_saveMeta( array(
+			'data' => json_encode($config_meta)
+		) );
+	}
+	return $config_risk ;
+}
+
+
+
+
+
+
+
+
 function specRsiRecouveo_risk_getAccount( $post_data ) {
 
 
