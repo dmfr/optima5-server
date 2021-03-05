@@ -1442,7 +1442,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 					_parentCmp: this
 				}),Ext.create('Optima5.Modules.Spec.RsiRecouveo.FileDetailSubRiskPanel',{
 					scrollable: 'vertical',
-					hidden: !Optima5.Helper.getApplication().desktopGetCfgIsDev(),
+					hidden: !Optima5.Modules.Spec.RsiRecouveo.HelperCache.hasFeature('risk'),
 					title: 'Analyse risque',
 					_parentCmp: this,
 					listeners: {

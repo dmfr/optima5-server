@@ -311,6 +311,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesWidgetList', {
 		    }]
 	    },{
 		    text: 'Gestion risque',
+		    hidden: !Optima5.Modules.Spec.RsiRecouveo.HelperCache.hasFeature('risk'),
 		    columns: [{
 			    text: 'Score',
 			    dataIndex: 'risk_score',

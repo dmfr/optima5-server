@@ -925,5 +925,24 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 			return null ;
 		}
 		return me.authIsExt ;
+	},
+	
+	hasFeature: function(featureCode) {
+		switch( featureCode ) {
+			case 'risk_fetch' :
+				if( !this.authHelperHasAll() ) {
+					return false ;
+				}
+				return this.featureRequest('risk') ;
+				break ;
+			case 'risk' :
+				if( this.getMetagenValue('risk_on') ) {
+					return true ;
+				}
+				break ;
+			default :
+				break ;
+		}
+		return false ;
 	}
 });
