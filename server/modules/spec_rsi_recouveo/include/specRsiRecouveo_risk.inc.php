@@ -127,7 +127,10 @@ function specRsiRecouveo_risk_fetchResult( $post_data, $do_save=FALSE ) {
 	
 	return array(
 		'success'=>true,
-		'data' => $result_data
+		'data' => $result_data + array(
+			'risk_register_id' => $risk_register_id,
+			'accrisk_filerecord_id' => $accrisk_filerecord_id,
+		)
 	) ;
 }
 function specRsiRecouveo_risk_saveResult( $post_data ) {
@@ -161,6 +164,7 @@ function specRsiRecouveo_risk_loadResult( $post_data ) {
 		'success'=>true,
 		'data' => array(
 			'risk_register_id' => $arr['field_DL_ID'],
+			'accrisk_filerecord_id' => $accrisk_filerecord_id,
 			'xml_binary' => $xml_binary,
 			'data_obj' => specRsiRecouveo_risk_lib_ES_getResultObjDecode($xml_binary)
 		)

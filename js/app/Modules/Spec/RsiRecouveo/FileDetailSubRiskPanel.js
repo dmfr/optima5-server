@@ -124,8 +124,17 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailSubRiskPanel', {
 				border: false,
 				xtype: 'toolbar',
 				items: ['->',{
+					itemId: 'btnRefresh',
+					icon: 'images/op5img/ico_reload_small.gif',
+					text: 'Mise à jour',
+					handler: function() {
+						this.handleXmlSave() ;
+					},
+					scope: this
+				},{
+					itemId: 'btnSave',
 					icon: 'images/op5img/ico_save_16.gif',
-					text: 'Save',
+					text: 'Enregistrer',
 					handler: function() {
 						this.handleXmlSave() ;
 					},
@@ -231,7 +240,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailSubRiskPanel', {
 		
 		// Gestion toolbar
 		if( currentViewMode == this._viewMode ) {
-			return ;
+			//return ;
 		}
 		
 		var switchTbarVisible = '' ;
@@ -261,6 +270,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailSubRiskPanel', {
 	setupSearchMode: function() {
 		this.down('#tbSearch').down('#tbSearchMode').setValue('_') ;
 		this.down('#tbSearch').down('#tbSearchTxt').reset() ;
+		this.down('#tbSearch').down('#tbSearchTxt').setVisible(false) ;
 		this.handleSearch() ;
 	},
 	setupResultMode: function() {
@@ -280,6 +290,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailSubRiskPanel', {
 				tbResultBtn.setIconCls( menuitem.iconCls ) ;
 			}
 		});
+		
+		this.down('#tbResult').down('#btnSave').setVisible( Ext.isEmpty(this._ajaxDataResult.accrisk_filerecord_id) ) ;
+		this.down('#tbResult').down('#btnRefresh').setVisible( !Ext.isEmpty(this._ajaxDataResult.accrisk_filerecord_id) ) ;
 		
 		switch( tbResultBtn._selectedItemId ) {
 			case 'xml' :
@@ -867,6 +880,11 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailSubRiskPanel', {
 				})
 			},
 			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					return ;
+				}
+				this.onXmlDownload(this._ajaxDataId, ajaxResponse.data) ;
 			},
 			callback: function() {
 				this.hideLoadmask() ;

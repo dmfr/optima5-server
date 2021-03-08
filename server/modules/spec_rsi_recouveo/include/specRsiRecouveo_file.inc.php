@@ -220,7 +220,7 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 				'risk_score' => $arr['risk_score'] >= 0 ? (float)$arr['risk_score'] : null,
 				'risk_score_color' => $fnGetScoreColor((float)$arr['risk_score']),
 				'risk_score_prog' => (float)$arr['risk_score_prog'],
-				'risk_payrank' => $arr['risk_score'] >= 0 ? (float)$arr['risk_payrank'] : null,
+				'risk_payrank' => $arr['risk_payrank'] >= 0 ? (float)$arr['risk_payrank'] : null,
 				'risk_payrank_color' => $fnGetScoreColor((float)$arr['risk_payrank'])
 			);
 		}
