@@ -153,9 +153,11 @@ function paracrm_define_getMainToolbar($post_data, $auth_bypass=FALSE, $fast=FAL
 		$TAB[] = $arr ;
 	}
 	
-	$arr_auth_status = array(
-		'disableAdmin' => !Auth_Manager::getInstance()->auth_query_sdomain_admin( Auth_Manager::sdomain_getCurrent() )
-	) ;
+	if( !$auth_bypass ) {
+		$arr_auth_status = array(
+			'disableAdmin' => !Auth_Manager::getInstance()->auth_query_sdomain_admin( Auth_Manager::sdomain_getCurrent() )
+		) ;
+	}
 	
 	switch( $post_data['data_type'] ) {
 		case 'bible' :
