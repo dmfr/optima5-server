@@ -2463,6 +2463,7 @@ function specRsiRecouveo_file_multiAction($post_data) {
 	)) ;
 	$arr_fileRecords = $json['data'] ;
 	
+	$arr_accIds = array() ;
 	$arr_filerecordIds = array() ;
 	foreach( $arr_fileRecords as $file_record ) {
 		$is_sched_lock = $map_status[$file_record['status']]['sched_lock'] ;
@@ -2595,6 +2596,18 @@ function specRsiRecouveo_file_multiAction($post_data) {
 				$json = specRsiRecouveo_file_createForAction($forward_post) ;
 				$arr_filerecordIds[] = $file_filerecord_id ;
 				break ;
+				
+			case 'risk_autofetch' :
+				$acc_id = $file_record['acc_id'] ;
+				if( in_array($acc_id,$arr_accIds) ) {
+					break ;
+				}
+				$forward_post = array(
+					'acc_id' => $file_record['acc_id'],
+					'force_search' => !!$p_targetForm['risk_force_search']
+				);
+				specRsiRecouveo_risk_autoAccount( $forward_post ) ;
+				break ;
 		}
 	}
 	$zgrplog_filerecord_id = specRsiRecouveo_file_createLogMultiAction($arr_fileRecords, $p_targetForm, $ttmp['data']["cfg_opt"]) ;
@@ -2664,6 +2677,9 @@ function specRsiRecouveo_file_createLogMultiAction ($arr_fileRecords, $targetFor
 			$actionLabel = "Action externe / Litige" ; // get sub_status OPT_LITIG
 			$getSubStatusLabel = "OPT_LITIG" ;
 			$subStatusCode = $targetForm["litig_code"] ;
+			break ;
+		case "risk_autofetch":
+			$actionLabel = "Analyse risque" ; // get sub_status OPT_LITIG
 			break ;
 	}
 	if ($subStatusCode !== NULL && $getSubStatusLabel !== NULL){

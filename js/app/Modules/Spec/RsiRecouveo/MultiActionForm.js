@@ -182,7 +182,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MultiActionForm',{
 					{ boxLabel: 'Demande clôture', name: 'multi_action', inputValue: 'lock_close' },
 					{ boxLabel: 'Assigner collaborateur', name: 'multi_action', inputValue: 'user' },
 					{ boxLabel: 'Blocage relance automatique', name: 'multi_action', inputValue: 'status_scenexecpause' },
-					{ boxLabel: 'Exporter la sélection', name: 'multi_action', inputValue: 'export_grp'}
+					{ boxLabel: 'Exporter la sélection', name: 'multi_action', inputValue: 'export_grp'},
+					{ boxLabel: '<b>Mod</b>&nbsp;:&nbsp;Analyse risque', name: 'multi_action', inputValue: 'risk_autofetch', hidden: !Optima5.Modules.Spec.RsiRecouveo.HelperCache.hasFeature('risk'),}
 				],
 				listeners: {
 					change: function(rg,newValue,oldValue) {
@@ -379,6 +380,23 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MultiActionForm',{
 				})]
 			},{
 				xtype: 'fieldset',
+				itemId: 'fsRiskAuto',
+				padding: 10,
+				title: '<b>Mod</b>&nbsp;:&nbsp;Analyse risque',
+				layout: {
+					type: 'anchor'
+				},
+				defaults: {
+					anchor: '100%',
+					labelWidth: 95
+				},
+				items: [{
+					xtype: 'checkboxfield',
+					name: 'risk_force_search',
+					boxLabel: 'Forcer nouvelle recherche'
+				}]
+			},{
+				xtype: 'fieldset',
 				itemId: 'fsComment',
 				title: 'Commentaire',
 				items: [{
@@ -421,6 +439,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MultiActionForm',{
 		this.down('#fsLitig').setVisible( multiMode=='lock_litig' ) ;
 		this.down('#fsUser').setVisible( multiMode=='user' ) ;
 		this.down('#fsScenexecpause').setVisible( multiMode=='status_scenexecpause' ) ;
+		this.down('#fsRiskAuto').setVisible( multiMode=='risk_autofetch' ) ;
 		this.down('#fsComment').setVisible( !Ext.isEmpty(multiMode) )
 	},
 	onFormChange: function(formP, field) {
