@@ -609,7 +609,7 @@ function specRsiRecouveo_risk_lib_ES_getResultObjDecode($xml_binary) {
 			//var_dump($xml_rr_director) ;
 			$row = array(
 				'type' => (string)$xml_rr_director->type,
-				'appointmentDate' => date_format(date_create_from_format('Ymd',(string)$xml_rr_director->appointmentDate),'Y-m-d'),
+				'appointmentDate' => $xml_rr_director->appointmentDate ? date_format(date_create_from_format('Ymd',(string)$xml_rr_director->appointmentDate),'Y-m-d') : '',
 				'function' => (string)$xml_rr_director->function
 			);
 			switch( $row['type'] ) {
@@ -620,7 +620,7 @@ function specRsiRecouveo_risk_lib_ES_getResultObjDecode($xml_binary) {
 						'pp_firstName' => (string)$xml_rr_director->naturalPerson->attributes()['firstName'],
 						
 						'pp_birthPlace' => (string)$xml_rr_director->naturalPerson->birthPlace,
-						'pp_birthDate' => date_format(date_create_from_format('Ymd',(string)$xml_rr_director->naturalPerson->birthDate),'Y-m-d')
+						'pp_birthDate' => $xml_rr_director->naturalPerson->birthDate ? date_format(date_create_from_format('Ymd',(string)$xml_rr_director->naturalPerson->birthDate),'Y-m-d') : ''
 					);
 					break ;
 			
