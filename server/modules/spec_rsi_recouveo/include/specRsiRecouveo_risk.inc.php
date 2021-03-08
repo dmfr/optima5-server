@@ -39,10 +39,79 @@ function specRsiRecouveo_risk_lib_getConfig() {
 
 
 
-function specRsiRecouveo_risk_getAccount( $post_data ) {
-
-
+function specRsiRecouveo_risk_autoAccount( $post_data ) {
+	//global $_opDB ;
+	
+	$acc_id = $post_data['acc_id'] ;
+	$force_search  = $post_data['force_search'] ;
+	
+	if( !$force_search ) {
+		// tentative de load ?
+		$json_loadResult = specRsiRecouveo_risk_loadResult(array('acc_id'=>$acc_id)) ;
+		//print_r($json_loadResult) ;
+		if( $json_loadResult['data'] && $json_loadResult['data']['risk_register_id'] ) {
+			specRsiRecouveo_risk_saveResult(array(
+				'acc_id' => $acc_id,
+				'data' => json_encode(array('id_register'=>$json_loadResult['data']['risk_register_id']))
+			)) ;
+			return ;
+		}
+	}
+	
+	// recherche 
+	// - si une seule réponse => saveResult
+	// - si plusieurs, recherche nom exact, si un seul => saveResult
+	$json_doSearch = specRsiRecouveo_risk_doSearch(array(
+		'acc_id' => $acc_id,
+		'data' => json_encode(array('search_mode'=>'_','search_txt'=>''))
+	));
+	$risk_register_id = NULL ;
+	while( TRUE ) {
+		$obj_search = $json_doSearch['data'] ;
+		if( !$obj_search ) {
+			break ;
+		}
+		$search_rows = $obj_search['rows'] ;
+		//print_r($search_rows) ;
+		if( !$search_rows ) {
+			break ;
+		}
+		if( count($search_rows) == 1 ) {
+			$risk_register_id = $search_rows[0]['id'] ;
+			break ;
+		}
+		
+		$acc_row = paracrm_lib_data_getRecord('bible_entry','LIB_ACCOUNT',$acc_id) ;
+		
+		$arr_exactName_registers = array() ;
+		foreach( $search_rows as $search_row ) {
+			if( $search_row['name'] == $acc_row['field_ACC_NAME'] ) {
+				$arr_exactName_registers[] = $search_row['id'] ;
+			}
+		}
+		if( count($arr_exactName_registers) == 1 ) {
+			$risk_register_id = reset($arr_exactName_registers) ;
+		}
+	
+		break ;
+	}
+	if( $risk_register_id ) {
+		specRsiRecouveo_risk_saveResult(array(
+			'acc_id' => $acc_id,
+			'data' => json_encode(array('id_register'=>$risk_register_id))
+		)) ;
+	}
 }
+
+
+
+
+
+
+
+
+
+
 function specRsiRecouveo_risk_doSearch( $post_data ) {
 	$acc_id = $post_data['acc_id'] ;
 	$search_data = json_decode($post_data['data'],true) ;
