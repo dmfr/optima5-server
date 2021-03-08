@@ -651,6 +651,7 @@ function specDbsTracy_gun_t70_transactionPostAction($post_data, $_recycle=false)
 			
 			return array(
 				'success'=>true,
+				'skip' => ($result_type=='success'),
 				'data' => array(
 					'header'=>array('result_type' => $result_type),
 					'primary_key' => $primary_key,

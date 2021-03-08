@@ -202,6 +202,10 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70',{
 					Ext.MessageBox.alert('Error',error, function(){this.openTransactionBuild(this._run_tracy70transactionId);},this) ;
 					return ;
 				}
+				if( ajaxResponse.skip == true ) {
+					this.openTransactionBuild(this._run_tracy70transactionId) ;
+					return ;
+				}
 				this.openTransactionScanResult( ajaxResponse.data ) ;
 			},
 			callback: function() {},
