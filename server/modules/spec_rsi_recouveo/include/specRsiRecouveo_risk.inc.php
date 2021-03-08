@@ -112,9 +112,9 @@ function specRsiRecouveo_risk_fetchResult( $post_data, $do_save=FALSE ) {
 		$arr_ins['field_DL_ID'] = $risk_register_id ;
 		$arr_ins['field_DL_DATE'] = date('Y-m-d H:i:s') ;
 		$arr_ins['field_DL_PROVIDER'] = 'ES' ;
-		$arr_ins['field_META_SCORE'] = $result_data['data_obj']['score_int'] ;
-		$arr_ins['field_META_SCORE_PROG'] = $result_data['data_obj']['score_prog_int'] ;
-		$arr_ins['field_META_PAYRANK'] = $result_data['data_obj']['payrank_int'] ;
+		$arr_ins['field_META_SCORE'] = isset($result_data['data_obj']['score_int']) ? $result_data['data_obj']['score_int'] : -1 ;
+		$arr_ins['field_META_SCORE_PROG'] = isset($result_data['data_obj']['score_prog_int']) ? $result_data['data_obj']['score_prog_int'] : 0 ;
+		$arr_ins['field_META_PAYRANK'] = isset($result_data['data_obj']['payrank_int']) ? $result_data['data_obj']['payrank_int'] : -1 ;
 		$accrisk_filerecord_id = paracrm_lib_data_insertRecord_file( 'ACC_RISK', 0, $arr_ins );
 		
 		$_domain_id = DatabaseMgr_Base::dbCurrent_getDomainId() ;

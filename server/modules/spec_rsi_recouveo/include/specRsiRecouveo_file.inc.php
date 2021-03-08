@@ -99,6 +99,9 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 	}
 	
 	$fnGetScoreColor = function($score) {
+		if( $score < 0 ) {
+			return '#aaaaaa' ;
+		}
 		if( $score >= 6 ) {
 			return '#90bc29' ;
 		} elseif( $score >= 4 ) {
@@ -214,10 +217,10 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 		if( $arr['risk_is_on'] ) {
 			$record+= array(
 				'risk_is_on' => !!$arr['risk_is_on'],
-				'risk_score' => (float)$arr['risk_score'],
+				'risk_score' => $arr['risk_score'] >= 0 ? (float)$arr['risk_score'] : null,
 				'risk_score_color' => $fnGetScoreColor((float)$arr['risk_score']),
 				'risk_score_prog' => (float)$arr['risk_score_prog'],
-				'risk_payrank' => (float)$arr['risk_payrank'],
+				'risk_payrank' => $arr['risk_score'] >= 0 ? (float)$arr['risk_payrank'] : null,
 				'risk_payrank_color' => $fnGetScoreColor((float)$arr['risk_payrank'])
 			);
 		}

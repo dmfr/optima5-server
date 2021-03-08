@@ -723,8 +723,13 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesWidgetList', {
 						inv_amount_due: 0,
 						inv_amount_total: 0,
 						inv_balage: {},
-						next_actions: []
+						next_actions: [],
 					} ;
+					Ext.Object.each(fileRow,function(k,v) {
+						if( k.startsWith('risk_') ) {
+							newAjaxData[accId][k] = v ;
+						}
+					}) ;
 					if( showAddress ) {
 						var mergeObj = {} ;
 						Ext.Array.each(
