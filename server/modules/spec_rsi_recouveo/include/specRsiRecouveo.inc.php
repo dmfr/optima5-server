@@ -255,7 +255,7 @@ function specRsiRecouveo_cfg_getConfig($post_data=array('skip_filter'=>true)) {
 	$json_define = paracrm_define_getMainToolbar( array('data_type'=>'bible') , true, $fast=TRUE ) ;
 	foreach( $json_define['data_bible'] as $define_bible ) {
 		if( strpos($define_bible['bibleId'],'OPT_')===0 || $define_bible['bibleId']=='LIB_ACCOUNT' ) {
-			$json_define_bible = paracrm_data_getBibleCfg(array('bible_code'=>$define_bible['bibleId'])) ;
+			$json_define_bible = paracrm_data_getBibleCfg(array('bible_code'=>$define_bible['bibleId']),true) ;
 			
 			$bible_code = $define_bible['bibleId'] ;
 			$bible_desc = $define_bible['text'] ;
@@ -408,7 +408,7 @@ function specRsiRecouveo_cfg_getConfig($post_data=array('skip_filter'=>true)) {
 				);
 				
 				$bible_code = 'ATR_'.$metafield['metafield_code'] ;
-				$json_define_bible = paracrm_data_getBibleCfg(array('bible_code'=>$bible_code)) ;
+				$json_define_bible = paracrm_data_getBibleCfg(array('bible_code'=>$bible_code),true) ;
 				if( $json_define_bible['success'] ) {
 					$records = array() ;
 					$query_atrs = "SELECT * FROM view_bible_{$bible_code}_tree ORDER BY treenode_key" ;
