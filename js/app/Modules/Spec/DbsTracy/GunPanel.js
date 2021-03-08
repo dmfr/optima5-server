@@ -8,7 +8,8 @@ Ext.define('DbsTracyGun70selectTrspt',{
 		{name: 'count_trspt', type:'int'},
 		{name: 'count_parcel', type:'int'},
 		{name: 'count_order', type:'int'},
-		{name: 'count_order_final', type:'int'}
+		{name: 'count_order_final', type:'int'},
+		{name: 'has_saved', type:'boolean'}
 	]
 });
 Ext.define('DbsTracyGun70transactionSummary',{

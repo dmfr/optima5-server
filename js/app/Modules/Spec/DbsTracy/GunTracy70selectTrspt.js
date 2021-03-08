@@ -55,6 +55,9 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70selectTrspt',{
 				width: 36,
 				items: [{
 					getClass: function(v,metadata,r) {
+						if( r.get('has_saved') ) {
+							return 'op5-spec-dbstracy-gun-take-saved' ;
+						}
 						if( r.get('is_integrateur') ) {
 							return 'op5-spec-dbstracy-gun-take-orange' ;
 						} else {

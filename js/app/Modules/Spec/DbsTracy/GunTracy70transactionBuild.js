@@ -14,10 +14,17 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70transactionBuild',{
 	initComponent: function(){
 		Ext.apply(this,{
 			tbar: [{
-				icon: 'images/op5img/ico_save_16.gif',
-				text: '<b>Create manifest</b>',
+				icon: 'images/op5img/ico_ok_16.gif',
+				text: '<b>Go manifest</b>',
 				handler: function(){
 					this.handleValidate() ;
+				},
+				scope: this
+			},{
+				icon: 'images/op5img/ico_save_16.gif',
+				text: '<b>Save</b>',
+				handler: function(){
+					this.handleAbort(true) ;
 				},
 				scope: this
 			},'->',{
@@ -245,7 +252,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70transactionBuild',{
 		this.down('grid').getStore().loadData(ajaxData.grid) ;
 	},
 	
-	handleAbort: function() {
+	handleAbort: function(dosave=false) {
 		this.showLoadmask() ;
 		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: {
@@ -253,7 +260,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.GunTracy70transactionBuild',{
 				_action: 'gun_t70_transactionPostAction',
 				
 				_transaction_id: this._transactionId,
-				_subaction: 'abort',
+				_subaction: dosave ? 'abort_save' : 'abort',
 			},
 			success: function(response) {
 				var ajaxResponse = Ext.decode(response.responseText) ;

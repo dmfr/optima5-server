@@ -238,6 +238,9 @@
 	min-height: 16px ;
 }
 
+.op5-spec-dbstracy-gun-take-saved {
+	background: url('../images/op5img/ico_save_16.gif') ;
+}
 .op5-spec-dbstracy-gun-take-orange {
 	background: url('../images/modules/dbstracy-puzzle-orange-16.png') ;
 }

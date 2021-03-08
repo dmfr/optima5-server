@@ -183,6 +183,7 @@ function specDbsTracy_hat_getRecords( $post_data ) {
 				'vol_count' => (int)$arr['field_VOL_COUNT'],
 				'vol_kg' => (float)$arr['field_VOL_KG'],
 				'vol_dims' => explode('x',$arr['field_VOL_DIMS']),
+				'gun_is_saved' => !!$arr['field_GUN_IS_SAVED'],
 				'spec_barcode' => $arr['field_SPEC_BARCODE'],
 				'tms_carrier' => $arr['field_TMS_CARRIER'],
 				'tms_tracking' => $arr['field_TMS_TRACKING']
@@ -321,6 +322,14 @@ function specDbsTracy_hat_orderRemove( $post_data ) {
 	}
 	
 	return array('success'=>true) ;
+}
+
+
+
+function specDbsTracy_hat_lib_saveGun( $map_harparcelFilerecordId_torf ) {
+	foreach( $map_harparcelFilerecordId_torf as $hatparcel_filerecord_id => $torf ) {
+		paracrm_lib_data_updateRecord_file( 'HAT_PARCEL', array('field_GUN_IS_SAVED'=>($torf ? 1 : 0)), $hatparcel_filerecord_id ) ;
+	}
 }
 
 ?>

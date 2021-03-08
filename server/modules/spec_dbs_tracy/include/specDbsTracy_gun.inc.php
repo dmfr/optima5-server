@@ -91,7 +91,9 @@ function specDbsTracy_gun_t70_getTrsptList($post_data) {
 	$data = array() ;
 	foreach( $map_carrierCode_arrTrpstRows as $carrier_code => $trspt_rows ) {
 		$count_trspt = $count_parcel = $count_order = $count_order_final = 0 ;
+		$has_saved = FALSE ;
 		$arr_trsptFilerecordIds = array() ;
+		$arr_hatparcelFilerecordIds = array() ;
 		foreach( $trspt_rows as $trspt_row ) {
 			if( !$trspt_row['orders'] ) {
 				continue ;
@@ -100,6 +102,12 @@ function specDbsTracy_gun_t70_getTrsptList($post_data) {
 			foreach( $trspt_row['hats'] as $hat_row ) {
 				$count_order++ ;
 				$count_parcel+= count($hat_row['parcels']) ;
+				foreach( $hat_row['parcels'] as $hatparcel_row ) {
+					if( $hatparcel_row['gun_is_saved'] ) {
+						$has_saved = TRUE ;
+					}
+					$arr_hatparcelFilerecordIds[] = $hatparcel_row['hatparcel_filerecord_id'] ;
+				}
 			}
 			$count_trspt++ ;
 			$arr_trsptFilerecordIds[] = $trspt_row['trspt_filerecord_id'] ;
@@ -112,7 +120,9 @@ function specDbsTracy_gun_t70_getTrsptList($post_data) {
 			'count_parcel' => $count_parcel,
 			'count_order' => $count_order,
 			'count_order_final' => $count_order_final,
-			'arr_trsptFilerecordIds' => $arr_trsptFilerecordIds
+			'arr_trsptFilerecordIds' => $arr_trsptFilerecordIds,
+			'arr_hatparcelFilerecordIds' => $arr_hatparcelFilerecordIds,
+			'has_saved' => $has_saved
 		);
 	}
 	return array('success'=>true, 'data'=>$data) ;
@@ -268,8 +278,32 @@ function specDbsTracy_gun_t70_transactionPostAction($post_data, $_recycle=false)
 	
 	switch( $p_subaction ) {
 		case 'abort' :
+		case 'abort_save' :
 			if( isset($_SESSION['transactions'][$p_transactionId]) 
 				&& ($_SESSION['transactions'][$p_transactionId]['transaction_code'] == SPECDBSTRACY_GUN_T70_CODE) ) {
+				
+				$obj_brt = $_SESSION['transactions'][$p_transactionId]['obj_brt'] ;
+				specDbsTracy_gun_t70_lib_populateTrspt($obj_brt) ;
+				$json = specDbsTracy_trspt_getRecords(array(
+					'filter_trsptFilerecordId_arr'=>json_encode($obj_brt['arr_trsptFilerecordIds'])
+				)) ;
+				
+				$map_harparcelFilerecordId_torf = array() ;
+				foreach( $json['data'] as $trspt_row ) {
+					foreach( $trspt_row['hats'] as $hat_row ) {
+						foreach( $hat_row['parcels'] as $hatparcel_row ) {
+							$hatparcel_filerecord_id = $hatparcel_row['hatparcel_filerecord_id'] ;
+							$torf = FALSE ;
+							if( $p_subaction=='abort_save' ) {
+								if( in_array($hatparcel_filerecord_id,$obj_brt['arr_hatparcelFilerecordIds']) ) {
+									$torf = TRUE ;
+								}
+							}
+							$map_harparcelFilerecordId_torf[$hatparcel_filerecord_id] = $torf ;
+						}
+					}
+				}
+				specDbsTracy_hat_lib_saveGun($map_harparcelFilerecordId_torf) ;
 				
 				unset($_SESSION['transactions'][$p_transactionId]) ;
 			}
@@ -295,6 +329,20 @@ function specDbsTracy_gun_t70_transactionPostAction($post_data, $_recycle=false)
 				'arr_hatparcelFilerecordIds' => array()
 			) ;
 			specDbsTracy_gun_t70_lib_populateTrspt($obj_brt) ;
+			$json = specDbsTracy_trspt_getRecords(array(
+				'filter_trsptFilerecordId_arr'=>json_encode($obj_brt['arr_trsptFilerecordIds'])
+			)) ;
+			
+			$map_harparcelFilerecordId_torf = array() ;
+			foreach( $json['data'] as $trspt_row ) {
+				foreach( $trspt_row['hats'] as $hat_row ) {
+					foreach( $hat_row['parcels'] as $hatparcel_row ) {
+						if( $hatparcel_row['gun_is_saved'] ) {
+							$obj_brt['arr_hatparcelFilerecordIds'][] = $hatparcel_row['hatparcel_filerecord_id'] ;
+						}
+					}
+				}
+			}
 			
 			$transaction_id = $_SESSION['next_transaction_id']++ ;
 		
