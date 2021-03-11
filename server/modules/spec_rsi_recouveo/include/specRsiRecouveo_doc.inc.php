@@ -584,6 +584,10 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE, $stopAsHtm
 			}
 			if( $accountFile_record['status_substatus'] ) {
 				$arr_values[] = $accountFile_record['status_substatus'] ;
+				$ttmp = explode(':',$accountFile_record['status_substatus']) ;
+				if( $ttmp[0] == $accountFile_record['status'] ) {
+					$arr_values[] = $ttmp[1] ;
+				}
 			}
 			if( array_intersect($arr_values,$arr_targets) ) {
 				continue ;
